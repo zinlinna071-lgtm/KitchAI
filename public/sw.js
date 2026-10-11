@@ -1,5 +1,5 @@
-const CACHE_NAME="kitchai-shell-v1";
-const APP_SHELL=["/","/index.html","/src/app.js","/src/styles.css","/manifest.webmanifest","/favicon.svg"];
+const CACHE_NAME="kitchai-shell-v2";
+const APP_SHELL=["/","/index.html","/src/app.js","/src/local-store.js","/src/styles.css","/manifest.webmanifest","/favicon.svg"];
 self.addEventListener("install",event=>event.waitUntil(caches.open(CACHE_NAME).then(cache=>cache.addAll(APP_SHELL)).then(()=>self.skipWaiting())));
 self.addEventListener("activate",event=>event.waitUntil(caches.keys().then(names=>Promise.all(names.filter(name=>name.startsWith("kitchai-shell-")&&name!==CACHE_NAME).map(name=>caches.delete(name)))).then(()=>self.clients.claim())));
 self.addEventListener("fetch",event=>{

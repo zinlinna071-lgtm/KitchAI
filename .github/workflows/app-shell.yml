@@ -2,9 +2,9 @@ name: WP1.2 Application Shell
 on:
   push:
     branches: [main]
-    paths: ["index.html", "src/**", "public/**", "scripts/**", "tests/**", "package.json", ".github/workflows/app-shell.yml"]
+    paths: ["index.html", "src/**", "public/**", "scripts/**", "tests/**", ".spikes/wp1-1-local-sync/app-shell.playwright.config.js", ".spikes/wp1-1-local-sync/tests/app-shell.smoke.spec.js", "package.json", ".github/workflows/app-shell.yml"]
   pull_request:
-    paths: ["index.html", "src/**", "public/**", "scripts/**", "tests/**", "package.json", ".github/workflows/app-shell.yml"]
+    paths: ["index.html", "src/**", "public/**", "scripts/**", "tests/**", ".spikes/wp1-1-local-sync/app-shell.playwright.config.js", ".spikes/wp1-1-local-sync/tests/app-shell.smoke.spec.js", "package.json", ".github/workflows/app-shell.yml"]
 permissions:
   contents: read
 concurrency:
