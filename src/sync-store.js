@@ -26,6 +26,7 @@ function openDatabase() {
       if (!db.objectStoreNames.contains(OPERATION_STORE)) {
         const operations = db.createObjectStore(OPERATION_STORE, { keyPath: "operationId" });
         operations.createIndex("byOwner", "ownerId", { unique: false });
+        operations.createIndex("byOwnerAndRecord", ["ownerId", "recordId"], { unique: false });
       }
       if (!db.objectStoreNames.contains(CONFLICT_STORE)) {
         const conflicts = db.createObjectStore(CONFLICT_STORE, { keyPath: "conflictId" });
@@ -80,27 +81,34 @@ export async function saveOwnerProfileDraft(input) {
       updatedAt: now,
       ...(existing?.revision ? { revision: existing.revision } : {}),
     };
-    const operationId = crypto.randomUUID();
-    const operation = {
-      operationId,
-      ownerId,
-      recordId: id,
-      operation: existing ? "update" : "create",
-      baseRevision: existing ? (input.baseRevision ?? existing.revision ?? null) : null,
-      baseSnapshot: existing ? structuredClone(existing) : null,
-      localSnapshot: structuredClone(profile),
-      payload: { name },
-      createdAt: now,
-      attemptCount: 0,
-      state: "pending",
-      nextAttemptAt: 0,
-    };
-    if (existing && !Number.isInteger(operation.baseRevision)) {
-      throw new Error("An authoritative base revision is required before updating a synced profile.");
+    const queuedForRecord = await requestValue(operations.index("byOwnerAndRecord").getAll([ownerId, id]));
+    const pendingCreate = queuedForRecord.find(op => op.operation === "create" && ["pending", "retryable_error"].includes(op.state));
+    if (existing && !Number.isInteger(input.baseRevision ?? existing.revision)) {
+      if (!pendingCreate) throw new Error("An authoritative base revision is required before updating a synced profile.");
+      const coalesced = { ...pendingCreate, payload: { name }, localSnapshot: structuredClone(profile) };
+      profiles.put(profile);
+      operations.put(coalesced);
+      result = { profile, operation: coalesced };
+    } else {
+      const operationId = crypto.randomUUID();
+      const operation = {
+        operationId,
+        ownerId,
+        recordId: id,
+        operation: existing ? "update" : "create",
+        baseRevision: existing ? (input.baseRevision ?? existing.revision) : null,
+        baseSnapshot: existing ? structuredClone(existing) : null,
+        localSnapshot: structuredClone(profile),
+        payload: { name },
+        createdAt: now,
+        attemptCount: 0,
+        state: "pending",
+        nextAttemptAt: 0,
+      };
+      profiles.put(profile);
+      operations.add(operation);
+      result = { profile, operation };
     }
-    profiles.put(profile);
-    operations.add(operation);
-    result = { profile, operation };
     await new Promise((resolve, reject) => {
       tx.oncomplete = resolve;
       tx.onerror = () => reject(tx.error ?? new Error("Could not save the profile and outbox operation."));
