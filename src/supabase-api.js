@@ -2,7 +2,7 @@ const SESSION_KEY = "kitchai.auth.session";
 
 /** @returns {{supabaseUrl?:string,supabaseAnonKey?:string}} */
 function runtimeConfig() {
-  return globalThis.KITCHAI_CONFIG ?? {};
+  return /** @type {any} */ (globalThis).KITCHAI_CONFIG ?? {};
 }
 
 export function isSupabaseConfigured() {
@@ -21,10 +21,10 @@ function apiUrl(path) {
 /** @param {string} path @param {{method?:string,body?:unknown,session?:any,prefer?:string}=} options */
 async function request(path, options = {}) {
   const config = runtimeConfig();
-  const headers = {
+  const headers = /** @type {Record<string, string>} */ ({
     apikey: config.supabaseAnonKey ?? "",
     Accept: "application/json",
-  };
+  });
   if (options.body !== undefined) headers["Content-Type"] = "application/json";
   if (options.session?.access_token) headers.Authorization = "Bearer " + options.session.access_token;
   if (options.prefer) headers.Prefer = options.prefer;
