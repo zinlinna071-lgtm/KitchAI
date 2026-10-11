@@ -1,0 +1,79 @@
+name: WP1.6 Local Supabase Vertical Slice
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "index.html"
+      - "src/**"
+      - "public/**"
+      - "scripts/serve.mjs"
+      - "scripts/build.mjs"
+      - "package.json"
+      - "tests/**"
+      - "supabase/**"
+      - ".spikes/wp1-1-local-sync/local-supabase.playwright.config.js"
+      - ".spikes/wp1-1-local-sync/tests/local-supabase.integration.spec.js"
+      - ".github/workflows/wp1-6-local-supabase.yml"
+  pull_request:
+    paths:
+      - "index.html"
+      - "src/**"
+      - "public/**"
+      - "scripts/serve.mjs"
+      - "scripts/build.mjs"
+      - "package.json"
+      - "tests/**"
+      - "supabase/**"
+      - ".spikes/wp1-1-local-sync/local-supabase.playwright.config.js"
+      - ".spikes/wp1-1-local-sync/tests/local-supabase.integration.spec.js"
+      - ".github/workflows/wp1-6-local-supabase.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: wp1-6-local-supabase-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  local-vertical-slice:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Start isolated local Supabase stack
+        run: npx --yes supabase@2.39.2 start --exclude studio,mailpit,storage-api,imgproxy
+        timeout-minutes: 15
+        env:
+          SUPABASE_CLI_TELEMETRY_DISABLED: "true"
+      - name: Export local public client configuration
+        shell: bash
+        run: |
+          set -a
+          eval "$(npx --yes supabase@2.39.2 status -o env)"
+          set +a
+          test -n "$API_URL"
+          test -n "$ANON_KEY"
+          echo "KITCHAI_SUPABASE_URL=$API_URL" >> "$GITHUB_ENV"
+          echo "KITCHAI_SUPABASE_ANON_KEY=$ANON_KEY" >> "$GITHUB_ENV"
+      - name: Run database authorization and idempotency tests
+        run: npx --yes supabase@2.39.2 test db
+        timeout-minutes: 7
+      - name: Build app
+        run: npm run build
+      - name: Install isolated browser test dependencies
+        run: npm ci --prefix .spikes/wp1-1-local-sync
+      - name: Exercise Auth, offline sync, import, and conflicts against local Supabase
+        run: npx playwright test --config local-supabase.playwright.config.js
+        working-directory: .spikes/wp1-1-local-sync
+        timeout-minutes: 8
+      - name: Stop local Supabase stack
+        if: always()
+        run: npx --yes supabase@2.39.2 stop --no-backup
+        timeout-minutes: 3
+        env:
+          SUPABASE_CLI_TELEMETRY_DISABLED: "true"
