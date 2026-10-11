@@ -249,6 +249,7 @@ async function loadLocalProfile() {
       businessNameInput.value = currentProfile.name;
       setProfileState("Saved on this device · not synced.");
     } else {
+      businessNameInput.value = "";
       setProfileState("No profile saved on this device yet.");
     }
     if (adoptLocalButton) adoptLocalButton.hidden = true;
