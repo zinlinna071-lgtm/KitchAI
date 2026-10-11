@@ -4,6 +4,7 @@ import {
   getRecord,
   getRecords,
   restoreOwnerRecords,
+  simulateNextStorageWriteFailure,
   writeRecords,
 } from "./database.js";
 import { FakeRemote } from "./fake-remote.js";
@@ -209,6 +210,10 @@ export async function resolveConflict(conflictId, choice) {
     }
   });
   return copy(resolvedConflict);
+}
+
+export function simulateStorageFailure() {
+  simulateNextStorageWriteFailure();
 }
 
 export async function exportWorkspace() {
