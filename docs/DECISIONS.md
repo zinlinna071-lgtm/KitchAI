@@ -1,6 +1,6 @@
 # Decision Log
 
-This log distinguishes accepted planning constraints from proposals and unresolved owner decisions. Update it when a material decision is made; do not treat a draft recommendation as approval.
+This log distinguishes accepted planning constraints from proposals and unresolved owner decisions. Update it when a material decision is made; do not treat a draft recommendation as approval. The consolidated Phase 1 review is in [OWNER_REVIEW_BRIEF.md](./OWNER_REVIEW_BRIEF.md); it contains recommendations, not approvals.
 
 ## Accepted planning constraints
 
