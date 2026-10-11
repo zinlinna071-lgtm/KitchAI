@@ -82,6 +82,6 @@ The spike now includes executable scenarios for:
 - A storage-write failure before the IndexedDB transaction begins, verifying no partial profile/outbox write is left behind.
 - A remote write accepted before its acknowledgement is lost; retrying the same operation ID must return the recorded result without a second logical write.
 - Exporting and restoring profile plus pending outbox data into a fresh browser context, and rejecting a backup tagged for a different owner.
-- Fake-remote records partitioned by owner and profile ID.
+- Fake-remote records partitioned by owner and profile ID, including two owners syncing the same profile ID without cross-owner collision.
 
-These are local spike tests only. The session switch is a test seam, not authentication; the fake remote is not server-side authorization. Backup restore currently requires a fresh workspace and the same owner ID. An initial CI run found session re-authentication and missing-record expectation issues; both were corrected on main. The updated suite must pass before treating these cases as verified. WP1.1 remains in progress.
+These are local spike tests only. The session switch is a test seam, not authentication; the fake remote is not server-side authorization. Backup restore currently requires a fresh workspace and the same owner ID. An initial CI run found session re-authentication and missing-record expectation issues; both were corrected on main. A further regression now checks two owners syncing the same profile ID; the current expanded suite must pass before treating all cases as verified. WP1.1 remains in progress.
