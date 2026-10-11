@@ -1,9 +1,22 @@
-import { clearDatabase, getRecord, getRecords, writeRecords } from "./database.js";
+import {
+  clearDatabase,
+  exportOwnerRecords,
+  getRecord,
+  getRecords,
+  restoreOwnerRecords,
+  writeRecords,
+} from "./database.js";
 import { FakeRemote } from "./fake-remote.js";
 
 export const maximumAttempts = 3;
 export const fakeRemote = new FakeRemote();
 const copy = (value) => structuredClone(value);
+let activeOwnerId = null;
+
+function requireOwner() {
+  if (!activeOwnerId) throw new Error("Workspace is locked; sign in to continue");
+  return activeOwnerId;
+}
 
 function validateProfile(input) {
   if (!input || typeof input.id !== "string" || !input.id.trim()) {
@@ -32,7 +45,25 @@ function createOperation(profile, baseProfile) {
   };
 }
 
+// Demonstration-only session switch. A real app must derive ownerId from verified server identity.
+export function signInAs(ownerId) {
+  if (typeof ownerId !== "string" || !ownerId.trim()) throw new Error("Owner id is required");
+  activeOwnerId = ownerId;
+  return { ownerId: activeOwnerId, locked: false };
+}
+
+export function signOut() {
+  activeOwnerId = null;
+  return { locked: true };
+}
+
+export function workspaceStatus() {
+  return { locked: !activeOwnerId, ownerId: activeOwnerId };
+}
+
 export async function createProfile(input) {
+  const ownerId = requireOwner();
+  if (input?.ownerId !== ownerId) throw new Error("Profile owner does not match active workspace");
   const fields = validateProfile(input);
   const now = new Date().toISOString();
   const profile = {
@@ -50,8 +81,9 @@ export async function createProfile(input) {
 }
 
 export async function updateProfile(id, name) {
-  const current = await getRecord("profiles", id);
-  if (!current) throw new Error("Profile does not exist");
+  const ownerId = requireOwner();
+  const current = await getRecord("profiles", id, ownerId);
+  if (!current) throw new Error("Profile does not exist in the active workspace");
   const fields = validateProfile({ ...current, name });
   const profile = {
     ...fields,
@@ -66,28 +98,43 @@ export async function updateProfile(id, name) {
   return copy(profile);
 }
 
-export const readProfile = (id) => getRecord("profiles", id);
-export const listOutbox = () => getRecords("outbox");
-export const listConflicts = () => getRecords("conflicts");
+export async function readProfile(id) {
+  return getRecord("profiles", id, requireOwner());
+}
+
+export async function listOutbox() {
+  return getRecords("outbox", requireOwner());
+}
+
+export async function listConflicts() {
+  return getRecords("conflicts", requireOwner());
+}
 
 export async function syncOperation(operationId) {
-  const operation = await getRecord("outbox", operationId);
-  if (!operation) throw new Error("Outbox operation does not exist");
+  const ownerId = requireOwner();
+  const operation = await getRecord("outbox", operationId, ownerId);
+  if (!operation) throw new Error("Outbox operation does not exist in the active workspace");
   if (!navigator.onLine) return { status: "offline" };
   if (operation.state === "conflict") return { status: "conflict" };
+  if (operation.state === "synced") return { status: "synced" };
   if (operation.state === "failed" && operation.attempts >= maximumAttempts) {
     return { status: "retry-exhausted" };
   }
 
-  const response = await fakeRemote.push({
-    operationId: operation.operationId,
-    profileId: operation.profileId,
-    ownerId: operation.ownerId,
-    baseRevision: operation.baseRevision,
-    baseCandidate: operation.baseCandidate,
-    candidate: operation.candidate,
-  });
-  if (operation.state === "synced") return response;
+  let response;
+  try {
+    response = await fakeRemote.push({
+      operationId: operation.operationId,
+      profileId: operation.profileId,
+      ownerId: operation.ownerId,
+      baseRevision: operation.baseRevision,
+      baseCandidate: operation.baseCandidate,
+      candidate: operation.candidate,
+    });
+  } catch {
+    // Keep the same operation ID and candidate. A retry can safely discover a prior acceptance.
+    return { status: "acknowledgement-lost" };
+  }
 
   const updated = {
     ...operation,
@@ -105,6 +152,7 @@ export async function syncOperation(operationId) {
       transaction.objectStore("conflicts").put({
         id: operation.operationId,
         operationId: operation.operationId,
+        ownerId,
         profileId: operation.profileId,
         baseRevision: operation.baseRevision,
         baseCandidate: copy(operation.baseCandidate),
@@ -124,10 +172,11 @@ export async function syncOperation(operationId) {
 }
 
 export async function resolveConflict(conflictId, choice) {
+  const ownerId = requireOwner();
   if (choice !== "local" && choice !== "remote") {
     throw new Error("Choose either the local or remote candidate");
   }
-  const conflict = await getRecord("conflicts", conflictId);
+  const conflict = await getRecord("conflicts", conflictId, ownerId);
   if (!conflict || conflict.status !== "unresolved") {
     throw new Error("Conflict is not unresolved");
   }
@@ -162,7 +211,24 @@ export async function resolveConflict(conflictId, choice) {
   return copy(resolvedConflict);
 }
 
+export async function exportWorkspace() {
+  return JSON.stringify(await exportOwnerRecords(requireOwner()), null, 2);
+}
+
+export async function restoreWorkspace(serializedBackup) {
+  const ownerId = requireOwner();
+  let payload;
+  try {
+    payload = JSON.parse(serializedBackup);
+  } catch {
+    throw new Error("Backup must be valid JSON");
+  }
+  await restoreOwnerRecords(payload, ownerId);
+  return { restored: payload.profiles.length, queued: payload.outbox.length, conflicts: payload.conflicts.length };
+}
+
 export async function resetSpike() {
   await clearDatabase();
   fakeRemote.reset();
+  activeOwnerId = null;
 }
