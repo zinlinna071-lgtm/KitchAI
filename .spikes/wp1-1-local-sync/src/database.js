@@ -58,7 +58,7 @@ function requestResult(request) {
 export function getRecord(storeName, key, ownerId) {
   return transact([storeName], "readonly", (transaction) =>
     requestResult(transaction.objectStore(storeName).get([ownerId, key])),
-  );
+  ).then((value) => value ?? null);
 }
 
 export function getRecords(storeName, ownerId) {
