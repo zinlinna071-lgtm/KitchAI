@@ -42,6 +42,8 @@ All added files are under this disposable directory. The prototype consists of a
 | Bound retries at three attempts and retain the local profile after failure | Pass |
 | Detect a stale revision and retain base, local, and remote candidates; resolution is explicit and snapshots remain | Pass |
 | Reject a mismatched fake owner ID | Pass, **simulation only** |
+| Pending outbox operation survives page reload with the same operation ID and can sync afterward | Pass; one browser context, simulated remote |
+| Explicit remote-candidate conflict resolution preserves original snapshots and marks the original operation as conflict | Pass; fake remote only |
 
 The fake remote stores no state across page reloads and provides deterministic transient failures, idempotency receipts, owner mismatch rejection, competing revisions, and write counts. The outbox records pending, synced, failed, and conflict states. Conflicts are kept in IndexedDB with their base and both candidates; choosing the local candidate explicitly creates a new operation based on the remote revision.
 
@@ -51,7 +53,7 @@ The fake remote stores no state across page reloads and provides deterministic t
 - No cloud service, provider-specific integration, real credentials, network replication, multi-device behavior, or provider authorization tests were used.
 - The fake remote is in-memory and deterministic, not a server or durable remote database. The prototype does not test real reconnection, request ordering across tabs, concurrent writers, or server-side idempotency constraints.
 - The browser persistence check covers a page reload in one browser context. Storage eviction/quota failures, browser restart, migrations, backup/restore, sign-out, and shared-device protection are untested.
-- The local-candidate resolution path is tested; the remote-candidate selection branch and a conflict-review UI are not. The status page is a spike fixture, not an application shell or PWA.
+- The local- and remote-candidate resolution branches are tested at the storage/function level; a conflict-review UI is not. The status page is a spike fixture, not an application shell or PWA.
 - The schema and validation are intentionally minimal test fixtures; no personal, financial, address, or customer data is present.
 
 ## IndexedDB versus RxDB
