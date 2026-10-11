@@ -22,6 +22,8 @@ begin
     raise exception 'Authenticated owner required' using errcode = '42501';
   end if;
 
+  new.name := pg_catalog.btrim(new.name);
+
   if tg_op = 'INSERT' then
     new.owner_id := auth.uid();
     new.business_id := pg_catalog.gen_random_uuid();
