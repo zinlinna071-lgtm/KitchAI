@@ -123,6 +123,7 @@ test("owner-scoped outbox persists atomically and conflict snapshots survive res
       id: coalesced.profile.id, businessId: coalesced.profile.businessId, name: coalesced.profile.name,
       createdAt: coalesced.profile.createdAt, updatedAt: new Date(Date.now() + 1).toISOString(), revision: 1,
     });
+    const syncedState = (await sync.listOwnerProfiles("owner-a"))[0].syncState;
     const edited = await sync.saveOwnerProfileDraft({
       ownerId: "owner-a", id: created.profile.id, name: "Alpha Kitchen Local", baseRevision: 1,
     });
@@ -131,20 +132,25 @@ test("owner-scoped outbox persists atomically and conflict snapshots survive res
       createdAt: created.profile.createdAt, updatedAt: new Date(Date.now() + 2).toISOString(), revision: 2,
     });
     const conflicts = await sync.listConflicts("owner-a");
+    const conflictState = (await sync.listOwnerProfiles("owner-a"))[0].syncState;
     await sync.keepLocalAndResolve(conflicts[0], "owner-a", {
       operationId: "resolution-operation", createdAt: new Date().toISOString(),
     });
     const operations = await sync.listOperations("owner-a");
     const resolved = await sync.listConflicts("owner-a");
+    const resolutionState = (await sync.listOwnerProfiles("owner-a"))[0].syncState;
     localStorage.setItem("wp15-record-id", created.profile.id);
     return {
       profileCount: ownerAProfiles.length,
       otherOwnerCount: ownerBProfiles.length,
+      syncedState,
+      conflictState,
+      resolutionState,
       initialOperation: created.operation,
       coalescedOperationId: coalesced.operation.operationId,
       operationStates: operations.map((operation) => operation.state),
       conflictCount: resolved.length,
-      conflictState: resolved[0].state,
+      conflictRecordState: resolved[0].state,
       baseName: resolved[0].baseSnapshot.name,
       localName: resolved[0].localSnapshot.name,
       remoteName: resolved[0].remoteSnapshot.name,
@@ -153,13 +159,17 @@ test("owner-scoped outbox persists atomically and conflict snapshots survive res
   });
   expect(result.profileCount).toBe(1);
   expect(result.otherOwnerCount).toBe(0);
+  expect(result.syncedState).toBe("synced");
+  expect(result.conflictState).toBe("conflict");
+  expect(result.conflictRecordState).toBe("resolved");
+  expect(result.resolutionState).toBe("pending");
   expect(result.initialOperation.operation).toBe("create");
   expect(result.initialOperation.baseRevision).toBeNull();
   expect(result.coalescedOperationId).toBe(result.initialOperation.operationId);
   expect(result.operationStates).toContain("conflict");
   expect(result.operationStates).toContain("pending");
   expect(result.conflictCount).toBe(1);
-  expect(result.conflictState).toBe("resolved");
+  expect(result.conflictRecordState).toBe("resolved");
   expect(result.baseName).toBe("Alpha Kitchen");
   expect(result.localName).toBe("Alpha Kitchen Local");
   expect(result.remoteName).toBe("Alpha Kitchen Remote");
