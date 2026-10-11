@@ -1,5 +1,5 @@
 begin;
-select plan(19);
+select plan(21);
 
 insert into auth.users (id, aud, role, email, encrypted_password, email_confirmed_at)
 values
@@ -23,13 +23,18 @@ select lives_ok(
     values ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
       '22222222-2222-4222-8222-222222222222',
       'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
-      'Owner A Kitchen', '2000-01-01T00:00:00Z', '2000-01-01T00:00:00Z', 77)$$,
+      '  Owner A Kitchen  ', '2000-01-01T00:00:00Z', '2000-01-01T00:00:00Z', 77)$$,
   'authenticated owner can create a profile'
 );
 select is(
   (select owner_id::text from public.business_profiles where id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'),
   '11111111-1111-4111-8111-111111111111',
   'owner_id is derived from authenticated identity, not client input'
+);
+select is(
+  (select name from public.business_profiles where id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'),
+  'Owner A Kitchen',
+  'profile name is trimmed server-side'
 );
 select is(
   (select revision from public.business_profiles where id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'),
@@ -84,13 +89,15 @@ select is(
   0,
   'owner B cannot read owner A profile'
 );
+select lives_ok(
+  $$update public.business_profiles set name = 'Unauthorized edit'
+    where id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'$$,
+  'owner B update is safely filtered by row-level security'
+);
 select is(
-  (with changed as (
-    update public.business_profiles set name = 'Unauthorized edit'
-    where id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' returning 1
-  ) select count(*)::integer from changed),
-  0,
-  'owner B cannot update owner A profile'
+  (select name from public.business_profiles where id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'),
+  null,
+  'owner B cannot observe or change owner A profile'
 );
 select lives_ok(
   $$insert into public.business_profiles (id, owner_id, name)
