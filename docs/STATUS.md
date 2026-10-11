@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-10-12  
 **Current branch:** main  
-**Overall state:** WP1.1 local evidence gate met; WP1.2 app-shell baseline merged to `main`; final real-browser install/offline smoke review remains.
+**Overall state:** WP1.1 local evidence gate and WP1.2 application shell baseline are complete. WP1.3 Local Persistence & Data Integrity is the next bounded work package.
 
 ## Repository audit
 
@@ -25,13 +25,13 @@
 | Local–cloud sync contract | Aligned to owner-approved defaults; implementation and test evidence still required | docs/LOCAL_SYNC_CONTRACT.md |
 | Coding AI execution prompt | Added; includes repo-first workflow and decision/security stop gates | [docs/CODING_AI_PHASE1_EXECUTION_PROMPT.md](./CODING_AI_PHASE1_EXECUTION_PROMPT.md) |
 | Isolated sync spike | 14 Chromium tests pass in GitHub Actions; dependency audit reports 0 vulnerabilities and direct dependency tree passes | [Run 38175356346](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38175356346); [.spikes/wp1-1-local-sync/REPORT.md](../.spikes/wp1-1-local-sync/REPORT.md) |
-| Application scaffold | Baseline merged; final review pending | Responsive shell, manifest, service worker, build script, JSDoc/TypeScript check, six Node tests, and production build pass CI; real-browser install/offline smoke review remains |
-| Automated application tests | Baseline passing | [WP1.2 CI run 38176325304](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38176325304): JSDoc TypeScript check passed, 6/6 Node tests passed, and production build completed |
+| Application scaffold | Complete (WP1.2) | Responsive shell, manifest, service worker, JSDoc/TypeScript check, 6 Node tests, 3 Chromium smoke tests, and production build passed CI |
+| Automated application tests | Baseline passing | [App-shell CI run 38176493973](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38176493973): 3/3 Chromium smoke tests passed; [baseline CI run 38176494030](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38176494030): 6/6 Node tests, JSDoc TypeScript check, production build, 14 WP1.1 Chromium tests, audit, and dependency-tree check passed |
 
 ## Current WP status
 
 - WP1.1 — Complete (local requirements/architecture spike gate): GitHub Actions run [38175356346](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38175356346) passed all 14 Chromium spike tests, `npm audit --audit-level=low` (0 vulnerabilities), and `npm ls --depth=0`. Evidence covers owner-partitioned local/remote records, sign-out lock with unsynced data preserved, cross-account queue isolation, injected storage-write failure, export/restore, lost acknowledgement with idempotent retry, and conflict preservation. These are disposable local-spike/fake-remote tests, not production authentication or provider authorization. Owner-approved defaults O-001–O-005 are recorded in [DECISIONS.md](./DECISIONS.md); see [.spikes/wp1-1-local-sync/REPORT.md](../.spikes/wp1-1-local-sync/REPORT.md). Hosted provider authorization/security tests remain deferred until the environment and cost boundary are explicitly approved.
-- WP1.2 — In progress (baseline merged): [CI run 38176325304](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38176325304) passed JSDoc TypeScript checking, all 6 Node tests, and production build. App shell includes responsive layout, online/offline status, install prompt handling, web manifest, and service-worker shell caching. Remaining exit evidence: real-browser smoke test of offline navigation and install behavior on mobile-sized and desktop viewports.
+- WP1.2 — Complete: [app-shell CI run 38176493973](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38176493973) passed 3/3 Chromium smoke tests covering desktop/mobile responsive layout, service-worker-controlled offline navigation, connection status, and install-prompt handler. [Baseline CI run 38176494030](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38176494030) also passed the 6 Node tests, JSDoc TypeScript check, production build, 14 WP1.1 tests, dependency audit, and dependency-tree check. Native operating-system installation was not exercised; install prompt behavior was tested with a simulated browser event. The shell does not yet implement business persistence, authentication, or cloud sync.
 - WP1.3 — Not started
 - WP1.4 — Not started
 - WP1.5 — Not started
@@ -46,8 +46,8 @@
 - Official free-tier limits and product behavior can change; recheck published terms before provisioning. No cloud project, billing, domain purchase, secrets, or production deployment is approved.
 - Browser storage is not guaranteed encrypted; local storage is not a backup.
 - Do not mark implementation work complete based on documentation alone.
-- WP1.1 local evidence is reviewed and recorded as met. WP1.2 baseline is merged; only local real-browser smoke verification remains before closing the work package. Hosted provider tests, cloud provisioning, billing, secrets, and deployment remain separately gated.
+- WP1.1 local evidence is reviewed and recorded as met. WP1.2 is complete at the application-shell baseline level. WP1.3 — Local Persistence & Data Integrity — is next. Hosted provider tests, cloud provisioning, billing, secrets, and deployment remain separately gated.
 
 ## Next action
 
-Current work: finish WP1.2 with a real-browser check of service-worker offline navigation and install prompt behavior at mobile and desktop widths, then record the outcome. CI already passes the pinned TypeScript compiler over JSDoc-typed browser JavaScript, six Node tests, and the production build. Do not provision hosted infrastructure, enable billing, add production credentials, or deploy. Do not provision hosted infrastructure, enable billing, add production credentials, or deploy. The [decision log](./DECISIONS.md) is canonical for accepted decisions and their boundaries.
+Next bounded work package: WP1.3 — Local Persistence & Data Integrity. Build the production local persistence layer separately from the disposable WP1.1 spike, with schema versioning, validation, reload durability, and safe storage-failure behavior. Keep cloud auth/sync out of scope until dependent WPs. Do not provision hosted infrastructure, enable billing, add production credentials, or deploy. Do not provision hosted infrastructure, enable billing, add production credentials, or deploy. The [decision log](./DECISIONS.md) is canonical for accepted decisions and their boundaries.
