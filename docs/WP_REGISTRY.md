@@ -1,6 +1,6 @@
 # Work Package Registry
 
-**Status:** Phase 1 implementation baseline; WP1.1–WP1.5 local gates are complete. End-to-end Business Profile integration remains WP1.6. Hosted provider authorization remains separately gated on explicit environment/cost approval.  
+**Status:** WP1.1–WP1.6 implementation gates passed on main. WP1.7 Phase 1 acceptance/recovery review is in progress. Hosted provider authorization remains separately gated on explicit environment/cost approval.  
 **Parent plan:** [PHASE_1_PLAN.md](./PHASE_1_PLAN.md)
 
 A work package (WP) is a bounded implementation unit with dependencies and evidence of completion. The workflow maintains this registry so the owner does not need to manually split tasks.
@@ -58,18 +58,20 @@ A work package (WP) is a bounded implementation unit with dependencies and evide
 
 ### WP1.6 — Business Profile Vertical Slice
 - **Priority:** High
-- **Status:** Planning in progress (local-only)
+- **Status:** Complete (local-only integration gate passed; merged to main)
 - **Dependencies:** WP1.3, WP1.4, WP1.5
 - **Plan:** [WP1_6_PLAN.md](./WP1_6_PLAN.md)
 - **Scope:** connect the selected simple business record to UI, owner-scoped local storage, Supabase Auth, server-side ownership/revision checks, and WP1.5 sync end to end. Preserve the anonymous local draft unless the owner explicitly adopts it. Add server-side idempotency so a lost acknowledgement cannot apply one logical write twice.
-- **Done when:** local Supabase Auth/Postgres/RLS integration passes create/update, owner isolation, offline queue/reconnect, retry/lost-ack recovery, conflict preservation/resolution, sign-out locking, and reload durability checks; CI remains green; limitations are documented. No hosted provisioning.
+- **Verification:** PR [#12](https://github.com/zinlinna071-lgtm/KitchAI/pull/12) merged to main as `89838aa517999e98fd3c80cf830e10f25ba07d59`. Post-merge [WP1.4 CI run 38181264500](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38181264500) passed all 40 pgTAP assertions; [WP1.6 CI run 38181264533](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38181264533) passed build, all 40 pgTAP assertions, and 5 Playwright tests for offline queue/reconnect/reload, explicit import of anonymous draft, two-session stale-revision conflict, sign-out queue isolation, and duplicate-create conflict. App shell [run 38181264524](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38181264524) and baseline [run 38181264526](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38181264526) passed on the merge SHA.
+- **Done when:** local Supabase Auth/Postgres/RLS integration passes create/update, owner isolation, offline queue/reconnect, retry/lost-ack recovery, conflict preservation/resolution, sign-out locking, and reload durability checks; CI remains green; limitations are documented. **Local gate met.** No hosted provisioning.
 
 ### WP1.7 — Integration, Recovery, Security & Acceptance
 - **Priority:** Blocking for Phase exit
-- **Status:** Not started
+- **Status:** In progress (CI acceptance evidence recorded; final review/manual checks remain)
 - **Dependencies:** WP1.2–WP1.6
-- **Scope:** end-to-end tests, offline/reconnection checks, retry and conflict recovery, authorization review, build/lint/type checks, mobile/desktop smoke checks, and evidence/known-limitations documentation.
-- **Done when:** Phase 1 exit gate is met and results are recorded.
+- **Scope:** consolidate end-to-end tests, offline/reconnection and conflict recovery evidence, authorization review, build/type checks, manual PWA/accessibility checks, and known-limitations/Phase exit documentation.
+- **Evidence:** main-branch CI is green after WP1.6 merge. WP1.6 local integration suite passes five browser scenarios; database suite passes 40 pgTAP assertions. Manual real-device install/offline/accessibility checks have not been performed by this workflow and remain explicit limitations.
+- **Done when:** all Phase 1 exit criteria are reviewed against concrete evidence, manual-only checks are either performed or explicitly accepted as deferred with rationale, unresolved critical security/data-loss issues are absent, and the final status documents limitations. Do not imply hosted-provider validation or production readiness.
 
 ## Workflow for each WP
 
