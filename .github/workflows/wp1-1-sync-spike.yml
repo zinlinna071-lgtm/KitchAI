@@ -1,4 +1,4 @@
-name: KitchAI Baseline Checks
+name: KitchAI Baseline Checks (WP1.2)
 
 on:
   push:
