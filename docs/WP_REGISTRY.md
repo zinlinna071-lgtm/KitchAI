@@ -20,12 +20,13 @@ A work package (WP) is a bounded implementation unit with dependencies and evide
 
 ### WP1.2 — Application Shell & PWA Baseline
 - **Priority:** High
-- **Status:** In progress
+- **Status:** In progress (baseline merged; final browser smoke review pending)
 - **Dependencies:** WP1.1
-- **Scope:** minimal application scaffold, maintainable build setup, basic responsive shell, PWA/offline app-shell behavior, connection/install states, and baseline automated checks.
-- **Current implementation:** `index.html`, `src/app.js`, `src/styles.css`, `public/manifest.webmanifest`, `public/sw.js`, `scripts/build.mjs`, `tests/app.test.mjs`, and `.github/workflows/app-shell.yml` on branch [`wp1-2-app-shell`](https://github.com/zinlinna071-lgtm/KitchAI/tree/wp1-2-app-shell). The starter has no third-party npm dependencies. The app shell explicitly does not claim business-record persistence, authentication, or cloud sync.
-- **Known remaining checks:** CI must pass before merge; manually verify install/offline behavior in a real browser on mobile and desktop. A TypeScript compiler/type-check and a browser automation smoke test are not included in this dependency-free baseline yet.
-- **Done when:** documented commands work, production build emits a complete `dist/`, automated checks pass in CI, responsive/accessibility baseline is reviewed, and limitations are recorded. Do not mark complete based on source files alone.
+- **Scope:** minimal application scaffold, typed build checks, basic responsive shell, PWA/offline app-shell behavior, connection/install states, and baseline automated checks.
+- **Current implementation:** `index.html`, `src/app.js`, `src/styles.css`, `public/manifest.webmanifest`, `public/sw.js`, `scripts/build.mjs`, `tests/app.test.mjs`, `tsconfig.json`, and `.github/workflows/app-shell.yml` are merged to `main`. The app has no runtime npm dependencies; CI invokes a pinned TypeScript compiler over JSDoc-typed browser JavaScript.
+- **Verification:** [GitHub Actions run 38176325304](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38176325304) passed the type-check, 6/6 Node tests, and production build. The app shell explicitly does not implement business-record persistence, authentication, or cloud sync.
+- **Known remaining checks:** manually verify offline navigation after the first successful load and install behavior where supported in a real browser on mobile and desktop widths. Browser automation is not included in this baseline.
+- **Done when:** documented commands work, production build emits a complete `dist/`, automated checks pass in CI, responsive/accessibility baseline and real-browser install/offline behavior are reviewed, and limitations are recorded. Do not mark complete based on source files alone.
 
 ### WP1.3 — Local Persistence & Data Integrity
 - **Priority:** High
