@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-10-12  
 **Current branch:** main  
-**Overall state:** WP1.1–WP1.4 local gates are complete. WP1.4's local Supabase migration and real local Auth/Postgres/RLS authorization suite passed CI; no hosted resources are provisioned.
+**Overall state:** WP1.1–WP1.5 local implementation gates are complete. WP1.4's local Supabase migration and real local Auth/Postgres/RLS authorization suite passed CI; WP1.5's durable local queue/retry/conflict mechanics passed CI. End-to-end Business Profile transport/UI integration remains WP1.6; no hosted resources are provisioned.
 
 ## Repository audit
 
@@ -13,7 +13,7 @@
 
 ## Current milestone
 
-**Milestone:** WP1.1–WP1.4 local gates are met. WP1.5 is in progress on branch `wp1-5-sync-state-retry-conflicts`, adding a durable owner-scoped outbox, deterministic retry orchestration, and conflict snapshot preservation. No hosted transport or provisioning is included.
+**Milestone:** WP1.1–WP1.5 local gates are met. WP1.5 added a durable owner-scoped outbox, persisted profile sync states, deterministic retry orchestration, and conflict snapshot preservation. End-to-end transport/UI integration is reserved for WP1.6. No hosted transport or provisioning is included.
 
 | Item | Status | Evidence / next action |
 |---|---|---|
@@ -34,7 +34,7 @@
 - WP1.2 — Complete: [app-shell CI run 38176493973](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38176493973) passed 3/3 Chromium smoke tests covering desktop/mobile responsive layout, service-worker-controlled offline navigation, connection status, and install-prompt handler. [Baseline CI run 38176494030](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38176494030) also passed the 6 Node tests, JSDoc TypeScript check, production build, 14 WP1.1 tests, dependency audit, and dependency-tree check. Native operating-system installation was not exercised; install prompt behavior was tested with a simulated browser event. The shell does not yet implement business persistence, authentication, or cloud sync.
 - WP1.3 — Complete: production IndexedDB module stores a local Business Profile draft in a versioned database; create/update survives reload; trimmed 1–80 character validation, stable `createdAt`/`businessId`, local revision metadata, and unavailable-storage error handling are covered by CI. The local draft omits server-authoritative `ownerId` and `revision` until WP1.4. See [WP1.3 app-shell CI run 38176993521](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38176993521) and [baseline CI run 38176993535](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38176993535).
 - WP1.4 — Complete (local-only gate): Supabase migration, owner-derived identity/revision trigger, RLS policies, and 21 pgTAP assertions passed against the isolated local Supabase stack in [CI run 38177790964](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38177790964). Tests cover anonymous denial, no delete grant, server-owned field enforcement, trimmed names, revision increments, and cross-owner isolation. No hosted project, credentials, or billing.
-- WP1.5 — In progress (local-only): durable owner-partitioned profile/outbox/conflict stores, idempotent operation IDs, bounded jittered retry scheduling, auth pause/permanent failure states, and explicit conflict resolution orchestration. Verification pending CI; no real network transport is wired.
+- WP1.5 — Complete (local mechanics gate): durable owner-partitioned profile/outbox/conflict stores, atomic profile+operation writes, stable operation IDs, coalescing unsent creates, persisted sync states, bounded jittered retry scheduling, auth pause/permanent failure states, and explicit conflict resolution. [CI run 38178596957](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38178596957) passed 15/15 Node tests, 14/14 spike Chromium tests, dependency audit (0 vulnerabilities), and dependency tree; [CI run 38178596967](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38178596967) passed 6/6 Chromium app-shell tests. The engine remains transport-injected; actual authenticated online/offline vertical-slice behavior is WP1.6.
 - WP1.6 — Not started
 - WP1.7 — Not started
 
@@ -46,8 +46,8 @@
 - Official free-tier limits and product behavior can change; recheck published terms before provisioning. No cloud project, billing, domain purchase, secrets, or production deployment is approved.
 - Browser storage is not guaranteed encrypted; local storage is not a backup.
 - Do not mark implementation work complete based on documentation alone.
-- WP1.1–WP1.4 local gates are complete. WP1.5 is in progress and must remain local-only; the sync engine is transport-injected and cannot contact a hosted service by itself. Hosted provider tests, cloud provisioning, billing, secrets, and deployment remain separately gated.
+- WP1.1–WP1.5 local gates are complete. WP1.6 must integrate the Business Profile vertical slice against local/emulated Supabase only; the sync engine is transport-injected and does not contact a hosted service by itself. Hosted provider tests, cloud provisioning, billing, secrets, and deployment remain separately gated.
 
 ## Next action
 
-Current work: validate WP1.5 durable queue, retry, owner isolation, and conflict behavior in CI; fix any failures before merge. Hosted provisioning, billing, hosted tests, production credentials, and deployment remain unauthorized. Do not provision hosted infrastructure, enable billing, add production credentials, or deploy. The [decision log](./DECISIONS.md) is canonical for accepted decisions and their boundaries.
+Current work: begin WP1.6 — Business Profile Vertical Slice, wiring the UI, local persistence, local Supabase authentication/authorization, and the WP1.5 sync engine without hosted provisioning. Hosted provisioning, billing, hosted tests, production credentials, and deployment remain unauthorized. Do not provision hosted infrastructure, enable billing, add production credentials, or deploy. The [decision log](./DECISIONS.md) is canonical for accepted decisions and their boundaries.
