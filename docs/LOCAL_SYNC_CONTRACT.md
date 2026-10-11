@@ -1,25 +1,27 @@
-# Local–Cloud Sync Contract (WP1.1 Proposal)
+# Local–Cloud Sync Contract (WP1.1)
 
-**Status:** Proposed provider-neutral contract; pending owner acceptance.  
+**Status:** Implementation contract aligned to owner-approved Phase 1 planning defaults; behavior still requires implementation and test evidence.  
 **Scope:** Phase 1 Business Profile vertical slice only.  
 **Related docs:** [Phase 1 plan](./PHASE_1_PLAN.md), [architecture options](./ARCHITECTURE_OPTIONS.md), [decision log](./DECISIONS.md), [spike report](../.spikes/wp1-1-local-sync/REPORT.md).
 
-This document defines observable behavior that any selected backend/local-store implementation must satisfy. It does not select a cloud provider, authorize provisioning, or claim that provider-specific security has been tested.
+**Architecture direction:** Supabase + PostgreSQL is the selected target architecture, with a KitchAI-owned explicit local-first sync layer. This selection does not authorize cloud provisioning, billing activation, hosted testing, or production deployment. Use local/emulator-only verification until the test environment and cost boundary are explicitly approved.
 
 ## 1. Core invariants
 
 1. **Local-first:** A valid user edit is saved locally before it is reported as safely stored. The UI distinguishes local-only/pending changes from cloud-confirmed changes.
 2. **No silent loss:** A network failure, timeout, authentication expiry, rejected write, app reload, or conflict must not silently erase the local record, pending operation, or competing conflict snapshot.
-3. **Server-authoritative identity:** The server derives or validates the authenticated owner scope. It never trusts a client-supplied `ownerId` as proof of ownership.
+3. **Server-authoritative identity:** The trusted backend derives or validates the authenticated owner scope. It never trusts a client-supplied `ownerId` as proof of ownership.
 4. **Explicit concurrency:** A write states the revision it was based on. A stale revision is a conflict, not permission to overwrite the latest remote value.
 5. **Idempotent retry:** Retrying the same logical operation must not apply it twice. Each queued operation has a stable unique operation ID reused on retries.
 6. **Conflict preservation:** Preserve the base, local candidate, and current remote candidate until a deliberate resolution succeeds. Do not use silent last-write-wins.
 7. **Visible failure:** The user can tell whether data is local-only, syncing, synced, needs sign-in, failed/retryable, or awaiting conflict review.
 8. **No implied backup:** Local persistence or a pending outbox is not described as cloud backup.
+9. **Account isolation:** Partition local records, conflicts, and pending operations by owner. On sign-out, stop sync and lock the local workspace without silently purging unsynced data. Never send a prior owner's queued operation under a different session.
+10. **Storage honesty:** Browser storage is not guaranteed encrypted and local persistence is not a backup. Do not claim either property without implemented, verified support.
 
-## 2. Record and operation contract
+## 2. Business Profile and operation contract
 
-### Business Profile domain record (proposed)
+The owner-approved minimal record is:
 
 ```ts
 type BusinessProfile = {
@@ -33,7 +35,7 @@ type BusinessProfile = {
 };
 ```
 
-This schema is a proposal under O-002. Keep sync bookkeeping outside the domain record:
+The server must derive or validate `ownerId` from the authenticated identity; a client must not set it as an authorization assertion. The server controls `revision`, and `createdAt` is immutable. Keep local sync bookkeeping outside the domain record:
 
 ```ts
 type PendingOperation = {
@@ -41,27 +43,27 @@ type PendingOperation = {
   recordId: string;
   operation: "create" | "update";
   baseRevision: number | null;  // null only for create
-  payload: unknown;             // validated domain fields, not trusted identity
+  payload: unknown;             // validated editable fields, not trusted identity
   createdAt: string;
   attemptCount: number;
   state: "pending" | "in_flight" | "retryable_error" | "conflict";
 };
 ```
 
-The final type and storage shape may vary, but behavior must remain equivalent. Do not add delete support to the first slice unless its lifecycle and tombstone semantics are explicitly designed and tested.
+The final storage representation may vary, but observable behavior must remain equivalent. Delete support is out of scope for the first slice until lifecycle and tombstone semantics are designed and tested.
 
 ## 3. Write and sync behavior
 
-1. Validate the user's input at the application boundary.
-2. Persist the local record and a durable pending operation in one local transaction where the chosen storage permits it. If persistence fails, show an actionable error and do not claim the edit was saved.
+1. Validate user input at the application boundary; trim the name and reject empty names or names longer than 80 characters.
+2. Persist the local record and durable pending operation in one local transaction where the selected storage permits it. If persistence fails, show an actionable error and do not claim the edit was saved.
 3. Return control to the UI with a truthful state such as **Saved on this device · waiting to sync**.
 4. When online and authenticated, send the operation ID, record ID, expected base revision, and validated editable fields. Do not send client-controlled ownership as an authorization assertion.
 5. The trusted backend checks authentication, owner/business access, schema validation, and revision precondition before accepting the write.
 6. On success, store the authoritative remote revision/timestamp, mark the operation complete, and retain enough metadata to recover safely if the client crashes between remote success and local acknowledgement.
 7. On timeout or transient server/network failure, keep the operation durable and retry with bounded exponential backoff plus jitter. Do not create a new operation ID for a retry of the same logical write.
 8. On authentication expiry, keep local data and queued changes; pause cloud writes and request sign-in. Account switching must not send one account's queued operations under another account.
-9. On permanent validation/authorization denial, stop automatic retry loops, preserve the local data, and show a clear error. Never bypass a denial by changing owner scope.
-10. On a revision mismatch, create a durable conflict entry and stop automatic retries for that operation until reviewed.
+9. On permanent validation/authorization denial, stop automatic retry loops, preserve local data, and show a clear error. Never bypass a denial by changing owner scope.
+10. On revision mismatch, create a durable conflict entry and stop automatic retries for that operation until reviewed.
 
 ## 4. Conflict object and resolution
 
@@ -75,16 +77,16 @@ A conflict must retain at minimum:
 - detected timestamp and review state;
 - resolution actor, timestamp, selected result, and resulting revision when resolved.
 
-Resolution flow:
+The owner-approved first-slice resolution choices are **Keep local** and **Use remote**. Field-level merge is out of scope.
 
 1. Show base, local, and remote values clearly, including changed fields.
-2. Require an authenticated authorized user to explicitly choose **Keep local** or **Use remote** for the first slice. Field-level merge is out of scope unless separately approved.
+2. Require an authenticated authorized owner to explicitly choose **Keep local** or **Use remote**.
 3. **Keep local:** create a new operation based on the current remote revision; do not replay the stale operation unchanged.
 4. **Use remote:** update the local working copy only after the conflict and choice are durably recorded.
 5. Preserve the original snapshots and an append-only resolution record. If resolution fails, leave the conflict recoverable and visible.
 6. If remote state changes again during resolution, detect the new revision mismatch and return to review; do not force the old choice over the new remote version.
 
-Exact review UI and audit-retention period remain under O-003.
+The exact visual layout and retention period for audit records are not yet specified. Preserve resolution history append-only for the Phase 1 workflow; do not silently erase it. Any retention or deletion policy must be documented before real business data is used.
 
 ## 5. Retry, ordering, and crash recovery
 
@@ -112,8 +114,10 @@ Exact review UI and audit-retention period remain under O-003.
 | Remote changes during conflict review | Revision mismatch is detected; no blind overwrite |
 | Local persistence fails | UI does not claim the edit was saved; actionable error is shown |
 | Account switch with pending work | Old account's operations cannot be submitted under the new account |
+| Sign-out with pending work | Sync stops and workspace locks; unsynced data is retained and not exposed to another owner |
+| Invalid Business Profile name | Empty/whitespace-only or over-80-character name is rejected before enqueue |
 
-Provider-native allow/deny tests must run only after provider, isolated non-production environment, test identities, policy boundary, and cost/no-billing scope are approved. The existing fake-remote spike is not evidence of real provider authorization.
+Provider-native allow/deny tests must run only after a hosted test environment and cost boundary are explicitly approved. Until then, test local sync mechanics and use the Supabase local development stack/emulator without hosted provisioning or billing. The existing fake-remote spike is not evidence of real provider authorization.
 
 ## 7. Out of scope for this contract
 
@@ -121,15 +125,19 @@ Provider-native allow/deny tests must run only after provider, isolated non-prod
 - Menu, inventory, purchasing, sales, finance, and AI workflows.
 - Automatic field-level conflict merge.
 - Delete/restore semantics until tombstones, authorization, and offline deletion behavior are specified.
-- Provider-specific SDK, schema migrations, deployment, or provisioning decisions.
+- Production provisioning, billing activation, domain purchase, or public deployment.
 
 ## 8. WP1.1 gate checklist
 
-- [ ] Owner accepts or revises the Business Profile fields/validation (O-002).
-- [ ] Owner accepts or revises the conflict review and resolution expectations (O-003).
-- [ ] Owner decides local-data retention/locking/encryption and account-switch/sign-out behavior (O-004).
-- [ ] Owner chooses provider/hosting/region and approves a no-billing test scope or explicit spend boundary (O-001, O-005).
-- [ ] Provider-specific server-side authorization tests and export/restore plan are prepared and evidenced.
-- [ ] Decision log and status are updated with actual decisions and evidence.
+- [x] Owner selected Supabase/PostgreSQL as the target architecture and approved the local-first sync direction; no provisioning/billing approval is implied.
+- [x] Owner accepted the minimal Business Profile fields and name validation.
+- [x] Owner accepted conflict preservation and explicit **Keep local** / **Use remote** resolution.
+- [x] Owner accepted owner-partitioned local data, sync stop and workspace lock on sign-out, and preservation of unsynced data.
+- [x] Owner directed local/emulator-first testing and deferred deployment, region/domain, backup/export and spend details until before hosted deployment.
+- [ ] Re-run and review the current repository's isolated sync tests and ensure they match the approved contract.
+- [ ] Verify crash recovery, account partitioning, sign-out lock, and no cross-account queue submission with reproducible local tests.
+- [ ] Prepare/document export and restore approach; local storage is not backup.
+- [ ] Review all WP1.1 exit criteria and record exact verification evidence in status and registry.
+- [ ] Provider-native authorization/security validation remains blocked until an isolated hosted test environment and cost boundary are explicitly approved; do not fabricate or imply that evidence.
 
-Until these gates are met, WP1.1 remains **In progress** and WP1.2 remains **Not started**. Do not create a cloud project, enable billing, add provider SDKs, or start application scaffolding on the strength of this proposal alone.
+WP1.1 remains **In progress** until the outstanding local evidence is verified and recorded. WP1.2 remains **Not started** until the WP1.1 exit gate is reviewed. Do not create a cloud project, enable billing, add provider credentials, or start application scaffolding on the strength of this document alone.
