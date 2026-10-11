@@ -21,13 +21,13 @@
 | Phase 1 plan | Complete (draft) | docs/PHASE_1_PLAN.md committed |
 | WP registry | Complete (initial) | docs/WP_REGISTRY.md committed |
 | Decision log | Complete (initial) | docs/DECISIONS.md committed |
-| Architecture comparison | Initial comparison complete; validation pending | docs/ARCHITECTURE_OPTIONS.md; validate pricing, limits, and prototype behavior before selection |
+| Architecture comparison | Current pricing/limits reviewed; prototype validation pending | docs/ARCHITECTURE_OPTIONS.md; Supabase/Postgres is the lead candidate, not yet selected |
 | Application scaffold | Not started | Wait for WP1.1 architecture review and required owner decisions |
 | Automated application tests | Not started | No app code or test harness yet |
 
 ## Current WP status
 
-- WP1.1 — Review required (initial options comparison documented; validate pricing, limits, prototype behavior, and owner decisions before selecting a provider)
+- WP1.1 — In progress (official pricing/limits reviewed; prototype sync and authorization behavior plus owner decision remain)
 - WP1.2 — Not started
 - WP1.3 — Not started
 - WP1.4 — Not started
