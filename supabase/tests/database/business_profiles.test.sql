@@ -148,11 +148,11 @@ select is(
   'replaying create does not duplicate the logical write'
 );
 select throws_ok(
-  $select public.apply_business_profile_operation(
+  $sql$select public.apply_business_profile_operation(
     'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
     'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
     'create', null, 'Different payload'
-  )$,
+  )$sql$,
   '22023',
   'Idempotency key reused with a different request',
   'reusing an operation ID with a different payload is rejected'
@@ -204,11 +204,11 @@ select is(
   'conflict response preserves the current remote revision'
 );
 select throws_ok(
-  $select public.apply_business_profile_operation(
+  $sql$select public.apply_business_profile_operation(
     '88888888-8888-4888-8888-888888888888',
     'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
     'update', 2, 'Cross-owner attempt'
-  )$,
+  )$sql$,
   '42501',
   'Profile not found or not owned by caller',
   'RPC rejects a cross-owner update'
