@@ -5,6 +5,8 @@
 
 A work package (WP) is a bounded implementation unit with dependencies and evidence of completion. The workflow maintains this registry so the owner does not need to manually split tasks.
 
+**Coding-agent handoff:** [CODING_AI_PHASE1_EXECUTION_PROMPT.md](./CODING_AI_PHASE1_EXECUTION_PROMPT.md) contains the repository-first execution prompt and mandatory decision/security gates. It does not approve unresolved owner decisions.
+
 ## Phase 1 WPs
 
 ### WP1.1 — Requirements, Architecture Comparison & Decisions
