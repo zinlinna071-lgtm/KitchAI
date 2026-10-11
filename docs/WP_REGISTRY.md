@@ -30,10 +30,12 @@ A work package (WP) is a bounded implementation unit with dependencies and evide
 
 ### WP1.3 — Local Persistence & Data Integrity
 - **Priority:** High
-- **Status:** Not started
+- **Status:** In progress
 - **Dependencies:** WP1.1, WP1.2
-- **Scope:** durable local storage for the selected record, validation, schema versioning/migration plan, and safe behavior when storage fails.
-- **Done when:** create/read/update survives reload; invalid data is rejected safely; persistence tests pass.
+- **Scope:** durable IndexedDB storage for the Business Profile local draft, validation, schema version metadata, reload durability, and safe behavior when storage fails.
+- **Current implementation:** `src/local-store.js` adds a versioned `kitchai-local` IndexedDB database with separate profile and metadata stores. The UI allows creating/updating a local profile and explicitly says it is not synced. The local draft omits server-authoritative `ownerId` and server `revision`; see [LOCAL_SYNC_CONTRACT.md](./LOCAL_SYNC_CONTRACT.md).
+- **Verification pending:** CI type-check, Node tests, production build, and Chromium tests for create/update/reload, validation, and unavailable storage.
+- **Done when:** create/read/update survives reload; name validation and schema metadata are tested; storage failures do not claim success; tests/build pass; limitations and the local-draft/server-authority boundary are documented.
 
 ### WP1.4 — Cloud Identity, Persistence & Authorization
 - **Priority:** High
