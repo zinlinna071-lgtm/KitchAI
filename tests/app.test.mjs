@@ -16,7 +16,7 @@ test("manifest declares standalone app and local icon",async()=>{
 });
 test("service worker caches shell assets and falls back for offline navigation",async()=>{
  const worker=await read("../public/sw.js");
- for(const asset of ["/","/index.html","/src/app.js","/src/local-store.js","/src/sync-store.js","/src/sync-engine.js","/src/styles.css","/manifest.webmanifest","/favicon.svg"])assert.ok(worker.includes(JSON.stringify(asset)),"missing app-shell asset: "+asset);
+ for(const asset of ["/","/index.html","/src/app.js","/src/local-store.js","/src/sync-store.js","/src/sync-engine.js","/src/supabase-api.js","/runtime-config.js","/src/styles.css","/manifest.webmanifest","/favicon.svg"])assert.ok(worker.includes(JSON.stringify(asset)),"missing app-shell asset: "+asset);
  assert.match(worker,/request\.mode==="navigate"/);assert.match(worker,/caches\.match\("\/index\.html"\)/);assert.match(worker,/request\.method!=="GET"/);
 });
 test("client shell handles connection changes and install prompt",async()=>{
@@ -28,7 +28,7 @@ test("responsive stylesheet includes small viewport, focus, and reduced-motion s
 });
 test("production build emits every shell asset",()=>{
  const result=spawnSync(process.execPath,["scripts/build.mjs"],{encoding:"utf8"});assert.equal(result.status,0,result.stderr);
- return Promise.all(["index.html","src/app.js","src/local-store.js","src/sync-store.js","src/sync-engine.js","src/styles.css","sw.js","manifest.webmanifest","favicon.svg"].map(path=>access(new URL("../dist/"+path,import.meta.url))));
+ return Promise.all(["index.html","src/app.js","src/local-store.js","src/sync-store.js","src/sync-engine.js","src/supabase-api.js","runtime-config.js","src/styles.css","sw.js","manifest.webmanifest","favicon.svg"].map(path=>access(new URL("../dist/"+path,import.meta.url))));
 });
 
 test("business name validation trims input and enforces 1 to 80 characters", () => {
