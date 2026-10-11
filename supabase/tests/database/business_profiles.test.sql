@@ -1,5 +1,5 @@
 begin;
-select plan(21);
+select plan(37);
 
 insert into auth.users (id, aud, role, email, encrypted_password, email_confirmed_at)
 values
@@ -101,17 +101,127 @@ select is(
   'owner B cannot modify owner A profile'
 );
 
+select ok(
+  (select relrowsecurity from pg_class where oid = 'public.business_profile_operations'::regclass),
+  'idempotency ledger has row-level security enabled'
+);
+select ok(
+  not has_table_privilege('authenticated', 'public.business_profile_operations', 'select'),
+  'authenticated clients cannot read the private idempotency ledger directly'
+);
+select ok(
+  not has_function_privilege('anon', 'public.apply_business_profile_operation(uuid,uuid,text,bigint,text)', 'execute'),
+  'anonymous clients cannot execute the write RPC'
+);
+select ok(
+  has_function_privilege('authenticated', 'public.apply_business_profile_operation(uuid,uuid,text,bigint,text)', 'execute'),
+  'authenticated clients can execute the write RPC'
+);
+
 set local "request.jwt.claim.sub" = '22222222-2222-4222-8222-222222222222';
-select lives_ok(
-  $$insert into public.business_profiles (id, owner_id, name)
-    values ('cccccccc-cccc-4ccc-8ccc-cccccccccccc',
-      '11111111-1111-4111-8111-111111111111', 'Owner B Kitchen')$$,
-  'owner B can create their own profile despite spoofed owner_id'
+select is(
+  public.apply_business_profile_operation(
+    'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
+    'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
+    'create', null, '  Owner B RPC Kitchen  '
+  ) ->> 'status',
+  'accepted',
+  'owner B creates a profile through the authenticated operation RPC'
 );
 select is(
-  (select owner_id::text from public.business_profiles where id = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc'),
+  (select revision from public.business_profiles where id = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd'),
+  1::bigint,
+  'RPC create starts at server revision one'
+);
+select is(
+  public.apply_business_profile_operation(
+    'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
+    'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
+    'create', null, 'Owner B RPC Kitchen'
+  ) ->> 'status',
+  'accepted',
+  'replaying the same create operation returns its stored result'
+);
+select is(
+  (select revision from public.business_profiles where id = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd'),
+  1::bigint,
+  'replaying create does not duplicate the logical write'
+);
+select throws_ok(
+  $select public.apply_business_profile_operation(
+    'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
+    'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
+    'create', null, 'Different payload'
+  )$,
+  '22023',
+  'Idempotency key reused with a different request',
+  'reusing an operation ID with a different payload is rejected'
+);
+select is(
+  public.apply_business_profile_operation(
+    'ffffffff-ffff-4fff-8fff-ffffffffffff',
+    'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
+    'update', 1, 'Owner B RPC Kitchen Updated'
+  ) ->> 'status',
+  'accepted',
+  'update with the current base revision is accepted'
+);
+select is(
+  (select revision from public.business_profiles where id = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd'),
+  2::bigint,
+  'RPC update increments revision exactly once'
+);
+select is(
+  public.apply_business_profile_operation(
+    'ffffffff-ffff-4fff-8fff-ffffffffffff',
+    'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
+    'update', 1, 'Owner B RPC Kitchen Updated'
+  ) ->> 'status',
+  'accepted',
+  'replaying the same update returns the original accepted result'
+);
+select is(
+  (select revision from public.business_profiles where id = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd'),
+  2::bigint,
+  'replaying update does not increment revision twice'
+);
+select is(
+  public.apply_business_profile_operation(
+    '99999999-9999-4999-8999-999999999999',
+    'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
+    'update', 1, 'Stale Local Candidate'
+  ) ->> 'status',
+  'conflict',
+  'stale base revision returns a conflict instead of overwriting remote state'
+);
+select is(
+  (public.apply_business_profile_operation(
+    '99999999-9999-4999-8999-999999999999',
+    'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
+    'update', 1, 'Stale Local Candidate'
+  ) -> 'remoteProfile' ->> 'revision')::bigint,
+  2::bigint,
+  'conflict response preserves the current remote revision'
+);
+select throws_ok(
+  $select public.apply_business_profile_operation(
+    '88888888-8888-4888-8888-888888888888',
+    'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+    'update', 2, 'Cross-owner attempt'
+  )$,
+  '42501',
+  'Profile not found or not owned by caller',
+  'RPC rejects a cross-owner update'
+);
+select is(
+  (select count(*)::integer from public.business_profile_operations where owner_id = '22222222-2222-4222-8222-222222222222'),
+  3,
+  'create, update, and conflict outcomes are durably recorded once per operation ID'
+);
+select is(
+  (select owner_id::text from public.business_profiles where id = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd'),
   '22222222-2222-4222-8222-222222222222',
-  'owner B profile is bound to owner B identity'
+  'RPC-created profile is bound to the authenticated owner'
 );
 
 reset role;
