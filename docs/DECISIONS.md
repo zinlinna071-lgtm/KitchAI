@@ -20,7 +20,7 @@ This log distinguishes accepted planning constraints from proposals and unresolv
 
 | ID | Decision needed | Why it matters | Current status |
 |---|---|---|---|
-| O-001 | Cloud backend/auth/database provider and hosting model | Determines security policies, sync approach, operating cost, vendor lock-in, and deployment. | Open; compare options first |
+| O-001 | Cloud backend/auth/database provider and hosting model | Determines security policies, sync approach, operating cost, vendor lock-in, and deployment. | Open; current lead recommendation is Supabase/Postgres + explicit local-first sync; Appwrite + RxDB remains alternative; prototype and owner decision still required |
 | O-002 | Exact first vertical-slice fields and validation rules | Defines schema, ownership boundary, migration and acceptance tests. | Proposed Business Profile; refine in WP1.1 |
 | O-003 | Conflict review UX and resolution policy | Determines how users compare and choose between competing versions. | Preserve both versions required; detailed UX open |
 | O-004 | Offline data protection expectations on shared devices | Affects local data exposure, sign-out behavior, and device threat assumptions. | Open; document threat model in WP1.1 |
