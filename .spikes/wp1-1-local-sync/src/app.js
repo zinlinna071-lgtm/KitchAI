@@ -1,18 +1,28 @@
 import {
   createProfile,
+  exportWorkspace,
   fakeRemote,
   listConflicts,
   listOutbox,
   readProfile,
   resetSpike,
   resolveConflict,
+  restoreWorkspace,
+  signInAs,
+  signOut,
   syncOperation,
   updateProfile,
+  workspaceStatus,
 } from "./sync.js";
 
 const summary = document.querySelector("#sync-summary");
 
 async function refreshSummary() {
+  const status = workspaceStatus();
+  if (status.locked) {
+    summary.textContent = "Workspace locked; unsynced local data preserved";
+    return;
+  }
   const operations = await listOutbox();
   const count = (state) => operations.filter((operation) => operation.state === state).length;
   summary.textContent = `${count("pending")} pending, ${count("failed")} failed, ${count("conflict")} conflicts`;
@@ -25,6 +35,9 @@ const withSummary = (action) => async (...args) => {
 };
 
 window.spike = {
+  signInAs,
+  signOut,
+  workspaceStatus,
   createProfile: withSummary(createProfile),
   updateProfile: withSummary(updateProfile),
   readProfile,
@@ -32,6 +45,8 @@ window.spike = {
   listConflicts,
   syncOperation: withSummary(syncOperation),
   resolveConflict: withSummary(resolveConflict),
+  exportWorkspace,
+  restoreWorkspace: withSummary(restoreWorkspace),
   remote: fakeRemote,
   async reset() {
     await resetSpike();
