@@ -1,0 +1,24 @@
+name: WP1.2 Application Shell
+on:
+  push:
+    branches: [main]
+    paths: ["index.html", "src/**", "public/**", "scripts/**", "tests/**", "package.json", ".github/workflows/app-shell.yml"]
+  pull_request:
+    paths: ["index.html", "src/**", "public/**", "scripts/**", "tests/**", "package.json", ".github/workflows/app-shell.yml"]
+permissions:
+  contents: read
+concurrency:
+  group: app-shell-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  app-shell:
+    name: Check and build app shell
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Run syntax, tests, and production build
+        run: npm run check
