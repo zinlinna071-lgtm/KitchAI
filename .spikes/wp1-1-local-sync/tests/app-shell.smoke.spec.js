@@ -23,7 +23,7 @@ test("service worker keeps the app shell navigable after going offline", async (
   await context.setOffline(true);
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "Good work starts with a clear view." })).toBeVisible();
-  await expect(page.getByLabel("Business name")).toBeVisible();
+  await expect(page.locator("#business-name")).toBeVisible();
   await expect(page.locator("#connection-status")).toContainText("Offline");
   await context.setOffline(false);
 });
@@ -44,7 +44,7 @@ test("install prompt handler reveals the button and calls the prompt", async ({ 
 
 test("local business profile creates, trims, updates, and survives reload", async ({ page }) => {
   await page.goto("/");
-  const name = page.getByLabel("Business name");
+  const name = page.locator("#business-name");
   await name.fill("  Northside Kitchen  ");
   await page.getByRole("button", { name: "Save profile" }).click();
   await expect(name).toHaveValue("Northside Kitchen");
@@ -75,13 +75,13 @@ test("local business profile creates, trims, updates, and survives reload", asyn
 
 test("invalid blank names and unavailable storage never report a successful save", async ({ page }) => {
   await page.goto("/");
-  await page.getByLabel("Business name").fill("    ");
+  await page.locator("#business-name").fill("    ");
   await page.getByRole("button", { name: "Save profile" }).click();
   await expect(page.locator("#profile-state")).toContainText("Enter a business name");
   await page.addInitScript(() => Object.defineProperty(window, "indexedDB", { configurable: true, value: undefined }));
   await page.reload();
   await expect(page.locator("#profile-state")).toContainText("Local storage is unavailable");
-  await page.getByLabel("Business name").fill("Storage Failure Kitchen");
+  await page.locator("#business-name").fill("Storage Failure Kitchen");
   await page.getByRole("button", { name: "Save profile" }).click();
   await expect(page.locator("#profile-state")).toContainText("Could not save locally; your changes were not saved");
   await expect(page.locator("#profile-state")).not.toContainText("Saved on this device");
