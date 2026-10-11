@@ -5,6 +5,7 @@ const executablePath = await chromium.executablePath();
 
 export default defineConfig({
   testDir: "./tests",
+  testMatch: "sync.spec.js",
   fullyParallel: false,
   reporter: "list",
   use: {
