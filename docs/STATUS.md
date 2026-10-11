@@ -13,7 +13,7 @@
 
 ## Current milestone
 
-**Milestone:** WP1.1 isolated sync spike and architecture comparison recorded; owner-approved planning defaults are now recorded. WP1.1 remains in progress because its remaining exit evidence and provider authorization gate have not been demonstrated.
+**Milestone:** Owner-approved Phase 1 decisions reconciled into the sync contract, Phase 1 plan, and Coding AI handoff. WP1.1 remains in progress pending fresh local/emulator verification and recovery/account-isolation evidence.
 
 | Item | Status | Evidence / next action |
 |---|---|---|
@@ -30,7 +30,7 @@
 
 ## Current WP status
 
-- WP1.1 — In progress: isolated spike executed; 6 Chromium browser tests pass. Owner-approved planning defaults O-001–O-005 are recorded in [DECISIONS.md](./DECISIONS.md): Supabase/PostgreSQL target architecture with KitchAI-owned local-first sync; minimal Business Profile fields; explicit Keep local / Use remote conflict choice; owner-partitioned local data and safe sign-out/account switching; local/emulator-first testing and no deployment/provisioning until cost/environment boundaries are approved. Fake-owner rejection is simulation only. WP1.1 still needs a fresh repo-first verification of current evidence, reconciliation of the approved decisions with the sync contract and acceptance criteria, and reproducible local/emulator checks as applicable. Hosted provider authorization/security tests remain blocked until their environment and cost boundary are explicitly approved.
+- WP1.1 — In progress: isolated spike executed; 6 Chromium browser tests pass. Owner-approved planning defaults O-001–O-005 are recorded in [DECISIONS.md](./DECISIONS.md): Supabase/PostgreSQL target architecture with KitchAI-owned local-first sync; minimal Business Profile fields; explicit Keep local / Use remote conflict choice; owner-partitioned local data and safe sign-out/account switching; local/emulator-first testing and no deployment/provisioning until cost/environment boundaries are approved. Fake-owner rejection is simulation only. WP1.1 still needs a fresh repo-first verification of current evidence, reproducible local/emulator tests for recovery, owner-partitioning, sign-out locking, and queue isolation. Hosted provider authorization/security tests remain blocked until their environment and cost boundary are explicitly approved.
 - WP1.2 — Not started
 - WP1.3 — Not started
 - WP1.4 — Not started
