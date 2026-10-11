@@ -3,6 +3,7 @@ import { expect, test } from "@playwright/test";
 test.beforeEach(async ({ page }) => {
   await page.goto("/");
   await page.evaluate(() => window.spike.reset());
+  await page.evaluate(() => window.spike.signInAs("owner-1"));
 });
 
 test("IndexedDB profile survives reload and invalid names leave it unchanged", async ({ page }) => {
@@ -192,3 +193,115 @@ test("explicit remote conflict resolution keeps the remote candidate and preserv
     .find((item) => item.id === conflict.conflictId).status).toBe("resolved");
 });
 
+
+test("sign-out locks workspace, preserves unsynced work, and isolates owner queues", async ({ page }) => {
+  const profile = await page.evaluate(() =>
+    window.spike.createProfile({ id: "shared-profile-id", ownerId: "owner-1", name: "Owner One Kitchen" }),
+  );
+  const ownerOneOperation = (await page.evaluate(() => window.spike.listOutbox()))[0];
+
+  await page.evaluate(() => window.spike.signOut());
+  expect(await page.evaluate(() => window.spike.workspaceStatus())).toMatchObject({ locked: true, ownerId: null });
+  expect(await page.locator("#sync-summary").textContent()).toContain("unsynced local data preserved");
+  await expect(page.evaluate((id) => window.spike.readProfile(id), profile.id)).rejects.toThrow("Workspace is locked");
+  await expect(page.evaluate((id) => window.spike.syncOperation(id), ownerOneOperation.operationId))
+    .rejects.toThrow("Workspace is locked");
+
+  await page.evaluate(() => window.spike.signInAs("owner-2"));
+  expect(await page.evaluate((id) => window.spike.readProfile(id), profile.id)).toBeNull();
+  expect(await page.evaluate(() => window.spike.listOutbox())).toEqual([]);
+  await expect(page.evaluate((id) => window.spike.syncOperation(id), ownerOneOperation.operationId))
+    .rejects.toThrow("does not exist in the active workspace");
+
+  await page.evaluate(() => window.spike.createProfile({
+    id: "shared-profile-id", ownerId: "owner-2", name: "Owner Two Kitchen",
+  }));
+  expect((await page.evaluate((id) => window.spike.readProfile(id), profile.id)).name)
+    .toBe("Owner Two Kitchen");
+
+  await page.evaluate(() => window.spike.signOut());
+  await page.evaluate(() => window.spike.signInAs("owner-1"));
+  expect((await page.evaluate((id) => window.spike.readProfile(id), profile.id)).name)
+    .toBe("Owner One Kitchen");
+  expect((await page.evaluate(() => window.spike.listOutbox())).some((item) =>
+    item.operationId === ownerOneOperation.operationId && item.ownerId === "owner-1")).toBe(true);
+});
+
+test("IndexedDB write failures leave profile and outbox unchanged", async ({ page }) => {
+  await page.evaluate(() => window.spike.simulateStorageFailure());
+  const failure = await page.evaluate(async () => {
+    try {
+      await window.spike.createProfile({
+        id: "storage-failure-profile", ownerId: "owner-1", name: "Storage Failure Kitchen",
+      });
+      return "unexpected-success";
+    } catch (error) {
+      return error.message;
+    }
+  });
+  expect(failure).toBe("Simulated IndexedDB write failure");
+  expect(await page.evaluate(() => window.spike.readProfile("storage-failure-profile"))).toBeNull();
+  expect(await page.evaluate(() => window.spike.listOutbox())).toEqual([]);
+});
+
+test("lost acknowledgement retries the same operation without duplicate remote writes", async ({ page }) => {
+  const profile = await page.evaluate(() =>
+    window.spike.createProfile({ id: "lost-ack-profile", ownerId: "owner-1", name: "Lost Ack Kitchen" }),
+  );
+  const operation = (await page.evaluate(() => window.spike.listOutbox()))[0];
+  await page.evaluate(() => window.spike.remote.loseNextAcknowledgement());
+
+  expect((await page.evaluate((id) => window.spike.syncOperation(id), operation.operationId)).status)
+    .toBe("acknowledgement-lost");
+  expect((await page.evaluate(() => window.spike.listOutbox()))[0]).toMatchObject({
+    operationId: operation.operationId,
+    state: "pending",
+    attempts: 0,
+  });
+  expect((await page.evaluate((id) => window.spike.remote.readProfile(id), profile.id)).name)
+    .toBe("Lost Ack Kitchen");
+
+  expect((await page.evaluate((id) => window.spike.syncOperation(id), operation.operationId)).status)
+    .toBe("duplicate");
+  expect(await page.evaluate(() => window.spike.remote.logicalWrites)).toBe(1);
+  expect((await page.evaluate(() => window.spike.listOutbox()))[0].state).toBe("synced");
+});
+
+test("workspace export and restore preserve profile and pending queue in a fresh browser context", async ({ page, browser }) => {
+  const profile = await page.evaluate(() =>
+    window.spike.createProfile({ id: "backup-profile", ownerId: "owner-1", name: "Backup Kitchen" }),
+  );
+  const backup = await page.evaluate(() => window.spike.exportWorkspace());
+
+  const restoredContext = await browser.newContext();
+  try {
+    const restoredPage = await restoredContext.newPage();
+    await restoredPage.goto("/");
+    await restoredPage.evaluate(() => window.spike.signInAs("owner-1"));
+    expect(await restoredPage.evaluate((data) => window.spike.restoreWorkspace(data), backup))
+      .toMatchObject({ restored: 1, queued: 1, conflicts: 0 });
+    expect((await restoredPage.evaluate((id) => window.spike.readProfile(id), profile.id)).name)
+      .toBe("Backup Kitchen");
+    expect((await restoredPage.evaluate(() => window.spike.listOutbox()))[0]).toMatchObject({
+      ownerId: "owner-1",
+      profileId: "backup-profile",
+      state: "pending",
+    });
+    await expect(restoredPage.evaluate((data) => window.spike.restoreWorkspace(data), backup))
+      .rejects.toThrow();
+  } finally {
+    await restoredContext.close();
+  }
+});
+
+test("workspace restore rejects a backup belonging to another owner", async ({ page }) => {
+  const backup = JSON.stringify({
+    formatVersion: 1,
+    ownerId: "owner-2",
+    profiles: [],
+    outbox: [],
+    conflicts: [],
+  });
+  await expect(page.evaluate((data) => window.spike.restoreWorkspace(data), backup))
+    .rejects.toThrow("Backup owner or format does not match the active workspace");
+});
