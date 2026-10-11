@@ -21,13 +21,13 @@
 | Phase 1 plan | Complete (draft) | docs/PHASE_1_PLAN.md committed |
 | WP registry | Complete (initial) | docs/WP_REGISTRY.md committed |
 | Decision log | Complete (initial) | docs/DECISIONS.md committed |
-| Architecture comparison | In progress | Compare local storage and cloud/auth/sync options; no provider selected yet |
+| Architecture comparison | Initial comparison complete; validation pending | docs/ARCHITECTURE_OPTIONS.md; validate pricing, limits, and prototype behavior before selection |
 | Application scaffold | Not started | Wait for WP1.1 architecture review and required owner decisions |
 | Automated application tests | Not started | No app code or test harness yet |
 
 ## Current WP status
 
-- WP1.1 — In progress (architecture comparison and decisions)
+- WP1.1 — Review required (initial options comparison documented; validate pricing, limits, prototype behavior, and owner decisions before selecting a provider)
 - WP1.2 — Not started
 - WP1.3 — Not started
 - WP1.4 — Not started
