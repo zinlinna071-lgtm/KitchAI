@@ -23,6 +23,7 @@ test("service worker keeps the app shell navigable after going offline", async (
   await context.setOffline(true);
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "Good work starts with a clear view." })).toBeVisible();
+  await expect(page.getByLabel("Business name")).toBeVisible();
   await expect(page.locator("#connection-status")).toContainText("Offline");
   await context.setOffline(false);
 });
@@ -39,4 +40,49 @@ test("install prompt handler reveals the button and calls the prompt", async ({ 
   await button.click();
   await expect(button).toBeHidden();
   expect(await page.evaluate(() => window.__kitchaiPromptCalled)).toBe(true);
+});
+
+test("local business profile creates, trims, updates, and survives reload", async ({ page }) => {
+  await page.goto("/");
+  const name = page.getByLabel("Business name");
+  await name.fill("  Northside Kitchen  ");
+  await page.getByRole("button", { name: "Save profile" }).click();
+  await expect(name).toHaveValue("Northside Kitchen");
+  await expect(page.locator("#profile-state")).toContainText("Saved on this device");
+  await expect(page.locator("#profile-state")).toContainText("local version 1");
+  await page.reload();
+  await expect(name).toHaveValue("Northside Kitchen");
+  await expect(page.locator("#profile-state")).toContainText("not synced");
+  await name.fill("Northside Kitchen Two");
+  await page.getByRole("button", { name: "Save profile" }).click();
+  await expect(page.locator("#profile-state")).toContainText("local version 2");
+  await page.reload();
+  await expect(name).toHaveValue("Northside Kitchen Two");
+  const record = await page.evaluate(() => new Promise((resolve, reject) => {
+    const request = indexedDB.open("kitchai-local", 1);
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => {
+      const transaction = request.result.transaction("profiles", "readonly");
+      const read = transaction.objectStore("profiles").getAll();
+      read.onsuccess = () => { resolve(read.result[0]); request.result.close(); };
+      read.onerror = () => reject(read.error);
+    };
+  }));
+  expect(record.name).toBe("Northside Kitchen Two");
+  expect(record).not.toHaveProperty("ownerId");
+  expect(record).not.toHaveProperty("revision");
+});
+
+test("invalid blank names and unavailable storage never report a successful save", async ({ page }) => {
+  await page.goto("/");
+  await page.getByLabel("Business name").fill("    ");
+  await page.getByRole("button", { name: "Save profile" }).click();
+  await expect(page.locator("#profile-state")).toContainText("Enter a business name");
+  await page.addInitScript(() => Object.defineProperty(window, "indexedDB", { configurable: true, value: undefined }));
+  await page.reload();
+  await expect(page.locator("#profile-state")).toContainText("Local storage is unavailable");
+  await page.getByLabel("Business name").fill("Storage Failure Kitchen");
+  await page.getByRole("button", { name: "Save profile" }).click();
+  await expect(page.locator("#profile-state")).toContainText("Local storage is unavailable");
+  await expect(page.locator("#profile-state")).not.toContainText("Saved on this device");
 });
