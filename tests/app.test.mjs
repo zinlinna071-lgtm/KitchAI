@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { access, readFile } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
+import { validateBusinessName } from "../src/local-store.js";
 const read=path=>readFile(new URL(path,import.meta.url),"utf8");
 test("document has accessible landmarks, viewport metadata, and clear scope",async()=>{
  const html=await read("../index.html");
@@ -27,4 +28,12 @@ test("responsive stylesheet includes small viewport, focus, and reduced-motion s
 test("production build emits every shell asset",()=>{
  const result=spawnSync(process.execPath,["scripts/build.mjs"],{encoding:"utf8"});assert.equal(result.status,0,result.stderr);
  return Promise.all(["index.html","src/app.js","src/local-store.js","src/styles.css","sw.js","manifest.webmanifest","favicon.svg"].map(path=>access(new URL("../dist/"+path,import.meta.url))));
+});
+
+test("business name validation trims input and enforces 1 to 80 characters", () => {
+  assert.equal(validateBusinessName("  Harbor Kitchen  "), "Harbor Kitchen");
+  assert.equal(validateBusinessName("x".repeat(80)), "x".repeat(80));
+  assert.throws(() => validateBusinessName("   "), /Enter a business name/);
+  assert.throws(() => validateBusinessName("x".repeat(81)), /80 characters or fewer/);
+  assert.throws(() => validateBusinessName(null), /Enter a business name/);
 });
