@@ -83,6 +83,6 @@ test("invalid blank names and unavailable storage never report a successful save
   await expect(page.locator("#profile-state")).toContainText("Local storage is unavailable");
   await page.getByLabel("Business name").fill("Storage Failure Kitchen");
   await page.getByRole("button", { name: "Save profile" }).click();
-  await expect(page.locator("#profile-state")).toContainText("Local storage is unavailable");
+  await expect(page.locator("#profile-state")).toContainText("Could not save locally; your changes were not saved");
   await expect(page.locator("#profile-state")).not.toContainText("Saved on this device");
 });
