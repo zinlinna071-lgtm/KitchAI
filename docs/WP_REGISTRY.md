@@ -40,11 +40,12 @@ A work package (WP) is a bounded implementation unit with dependencies and evide
 
 ### WP1.4 — Cloud Identity, Persistence & Authorization
 - **Priority:** High
-- **Status:** Not started (hosted path gated; local/emulator work may proceed)
+- **Status:** In progress (local Supabase path; hosted path gated)
 - **Dependencies:** WP1.1, WP1.2
 - **Scope:** minimum authentication and cloud persistence required for sync; enforce ownership on trusted server/database boundaries; protect secrets; test unauthenticated and cross-owner access.
-- **Next safe step:** design and implement Supabase schema/RLS and repeatable local/emulator tests only. Do not create a hosted project, activate billing, add hosted credentials, or deploy. If a reliable local auth/RLS test environment cannot be established within the repo, record that blocker rather than substituting fake-owner checks.
-- **Done when:** authorized operations work and negative authorization tests demonstrate isolation against the actual local/emulated server/database policy boundary. Full account-management UI is not required. Hosted tests require an explicitly approved non-production environment and cost boundary.
+- **Current implementation:** `supabase/config.toml`, migration `supabase/migrations/20261012000000_create_business_profiles.sql`, pgTAP suite `supabase/tests/database/business_profiles.test.sql`, and `.github/workflows/supabase-local.yml`. The migration derives `owner_id` from `auth.uid()`, generates immutable `business_id`, controls timestamps/revision, enables RLS, and grants authenticated users only select/insert/update. Delete is not granted. No hosted project or credentials are used.
+- **Verification pending:** local Supabase CLI stack startup, migration application, and 19 pgTAP assertions must pass in GitHub Actions. Review any failure before merge.
+- **Done when:** authorized operations work and negative authorization tests demonstrate isolation against the actual local Supabase Auth/Postgres/RLS boundary. Full account-management UI is not required. Hosted tests require an explicitly approved non-production environment and cost boundary.
 
 ### WP1.5 — Sync State, Retry & Conflict Preservation
 - **Priority:** High

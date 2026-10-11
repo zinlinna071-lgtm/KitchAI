@@ -1,0 +1,34 @@
+name: WP1.4 Local Supabase Authorization
+on:
+  push:
+    branches: [main]
+    paths: ["supabase/**", ".github/workflows/supabase-local.yml"]
+  pull_request:
+    paths: ["supabase/**", ".github/workflows/supabase-local.yml"]
+permissions:
+  contents: read
+concurrency:
+  group: supabase-local-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  local-authorization:
+    name: Local schema and RLS tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      SUPABASE_CLI_TELEMETRY_DISABLED: "true"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Start isolated local Supabase stack
+        timeout-minutes: 15
+        run: npx --yes supabase@2.39.2 start --debug --exclude studio,mailpit,storage-api,imgproxy
+      - name: Run database migration and pgTAP authorization tests
+        timeout-minutes: 7
+        run: npx --yes supabase@2.39.2 test db --debug
+      - name: Stop local Supabase stack
+        if: always()
+        timeout-minutes: 3
+        run: npx --yes supabase@2.39.2 stop --no-backup
