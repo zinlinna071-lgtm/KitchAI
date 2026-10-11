@@ -71,3 +71,17 @@ RxDB remains worth evaluating if provider-compatible replication, richer query n
 3. Decide the first-record fields, local data protection expectations, migration strategy, and backup/export requirements.
 
 Retain this isolated folder as disposable WP1.1 evidence until those gates are reviewed. It has no references from the project app and can be removed as a unit; do not move its code into production scaffolding without a separate reviewed decision. WP1.1 is not complete.
+
+
+## Expanded WP1.1 regression coverage (CI verification pending)
+
+The spike now includes executable scenarios for:
+
+- Owner-scoped IndexedDB keys and owner-indexed reads for profiles, outbox operations, and conflicts.
+- Sign-out locking, preserved unsynced records, and prevention of the prior owner's queue being submitted from a different session.
+- A storage-write failure before the IndexedDB transaction begins, verifying no partial profile/outbox write is left behind.
+- A remote write accepted before its acknowledgement is lost; retrying the same operation ID must return the recorded result without a second logical write.
+- Exporting and restoring profile plus pending outbox data into a fresh browser context, and rejecting a backup tagged for a different owner.
+- Fake-remote records partitioned by owner and profile ID.
+
+These are local spike tests only. The session switch is a test seam, not authentication; the fake remote is not server-side authorization. Backup restore currently requires a fresh workspace and the same owner ID. CI results must be checked before treating these cases as passing. WP1.1 remains in progress.
