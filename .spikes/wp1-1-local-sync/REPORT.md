@@ -1,7 +1,7 @@
 # WP1.1 Local Sync Spike Report
 
 **Date:** 2026-10-11
-**Status:** Spike checks passed; WP1.1 remains in progress.
+**Status:** Eight isolated spike tests and CI dependency checks passed on 2026-10-11; WP1.1 remains in progress because account isolation, sign-out lock, storage-failure handling, export/restore, and server-accepted/client-unacknowledged recovery remain unverified.
 **Scope:** Disposable browser prototype only. No production app, cloud service, provider SDK, credentials, billing, or real business data.
 
 ## Environment and commands
@@ -19,9 +19,9 @@ npm ls --depth=0
 ```
 
 - `npm ci`: passed; installed the lockfile dependencies, 0 vulnerabilities.
-- `npm test`: passed, 6 tests in Chromium. This serves the page locally and uses the browser's native IndexedDB; the reload test reloads the page in the same browser context.
-- `npm audit`: passed, 0 vulnerabilities.
-- `npm ls --depth=0`: passed; only `@playwright/test@1.64.0` and `@sparticuz/chromium@153.0.0` are direct development dependencies of this private spike.
+- `npm test`: passed, 8 tests in Chromium on GitHub Actions run [38174676887](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38174676887). This serves the page locally and uses the browser's native IndexedDB; reload tests reload the page in the same browser context.
+- `npm audit --audit-level=low`: passed, 0 vulnerabilities in the CI run.
+- `npm ls --depth=0`: passed in CI; only `@playwright/test@1.64.0` and `@sparticuz/chromium@153.0.0` are direct development dependencies of this private spike.
 - `git diff --check` from the repository root: passed; no whitespace errors.
 - No application build, lint, or type-check command exists in this repository.
 
