@@ -86,3 +86,35 @@ test("two sessions based on the same revision preserve both candidates and requi
   await firstContext.close();
   await secondContext.close();
 });
+
+test("sign-out locks the previous owner's unsynced queue before another account signs in", async ({ page, context }) => {
+  await createAccount(page);
+  const ownerA = await page.evaluate(() => JSON.parse(sessionStorage.getItem("kitchai.auth.session")).user.id);
+  await page.locator("#business-name").fill("Owner A Synced Kitchen");
+  await page.getByRole("button", { name: "Save profile" }).click();
+  await expect(page.locator("#profile-state")).toContainText("revision 1", { timeout: 10000 });
+
+  await context.setOffline(true);
+  await page.locator("#business-name").fill("Owner A Unsynced Update");
+  await page.getByRole("button", { name: "Save profile" }).click();
+  await expect(page.locator("#profile-state")).toContainText("waiting to sync");
+  await page.getByRole("button", { name: "Sign out" }).click();
+  await expect(page.getByRole("button", { name: "Sign out" })).toBeHidden();
+  await expect(page.locator("#business-name")).toHaveValue("");
+  await context.setOffline(false);
+
+  await createAccount(page);
+  await expect(page.locator("#business-name")).toHaveValue("");
+  await expect(page.getByRole("button", { name: "Copy local draft into my account" })).toBeHidden();
+  const queueState = await page.evaluate(async (previousOwner) => {
+    const sync = await import("/src/sync-store.js");
+    const previous = await sync.listOperations(previousOwner);
+    const active = JSON.parse(sessionStorage.getItem("kitchai.auth.session")).user.id;
+    return {
+      previousOwnerStillHasPending: previous.some(operation => operation.state === "pending"),
+      activeOwnerHasPreviousQueue: (await sync.listOperations(active)).some(operation => operation.ownerId === previousOwner),
+    };
+  }, ownerA);
+  expect(queueState.previousOwnerStillHasPending).toBe(true);
+  expect(queueState.activeOwnerHasPreviousQueue).toBe(false);
+});
