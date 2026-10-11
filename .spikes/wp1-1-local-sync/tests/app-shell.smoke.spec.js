@@ -150,7 +150,7 @@ test("owner-scoped outbox persists atomically and conflict snapshots survive res
       coalescedOperationId: coalesced.operation.operationId,
       operationStates: operations.map((operation) => operation.state),
       conflictCount: resolved.length,
-      conflictState: resolved[0].state,
+      conflictRecordState: resolved[0].state,
       baseName: resolved[0].baseSnapshot.name,
       localName: resolved[0].localSnapshot.name,
       remoteName: resolved[0].remoteSnapshot.name,
@@ -161,6 +161,7 @@ test("owner-scoped outbox persists atomically and conflict snapshots survive res
   expect(result.otherOwnerCount).toBe(0);
   expect(result.syncedState).toBe("synced");
   expect(result.conflictState).toBe("conflict");
+  expect(result.conflictRecordState).toBe("resolved");
   expect(result.resolutionState).toBe("pending");
   expect(result.initialOperation.operation).toBe("create");
   expect(result.initialOperation.baseRevision).toBeNull();
