@@ -1,4 +1,4 @@
-const databaseName = "kitchai-wp1-1-local-sync";
+const databaseName = "kitchai-wp1-1-local-sync-owner-partitioned";
 const databaseVersion = 1;
 let databasePromise;
 
@@ -8,9 +8,12 @@ function openDatabase() {
       const request = indexedDB.open(databaseName, databaseVersion);
       request.onupgradeneeded = () => {
         const database = request.result;
-        database.createObjectStore("profiles", { keyPath: "id" });
-        database.createObjectStore("outbox", { keyPath: "operationId" });
-        database.createObjectStore("conflicts", { keyPath: "id" });
+        const profiles = database.createObjectStore("profiles", { keyPath: ["ownerId", "id"] });
+        profiles.createIndex("ownerId", "ownerId", { unique: false });
+        const outbox = database.createObjectStore("outbox", { keyPath: ["ownerId", "operationId"] });
+        outbox.createIndex("ownerId", "ownerId", { unique: false });
+        const conflicts = database.createObjectStore("conflicts", { keyPath: ["ownerId", "id"] });
+        conflicts.createIndex("ownerId", "ownerId", { unique: false });
       };
       request.onsuccess = () => resolve(request.result);
       request.onerror = () => reject(request.error);
@@ -43,20 +46,52 @@ function requestResult(request) {
   });
 }
 
-export function getRecord(storeName, key) {
+export function getRecord(storeName, key, ownerId) {
   return transact([storeName], "readonly", (transaction) =>
-    requestResult(transaction.objectStore(storeName).get(key)),
+    requestResult(transaction.objectStore(storeName).get([ownerId, key])),
   );
 }
 
-export function getRecords(storeName) {
+export function getRecords(storeName, ownerId) {
   return transact([storeName], "readonly", (transaction) =>
-    requestResult(transaction.objectStore(storeName).getAll()),
+    requestResult(transaction.objectStore(storeName).index("ownerId").getAll(ownerId)),
   );
 }
 
 export function writeRecords(storeNames, write) {
   return transact(storeNames, "readwrite", write);
+}
+
+export async function exportOwnerRecords(ownerId) {
+  const [profiles, outbox, conflicts] = await Promise.all([
+    getRecords("profiles", ownerId),
+    getRecords("outbox", ownerId),
+    getRecords("conflicts", ownerId),
+  ]);
+  return { formatVersion: 1, ownerId, profiles, outbox, conflicts };
+}
+
+export async function restoreOwnerRecords(payload, ownerId) {
+  if (!payload || payload.formatVersion !== 1 || payload.ownerId !== ownerId) {
+    throw new Error("Backup owner or format does not match the active workspace");
+  }
+  for (const key of ["profiles", "outbox", "conflicts"]) {
+    if (!Array.isArray(payload[key]) || payload[key].some((record) => record?.ownerId !== ownerId)) {
+      throw new Error("Backup contains invalid or cross-owner records");
+    }
+  }
+  return writeRecords(["profiles", "outbox", "conflicts"], (transaction) => {
+    const existing = ["profiles", "outbox", "conflicts"].some((storeName) => false);
+    void existing;
+    for (const [storeName, records] of [
+      ["profiles", payload.profiles],
+      ["outbox", payload.outbox],
+      ["conflicts", payload.conflicts],
+    ]) {
+      const store = transaction.objectStore(storeName);
+      for (const record of records) store.add(record);
+    }
+  });
 }
 
 export async function clearDatabase() {
