@@ -5,9 +5,14 @@ export class FakeRemote {
   operations = new Map();
   transientFailures = 0;
   logicalWrites = 0;
+  lostAcknowledgements = 0;
 
   failNext(count = 1) {
     this.transientFailures = count;
+  }
+
+  loseNextAcknowledgement(count = 1) {
+    this.lostAcknowledgements = count;
   }
 
   readProfile(id) {
@@ -49,6 +54,11 @@ export class FakeRemote {
       profile: copy(profile),
     });
     this.logicalWrites += 1;
+
+    if (this.lostAcknowledgements > 0) {
+      this.lostAcknowledgements -= 1;
+      throw new Error("Simulated acknowledgement loss after remote acceptance");
+    }
     return { status: "accepted", profile: copy(profile) };
   }
 
@@ -70,5 +80,6 @@ export class FakeRemote {
     this.operations.clear();
     this.transientFailures = 0;
     this.logicalWrites = 0;
+    this.lostAcknowledgements = 0;
   }
 }
