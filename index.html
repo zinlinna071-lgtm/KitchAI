@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#173d35"><meta name="description" content="KitchAI helps kitchen and food-business teams work reliably, even when offline.">
-<title>KitchAI — Kitchen workspace</title><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="manifest" href="/manifest.webmanifest"><link rel="stylesheet" href="/src/styles.css"><script type="module" src="/src/app.js"></script>
+<title>KitchAI — Kitchen workspace</title><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="manifest" href="/manifest.webmanifest"><link rel="stylesheet" href="/src/styles.css"><script src="/runtime-config.js"></script><script type="module" src="/src/app.js"></script>
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
@@ -16,14 +16,26 @@
 <article class="status-card"><div class="card-icon card-icon-muted" aria-hidden="true">▤</div><p class="card-label">BUSINESS PROFILE</p><h2>Local draft</h2><p>Create a basic business profile and keep it on this device.</p><span class="card-foot">Cloud sync not connected</span></article>
 <article class="status-card"><div class="card-icon card-icon-muted" aria-hidden="true">↻</div><p class="card-label">SYNC</p><h2>Not connected yet</h2><p>Cloud identity and sync will be introduced only after their security checks.</p><span class="card-foot">No account required for this shell</span></article>
 </section>
+<section id="auth-panel" class="profile-editor auth-panel" aria-labelledby="auth-title" hidden>
+<div class="profile-editor-heading"><p class="eyebrow">ACCOUNT & SYNC</p><h2 id="auth-title">Connect your business workspace.</h2><p id="auth-help">Use the local Supabase Auth environment. Account creation and sign-in are unavailable when no runtime endpoint is configured.</p></div>
+<form id="auth-form" class="profile-form">
+<label for="auth-email">Email</label><input id="auth-email" name="email" type="email" autocomplete="username" required>
+<label for="auth-password">Password</label><input id="auth-password" name="password" type="password" minlength="8" autocomplete="current-password" required>
+<div id="auth-actions" class="auth-actions"><button id="sign-in-button" class="button button-primary" type="submit">Sign in</button><button id="sign-up-button" class="button button-secondary" type="button">Create account</button></div>
+<button id="sign-out-button" class="button button-secondary" type="button" hidden>Sign out</button>
+<p id="auth-state" class="profile-state" role="status" aria-live="polite">Local-only mode.</p>
+</form>
+</section>
 <section class="profile-editor" aria-labelledby="profile-editor-title">
-<div class="profile-editor-heading"><p class="eyebrow">LOCAL BUSINESS PROFILE</p><h2 id="profile-editor-title">Start with your business name.</h2><p id="profile-help">This draft is saved on this device only. Cloud sync and account ownership are not connected yet.</p></div>
+<div class="profile-editor-heading"><p class="eyebrow">LOCAL BUSINESS PROFILE</p><h2 id="profile-editor-title">Start with your business name.</h2><p id="profile-help">Without an account, this draft stays on this device. When signed in, your account workspace is separate; copying this draft into it requires an explicit action.</p></div>
 <form id="profile-form" class="profile-form">
 <label for="business-name">Business name</label>
 <input id="business-name" name="businessName" type="text" maxlength="80" autocomplete="organization" required aria-describedby="profile-help">
-<button class="button button-primary" type="submit">Save profile</button>
+<button id="save-profile-button" class="button button-primary" type="submit">Save profile</button>
+<button id="adopt-local-draft" class="button button-secondary" type="button" hidden>Copy local draft into my account</button>
 <p id="profile-state" class="profile-state" role="status" aria-live="polite">Checking local storage…</p>
 </form>
+<div id="conflict-panel" class="conflict-panel" hidden aria-labelledby="conflict-title"><p class="eyebrow">SYNC CONFLICT</p><h3 id="conflict-title">Review both versions.</h3><p id="conflict-base"></p><p id="conflict-local"></p><p id="conflict-remote"></p><div class="auth-actions"><button id="keep-local-button" class="button button-primary" type="button">Keep local</button><button id="use-remote-button" class="button button-secondary" type="button">Use remote</button></div></div>
 </section>
 <section class="offline-panel" aria-labelledby="offline-title"><div class="offline-panel-copy"><p class="eyebrow">BUILT FOR REAL KITCHENS</p><h2 id="offline-title">Keep the essentials close.</h2><p>This starter keeps its interface assets on your device after the first successful load. Business records and cloud sync are not part of this step yet.</p></div><div class="offline-indicator" aria-hidden="true"><span class="offline-ring"></span><span class="offline-center">K</span></div></section>
 <footer class="page-footer"><span>KitchAI · Early foundation</span><span id="app-version">App shell · WP1.2</span></footer>
