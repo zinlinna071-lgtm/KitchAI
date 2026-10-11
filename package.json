@@ -7,7 +7,7 @@
   "scripts": {
     "build": "node scripts/build.mjs",
     "test": "node --test",
-    "check": "node --check src/app.js && node --check src/local-store.js && node --check src/sync-store.js && node --check src/sync-engine.js && node --check src/supabase-api.js && node --check public/sw.js && node --check scripts/build.mjs && npm run typecheck && npm test && npm run build",
+    "check": "node --check src/app.js && node --check src/local-store.js && node --check src/sync-store.js && node --check src/sync-engine.js && node --check src/supabase-api.js && node --check public/sw.js && node --check public/runtime-config.js && node --check scripts/build.mjs && node --check scripts/serve.mjs && npm run typecheck && npm test && npm run build",
     "typecheck": "npx --yes --package typescript@5.9.3 tsc --project tsconfig.json"
   },
   "engines": {
