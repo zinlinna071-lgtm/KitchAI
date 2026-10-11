@@ -20,7 +20,7 @@ A work package (WP) is a bounded implementation unit with dependencies and evide
 
 ### WP1.2 — Application Shell & PWA Baseline
 - **Priority:** High
-- **Status:** In progress (baseline merged; final browser smoke review pending)
+- **Status:** Complete (app-shell baseline)
 - **Dependencies:** WP1.1
 - **Scope:** minimal application scaffold, typed build checks, basic responsive shell, PWA/offline app-shell behavior, connection/install states, and baseline automated checks.
 - **Current implementation:** `index.html`, `src/app.js`, `src/styles.css`, `public/manifest.webmanifest`, `public/sw.js`, `scripts/build.mjs`, `tests/app.test.mjs`, `tsconfig.json`, and `.github/workflows/app-shell.yml` are merged to `main`. The app has no runtime npm dependencies; CI invokes a pinned TypeScript compiler over JSDoc-typed browser JavaScript.
