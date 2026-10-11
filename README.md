@@ -4,7 +4,7 @@ KitchAI is an offline-first web/PWA foundation for kitchen and food-business ope
 
 ## Run the application shell
 
-Requirements: Node.js 22 or newer. No third-party npm packages are required for the current shell.
+Requirements: Node.js 22 or newer. The app has no runtime npm dependencies; `npm run check` invokes a pinned TypeScript compiler through `npx` for JSDoc-based type checking.
 
 ```sh
 npm test
@@ -27,4 +27,4 @@ This WP1.2 shell provides responsive layout, online/offline status, a web app ma
 
 ## Current status
 
-WP1.1 local requirements/architecture spike gate is complete. WP1.2 application shell implementation is in progress and must pass CI before completion. Supabase/PostgreSQL is the selected target architecture, but no cloud project, billing, secrets, or deployment is authorized.
+WP1.1 local requirements/architecture spike gate is complete. The WP1.2 app-shell baseline is merged and CI passes (type check, six tests, production build); final real-browser offline/install smoke verification remains before closing WP1.2. Supabase/PostgreSQL is the selected target architecture, but no cloud project, billing, secrets, or deployment is authorized.
