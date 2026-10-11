@@ -58,10 +58,11 @@ A work package (WP) is a bounded implementation unit with dependencies and evide
 
 ### WP1.6 — Business Profile Vertical Slice
 - **Priority:** High
-- **Status:** Not started
+- **Status:** Planning in progress (local-only)
 - **Dependencies:** WP1.3, WP1.4, WP1.5
-- **Scope:** connect the selected simple business record to UI, local storage, authorization, and sync end to end.
-- **Done when:** the acceptance flow in the Phase 1 plan passes on the chosen implementation.
+- **Plan:** [WP1_6_PLAN.md](./WP1_6_PLAN.md)
+- **Scope:** connect the selected simple business record to UI, owner-scoped local storage, Supabase Auth, server-side ownership/revision checks, and WP1.5 sync end to end. Preserve the anonymous local draft unless the owner explicitly adopts it. Add server-side idempotency so a lost acknowledgement cannot apply one logical write twice.
+- **Done when:** local Supabase Auth/Postgres/RLS integration passes create/update, owner isolation, offline queue/reconnect, retry/lost-ack recovery, conflict preservation/resolution, sign-out locking, and reload durability checks; CI remains green; limitations are documented. No hosted provisioning.
 
 ### WP1.7 — Integration, Recovery, Security & Acceptance
 - **Priority:** Blocking for Phase exit
