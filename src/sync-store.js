@@ -1,7 +1,7 @@
 import { validateBusinessName } from "./local-store.js";
 
 const DATABASE_NAME = "kitchai-sync";
-const DATABASE_VERSION = 1;
+const DATABASE_VERSION = 2;
 const PROFILE_STORE = "profiles";
 const OPERATION_STORE = "operations";
 const CONFLICT_STORE = "conflicts";
@@ -23,11 +23,11 @@ function openDatabase() {
         const profiles = db.createObjectStore(PROFILE_STORE, { keyPath: ["ownerId", "id"] });
         profiles.createIndex("byOwner", "ownerId", { unique: false });
       }
-      if (!db.objectStoreNames.contains(OPERATION_STORE)) {
-        const operations = db.createObjectStore(OPERATION_STORE, { keyPath: "operationId" });
-        operations.createIndex("byOwner", "ownerId", { unique: false });
-        operations.createIndex("byOwnerAndRecord", ["ownerId", "recordId"], { unique: false });
-      }
+      const operations = db.objectStoreNames.contains(OPERATION_STORE)
+        ? request.transaction.objectStore(OPERATION_STORE)
+        : db.createObjectStore(OPERATION_STORE, { keyPath: "operationId" });
+      if (!operations.indexNames.contains("byOwner")) operations.createIndex("byOwner", "ownerId", { unique: false });
+      if (!operations.indexNames.contains("byOwnerAndRecord")) operations.createIndex("byOwnerAndRecord", ["ownerId", "recordId"], { unique: false });
       if (!db.objectStoreNames.contains(CONFLICT_STORE)) {
         const conflicts = db.createObjectStore(CONFLICT_STORE, { keyPath: "conflictId" });
         conflicts.createIndex("byOwner", "ownerId", { unique: false });
