@@ -8,6 +8,7 @@ KitchAI is planned as an offline-first web/PWA for kitchen and food-business ope
 - [Phase 1 plan](docs/PHASE_1_PLAN.md) — sync foundation, identity/access control, and vertical-slice acceptance criteria.
 - [Work package registry](docs/WP_REGISTRY.md) — bounded tasks, dependencies, and completion evidence.
 - [Decision log](docs/DECISIONS.md) — accepted planning constraints and open owner decisions.
+- [Architecture options](docs/ARCHITECTURE_OPTIONS.md) — initial comparison; no provider has been selected.
 - [Project status](docs/STATUS.md) — current milestone and work-package progress.
 
 ## Current status
