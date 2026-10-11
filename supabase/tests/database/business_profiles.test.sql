@@ -1,5 +1,5 @@
 begin;
-select plan(37);
+select plan(40);
 
 insert into auth.users (id, aud, role, email, encrypted_password, email_confirmed_at)
 values
@@ -203,6 +203,33 @@ select is(
   2::bigint,
   'conflict response preserves the current remote revision'
 );
+select is(
+  public.apply_business_profile_operation(
+    '77777777-7777-4777-8777-777777777777',
+    '66666666-6666-4666-8666-666666666666',
+    'create', null, 'New Device Candidate'
+  ) ->> 'status',
+  'conflict',
+  'offline create against an existing owner profile becomes a reviewable conflict'
+);
+select is(
+  public.apply_business_profile_operation(
+    '77777777-7777-4777-8777-777777777777',
+    '66666666-6666-4666-8666-666666666666',
+    'create', null, 'New Device Candidate'
+  ) -> 'remoteProfile' ->> 'id',
+  'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
+  'duplicate-create conflict points to the existing remote profile ID'
+);
+select is(
+  public.apply_business_profile_operation(
+    '77777777-7777-4777-8777-777777777777',
+    '66666666-6666-4666-8666-666666666666',
+    'create', null, 'New Device Candidate'
+  ) ->> 'status',
+  'conflict',
+  'replaying duplicate-create operation returns the original conflict'
+);
 select throws_ok(
   $sql$select public.apply_business_profile_operation(
     '88888888-8888-4888-8888-888888888888',
@@ -215,7 +242,7 @@ select throws_ok(
 );
 select is(
   (select count(*)::integer from public.business_profile_operations where owner_id = '22222222-2222-4222-8222-222222222222'),
-  3,
+  4,
   'create, update, and conflict outcomes are durably recorded once per operation ID'
 );
 select is(
