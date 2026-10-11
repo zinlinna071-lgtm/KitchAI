@@ -254,20 +254,33 @@ export async function keepLocalAndResolve(conflict, ownerId, operation) {
   if (!savedConflict || savedConflict.ownerId !== ownerId || savedConflict.state !== "unresolved") throw new Error("Conflict is not unresolved in the active owner's workspace.");
   const current = await requestValue(profiles.get([ownerId, conflict.recordId]));
   if (!current) throw new Error("Local profile is missing; conflict remains unresolved.");
+  const remote = conflict.remoteSnapshot;
+  const targetRecordId = remote?.id ?? conflict.recordId;
+  const remapCreateCollision = conflict.baseRevision === null && targetRecordId !== conflict.recordId;
+  const localCandidate = {
+    ...current,
+    ...conflict.localSnapshot,
+    ownerId,
+    id: targetRecordId,
+    ...(remapCreateCollision ? { businessId: remote.businessId, createdAt: remote.createdAt } : {}),
+    revision: conflict.remoteRevision,
+    syncState: "pending",
+  };
   const newOperation = {
     ...operation,
     ownerId,
-    recordId: conflict.recordId,
+    recordId: targetRecordId,
     operation: "update",
     baseRevision: conflict.remoteRevision,
-    baseSnapshot: structuredClone(conflict.remoteSnapshot),
-    localSnapshot: structuredClone(conflict.localSnapshot),
+    baseSnapshot: structuredClone(remote),
+    localSnapshot: structuredClone(localCandidate),
     payload: { name: validateBusinessName(conflict.localSnapshot?.name) },
     attemptCount: 0,
     state: "pending",
     nextAttemptAt: 0,
   };
-  profiles.put({ ...current, ...conflict.localSnapshot, ownerId, revision: conflict.remoteRevision, syncState: "pending" });
+  if (remapCreateCollision) profiles.delete([ownerId, conflict.recordId]);
+  profiles.put(localCandidate);
   operations.add(newOperation);
   conflicts.put({ ...savedConflict, state: "resolved", resolution: { choice: "keep_local", resolvedAt: new Date().toISOString() } });
   await new Promise((resolve, reject) => {
@@ -289,6 +302,7 @@ export async function applyRemoteAndResolve(conflict, ownerId) {
   const savedConflict = await requestValue(conflicts.get(conflict.conflictId));
   if (!savedConflict || savedConflict.ownerId !== ownerId || savedConflict.state !== "unresolved") throw new Error("Conflict is not unresolved in the active owner's workspace.");
   const remote = conflict.remoteSnapshot;
+  if (remote?.id && remote.id !== conflict.recordId) profiles.delete([ownerId, conflict.recordId]);
   profiles.put({ ...remote, ownerId, syncState: "synced" });
   const operation = await requestValue(operations.get(conflict.operationId));
   if (operation && operation.ownerId === ownerId) operations.put({ ...operation, state: "conflict_resolved" });
