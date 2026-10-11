@@ -171,8 +171,10 @@ async function runSync() {
     const session = await getSession();
     if (!session) {
       activeSession = null;
+      currentOwnerProfile = null;
       updateAuthControls();
-      setProfileState("Your session expired. Local changes are preserved; sign in to resume sync.", true);
+      await loadLocalProfile();
+      setAuthState("Your session expired. Local changes are preserved; sign in to resume sync.", true);
       return;
     }
     activeSession = session;
@@ -181,11 +183,20 @@ async function runSync() {
     const summary = await syncPendingOperations({
       ownerId,
       store: syncStore,
-      send: operation => sendProfileOperation(operation, session),
+      send: operation => activeSession?.user?.id === ownerId
+        ? sendProfileOperation(operation, session)
+        : Promise.resolve({ status: "auth_required" }),
     });
     await refreshOwnerView();
     if (summary.pausedForAuth) {
-      setAuthState("Your session needs attention. Local changes remain saved; sign in again to resume sync.", true);
+      clearTimeout(retryTimer);
+      try { await signOut(); } catch {}
+      activeSession = null;
+      currentOwnerProfile = null;
+      updateAuthControls();
+      await loadLocalProfile();
+      setAuthState("Your session needs attention. Unsynced account work is preserved and locked; sign in again to resume sync.", true);
+      return;
     } else if (summary.conflicts) {
       setAuthState("A revision conflict needs your review. Neither version was discarded.", true);
     } else if (summary.failed) {
@@ -335,14 +346,14 @@ signUpButton?.addEventListener("click", async () => {
 
 signOutButton?.addEventListener("click", async () => {
   clearTimeout(retryTimer);
+  activeSession = null;
+  currentOwnerProfile = null;
+  updateAuthControls();
   try {
     await signOut();
   } catch {
     // Local session data is cleared even if the remote logout endpoint is unreachable.
   }
-  activeSession = null;
-  currentOwnerProfile = null;
-  updateAuthControls();
   await loadLocalProfile();
   setAuthState("Signed out. Unsynced account work is preserved and locked to its previous owner.");
 });
