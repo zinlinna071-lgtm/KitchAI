@@ -118,3 +118,51 @@ test("sign-out locks the previous owner's unsynced queue before another account 
   expect(queueState.previousOwnerStillHasPending).toBe(true);
   expect(queueState.activeOwnerHasPreviousQueue).toBe(false);
 });
+
+test("an offline create colliding with an existing remote profile becomes a resolvable conflict", async ({ page, context }) => {
+  await createAccount(page);
+  await page.locator("#business-name").fill("Existing Remote Kitchen");
+  await page.getByRole("button", { name: "Save profile" }).click();
+  await expect(page.locator("#profile-state")).toContainText("revision 1", { timeout: 10000 });
+  const ownerAndProfile = await page.evaluate(async () => {
+    const sync = await import("/src/sync-store.js");
+    const profile = (await sync.listOwnerProfiles(JSON.parse(sessionStorage.getItem("kitchai.auth.session")).user.id))[0];
+    return { ownerId: profile.ownerId, profileId: profile.id };
+  });
+  await page.evaluate(async ({ ownerId, profileId }) => {
+    const request = indexedDB.open("kitchai-sync", 2);
+    const db = await new Promise((resolve, reject) => {
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    const tx = db.transaction("profiles", "readwrite");
+    tx.objectStore("profiles").delete([ownerId, profileId]);
+    await new Promise((resolve, reject) => {
+      tx.oncomplete = resolve;
+      tx.onerror = () => reject(tx.error);
+      tx.onabort = () => reject(tx.error);
+    });
+    db.close();
+  }, ownerAndProfile);
+
+  await context.setOffline(true);
+  await page.reload();
+  await expect(page.locator("#business-name")).toHaveValue("");
+  await page.locator("#business-name").fill("Offline Replacement Candidate");
+  await page.getByRole("button", { name: "Save profile" }).click();
+  await expect(page.locator("#profile-state")).toContainText("waiting to sync");
+  await context.setOffline(false);
+  await expect(page.locator("#conflict-panel")).toBeVisible({ timeout: 15000 });
+  await expect(page.locator("#conflict-local")).toContainText("Offline Replacement Candidate");
+  await expect(page.locator("#conflict-remote")).toContainText("Existing Remote Kitchen");
+  await page.getByRole("button", { name: "Keep local" }).click();
+  await expect(page.locator("#profile-state")).toContainText("revision 2", { timeout: 15000 });
+  await expect(page.locator("#business-name")).toHaveValue("Offline Replacement Candidate");
+  const finalProfile = await page.evaluate(async () => {
+    const sync = await import("/src/sync-store.js");
+    const ownerId = JSON.parse(sessionStorage.getItem("kitchai.auth.session")).user.id;
+    return (await sync.listOwnerProfiles(ownerId))[0];
+  });
+  expect(finalProfile.id).toBe(ownerAndProfile.profileId);
+  expect(finalProfile.businessId).toBeTruthy();
+});
