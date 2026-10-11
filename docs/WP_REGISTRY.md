@@ -1,6 +1,6 @@
 # Work Package Registry
 
-**Status:** Phase 1 implementation baseline; WP1.1–WP1.4 local gates are complete. Hosted provider authorization remains separately gated on explicit environment/cost approval.  
+**Status:** Phase 1 implementation baseline; WP1.1–WP1.5 local gates are complete. End-to-end Business Profile integration remains WP1.6. Hosted provider authorization remains separately gated on explicit environment/cost approval.  
 **Parent plan:** [PHASE_1_PLAN.md](./PHASE_1_PLAN.md)
 
 A work package (WP) is a bounded implementation unit with dependencies and evidence of completion. The workflow maintains this registry so the owner does not need to manually split tasks.
@@ -49,12 +49,12 @@ A work package (WP) is a bounded implementation unit with dependencies and evide
 
 ### WP1.5 — Sync State, Retry & Conflict Preservation
 - **Priority:** High
-- **Status:** In progress (local-only engine and durable queue)
+- **Status:** Complete (local queue/retry/conflict mechanics gate; transport integration reserved for WP1.6)
 - **Dependencies:** WP1.3, WP1.4
 - **Scope:** persist owner-partitioned profile drafts and outbox operations atomically; retain stable operation IDs; coalesce edits into an unsent create; model in-flight, retryable, authentication-paused, permanent-failure, and conflict states; schedule bounded exponential backoff with jitter; preserve base/local/remote snapshots; require explicit Keep local or Use remote resolution against the current remote revision.
-- **Current implementation:** `src/sync-store.js` implements IndexedDB profile/outbox/conflict stores with owner-scoped reads and atomic local profile + operation writes. `src/sync-engine.js` implements transport-injected orchestration, retry timing, owner-partition checks, and conflict-resolution flow. It does not configure a remote transport or contact hosted services; WP1.6 integrates the authorized Business Profile vertical slice.
-- **Verification in progress:** Node tests cover retry bounds, owner isolation, success acknowledgement, transient failure, auth pause, permanent rejection, conflict preservation, and Keep local revision preconditions. Chromium tests exercise IndexedDB persistence, unsent-create coalescing, owner partitioning, and conflict snapshots/resolution across reload.
-- **Done when:** pending operations survive reload; retries reuse operation IDs and do not duplicate logical writes; only the active owner's queue is eligible for processing; transient/permanent/auth failures have distinct durable states; stale revisions preserve base/local/remote snapshots; explicit resolution is recoverable and tests/build pass. No hosted provisioning is part of this WP.
+- **Current implementation:** `src/sync-store.js` implements IndexedDB profile/outbox/conflict stores with owner-scoped reads and atomic local profile + operation writes, plus visible persisted profile sync states. `src/sync-engine.js` implements transport-injected orchestration, retry timing, owner-partition checks, and conflict-resolution flow. It does not configure a remote transport or contact hosted services; WP1.6 integrates the end-to-end Business Profile vertical slice.
+- **Verification:** [CI run 38178596957](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38178596957) passed 15/15 Node tests, 14/14 WP1.1 Chromium tests, dependency audit (0 vulnerabilities), and dependency tree; [CI run 38178596967](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38178596967) passed 6/6 Chromium app-shell tests, including owner partitioning, durable outbox, unsent-create coalescing, persisted sync states, and conflict snapshots/resolution across reload. PR [#10](https://github.com/zinlinna071-lgtm/KitchAI/pull/10) and sync-state follow-up [#11](https://github.com/zinlinna071-lgtm/KitchAI/pull/11) merged to `main`.
+- **Done when:** pending operations survive reload; retries reuse operation IDs and do not duplicate logical writes; only the active owner's queue is eligible for processing; transient/permanent/auth failures have distinct durable states; stale revisions preserve base/local/remote snapshots; explicit resolution is recoverable and tests/build pass. **Local mechanics gate met.** End-to-end transport/UI behavior remains part of WP1.6. No hosted provisioning is part of this WP.
 
 ### WP1.6 — Business Profile Vertical Slice
 - **Priority:** High
