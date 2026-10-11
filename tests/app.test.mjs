@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { access, readFile } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
-import { validateBusinessName } from "../src/local-store.js";
+import { readLocalProfile, saveLocalProfile, validateBusinessName } from "../src/local-store.js";
 const read=path=>readFile(new URL(path,import.meta.url),"utf8");
 test("document has accessible landmarks, viewport metadata, and clear scope",async()=>{
  const html=await read("../index.html");
@@ -37,4 +37,9 @@ test("business name validation trims input and enforces 1 to 80 characters", () 
   assert.throws(() => validateBusinessName("   "), /Enter a business name/);
   assert.throws(() => validateBusinessName("x".repeat(81)), /80 characters or fewer/);
   assert.throws(() => validateBusinessName(null), /Enter a business name/);
+});
+
+test("local profile persistence API exposes read and save operations", () => {
+  assert.equal(typeof readLocalProfile, "function");
+  assert.equal(typeof saveLocalProfile, "function");
 });
