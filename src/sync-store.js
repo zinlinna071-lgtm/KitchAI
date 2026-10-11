@@ -268,7 +268,6 @@ export async function keepLocalAndResolve(conflict, ownerId, operation) {
   };
   const newOperation = {
     ...operation,
-    operationId: crypto.randomUUID(),
     ownerId,
     recordId: targetRecordId,
     operation: "update",
