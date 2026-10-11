@@ -79,6 +79,7 @@ export async function saveOwnerProfileDraft(input) {
       name,
       createdAt: existing?.createdAt ?? now,
       updatedAt: now,
+      syncState: "pending",
       ...(existing?.revision ? { revision: existing.revision } : {}),
     };
     const queuedForRecord = await requestValue(operations.index("byOwnerAndRecord").getAll([ownerId, id]));
@@ -137,13 +138,18 @@ export async function listOperations(ownerId) {
   return operations.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
 }
 
-async function mutateOperation(operationId, ownerId, mutate) {
+async function mutateOperation(operationId, ownerId, mutate, profileState) {
   const db = await openDatabase();
-  const tx = db.transaction(OPERATION_STORE, "readwrite");
+  const tx = db.transaction(profileState ? [OPERATION_STORE, PROFILE_STORE] : [OPERATION_STORE], "readwrite");
   const store = tx.objectStore(OPERATION_STORE);
   const operation = await requestValue(store.get(operationId));
   if (!operation || operation.ownerId !== requireOwner(ownerId)) throw new Error("Operation is not in the active owner's queue.");
   store.put(mutate(operation));
+  if (profileState) {
+    const profiles = tx.objectStore(PROFILE_STORE);
+    const profile = await requestValue(profiles.get([ownerId, operation.recordId]));
+    if (profile) profiles.put({ ...profile, syncState: profileState });
+  }
   await new Promise((resolve, reject) => {
     tx.oncomplete = resolve;
     tx.onerror = () => reject(tx.error ?? new Error("Could not update sync operation."));
@@ -153,7 +159,7 @@ async function mutateOperation(operationId, ownerId, mutate) {
 
 /** @param {string} operationId @param {string} ownerId */
 export function markInFlight(operationId, ownerId) {
-  return mutateOperation(operationId, ownerId, op => ({ ...op, state: "in_flight", lastError: null }));
+  return mutateOperation(operationId, ownerId, op => ({ ...op, state: "in_flight", lastError: null }), "syncing");
 }
 
 /** @param {string} operationId @param {string} ownerId @param {any} remoteProfile */
@@ -166,7 +172,7 @@ export async function acknowledge(operationId, ownerId, remoteProfile) {
   if (!operation || operation.ownerId !== requireOwner(ownerId)) throw new Error("Operation is not in the active owner's queue.");
   const current = await requestValue(profiles.get([ownerId, operation.recordId]));
   if (current && remoteProfile && remoteProfile.id === operation.recordId) {
-    profiles.put({ ...current, ...remoteProfile, ownerId });
+    profiles.put({ ...current, ...remoteProfile, ownerId, syncState: "synced" });
   }
   operations.delete(operationId);
   await new Promise((resolve, reject) => {
@@ -180,7 +186,8 @@ export async function acknowledge(operationId, ownerId, remoteProfile) {
 export async function preserveConflict(operation, remoteProfile) {
   const ownerId = requireOwner(operation.ownerId);
   const db = await openDatabase();
-  const tx = db.transaction([OPERATION_STORE, CONFLICT_STORE], "readwrite");
+  const tx = db.transaction([PROFILE_STORE, OPERATION_STORE, CONFLICT_STORE], "readwrite");
+  const profiles = tx.objectStore(PROFILE_STORE);
   const operations = tx.objectStore(OPERATION_STORE);
   const conflicts = tx.objectStore(CONFLICT_STORE);
   const current = await requestValue(operations.get(operation.operationId));
@@ -200,6 +207,8 @@ export async function preserveConflict(operation, remoteProfile) {
   };
   conflicts.add(conflict);
   operations.put({ ...current, state: "conflict", conflictId: conflict.conflictId });
+  const localProfile = await requestValue(profiles.get([ownerId, current.recordId]));
+  if (localProfile) profiles.put({ ...localProfile, syncState: "conflict" });
   await new Promise((resolve, reject) => {
     tx.oncomplete = resolve;
     tx.onerror = () => reject(tx.error ?? new Error("Could not preserve conflict snapshots."));
@@ -209,19 +218,19 @@ export async function preserveConflict(operation, remoteProfile) {
 
 /** @param {string} operationId @param {string} ownerId */
 export function pauseForAuth(operationId, ownerId) {
-  return mutateOperation(operationId, ownerId, op => ({ ...op, state: "needs_auth" }));
+  return mutateOperation(operationId, ownerId, op => ({ ...op, state: "needs_auth" }), "needs_auth");
 }
 
 /** @param {string} operationId @param {string} ownerId @param {string} message */
 export function markPermanentFailure(operationId, ownerId, message) {
-  return mutateOperation(operationId, ownerId, op => ({ ...op, state: "failed_permanent", lastError: message }));
+  return mutateOperation(operationId, ownerId, op => ({ ...op, state: "failed_permanent", lastError: message }), "failed_permanent");
 }
 
 /** @param {string} operationId @param {string} ownerId @param {number} attemptCount @param {number} nextAttemptAt @param {string} message */
 export function scheduleRetry(operationId, ownerId, attemptCount, nextAttemptAt, message) {
   return mutateOperation(operationId, ownerId, op => ({
     ...op, state: "retryable_error", attemptCount, nextAttemptAt, lastError: message,
-  }));
+  }), "retryable_error");
 }
 
 /** @param {string} ownerId */
@@ -258,6 +267,7 @@ export async function keepLocalAndResolve(conflict, ownerId, operation) {
     state: "pending",
     nextAttemptAt: 0,
   };
+  profiles.put({ ...current, ...conflict.localSnapshot, ownerId, revision: conflict.remoteRevision, syncState: "pending" });
   operations.add(newOperation);
   conflicts.put({ ...savedConflict, state: "resolved", resolution: { choice: "keep_local", resolvedAt: new Date().toISOString() } });
   await new Promise((resolve, reject) => {
@@ -279,7 +289,7 @@ export async function applyRemoteAndResolve(conflict, ownerId) {
   const savedConflict = await requestValue(conflicts.get(conflict.conflictId));
   if (!savedConflict || savedConflict.ownerId !== ownerId || savedConflict.state !== "unresolved") throw new Error("Conflict is not unresolved in the active owner's workspace.");
   const remote = conflict.remoteSnapshot;
-  profiles.put({ ...remote, ownerId });
+  profiles.put({ ...remote, ownerId, syncState: "synced" });
   const operation = await requestValue(operations.get(conflict.operationId));
   if (operation && operation.ownerId === ownerId) operations.put({ ...operation, state: "conflict_resolved" });
   conflicts.put({ ...savedConflict, state: "resolved", resolution: { choice: "use_remote", resolvedAt: new Date().toISOString() } });
