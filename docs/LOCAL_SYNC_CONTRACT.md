@@ -52,6 +52,8 @@ type PendingOperation = {
 
 The final storage representation may vary, but observable behavior must remain equivalent. Delete support is out of scope for the first slice until lifecycle and tombstone semantics are designed and tested.
 
+**WP1.3 local-draft boundary:** Before WP1.4 authentication exists, the local profile draft intentionally contains only `id`, `businessId`, `name`, `createdAt`, and `updatedAt`. It does not contain `ownerId` or the server-controlled `revision`. A separate IndexedDB metadata store keeps the local edit counter and schema version. WP1.4 must bind the draft to the authenticated server-derived owner and authoritative revision; a local draft is not proof of identity or authorization.
+
 ## 3. Write and sync behavior
 
 1. Validate user input at the application boundary; trim the name and reject empty names or names longer than 80 characters.
