@@ -186,7 +186,9 @@ test("explicit remote conflict resolution keeps the remote candidate and preserv
   expect((await page.evaluate((id) => window.spike.readProfile(id), profile.id)).name)
     .toBe("Authoritative Remote Kitchen");
   expect((await page.evaluate(() => window.spike.listOutbox()))
-    .some((operation) => operation.state === "pending" && operation.candidate.name === "Unselected Local Kitchen"))
-    .toBe(true);
+    .find((operation) => operation.operationId === updateOperation.operationId))
+    .toMatchObject({ state: "conflict", candidate: { name: "Unselected Local Kitchen" } });
+  expect((await page.evaluate(() => window.spike.listConflicts()))
+    .find((item) => item.id === conflict.conflictId).status).toBe("resolved");
 });
 
