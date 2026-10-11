@@ -1,6 +1,6 @@
 # Local–Cloud Sync Contract (WP1.1)
 
-**Status:** Implementation contract aligned to owner-approved Phase 1 planning defaults; behavior still requires implementation and test evidence.  
+**Status:** Contract aligned to owner-approved Phase 1 planning defaults. The isolated WP1.1 spike's local sync/recovery evidence passed 14 Chromium tests; this is not production implementation or provider-authorization evidence.  
 **Scope:** Phase 1 Business Profile vertical slice only.  
 **Related docs:** [Phase 1 plan](./PHASE_1_PLAN.md), [architecture options](./ARCHITECTURE_OPTIONS.md), [decision log](./DECISIONS.md), [spike report](../.spikes/wp1-1-local-sync/REPORT.md).
 
@@ -134,10 +134,11 @@ Provider-native allow/deny tests must run only after a hosted test environment a
 - [x] Owner accepted conflict preservation and explicit **Keep local** / **Use remote** resolution.
 - [x] Owner accepted owner-partitioned local data, sync stop and workspace lock on sign-out, and preservation of unsynced data.
 - [x] Owner directed local/emulator-first testing and deferred deployment, region/domain, backup/export and spend details until before hosted deployment.
-- [ ] Re-run and review the current repository's isolated sync tests and ensure they match the approved contract.
-- [ ] Verify crash recovery, account partitioning, sign-out lock, and no cross-account queue submission with reproducible local tests.
-- [ ] Prepare/document export and restore approach; local storage is not backup.
-- [ ] Review all WP1.1 exit criteria and record exact verification evidence in status and registry.
-- [ ] Provider-native authorization/security validation remains blocked until an isolated hosted test environment and cost boundary are explicitly approved; do not fabricate or imply that evidence.
+- [x] Re-ran the isolated browser suite: 14/14 Chromium tests passed on GitHub Actions run [38175356346](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38175356346); dependency audit reported 0 vulnerabilities and `npm ls --depth=0` passed.
+- [x] Verified local owner partitioning, sign-out lock with preserved unsynced data, and prevention of prior-owner queue submission under another test session.
+- [x] Verified same-operation-ID recovery after simulated lost acknowledgement; retry produced no duplicate logical remote write.
+- [x] Verified export/restore into a fresh browser context for the same owner, rejection of a different-owner backup, and a simulated write failure that leaves no partial profile/outbox write.
+- [x] Reviewed and recorded the limits: these are disposable local-spike tests; session switching and remote are simulated; real browser quota/eviction and production restore-over-existing-data are not tested.
+- [x] Provider-native authorization/security validation is explicitly deferred until an isolated hosted test environment and cost boundary are approved; no provider authorization claim is made.
 
-WP1.1 remains **In progress** until the outstanding local evidence is verified and recorded. WP1.2 remains **Not started** until the WP1.1 exit gate is reviewed. Do not create a cloud project, enable billing, add provider credentials, or start application scaffolding on the strength of this document alone.
+**WP1.1 local evidence gate: met for the requirements/architecture spike.** Provider-native authorization remains a separate blocked prerequisite for WP1.4 and the Phase 1 production vertical slice. WP1.2 may begin as a separate bounded work package; do not create a cloud project, enable billing, add provider credentials, or deploy without separate approval.
