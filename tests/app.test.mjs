@@ -5,7 +5,7 @@ import { spawnSync } from "node:child_process";
 const read=path=>readFile(new URL(path,import.meta.url),"utf8");
 test("document has accessible landmarks, viewport metadata, and clear scope",async()=>{
  const html=await read("../index.html");
- assert.match(html,/<html lang="en">/);assert.match(html,/name="viewport"/);assert.match(html,/class="skip-link" href="#main"/);assert.match(html,/<main id="main">/);
+ assert.match(html,/<html lang="en">/);assert.match(html,/name="viewport"/);assert.match(html,/class="skip-link" href="#main"/);assert.match(html,/<main id="main" class="page-shell">/);
  assert.match(html,/id="connection-status" class="connection-status" role="status"/);assert.match(html,/business details will be added in a later work package/i);assert.match(html,/cloud identity and sync will be introduced only after their security checks/i);
 });
 test("manifest declares standalone app and local icon",async()=>{
