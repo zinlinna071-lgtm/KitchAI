@@ -1,6 +1,6 @@
 # Decision Log
 
-This log distinguishes accepted planning constraints from proposals and unresolved owner decisions. Update it when a material decision is made; do not treat a draft recommendation as approval. The consolidated Phase 1 review is in [OWNER_REVIEW_BRIEF.md](./OWNER_REVIEW_BRIEF.md); it contains recommendations, not approvals.
+This log distinguishes accepted planning constraints from proposals and unresolved owner decisions. Update it when a material decision is made; do not treat a draft recommendation as approval. The consolidated Phase 1 review is in [OWNER_REVIEW_BRIEF.md](./OWNER_REVIEW_BRIEF.md).
 
 ## Accepted planning constraints
 
@@ -12,34 +12,35 @@ This log distinguishes accepted planning constraints from proposals and unresolv
 | D-004 | Phase 1 includes the minimum identity, authentication, ownership, and authorization foundation required for secure sync. | Accepted planning direction |
 | D-005 | Full user-facing account-management features are deferred beyond Phase 1. | Accepted planning direction |
 | D-006 | Detect and preserve conflicting edits for review; do not silently discard a competing version. | Accepted planning direction |
-| D-007 | Compare cloud/backend architecture options before choosing a provider. | Required process |
+| D-007 | Compare cloud/backend architecture options before choosing a provider. | Required process; comparison completed before the provisional selection below |
 | D-008 | Do not incur material paid-service costs without explicit owner approval. | Required constraint |
 | D-009 | The MVP direction is Core + Basic AI; AI implementation follows dependable core data/workflows. | Accepted planning direction |
 
-## Open owner decisions
+## Owner-approved Phase 1 planning defaults
 
-| ID | Decision needed | Why it matters | Current status |
-|---|---|---|---|
-| O-001 | Cloud backend/auth/database provider and hosting model | Determines security policies, sync approach, operating cost, vendor lock-in, and deployment. | Open; technical lead recommends Supabase/PostgreSQL + explicit local-first sync; Appwrite + RxDB remains active alternative. Official-doc review is in ARCHITECTURE_OPTIONS.md; this is not owner approval. |
-| O-002 | Exact first vertical-slice fields and validation rules | Defines schema, ownership boundary, migration and acceptance tests. | Proposed minimal Business Profile and validation are recorded in ARCHITECTURE_OPTIONS.md; owner acceptance remains open. |
-| O-003 | Conflict review UX and resolution policy | Determines how users compare and choose between competing versions. | Preserve base/local/remote snapshots and require explicit resolution; review UI, audit retention, and exact choices remain open for owner review. |
-| O-004 | Offline data protection expectations on shared devices | Affects local data exposure, sign-out behavior, and device threat assumptions. | Browser-storage threat assumptions and sign-out questions are documented in ARCHITECTURE_OPTIONS.md; retention, encryption/locking, and account-switch behavior remain open. |
-| O-005 | Deployment and domain approach | Affects PWA installability, authentication redirects, secure transport, and cost. | HTTPS and separated environments are proposed; provider, region, domain, budget cap, and deployment approval remain open. Do not provision or purchase. |
-| O-006 | First AI feature and provider/cost limits | Needed before Phase 6 implementation, not a Phase 1 blocker. | Deferred |
+The owner instructed the team to proceed with the recommended defaults on 2026-10-12. These approvals select planning/implementation direction only; they do not authorize cloud provisioning, paid plans, billing activation, domain purchase, or production deployment.
 
-## Owner decision brief (WP1.1)
+| ID | Approved direction | Boundary / follow-up |
+|---|---|---|
+| O-001 | Select Supabase + PostgreSQL as the target provider architecture, with a KitchAI-owned explicit local-first sync layer. | No project provisioning, billing activation, secrets, or hosted provider tests are authorized by this selection alone. Use local/emulator-only work until the environment and cost boundary are separately approved. |
+| O-002 | First vertical slice is a minimal Business Profile: stable UUID `id`, server-authoritative `ownerId`, stable `businessId`, required trimmed `name` (1–80 characters), immutable UTC `createdAt`, UTC `updatedAt`, and server-controlled monotonic `revision`. | Validate schema and ownership constraints in implementation review; do not let clients set authoritative owner or revision fields. |
+| O-003 | Preserve base/local/remote snapshots for conflicts; require an explicit user choice between “Keep local” and “Use remote”. | Record the resolution; if the remote revision changes before resolution, reopen/re-evaluate the conflict rather than silently applying a stale choice. |
+| O-004 | Partition local data and pending sync work by owner. On sign-out, stop sync and lock the local workspace; preserve unsynced data rather than silently deleting it. Never submit a prior owner's queue under a different session. | Browser storage is not guaranteed encrypted. Implement safe account switching and disclose the local-data limitation; do not claim encryption unless actually implemented and tested. |
+| O-005 | Start with local/emulator testing, separate environments, HTTPS for any deployed environment, and synthetic non-production data. Define spend cap, region, domain, backup/export and deployment details before any hosted deployment. | No cloud provisioning, billing, domain purchase, or production deployment is approved yet. Local storage is not a backup. |
 
-**Recommended option (pending O-001):** Supabase/PostgreSQL with a separate explicit local-first layer. It best fits the relational roadmap and leaves revision checks, outbox semantics, and conflict preservation under KitchAI's control. Appwrite Cloud + RxDB remains the alternative if a KitchAI-specific replication test demonstrates less complexity without losing conflict snapshots or ownership guarantees. Firebase remains a comparator; Firestore's documented same-document last-write-wins needs an additional conflict layer. This recommendation is not provider approval or permission to provision.
+## Deferred decision
 
-**Trade-offs:** Supabase requires KitchAI to own/test the local queue, retries, idempotency, migrations, and conflict UI; Free projects pause after a week of inactivity and have no automatic backups. Appwrite offers documented push/pull and RxDB integration, but this review could not verify exact Free quotas or whether projects pause; conflict policy is application-owned. Firebase reduces basic sync work but web persistence is opt-in, cache can persist across sessions, and default conflict behavior does not meet the preserve-both requirement.
+| ID | Decision needed | Status |
+|---|---|---|
+| O-006 | First AI feature/provider and cost limits | Deferred until Phase 6 planning. |
 
-**Material owner decisions still needed:** provider and hosting/region; monthly spend cap and billing permission; Business Profile fields and name rules; conflict-review UX and resolution/audit retention; local-data protection and sign-out/account-switch behavior; deployment/domain and backup/export expectations.
+## Provider and authorization test gate
 
-**Evidence required before provider authorization tests:** (1) record provider/plan/region and owner cost approval or explicitly constrain tests to a no-billing local emulator; (2) approve an isolated non-production environment with no real data and secret-manager handling; (3) review the final schema and provider-native server-side ownership policy, including privileged server SDK paths; (4) create separate test owners/business scopes and document unauthenticated, allowed-owner, cross-owner read/write, and delete-denial cases; (5) record reproducible emulator/provider test instructions and reviewable results. The fake-owner spike test is simulation only and is not evidence for this gate.
+Before provider-specific authorization/security tests against a hosted project, the owner must explicitly approve the test environment and any cost/billing boundary. Until then, use local/emulator-only tests and do not provision hosted infrastructure. Required evidence: (1) provider/plan/region and cost approval or a no-billing local emulator boundary; (2) isolated non-production environment with synthetic data and secret handling; (3) reviewed schema and server-side ownership policies, including privileged server SDK paths; (4) separate test owners/business scopes and documented unauthenticated, allowed-owner, cross-owner read/write, and delete-denial cases; (5) reproducible test instructions and reviewable results. The fake-owner spike test is simulation only, not provider authorization evidence.
 
 ## Decision process
 
 1. Record constraints and compare realistic options using explicit criteria.
 2. Distinguish reversible implementation choices from material product/security/cost choices.
-3. Make recommendations with trade-offs; ask the owner only for decisions that materially require their input.
-4. Record the selected option and rationale here before implementing a vendor-dependent foundation.
+3. Make recommendations with trade-offs and record the owner's selected direction.
+4. Implement one work package at a time, verify tests and diffs, and update status/registry with evidence.
