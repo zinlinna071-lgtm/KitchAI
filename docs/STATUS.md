@@ -22,7 +22,7 @@
 | WP registry | Initial baseline | docs/WP_REGISTRY.md |
 | Decision log | Owner-approved Phase 1 defaults recorded; provisioning/cost boundaries remain restricted | [docs/DECISIONS.md](./DECISIONS.md) |
 | Architecture comparison | Supabase/PostgreSQL selected as target architecture; provider comparison retained | docs/ARCHITECTURE_OPTIONS.md |
-| Local–cloud sync contract | Proposed implementation contract; validate against approved decisions during WP1.1 closure | docs/LOCAL_SYNC_CONTRACT.md |
+| Local–cloud sync contract | Aligned to owner-approved defaults; implementation and test evidence still required | docs/LOCAL_SYNC_CONTRACT.md |
 | Coding AI execution prompt | Added; includes repo-first workflow and decision/security stop gates | [docs/CODING_AI_PHASE1_EXECUTION_PROMPT.md](./CODING_AI_PHASE1_EXECUTION_PROMPT.md) |
 | Isolated sync spike | Executed; 6 Chromium tests pass | .spikes/wp1-1-local-sync/REPORT.md |
 | Application scaffold | Not started | Do not begin until WP1.1 exit evidence is complete |
