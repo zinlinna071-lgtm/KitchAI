@@ -53,6 +53,16 @@ test("local business profile creates, trims, updates, and survives reload", asyn
   await page.reload();
   await expect(name).toHaveValue("Northside Kitchen");
   await expect(page.locator("#profile-state")).toContainText("not synced");
+  const original = await page.evaluate(() => new Promise((resolve, reject) => {
+    const request = indexedDB.open("kitchai-local", 1);
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => {
+      const transaction = request.result.transaction("profiles", "readonly");
+      const read = transaction.objectStore("profiles").getAll();
+      read.onsuccess = () => { resolve(read.result[0]); request.result.close(); };
+      read.onerror = () => reject(read.error);
+    };
+  }));
   await name.fill("Northside Kitchen Two");
   await page.getByRole("button", { name: "Save profile" }).click();
   await expect(page.locator("#profile-state")).toContainText("local version 2");
@@ -71,6 +81,20 @@ test("local business profile creates, trims, updates, and survives reload", asyn
   expect(record.name).toBe("Northside Kitchen Two");
   expect(record).not.toHaveProperty("ownerId");
   expect(record).not.toHaveProperty("revision");
+  expect(record.createdAt).toBe(original.createdAt);
+  expect(record.businessId).toBe(original.businessId);
+  const metadata = await page.evaluate(() => new Promise((resolve, reject) => {
+    const request = indexedDB.open("kitchai-local", 1);
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => {
+      const transaction = request.result.transaction("metadata", "readonly");
+      const read = transaction.objectStore("metadata").getAll();
+      read.onsuccess = () => { resolve(read.result); request.result.close(); };
+      read.onerror = () => reject(read.error);
+    };
+  }));
+  expect(metadata.find((item) => item.key === "schemaVersion").value).toBe(1);
+  expect(metadata.find((item) => item.key === "localRevision:" + record.id).value).toBe(2);
 });
 
 test("invalid blank names and unavailable storage never report a successful save", async ({ page }) => {
