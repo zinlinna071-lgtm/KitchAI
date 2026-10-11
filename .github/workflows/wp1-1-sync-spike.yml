@@ -1,0 +1,50 @@
+name: WP1.1 Local Sync Spike
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".spikes/wp1-1-local-sync/**"
+      - ".github/workflows/wp1-1-sync-spike.yml"
+  pull_request:
+    paths:
+      - ".spikes/wp1-1-local-sync/**"
+      - ".github/workflows/wp1-1-sync-spike.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: wp1-1-sync-spike-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  spike-tests:
+    name: Browser tests and dependency checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: .spikes/wp1-1-local-sync
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: .spikes/wp1-1-local-sync/package-lock.json
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Run Chromium browser tests
+        run: npm test
+
+      - name: Audit dependencies
+        run: npm audit --audit-level=low
+
+      - name: Verify direct dependency tree
+        run: npm ls --depth=0
