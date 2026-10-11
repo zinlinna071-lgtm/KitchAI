@@ -30,19 +30,21 @@ A work package (WP) is a bounded implementation unit with dependencies and evide
 
 ### WP1.3 — Local Persistence & Data Integrity
 - **Priority:** High
-- **Status:** In progress
+- **Status:** Complete
 - **Dependencies:** WP1.1, WP1.2
 - **Scope:** durable IndexedDB storage for the Business Profile local draft, validation, schema version metadata, reload durability, and safe behavior when storage fails.
 - **Current implementation:** `src/local-store.js` adds a versioned `kitchai-local` IndexedDB database with separate profile and metadata stores. The UI allows creating/updating a local profile and explicitly says it is not synced. The local draft omits server-authoritative `ownerId` and server `revision`; see [LOCAL_SYNC_CONTRACT.md](./LOCAL_SYNC_CONTRACT.md).
-- **Verification pending:** CI type-check, Node tests, production build, and Chromium tests for create/update/reload, validation, and unavailable storage.
-- **Done when:** create/read/update survives reload; name validation and schema metadata are tested; storage failures do not claim success; tests/build pass; limitations and the local-draft/server-authority boundary are documented.
+- **Verification:** [WP1.3 app-shell CI run 38176993521](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38176993521) passed 5/5 Chromium smoke tests including profile create/update/reload, immutable `createdAt`/`businessId`, schema version and local revision metadata, invalid blank names, and unavailable IndexedDB. [Baseline CI run 38176993535](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38176993535) passed 8/8 Node tests, JSDoc TypeScript check, production build, WP1.1's 14 Chromium tests, dependency audit, and dependency tree.
+- **Limitations:** local draft is not synced, does not assert an owner identity, and is not a backup. Real browser quota exhaustion is not simulated; unavailable IndexedDB is tested. WP1.4 must bind server-authoritative owner/revision fields after authentication.
+- **Done when:** create/read/update survives reload; name validation and schema metadata are tested; storage failures do not claim success; tests/build pass; limitations and local-draft/server-authority boundary are documented. **Gate met.**
 
 ### WP1.4 — Cloud Identity, Persistence & Authorization
 - **Priority:** High
-- **Status:** Not started
+- **Status:** Not started (hosted path gated; local/emulator work may proceed)
 - **Dependencies:** WP1.1, WP1.2
 - **Scope:** minimum authentication and cloud persistence required for sync; enforce ownership on trusted server/database boundaries; protect secrets; test unauthenticated and cross-owner access.
-- **Done when:** authorized operations work and negative authorization tests demonstrate isolation. Full account-management UI is not required. Hosted tests require an explicitly approved non-production environment and cost boundary.
+- **Next safe step:** design and implement Supabase schema/RLS and repeatable local/emulator tests only. Do not create a hosted project, activate billing, add hosted credentials, or deploy. If a reliable local auth/RLS test environment cannot be established within the repo, record that blocker rather than substituting fake-owner checks.
+- **Done when:** authorized operations work and negative authorization tests demonstrate isolation against the actual local/emulated server/database policy boundary. Full account-management UI is not required. Hosted tests require an explicitly approved non-production environment and cost boundary.
 
 ### WP1.5 — Sync State, Retry & Conflict Preservation
 - **Priority:** High
