@@ -1,6 +1,6 @@
 # Work Package Registry
 
-**Status:** Phase 1 planning baseline; WP1.1 local requirements/architecture spike is complete. Provider authorization remains a gated follow-up for WP1.4 after explicit environment/cost approval.  
+**Status:** Phase 1 implementation baseline; WP1.1–WP1.4 local gates are complete. Hosted provider authorization remains separately gated on explicit environment/cost approval.  
 **Parent plan:** [PHASE_1_PLAN.md](./PHASE_1_PLAN.md)
 
 A work package (WP) is a bounded implementation unit with dependencies and evidence of completion. The workflow maintains this registry so the owner does not need to manually split tasks.
@@ -40,12 +40,12 @@ A work package (WP) is a bounded implementation unit with dependencies and evide
 
 ### WP1.4 — Cloud Identity, Persistence & Authorization
 - **Priority:** High
-- **Status:** In progress (local Supabase path; hosted path gated)
+- **Status:** Complete (local Supabase authorization gate; hosted path gated)
 - **Dependencies:** WP1.1, WP1.2
 - **Scope:** minimum authentication and cloud persistence required for sync; enforce ownership on trusted server/database boundaries; protect secrets; test unauthenticated and cross-owner access.
 - **Current implementation:** `supabase/config.toml`, migration `supabase/migrations/20261012000000_create_business_profiles.sql`, pgTAP suite `supabase/tests/database/business_profiles.test.sql`, and `.github/workflows/supabase-local.yml`. The migration derives `owner_id` from `auth.uid()`, generates immutable `business_id`, controls timestamps/revision, enables RLS, and grants authenticated users only select/insert/update. Delete is not granted. No hosted project or credentials are used.
-- **Verification pending:** local Supabase CLI stack startup, migration application, and 19 pgTAP assertions must pass in GitHub Actions. Review any failure before merge.
-- **Done when:** authorized operations work and negative authorization tests demonstrate isolation against the actual local Supabase Auth/Postgres/RLS boundary. Full account-management UI is not required. Hosted tests require an explicitly approved non-production environment and cost boundary.
+- **Verification:** [GitHub Actions run 38177790964](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38177790964) passed local Supabase CLI stack startup, migration application, and all 21 pgTAP assertions against actual local Supabase Auth/Postgres/RLS. Coverage includes anonymous access denial, no delete grant, server-owned field enforcement, name trimming, revision increments, and cross-owner read/update isolation. PR [#9](https://github.com/zinlinna071-lgtm/KitchAI/pull/9) merged to `main` as `b11041112de77524ac2c11515602bbf60c7547c3`.
+- **Done when:** authorized operations work and negative authorization tests demonstrate isolation against the actual local Supabase Auth/Postgres/RLS boundary. Full account-management UI is not required. **Local gate met.** Hosted tests require an explicitly approved non-production environment and cost boundary.
 
 ### WP1.5 — Sync State, Retry & Conflict Preservation
 - **Priority:** High
