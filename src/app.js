@@ -216,8 +216,11 @@ async function runSync() {
 
 async function loadOwnerWorkspace(session) {
   activeSession = session;
+  currentOwnerProfile = null;
   updateAuthControls();
   if (!session?.user?.id || !businessNameInput) return;
+  businessNameInput.value = "";
+  if (adoptLocalButton) adoptLocalButton.hidden = true;
   const ownerId = session.user.id;
   try {
     await recoverInterruptedOperations(ownerId);
