@@ -49,10 +49,12 @@ A work package (WP) is a bounded implementation unit with dependencies and evide
 
 ### WP1.5 — Sync State, Retry & Conflict Preservation
 - **Priority:** High
-- **Status:** Not started
+- **Status:** In progress (local-only engine and durable queue)
 - **Dependencies:** WP1.3, WP1.4
-- **Scope:** local pending queue/state, retry/backoff, idempotency, recoverable failures, conflict detection, and preserving competing versions for review.
-- **Done when:** offline-to-online sync works; retries do not duplicate logical changes; conflicts are surfaced and neither side is silently discarded.
+- **Scope:** persist owner-partitioned profile drafts and outbox operations atomically; retain stable operation IDs; coalesce edits into an unsent create; model in-flight, retryable, authentication-paused, permanent-failure, and conflict states; schedule bounded exponential backoff with jitter; preserve base/local/remote snapshots; require explicit Keep local or Use remote resolution against the current remote revision.
+- **Current implementation:** `src/sync-store.js` implements IndexedDB profile/outbox/conflict stores with owner-scoped reads and atomic local profile + operation writes. `src/sync-engine.js` implements transport-injected orchestration, retry timing, owner-partition checks, and conflict-resolution flow. It does not configure a remote transport or contact hosted services; WP1.6 integrates the authorized Business Profile vertical slice.
+- **Verification in progress:** Node tests cover retry bounds, owner isolation, success acknowledgement, transient failure, auth pause, permanent rejection, conflict preservation, and Keep local revision preconditions. Chromium tests exercise IndexedDB persistence, unsent-create coalescing, owner partitioning, and conflict snapshots/resolution across reload.
+- **Done when:** pending operations survive reload; retries reuse operation IDs and do not duplicate logical writes; only the active owner's queue is eligible for processing; transient/permanent/auth failures have distinct durable states; stale revisions preserve base/local/remote snapshots; explicit resolution is recoverable and tests/build pass. No hosted provisioning is part of this WP.
 
 ### WP1.6 — Business Profile Vertical Slice
 - **Priority:** High
