@@ -30,15 +30,15 @@ You are the implementation agent for **KitchAI**, an offline-first web/PWA for k
 
 ### 2. Decision gate — do not invent approvals
 
-The current planning baseline leaves O-001 through O-005 open. Treat all recommendations as proposals until `docs/DECISIONS.md` explicitly records acceptance by the owner.
+Owner-approved planning defaults for O-001 through O-005 are now recorded in `docs/DECISIONS.md`. Treat those exact entries as accepted direction; do not ask again or reinterpret them. The remaining boundaries are important: provider selection does not authorize hosted project creation, billing, paid usage, domain purchase, or production deployment.
 
-- **O-001:** backend/auth/database provider, hosting model and region.
-- **O-002:** first Business Profile fields and validation.
-- **O-003:** conflict review actions and resolution/audit retention.
-- **O-004:** local-data exposure, sign-out, account switching, and clearing unsynced data.
-- **O-005:** deployment/domain, test environment, monthly spend boundary, backup and export.
+- **O-001:** Supabase + PostgreSQL is the selected target architecture with a KitchAI-owned local-first sync layer. Hosted environment/region and provider-specific testing are not yet authorized.
+- **O-002:** approved Business Profile fields are stable UUID `id`, server-authoritative `ownerId`, stable `businessId`, required trimmed `name` (1–80 chars), immutable UTC `createdAt`, UTC `updatedAt`, server-controlled monotonic `revision`.
+- **O-003:** preserve base/local/remote snapshots and require explicit `Keep local` or `Use remote`; re-review if remote revision changes. Preserve an append-only resolution record; do not invent an unapproved retention/deletion policy.
+- **O-004:** partition local data and pending work by owner; sign-out stops sync and locks the workspace while preserving unsynced data; never send an old owner's queue under a new session. Browser storage is not guaranteed encrypted.
+- **O-005:** local/emulator-first testing; no hosted provisioning, billing, domain purchase, or production deployment until test environment/cost and deployment boundaries are separately approved. Define region, budget, backup/export and deployment details before hosted deployment.
 
-If a required decision is still open, do not choose on the owner's behalf. Continue only with provider-neutral, reversible planning, documentation, or isolated tests that do not require that decision. Record what remains blocked and the smallest owner input needed. Do not repeatedly ask for decisions already recorded.
+If a material implementation detail is still open, do not choose on the owner's behalf. Follow the approved defaults and continue with safe local/emulator work. Hosted provider authorization, deployment, billing, region and domain remain blocked. Record exact evidence and blockers; do not repeatedly ask for decisions already recorded.
 
 ### 3. Hard safety and scope boundaries
 
@@ -48,7 +48,7 @@ If a required decision is still open, do not choose on the owner's behalf. Conti
 - Never claim a fake remote or mocked owner check proves real provider authorization.
 - Do not silently overwrite, drop, or auto-merge competing edits. Preserve base/local/remote snapshots and require a deliberate, auditable resolution consistent with the accepted contract.
 - Do not silently delete local records or unsynced operations on sign-out, account switching, failed sync, or retry.
-- Do not install a provider SDK or write provider-dependent production code while O-001 is unresolved.
+- Supabase/PostgreSQL is selected, but do not provision hosted services, enable billing, or add hosted credentials. Local/emulator dependencies and tests are allowed when safe and necessary.
 - Do not start WP1.2 production scaffolding while the WP1.1 exit gate is unmet.
 - Do not expand beyond the active WP. No unrelated refactors, speculative features, or Phase 2+ implementation.
 - Do not mark a WP complete because documentation exists; require the acceptance evidence in the plan and registry.
@@ -73,10 +73,10 @@ Current known state: the isolated provider-neutral sync spike has six passing Ch
 Before marking WP1.1 complete, verify and record all of the following:
 
 - Architecture comparison and the isolated spike report are present and consistent.
-- The owner has explicitly accepted or revised O-001 through O-005; decisions are recorded in `docs/DECISIONS.md`.
+- The accepted O-001 through O-005 defaults in `docs/DECISIONS.md` are reflected in `docs/LOCAL_SYNC_CONTRACT.md` and tests. Do not require the owner to repeat these decisions.
 - The proposed Business Profile schema and validation rules match the recorded O-002 decision.
 - The accepted local/cloud sync contract covers durable local writes/outbox, stable idempotency keys, retry behavior, revision preconditions, crash recovery, account isolation, visible sync states, and conflict snapshot preservation.
-- Provider-specific security evidence is real and reproducible. If the owner has not approved a provider/test environment, mark this item **blocked**; do not fabricate it or provision infrastructure.
+- Provider-specific security evidence is real and reproducible. Hosted testing is currently **blocked** because a hosted non-production environment and cost boundary have not been separately approved. Use the Supabase local development stack or other safe no-billing local tests; do not fabricate evidence or provision infrastructure.
 - If provider testing is approved, use synthetic data and separate test identities. Test unauthenticated access, allowed-owner reads/writes, cross-owner read/write denial, revision conflicts, idempotent retries, and any delete path that is actually in scope. Record environment, commands, results, and limitations without exposing secrets.
 - Backup/export and recovery expectations are documented; do not describe local storage as backup.
 - All WP1.1 acceptance criteria in `docs/PHASE_1_PLAN.md` are met with evidence.
@@ -119,6 +119,6 @@ Be factual and concise. Never claim a test, review, commit, or push occurred unl
 - Phase 1 goal: local/cloud sync foundation plus one end-to-end Business Profile slice.
 - Initial scope: one owner and one business, with an identity/access-control foundation; full account-management UI is deferred.
 - Conflict principle: detect and preserve competing edits for review.
-- Provider comparison: Supabase/PostgreSQL is the current technical recommendation, not an approved selection; Appwrite + RxDB remains an alternative.
+- Provider comparison: Supabase/PostgreSQL is the owner-selected target architecture; the choice does not authorize provisioning, billing, hosted testing, or deployment.
 - Cost principle: no paid-service commitment without explicit approval.
-- Current recorded state (verify against the latest repository before acting): WP1.1 in progress; WP1.2–WP1.7 not started; no cloud provider/project/billing approval recorded.
+- Current recorded state (verify against the latest repository before acting): WP1.1 in progress; WP1.2–WP1.7 not started; Supabase/PostgreSQL selected as target; no hosted project, billing, domain, or production deployment approved.
