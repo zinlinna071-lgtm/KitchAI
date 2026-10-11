@@ -240,11 +240,14 @@ select throws_ok(
   'Profile not found or not owned by caller',
   'RPC rejects a cross-owner update'
 );
+reset role;
 select is(
   (select count(*)::integer from public.business_profile_operations where owner_id = '22222222-2222-4222-8222-222222222222'),
   4,
   'create, update, and conflict outcomes are durably recorded once per operation ID'
 );
+set local role authenticated;
+set local "request.jwt.claim.sub" = '22222222-2222-4222-8222-222222222222';
 select is(
   (select owner_id::text from public.business_profiles where id = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd'),
   '22222222-2222-4222-8222-222222222222',
