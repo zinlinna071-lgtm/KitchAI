@@ -307,3 +307,29 @@ test("workspace restore rejects a backup belonging to another owner", async ({ p
   await expect(page.evaluate((data) => window.spike.restoreWorkspace(data), backup))
     .rejects.toThrow("Backup owner or format does not match the active workspace");
 });
+
+test("remote records are isolated when two owners use the same profile ID", async ({ page }) => {
+  const ownerOne = await page.evaluate(() =>
+    window.spike.createProfile({ id: "same-remote-id", ownerId: "owner-1", name: "Remote Owner One" }),
+  );
+  const ownerOneOperation = (await page.evaluate(() => window.spike.listOutbox()))[0];
+  expect((await page.evaluate((id) => window.spike.syncOperation(id), ownerOneOperation.operationId)).status)
+    .toBe("accepted");
+
+  await page.evaluate(() => window.spike.signOut());
+  await page.evaluate(() => window.spike.signInAs("owner-2"));
+  const ownerTwo = await page.evaluate(() =>
+    window.spike.createProfile({ id: "same-remote-id", ownerId: "owner-2", name: "Remote Owner Two" }),
+  );
+  const ownerTwoOperation = (await page.evaluate(() => window.spike.listOutbox()))[0];
+  expect((await page.evaluate((id) => window.spike.syncOperation(id), ownerTwoOperation.operationId)).status)
+    .toBe("accepted");
+
+  expect((await page.evaluate((args) => window.spike.remote.readProfile(args.id, args.ownerId), {
+    id: ownerOne.id, ownerId: "owner-1",
+  })).name).toBe("Remote Owner One");
+  expect((await page.evaluate((args) => window.spike.remote.readProfile(args.id, args.ownerId), {
+    id: ownerTwo.id, ownerId: "owner-2",
+  })).name).toBe("Remote Owner Two");
+  expect(await page.evaluate(() => window.spike.remote.logicalWrites)).toBe(2);
+});
