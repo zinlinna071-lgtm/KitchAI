@@ -13,7 +13,7 @@
 
 ## Current milestone
 
-**Milestone:** WP1.1 spike and current official-doc review recorded; owner/provider decision gates remain open.
+**Milestone:** WP1.1 spike, official-doc review, and proposed provider-neutral sync contract recorded; owner/provider decision gates remain open.
 
 | Item | Status | Evidence / next action |
 |---|---|---|
@@ -28,7 +28,7 @@
 
 ## Current WP status
 
-- WP1.1 — In progress: isolated spike executed; 6 Chromium browser tests pass. Official provider documentation was rechecked on 2026-10-11; the advisory comparison, proposed schema, conflict workflow, and owner brief are recorded in [architecture options](./ARCHITECTURE_OPTIONS.md) and [decisions](./DECISIONS.md). Fake-owner rejection is simulation only. O-001 through O-005 and provider-specific authorization/security evidence remain open; WP1.1 is not complete. See [spike report](../.spikes/wp1-1-local-sync/REPORT.md).
+- WP1.1 — In progress: isolated spike executed; 6 Chromium browser tests pass. Official provider documentation was rechecked on 2026-10-11; the advisory comparison, proposed schema, conflict workflow, owner brief, and provider-neutral write/retry/idempotency/conflict acceptance contract are recorded in [architecture options](./ARCHITECTURE_OPTIONS.md), [decisions](./DECISIONS.md), and [local sync contract](./LOCAL_SYNC_CONTRACT.md). Fake-owner rejection is simulation only. O-001 through O-005 and provider-specific authorization/security evidence remain open; WP1.1 is not complete. See [spike report](../.spikes/wp1-1-local-sync/REPORT.md).
 - WP1.2 — Not started
 - WP1.3 — Not started
 - WP1.4 — Not started
