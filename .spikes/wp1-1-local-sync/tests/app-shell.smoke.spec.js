@@ -110,3 +110,67 @@ test("invalid blank names and unavailable storage never report a successful save
   await expect(page.locator("#profile-state")).toContainText("Could not save locally; your changes were not saved");
   await expect(page.locator("#profile-state")).not.toContainText("Saved on this device");
 });
+
+test("owner-scoped outbox persists atomically and conflict snapshots survive resolution", async ({ page }) => {
+  await page.goto("/");
+  const result = await page.evaluate(async () => {
+    const sync = await import("/src/sync-store.js");
+    const created = await sync.saveOwnerProfileDraft({ ownerId: "owner-a", name: "  Alpha Kitchen  " });
+    const ownerAProfiles = await sync.listOwnerProfiles("owner-a");
+    const ownerBProfiles = await sync.listOwnerProfiles("owner-b");
+    await sync.acknowledge(created.operation.operationId, "owner-a", {
+      id: created.profile.id, businessId: created.profile.businessId, name: created.profile.name,
+      createdAt: created.profile.createdAt, updatedAt: new Date(Date.now() + 1).toISOString(), revision: 1,
+    });
+    const edited = await sync.saveOwnerProfileDraft({
+      ownerId: "owner-a", id: created.profile.id, name: "Alpha Kitchen Local", baseRevision: 1,
+    });
+    await sync.preserveConflict(edited.operation, {
+      id: created.profile.id, businessId: created.profile.businessId, name: "Alpha Kitchen Remote",
+      createdAt: created.profile.createdAt, updatedAt: new Date(Date.now() + 2).toISOString(), revision: 2,
+    });
+    const conflicts = await sync.listConflicts("owner-a");
+    await sync.keepLocalAndResolve(conflicts[0], "owner-a", {
+      operationId: "resolution-operation", createdAt: new Date().toISOString(),
+    });
+    const operations = await sync.listOperations("owner-a");
+    const resolved = await sync.listConflicts("owner-a");
+    localStorage.setItem("wp15-record-id", created.profile.id);
+    return {
+      profileCount: ownerAProfiles.length,
+      otherOwnerCount: ownerBProfiles.length,
+      initialOperation: created.operation,
+      operationStates: operations.map((operation) => operation.state),
+      conflictCount: resolved.length,
+      conflictState: resolved[0].state,
+      baseName: resolved[0].baseSnapshot.name,
+      localName: resolved[0].localSnapshot.name,
+      remoteName: resolved[0].remoteSnapshot.name,
+      resolutionBaseRevision: operations.find((operation) => operation.operationId === "resolution-operation").baseRevision,
+    };
+  });
+  expect(result.profileCount).toBe(1);
+  expect(result.otherOwnerCount).toBe(0);
+  expect(result.initialOperation.operation).toBe("create");
+  expect(result.initialOperation.baseRevision).toBeNull();
+  expect(result.operationStates).toContain("conflict");
+  expect(result.operationStates).toContain("pending");
+  expect(result.conflictCount).toBe(1);
+  expect(result.conflictState).toBe("resolved");
+  expect(result.baseName).toBe("Alpha Kitchen");
+  expect(result.localName).toBe("Alpha Kitchen Local");
+  expect(result.remoteName).toBe("Alpha Kitchen Remote");
+  expect(result.resolutionBaseRevision).toBe(2);
+  await page.reload();
+  const persisted = await page.evaluate(async () => {
+    const sync = await import("/src/sync-store.js");
+    return {
+      operations: await sync.listOperations("owner-a"),
+      conflicts: await sync.listConflicts("owner-a"),
+      ownerBProfiles: await sync.listOwnerProfiles("owner-b"),
+    };
+  });
+  expect(persisted.operations.some((operation) => operation.operationId === "resolution-operation")).toBe(true);
+  expect(persisted.conflicts[0].state).toBe("resolved");
+  expect(persisted.ownerBProfiles).toHaveLength(0);
+});
