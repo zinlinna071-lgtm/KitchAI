@@ -53,6 +53,8 @@ Acceptance flow:
 | WP1.6 | Business Profile vertical slice | WP1.3, WP1.4, WP1.5 | End-to-end local-first record workflow with ownership and sync behavior |
 | WP1.7 | Integration, recovery, security, and acceptance testing | WP1.2–WP1.6 | Documented test evidence, recovery checks, known limitations, phase exit review |
 
+**WP1.1 exit review (2026-10-12):** The requirements/architecture and isolated local-sync evidence gate is met. GitHub Actions run [38175356346](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38175356346) passed 14 Chromium tests plus dependency checks. This does not implement production sync or validate real provider authorization; those remain in later WPs and are gated on explicit hosted-environment/cost approval. See [STATUS.md](./STATUS.md), [WP_REGISTRY.md](./WP_REGISTRY.md), and the [spike report](../.spikes/wp1-1-local-sync/REPORT.md).
+
 ## 5. Cross-cutting implementation rules
 
 - Inspect the current repository and existing conventions before adding dependencies or generating scaffolding.
