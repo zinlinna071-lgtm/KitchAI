@@ -13,7 +13,7 @@
 
 ## Current milestone
 
-**Milestone:** Owner-approved Phase 1 decisions reconciled into the sync contract, Phase 1 plan, and Coding AI handoff. WP1.1 remains in progress pending fresh local/emulator verification and recovery/account-isolation evidence.
+**Milestone:** Owner-approved Phase 1 decisions reconciled into the sync contract, Phase 1 plan, and Coding AI handoff. The isolated spike now has 8 passing Chromium tests and CI dependency checks; WP1.1 remains in progress pending account-isolation, sign-out, storage-failure, export/restore, and acknowledgement-recovery evidence.
 
 | Item | Status | Evidence / next action |
 |---|---|---|
@@ -24,13 +24,13 @@
 | Architecture comparison | Supabase/PostgreSQL selected as target architecture; provider comparison retained | docs/ARCHITECTURE_OPTIONS.md |
 | Local–cloud sync contract | Aligned to owner-approved defaults; implementation and test evidence still required | docs/LOCAL_SYNC_CONTRACT.md |
 | Coding AI execution prompt | Added; includes repo-first workflow and decision/security stop gates | [docs/CODING_AI_PHASE1_EXECUTION_PROMPT.md](./CODING_AI_PHASE1_EXECUTION_PROMPT.md) |
-| Isolated sync spike | Executed; 6 Chromium tests pass | .spikes/wp1-1-local-sync/REPORT.md |
+| Isolated sync spike | 8 Chromium tests pass in GitHub Actions; dependency audit and direct dependency tree pass | [Run 38174676887](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38174676887); .spikes/wp1-1-local-sync/REPORT.md |
 | Application scaffold | Not started | Do not begin until WP1.1 exit evidence is complete |
-| Automated application tests | Not started | The isolated spike has 6 passing Chromium tests; no production app/test harness exists |
+| Automated application tests | Not started | The isolated spike has 8 passing Chromium tests; no production app/test harness exists |
 
 ## Current WP status
 
-- WP1.1 — In progress: isolated spike report records 6 Chromium browser tests passing on 2026-10-11. Added `.github/workflows/wp1-1-sync-spike.yml` in commit `eb717af677c55f8656e5aac1dc81db27e98d07b2` for repeatable CI, but GitHub Actions currently shows no run for `main`; do not treat the new workflow as verified. Owner-approved planning defaults O-001–O-005 are recorded in [DECISIONS.md](./DECISIONS.md): Supabase/PostgreSQL target architecture with KitchAI-owned local-first sync; minimal Business Profile fields; explicit Keep local / Use remote conflict choice; owner-partitioned local data and safe sign-out/account switching; local/emulator-first testing and no deployment/provisioning until cost/environment boundaries are approved. Fake-owner rejection is simulation only. WP1.1 still needs a fresh repo-first verification of current evidence, reproducible local/emulator tests for recovery, owner-partitioning, sign-out locking, and queue isolation. Hosted provider authorization/security tests remain blocked until their environment and cost boundary are explicitly approved.
+- WP1.1 — In progress: GitHub Actions run [38174676887](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38174676887) passed all 8 Chromium spike tests, `npm audit --audit-level=low`, and `npm ls --depth=0`. New tests verify pending outbox survival across page reload and explicit remote-candidate conflict resolution; see [.spikes/wp1-1-local-sync/REPORT.md](../.spikes/wp1-1-local-sync/REPORT.md). Owner-approved planning defaults O-001–O-005 are recorded in [DECISIONS.md](./DECISIONS.md). Fake-owner rejection is simulation only. WP1.1 still needs reproducible tests for owner-partitioning, sign-out workspace locking, preventing cross-account queue submission, storage failures, export/restore, and recovery when a server accepts a write but the client misses the acknowledgement. Hosted provider authorization/security tests remain blocked until their environment and cost boundary are explicitly approved.
 - WP1.2 — Not started
 - WP1.3 — Not started
 - WP1.4 — Not started
