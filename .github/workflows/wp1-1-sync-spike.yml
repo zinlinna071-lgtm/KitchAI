@@ -1,4 +1,4 @@
-name: WP1.1 Local Sync Spike
+name: KitchAI Baseline Checks (WP1.2)
 
 on:
   push:
@@ -6,6 +6,16 @@ on:
     paths:
       - ".spikes/wp1-1-local-sync/**"
       - ".github/workflows/wp1-1-sync-spike.yml"
+      - ".github/workflows/app-shell.yml"
+      - "index.html"
+      - "src/**"
+      - "public/**"
+      - "scripts/**"
+      - "tests/**"
+      - "package.json"
+      - "README.md"
+      - "docs/STATUS.md"
+      - "docs/WP_REGISTRY.md"
   pull_request:
     paths:
       - ".spikes/wp1-1-local-sync/**"
@@ -48,3 +58,17 @@ jobs:
 
       - name: Verify direct dependency tree
         run: npm ls --depth=0
+
+  app-shell:
+    name: Application shell checks and production build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Run app shell tests and build
+        run: npm run check

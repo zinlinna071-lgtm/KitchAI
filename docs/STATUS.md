@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-10-12  
 **Current branch:** main  
-**Overall state:** Planning baseline established; application implementation has not started.
+**Overall state:** WP1.1 local evidence gate met; WP1.2 application shell implementation is in progress on branch `wp1-2-app-shell`.
 
 ## Repository audit
 
@@ -25,13 +25,13 @@
 | Local–cloud sync contract | Aligned to owner-approved defaults; implementation and test evidence still required | docs/LOCAL_SYNC_CONTRACT.md |
 | Coding AI execution prompt | Added; includes repo-first workflow and decision/security stop gates | [docs/CODING_AI_PHASE1_EXECUTION_PROMPT.md](./CODING_AI_PHASE1_EXECUTION_PROMPT.md) |
 | Isolated sync spike | 14 Chromium tests pass in GitHub Actions; dependency audit reports 0 vulnerabilities and direct dependency tree passes | [Run 38175356346](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38175356346); [.spikes/wp1-1-local-sync/REPORT.md](../.spikes/wp1-1-local-sync/REPORT.md) |
-| Application scaffold | Not started | Do not begin until WP1.1 exit evidence is complete |
-| Automated application tests | Not started | The isolated spike has 14 passing Chromium tests; no production app/test harness exists |
+| Application scaffold | In progress (WP1.2 branch) | Responsive shell, manifest, service worker, build script, Node built-in tests, and app-shell CI are staged for review; await CI evidence before completion |
+| Automated application tests | In progress (WP1.2 branch) | Node built-in tests cover shell metadata, PWA assets, offline fallback, responsive CSS, and production build output; CI result pending |
 
 ## Current WP status
 
 - WP1.1 — Complete (local requirements/architecture spike gate): GitHub Actions run [38175356346](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38175356346) passed all 14 Chromium spike tests, `npm audit --audit-level=low` (0 vulnerabilities), and `npm ls --depth=0`. Evidence covers owner-partitioned local/remote records, sign-out lock with unsynced data preserved, cross-account queue isolation, injected storage-write failure, export/restore, lost acknowledgement with idempotent retry, and conflict preservation. These are disposable local-spike/fake-remote tests, not production authentication or provider authorization. Owner-approved defaults O-001–O-005 are recorded in [DECISIONS.md](./DECISIONS.md); see [.spikes/wp1-1-local-sync/REPORT.md](../.spikes/wp1-1-local-sync/REPORT.md). Hosted provider authorization/security tests remain deferred until the environment and cost boundary are explicitly approved.
-- WP1.2 — Not started
+- WP1.2 — In progress: app shell, responsive styles, web manifest, service worker, dependency-free build/test scripts, and GitHub Actions workflow added on `wp1-2-app-shell`; verify CI and review final diff before merging.
 - WP1.3 — Not started
 - WP1.4 — Not started
 - WP1.5 — Not started
@@ -46,8 +46,8 @@
 - Official free-tier limits and product behavior can change; recheck published terms before provisioning. No cloud project, billing, domain purchase, secrets, or production deployment is approved.
 - Browser storage is not guaranteed encrypted; local storage is not a backup.
 - Do not mark implementation work complete based on documentation alone.
-- WP1.1 local evidence is now reviewed and recorded as met. WP1.2 may start as the next bounded work package; hosted provider tests, cloud provisioning, billing, secrets, and deployment remain separately gated.
+- WP1.1 local evidence is reviewed and recorded as met. WP1.2 is now in progress on a bounded branch; hosted provider tests, cloud provisioning, billing, secrets, and deployment remain separately gated.
 
 ## Next action
 
-Next bounded work package: WP1.2 — Application Shell & PWA Baseline. Inspect the live repository first, create only the production app scaffold, responsive shell, offline app-shell/PWA baseline, and app-level CI checks; keep the WP1.1 spike isolated. Do not provision hosted infrastructure, enable billing, add production credentials, or deploy. The [decision log](./DECISIONS.md) is canonical for accepted decisions and their boundaries.
+Current work: finish WP1.2 by passing its app-shell CI, reviewing the branch diff, and recording exact test/build evidence. The shell uses no third-party npm dependencies; TypeScript compiler/type-checking and browser-level offline smoke tests remain potential follow-ups if required before the WP1.2 exit gate. Do not provision hosted infrastructure, enable billing, add production credentials, or deploy. The [decision log](./DECISIONS.md) is canonical for accepted decisions and their boundaries.

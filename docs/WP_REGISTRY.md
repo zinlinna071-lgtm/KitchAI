@@ -20,10 +20,12 @@ A work package (WP) is a bounded implementation unit with dependencies and evide
 
 ### WP1.2 — Application Shell & PWA Baseline
 - **Priority:** High
-- **Status:** Not started
+- **Status:** In progress
 - **Dependencies:** WP1.1
-- **Scope:** minimal application scaffold, typed build setup, basic responsive shell, PWA/offline app-shell behavior, error/loading states, and baseline automated checks.
-- **Done when:** the app runs through documented commands, produces a successful production build, and baseline checks pass.
+- **Scope:** minimal application scaffold, maintainable build setup, basic responsive shell, PWA/offline app-shell behavior, connection/install states, and baseline automated checks.
+- **Current implementation:** `index.html`, `src/app.js`, `src/styles.css`, `public/manifest.webmanifest`, `public/sw.js`, `scripts/build.mjs`, `tests/app.test.mjs`, and `.github/workflows/app-shell.yml` on branch [`wp1-2-app-shell`](https://github.com/zinlinna071-lgtm/KitchAI/tree/wp1-2-app-shell). The starter has no third-party npm dependencies. The app shell explicitly does not claim business-record persistence, authentication, or cloud sync.
+- **Known remaining checks:** CI must pass before merge; manually verify install/offline behavior in a real browser on mobile and desktop. A TypeScript compiler/type-check and a browser automation smoke test are not included in this dependency-free baseline yet.
+- **Done when:** documented commands work, production build emits a complete `dist/`, automated checks pass in CI, responsive/accessibility baseline is reviewed, and limitations are recorded. Do not mark complete based on source files alone.
 
 ### WP1.3 — Local Persistence & Data Integrity
 - **Priority:** High
