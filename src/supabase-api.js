@@ -135,7 +135,11 @@ export async function readRemoteProfile(session) {
   return normalizeProfile(rows?.[0] ?? null);
 }
 
-/** @param {any} operation @param {any} session */
+/**
+ * @param {any} operation
+ * @param {any} session
+ * @returns {Promise<{status:"accepted",profile:any}|{status:"conflict",remoteProfile:any}|{status:"auth_required"}|{status:"permanent_error",message:string}>}
+ */
 export async function sendProfileOperation(operation, session) {
   if (!session?.access_token || !session?.user?.id || operation.ownerId !== session.user.id) {
     return { status: "auth_required" };
