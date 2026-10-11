@@ -281,7 +281,9 @@ export async function keepLocalAndResolve(conflict, ownerId, operation) {
   };
   if (remapCreateCollision) profiles.delete([ownerId, conflict.recordId]);
   profiles.put(localCandidate);
-  operations.add(newOperation);
+  // Reuse the original operation ID as an idempotency key while replacing its
+  // conflicted payload with the explicitly resolved update.
+  operations.put(newOperation);
   conflicts.put({ ...savedConflict, state: "resolved", resolution: { choice: "keep_local", resolvedAt: new Date().toISOString() } });
   await new Promise((resolve, reject) => {
     tx.oncomplete = resolve;
