@@ -12,7 +12,7 @@ A work package (WP) is a bounded implementation unit with dependencies and evide
 - **Status:** In progress
 - **Dependencies:** None
 - **Scope:** inspect repository and product constraints; compare local storage and cloud/auth/sync architecture options; identify data ownership, threat boundaries, expected cost, offline behavior, migrations, testability, and operational burden; document recommendations and unresolved owner decisions; run an isolated local-sync spike.
-- **Current evidence:** Architecture/pricing desk review in [ARCHITECTURE_OPTIONS.md](./ARCHITECTURE_OPTIONS.md); spike instructions and acceptance checklist in [WP1_1_SPIKE_PLAN.md](./WP1_1_SPIKE_PLAN.md).
+- **Current evidence:** Architecture/pricing desk review in [ARCHITECTURE_OPTIONS.md](./ARCHITECTURE_OPTIONS.md); spike instructions and acceptance checklist in [WP1_1_SPIKE_PLAN.md](./WP1_1_SPIKE_PLAN.md); isolated spike report records 6 passing Chromium tests in [REPORT.md](../.spikes/wp1-1-local-sync/REPORT.md). Fake-owner rejection is simulation only.
 - **Not allowed:** silently committing to a paid service or material vendor decision without owner approval; treating a fake remote as proof of real cloud authorization.
 - **Done when:** options and trade-offs are recorded; acceptance criteria and initial data model are defined; isolated spike results are recorded; provider-specific authorization/security behavior is validated after provider selection; material owner decisions are clearly recorded.
 

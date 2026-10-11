@@ -13,7 +13,7 @@
 
 ## Current milestone
 
-**Milestone:** WP1.1 architecture validation and technical-spike preparation.
+**Milestone:** WP1.1 spike evidence recorded; owner/provider decision gates remain open.
 
 | Item | Status | Evidence / next action |
 |---|---|---|
@@ -24,11 +24,11 @@
 | Architecture comparison | Desk review complete; technical evidence pending | docs/ARCHITECTURE_OPTIONS.md |
 | Isolated sync spike plan | Ready for execution | docs/WP1_1_SPIKE_PLAN.md |
 | Application scaffold | Not started | Do not begin until WP1.1 gate is met |
-| Automated app tests | Not started | No production app or test harness yet |
+| Automated application tests | Not started | The isolated spike has 6 passing Chromium tests; no production app/test harness exists |
 
 ## Current WP status
 
-- WP1.1 — In progress: official pricing/limits reviewed; isolated spike plan prepared. Spike execution, real provider authorization tests, and owner decisions remain.
+- WP1.1 — In progress: isolated spike executed; 6 Chromium browser tests pass. Fake-owner rejection is simulation only. O-001, provider-specific authorization/security evidence, and remaining owner decisions are open; WP1.1 is not complete. See [spike report](../.spikes/wp1-1-local-sync/REPORT.md).
 - WP1.2 — Not started
 - WP1.3 — Not started
 - WP1.4 — Not started
@@ -46,4 +46,4 @@
 
 ## Next action
 
-Run the isolated prototype defined in [WP1.1 Technical Spike Plan](./WP1_1_SPIKE_PLAN.md) in Codespaces or an equivalent browser-capable development environment. Record actual test results and compare IndexedDB with RxDB. Then complete the remaining provider-specific security validation and record the cloud-provider decision before starting WP1.2.
+Resolve O-001 and the remaining owner decisions, then run provider-specific authenticated allow/deny and security tests after the owner approves a provider and test environment. The isolated prototype results and IndexedDB/RxDB comparison are recorded in the [WP1.1 spike report](../.spikes/wp1-1-local-sync/REPORT.md). Do not start WP1.2 until the WP1.1 decision gate is met.

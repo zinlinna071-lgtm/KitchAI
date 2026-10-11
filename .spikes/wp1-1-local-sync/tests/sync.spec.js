@@ -1,0 +1,137 @@
+import { expect, test } from "@playwright/test";
+
+test.beforeEach(async ({ page }) => {
+  await page.goto("/");
+  await page.evaluate(() => window.spike.reset());
+});
+
+test("IndexedDB profile survives reload and invalid names leave it unchanged", async ({ page }) => {
+  const created = await page.evaluate(() =>
+    window.spike.createProfile({ id: "profile-1", ownerId: "owner-1", name: "  KitchAI Test Kitchen  " }),
+  );
+  await page.reload();
+
+  const persisted = await page.evaluate((id) => window.spike.readProfile(id), created.id);
+  expect(persisted.name).toBe("KitchAI Test Kitchen");
+  expect(persisted.revision).toBe(1);
+
+  const invalidResult = await page.evaluate(async (id) => {
+    try {
+      await window.spike.updateProfile(id, "   ");
+      return "accepted";
+    } catch (error) {
+      return error.message;
+    }
+  }, created.id);
+  expect(invalidResult).toBe("Name must contain 1 to 80 characters");
+  expect((await page.evaluate((id) => window.spike.readProfile(id), created.id)).name)
+    .toBe("KitchAI Test Kitchen");
+});
+
+test("offline edits remain locally readable and visibly pending", async ({ page, context }) => {
+  await context.setOffline(true);
+  const profile = await page.evaluate(() =>
+    window.spike.createProfile({ id: "profile-2", ownerId: "owner-1", name: "Offline Kitchen" }),
+  );
+  const updated = await page.evaluate((id) => window.spike.updateProfile(id, "Updated Offline Kitchen"), profile.id);
+  const operation = (await page.evaluate(() => window.spike.listOutbox())).at(-1);
+  const result = await page.evaluate((id) => window.spike.syncOperation(id), operation.operationId);
+
+  expect(result.status).toBe("offline");
+  expect((await page.evaluate((id) => window.spike.readProfile(id), profile.id)).name)
+    .toBe("Updated Offline Kitchen");
+  expect(updated.revision).toBe(2);
+  expect((await page.evaluate((id) => window.spike.listOutbox(), profile.id)).some((item) => item.state === "pending"))
+    .toBe(true);
+  await expect(page.locator("#sync-summary")).toContainText("pending");
+});
+
+test("transient failure retries safely and replaying an operation is idempotent", async ({ page }) => {
+  const profile = await page.evaluate(() =>
+    window.spike.createProfile({ id: "profile-3", ownerId: "owner-1", name: "Retry Kitchen" }),
+  );
+  const operation = (await page.evaluate(() => window.spike.listOutbox()))[0];
+  await page.evaluate(() => window.spike.remote.failNext());
+
+  expect((await page.evaluate((id) => window.spike.syncOperation(id), operation.operationId)).status)
+    .toBe("transient-failure");
+  expect((await page.evaluate((id) => window.spike.readProfile(id), profile.id)).name).toBe("Retry Kitchen");
+  expect((await page.evaluate((id) => window.spike.syncOperation(id), operation.operationId)).status)
+    .toBe("accepted");
+  expect((await page.evaluate((id) => window.spike.syncOperation(id), operation.operationId)).status)
+    .toBe("duplicate");
+
+  expect(await page.evaluate(() => window.spike.remote.logicalWrites)).toBe(1);
+  expect((await page.evaluate(() => window.spike.listOutbox()))[0].state).toBe("synced");
+});
+
+test("retry attempts are bounded and failures preserve the local profile", async ({ page }) => {
+  const profile = await page.evaluate(() =>
+    window.spike.createProfile({ id: "profile-4", ownerId: "owner-1", name: "Bounded Retry Kitchen" }),
+  );
+  const operation = (await page.evaluate(() => window.spike.listOutbox()))[0];
+  await page.evaluate(() => window.spike.remote.failNext(3));
+
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    expect((await page.evaluate((id) => window.spike.syncOperation(id), operation.operationId)).status)
+      .toBe("transient-failure");
+  }
+  expect((await page.evaluate((id) => window.spike.syncOperation(id), operation.operationId)).status)
+    .toBe("retry-exhausted");
+  expect((await page.evaluate((id) => window.spike.readProfile(id), profile.id)).name)
+    .toBe("Bounded Retry Kitchen");
+  expect((await page.evaluate(() => window.spike.listOutbox()))[0].attempts).toBe(3);
+});
+
+test("stale remote edits preserve base, local, and remote versions until explicit resolution", async ({ page }) => {
+  const profile = await page.evaluate(() =>
+    window.spike.createProfile({ id: "profile-5", ownerId: "owner-1", name: "Shared Kitchen" }),
+  );
+  const createOperation = (await page.evaluate(() => window.spike.listOutbox()))[0];
+  await page.evaluate((id) => window.spike.syncOperation(id), createOperation.operationId);
+  const remoteCandidate = await page.evaluate((id) => window.spike.remote.compete(id, "Remote Kitchen"), profile.id);
+  const localCandidate = await page.evaluate((id) => window.spike.updateProfile(id, "Local Kitchen"), profile.id);
+  const updateOperation = (await page.evaluate(() => window.spike.listOutbox()))
+    .find((operation) => operation.operationId !== createOperation.operationId);
+  const result = await page.evaluate((id) => window.spike.syncOperation(id), updateOperation.operationId);
+
+  expect(result.status).toBe("conflict");
+  expect((await page.evaluate((id) => window.spike.readProfile(id), profile.id)).name).toBe("Local Kitchen");
+  let conflicts = await page.evaluate(() => window.spike.listConflicts());
+  expect(conflicts[0]).toMatchObject({
+    status: "unresolved",
+    baseRevision: 1,
+    baseCandidate: { name: "Shared Kitchen" },
+    localCandidate: { name: "Local Kitchen", revision: localCandidate.revision },
+    remoteCandidate: { name: "Remote Kitchen", revision: remoteCandidate.revision },
+  });
+  expect((await page.evaluate(() => window.spike.listOutbox())).find((item) => item.operationId === updateOperation.operationId).state)
+    .toBe("conflict");
+
+  await page.evaluate((id) => window.spike.resolveConflict(id, "local"), result.conflictId);
+  conflicts = await page.evaluate(() => window.spike.listConflicts());
+  expect(conflicts[0]).toMatchObject({
+    status: "resolved",
+    resolution: "local",
+    localCandidate: { name: "Local Kitchen" },
+    remoteCandidate: { name: "Remote Kitchen" },
+  });
+  expect((await page.evaluate((id) => window.spike.readProfile(id), profile.id)).name).toBe("Local Kitchen");
+});
+
+test("fake owner rejection is simulation only", async ({ page }) => {
+  await page.evaluate(() => window.spike.createProfile({
+    id: "profile-6",
+    ownerId: "owner-1",
+    name: "Owner Fixture Kitchen",
+  }));
+  const operation = (await page.evaluate(() => window.spike.listOutbox()))[0];
+  const result = await page.evaluate(async (id) => {
+    const [candidate] = await window.spike.listOutbox();
+    return window.spike.remote.push({ ...candidate, ownerId: id });
+  }, "different-owner");
+
+  expect(result.status).toBe("owner-mismatch");
+  expect(await page.evaluate(() => window.spike.remote.logicalWrites)).toBe(0);
+  expect(operation.ownerId).toBe("owner-1");
+});
