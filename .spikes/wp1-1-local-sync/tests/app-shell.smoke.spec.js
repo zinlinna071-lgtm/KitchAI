@@ -115,12 +115,13 @@ test("owner-scoped outbox persists atomically and conflict snapshots survive res
   await page.goto("/");
   const result = await page.evaluate(async () => {
     const sync = await import("/src/sync-store.js");
-    const created = await sync.saveOwnerProfileDraft({ ownerId: "owner-a", name: "  Alpha Kitchen  " });
+    const created = await sync.saveOwnerProfileDraft({ ownerId: "owner-a", name: "  Alpha Kitchen Draft  " });
+    const coalesced = await sync.saveOwnerProfileDraft({ ownerId: "owner-a", id: created.profile.id, name: "Alpha Kitchen" });
     const ownerAProfiles = await sync.listOwnerProfiles("owner-a");
     const ownerBProfiles = await sync.listOwnerProfiles("owner-b");
-    await sync.acknowledge(created.operation.operationId, "owner-a", {
-      id: created.profile.id, businessId: created.profile.businessId, name: created.profile.name,
-      createdAt: created.profile.createdAt, updatedAt: new Date(Date.now() + 1).toISOString(), revision: 1,
+    await sync.acknowledge(coalesced.operation.operationId, "owner-a", {
+      id: coalesced.profile.id, businessId: coalesced.profile.businessId, name: coalesced.profile.name,
+      createdAt: coalesced.profile.createdAt, updatedAt: new Date(Date.now() + 1).toISOString(), revision: 1,
     });
     const edited = await sync.saveOwnerProfileDraft({
       ownerId: "owner-a", id: created.profile.id, name: "Alpha Kitchen Local", baseRevision: 1,
@@ -140,6 +141,7 @@ test("owner-scoped outbox persists atomically and conflict snapshots survive res
       profileCount: ownerAProfiles.length,
       otherOwnerCount: ownerBProfiles.length,
       initialOperation: created.operation,
+      coalescedOperationId: coalesced.operation.operationId,
       operationStates: operations.map((operation) => operation.state),
       conflictCount: resolved.length,
       conflictState: resolved[0].state,
@@ -153,6 +155,7 @@ test("owner-scoped outbox persists atomically and conflict snapshots survive res
   expect(result.otherOwnerCount).toBe(0);
   expect(result.initialOperation.operation).toBe("create");
   expect(result.initialOperation.baseRevision).toBeNull();
+  expect(result.coalescedOperationId).toBe(result.initialOperation.operationId);
   expect(result.operationStates).toContain("conflict");
   expect(result.operationStates).toContain("pending");
   expect(result.conflictCount).toBe(1);
