@@ -8,8 +8,8 @@ import {
   resetSpike,
   resolveConflict,
   restoreWorkspace,
-  signInAs: withSummary(signInAs),
-  signOut: withSummary(signOut),
+  signInAs,
+  signOut,
   simulateStorageFailure,
   syncOperation,
   updateProfile,
@@ -36,8 +36,8 @@ const withSummary = (action) => async (...args) => {
 };
 
 window.spike = {
-  signInAs,
-  signOut,
+  signInAs: withSummary(signInAs),
+  signOut: withSummary(signOut),
   workspaceStatus,
   createProfile: withSummary(createProfile),
   updateProfile: withSummary(updateProfile),
