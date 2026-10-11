@@ -54,3 +54,52 @@ Supabase's official documentation describes a full Postgres database and recomme
 - Firebase Firestore security rules: https://firebase.google.com/docs/firestore/security/overview
 - Appwrite offline sync: https://appwrite.io/docs/products/databases/tablesdb/offline
 - Appwrite database options: https://appwrite.io/docs/products/databases
+
+
+## 2026-10-11 validation update
+
+Checked the current official product documentation and pricing pages on 2026-10-11. Limits and prices can change, so re-check them before provisioning or launch.
+
+### Current free-tier snapshot
+
+| Service | Current published free-tier indicators | Practical implication |
+|---|---|---|
+| Supabase | 2 active free projects; 500 MB database per project; 5 GB egress; 1 GB file storage; 50,000 monthly active users; free projects may pause after one week of inactivity. | Suitable for a small prototype, but pause behavior and lack of automatic backups on Free must be planned for. Quotas apply at organization level for several usage categories. |
+| Appwrite Cloud | 2 projects on Free; 5 GB bandwidth; 2 GB storage; 750K function executions; 75K monthly active users; 1 database, 1 bucket, and 2 functions per project; projects may pause after one week of inactivity. | Also viable for a prototype; monitor database read/write quotas and Realtime usage, and verify how the current pricing page applies database compute credits/overages. |
+| Firebase Firestore | Web offline persistence can be enabled; multiple edits to the same document resolve with last-write-wins. | Easy offline cache behavior, but this default conflict behavior does not satisfy KitchAI's requirement unless a separate version/conflict model is built. |
+
+### Updated recommendation (still not a final vendor decision)
+
+**Lead candidate: Supabase/PostgreSQL + a deliberate local-first layer (IndexedDB initially, with RxDB evaluated if its replication model proves useful).**
+
+Reasons:
+- KitchAI's future recipe, ingredient, purchase, inventory, sales, and finance data is naturally relational.
+- PostgreSQL is portable and gives a clear migration path.
+- Supabase Auth and Postgres Row Level Security provide a strong basis for owner/business-level authorization, provided every exposed table has correctly tested least-privilege policies.
+- The app must still implement or integrate explicit offline queueing, idempotent retry, version checks, and conflict preservation; Supabase does not automatically solve the full local-first sync requirement.
+
+**Alternative to keep active: Appwrite Cloud + RxDB.** Its official guide documents a local-first push/pull approach, but KitchAI must verify the exact replication adapter, supported operations, schema/version migration, and conflict behavior in a minimal prototype. The fact that an integration exists does not prove it meets KitchAI's preservation and review requirements.
+
+**Firebase:** retain as a comparison reference, but do not prefer Firestore for this first slice unless a tested conflict-preservation layer is designed and the data model trade-offs are accepted.
+
+### Decision gate before WP1.2
+
+WP1.1 should not be marked complete until:
+1. We document the local persistence choice and how browser storage failures/eviction are handled.
+2. A small technical spike proves local create/update, reload durability, offline edits, reconnection, retry/idempotency, and preservation of competing versions.
+3. Authorization rules prove a signed-in owner cannot read or modify another owner's record.
+4. Free-tier pause behavior, quota limits, backups/export, and expected early-stage cost are understood.
+5. The recommendation and any unresolved owner decision are recorded in `DECISIONS.md`.
+
+No cloud project has been created and no paid service has been enabled as part of this review.
+
+### Official sources checked
+
+- Supabase billing and quotas: https://supabase.com/docs/guides/platform/billing-on-supabase
+- Supabase pricing: https://supabase.com/pricing
+- Supabase data security / RLS: https://supabase.com/docs/guides/database/secure-data
+- Supabase RLS testing guidance: https://supabase.com/docs/guides/database/postgres/row-level-security
+- Appwrite pricing: https://appwrite.io/pricing
+- Appwrite Free plan behavior: https://appwrite.io/docs/advanced/billing/free
+- Appwrite offline sync: https://appwrite.io/docs/products/databases/tablesdb/offline
+- Firebase Firestore offline persistence and conflict behavior: https://firebase.google.com/docs/firestore/manage-data/enable-offline
