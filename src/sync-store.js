@@ -282,7 +282,10 @@ export async function keepLocalAndResolve(conflict, ownerId, operation) {
   };
   if (remapCreateCollision) profiles.delete([ownerId, conflict.recordId]);
   profiles.put(localCandidate);
-  operations.put({ ...operation, state: "conflict_resolved" });
+  const originalOperation = await requestValue(operations.get(conflict.operationId));
+  if (originalOperation && originalOperation.ownerId === ownerId) {
+    operations.put({ ...originalOperation, state: "conflict_resolved" });
+  }
   // Conflict resolution is a new logical write with a new idempotency key;
   // the original operation remains in the local history as conflict_resolved.
   operations.put(newOperation);
