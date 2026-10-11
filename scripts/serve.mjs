@@ -23,6 +23,15 @@ createServer(async (request, response) => {
     response.writeHead(400).end();
     return;
   }
+  if (pathname === "/runtime-config.js") {
+    const config = {
+      supabaseUrl: process.env.KITCHAI_SUPABASE_URL ?? "",
+      supabaseAnonKey: process.env.KITCHAI_SUPABASE_ANON_KEY ?? "",
+    };
+    response.writeHead(200, { "Content-Type": "text/javascript; charset=utf-8", "Cache-Control": "no-store" });
+    response.end("window.KITCHAI_CONFIG = Object.freeze(" + JSON.stringify(config) + ");");
+    return;
+  }
   if (pathname === "/") pathname = "/index.html";
   const file = path.resolve(root, "." + pathname);
   if (!file.startsWith(root + path.sep) && file !== path.join(root, "index.html")) {
