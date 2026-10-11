@@ -13,24 +13,24 @@
 
 ## Current milestone
 
-**Milestone:** Owner-approved Phase 1 decisions reconciled into the sync contract, Phase 1 plan, and Coding AI handoff. The isolated spike now has 8 passing Chromium tests and CI dependency checks; WP1.1 remains in progress pending account-isolation, sign-out, storage-failure, export/restore, and acknowledgement-recovery evidence.
+**Milestone:** Owner-approved Phase 1 decisions reconciled into the sync contract, Phase 1 plan, and Coding AI handoff. The isolated spike now has 14 passing Chromium tests and CI dependency checks; WP1.1 local requirements/architecture evidence gate is met. Production authentication and provider-side authorization remain deferred until the non-production environment and cost boundary are explicitly approved.
 
 | Item | Status | Evidence / next action |
 |---|---|---|
 | Eight-phase roadmap | Complete (proposed) | docs/ROADMAP.md |
 | Phase 1 plan | Complete (draft) | docs/PHASE_1_PLAN.md |
-| WP registry | Initial baseline | docs/WP_REGISTRY.md |
+| WP registry | Active; WP1.1 local evidence gate met | docs/WP_REGISTRY.md |
 | Decision log | Owner-approved Phase 1 defaults recorded; provisioning/cost boundaries remain restricted | [docs/DECISIONS.md](./DECISIONS.md) |
 | Architecture comparison | Supabase/PostgreSQL selected as target architecture; provider comparison retained | docs/ARCHITECTURE_OPTIONS.md |
 | Local–cloud sync contract | Aligned to owner-approved defaults; implementation and test evidence still required | docs/LOCAL_SYNC_CONTRACT.md |
 | Coding AI execution prompt | Added; includes repo-first workflow and decision/security stop gates | [docs/CODING_AI_PHASE1_EXECUTION_PROMPT.md](./CODING_AI_PHASE1_EXECUTION_PROMPT.md) |
-| Isolated sync spike | 8 Chromium tests pass in GitHub Actions; dependency audit and direct dependency tree pass | [Run 38174676887](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38174676887); .spikes/wp1-1-local-sync/REPORT.md |
+| Isolated sync spike | 14 Chromium tests pass in GitHub Actions; dependency audit reports 0 vulnerabilities and direct dependency tree passes | [Run 38175356346](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38175356346); [.spikes/wp1-1-local-sync/REPORT.md](../.spikes/wp1-1-local-sync/REPORT.md) |
 | Application scaffold | Not started | Do not begin until WP1.1 exit evidence is complete |
-| Automated application tests | Not started | The isolated spike has 8 passing Chromium tests; no production app/test harness exists |
+| Automated application tests | Not started | The isolated spike has 14 passing Chromium tests; no production app/test harness exists |
 
 ## Current WP status
 
-- WP1.1 — In progress: GitHub Actions run [38174676887](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38174676887) passed all 8 Chromium spike tests, `npm audit --audit-level=low`, and `npm ls --depth=0`. New tests verify pending outbox survival across page reload and explicit remote-candidate conflict resolution; see [.spikes/wp1-1-local-sync/REPORT.md](../.spikes/wp1-1-local-sync/REPORT.md). Owner-approved planning defaults O-001–O-005 are recorded in [DECISIONS.md](./DECISIONS.md). Fake-owner rejection is simulation only. WP1.1 still needs reproducible tests for owner-partitioning, sign-out workspace locking, preventing cross-account queue submission, storage failures, export/restore, and recovery when a server accepts a write but the client misses the acknowledgement. Hosted provider authorization/security tests remain blocked until their environment and cost boundary are explicitly approved.
+- WP1.1 — Complete (local requirements/architecture spike gate): GitHub Actions run [38175356346](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38175356346) passed all 14 Chromium spike tests, `npm audit --audit-level=low` (0 vulnerabilities), and `npm ls --depth=0`. Evidence covers owner-partitioned local/remote records, sign-out lock with unsynced data preserved, cross-account queue isolation, injected storage-write failure, export/restore, lost acknowledgement with idempotent retry, and conflict preservation. These are disposable local-spike/fake-remote tests, not production authentication or provider authorization. Owner-approved defaults O-001–O-005 are recorded in [DECISIONS.md](./DECISIONS.md); see [.spikes/wp1-1-local-sync/REPORT.md](../.spikes/wp1-1-local-sync/REPORT.md). Hosted provider authorization/security tests remain deferred until the environment and cost boundary are explicitly approved.
 - WP1.2 — Not started
 - WP1.3 — Not started
 - WP1.4 — Not started
@@ -46,8 +46,8 @@
 - Official free-tier limits and product behavior can change; recheck published terms before provisioning. No cloud project, billing, domain purchase, secrets, or production deployment is approved.
 - Browser storage is not guaranteed encrypted; local storage is not a backup.
 - Do not mark implementation work complete based on documentation alone.
-- Do not start WP1.2 production scaffolding until WP1.1 exit evidence is reviewed and the registry/status explicitly records the gate as met.
+- WP1.1 local evidence is now reviewed and recorded as met. WP1.2 may start as the next bounded work package; hosted provider tests, cloud provisioning, billing, secrets, and deployment remain separately gated.
 
 ## Next action
 
-Use [the Coding AI Phase 1 execution prompt](./CODING_AI_PHASE1_EXECUTION_PROMPT.md) as the single reusable coding-agent handoff. The agent should verify live Git state and current files, reconcile the approved decisions into the sync contract and acceptance checks, run safe local/emulator verification, inspect the diff, and update the evidence. It must not provision hosted infrastructure or enable billing. Begin WP1.2 only after WP1.1's remaining exit evidence is demonstrably complete. The [decision log](./DECISIONS.md) is canonical for accepted decisions and their boundaries.
+Next bounded work package: WP1.2 — Application Shell & PWA Baseline. Inspect the live repository first, create only the production app scaffold, responsive shell, offline app-shell/PWA baseline, and app-level CI checks; keep the WP1.1 spike isolated. Do not provision hosted infrastructure, enable billing, add production credentials, or deploy. The [decision log](./DECISIONS.md) is canonical for accepted decisions and their boundaries.
