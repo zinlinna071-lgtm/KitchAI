@@ -76,9 +76,10 @@ profileForm?.addEventListener("submit", async (event) => {
     businessNameInput.value = saved.profile.name;
     profileState.textContent = "Saved on this device · not synced (local version " + saved.localRevision + ").";
   } catch (error) {
-    profileState.textContent = error instanceof Error
-      ? error.message
-      : "Could not save the profile. Your changes have not been confirmed as saved.";
+    const message = error instanceof Error ? error.message : "Unexpected storage error.";
+    profileState.textContent = /business name|80 characters/i.test(message)
+      ? message
+      : "Could not save locally; your changes were not saved. " + message;
     profileState.classList.add("is-error");
   } finally {
     if (submitButton) submitButton.disabled = false;
