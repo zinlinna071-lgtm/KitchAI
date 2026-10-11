@@ -15,8 +15,12 @@ export class FakeRemote {
     this.lostAcknowledgements = count;
   }
 
-  readProfile(id) {
-    const profile = this.records.get(id);
+  recordKey(ownerId, profileId) {
+    return `${ownerId}:${profileId}`;
+  }
+
+  readProfile(id, ownerId = "owner-1") {
+    const profile = this.records.get(this.recordKey(ownerId, id));
     return profile ? copy(profile) : null;
   }
 
@@ -38,7 +42,8 @@ export class FakeRemote {
       return { status: "transient-failure" };
     }
 
-    const current = this.records.get(operation.profileId);
+    const key = this.recordKey(operation.ownerId, operation.profileId);
+    const current = this.records.get(key);
     const currentRevision = current?.revision ?? null;
     if (currentRevision !== operation.baseRevision) {
       return {
@@ -48,7 +53,7 @@ export class FakeRemote {
     }
 
     const profile = copy(operation.candidate);
-    this.records.set(profile.id, profile);
+    this.records.set(key, profile);
     this.operations.set(operation.operationId, {
       operation: copy(operation),
       profile: copy(profile),
@@ -62,8 +67,9 @@ export class FakeRemote {
     return { status: "accepted", profile: copy(profile) };
   }
 
-  compete(profileId, name) {
-    const current = this.records.get(profileId);
+  compete(profileId, name, ownerId = "owner-1") {
+    const key = this.recordKey(ownerId, profileId);
+    const current = this.records.get(key);
     if (!current) throw new Error("Cannot compete with a missing remote profile");
     const profile = {
       ...current,
@@ -71,7 +77,7 @@ export class FakeRemote {
       revision: current.revision + 1,
       updatedAt: new Date(0).toISOString(),
     };
-    this.records.set(profileId, profile);
+    this.records.set(key, profile);
     return copy(profile);
   }
 
