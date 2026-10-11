@@ -10,6 +10,7 @@ import {
   restoreWorkspace,
   signInAs,
   signOut,
+  simulateStorageFailure,
   syncOperation,
   updateProfile,
   workspaceStatus,
@@ -46,6 +47,7 @@ window.spike = {
   syncOperation: withSummary(syncOperation),
   resolveConflict: withSummary(resolveConflict),
   exportWorkspace,
+  simulateStorageFailure,
   restoreWorkspace: withSummary(restoreWorkspace),
   remote: fakeRemote,
   async reset() {
