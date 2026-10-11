@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-10-12  
 **Current branch:** main  
-**Overall state:** WP1.1–WP1.5 local implementation gates are complete. WP1.4's local Supabase migration and real local Auth/Postgres/RLS authorization suite passed CI; WP1.5's durable local queue/retry/conflict mechanics passed CI. End-to-end Business Profile transport/UI integration remains WP1.6; no hosted resources are provisioned.
+**Overall state:** WP1.1–WP1.6 implementation gates have passed on the feature branch and WP1.6 is merged to main. The post-merge main-branch CI rerun is in progress; Phase 1 WP1.7 acceptance/recovery review remains before declaring Phase 1 complete. No hosted resources are provisioned.
 
 ## Repository audit
 
@@ -13,7 +13,7 @@
 
 ## Current milestone
 
-**Milestone:** WP1.1–WP1.5 local gates are met. WP1.6 planning now defines the local-only end-to-end Business Profile path, including Auth, server-side idempotency, revision conflict handling, and owner-safe session lifecycle. No hosted transport or provisioning is included.
+**Milestone:** WP1.1–WP1.6 feature implementation gates passed. PR #12 merged to main as `89838aa517999e98fd3c80cf830e10f25ba07d59`. Feature-branch WP1.4 and WP1.6 local Supabase CI runs passed; post-merge CI is being rerun on main. WP1.7 acceptance/recovery review remains open. Hosted provisioning, billing, secrets, and deployment remain unauthorized.
 
 | Item | Status | Evidence / next action |
 |---|---|---|
@@ -35,8 +35,8 @@
 - WP1.3 — Complete: production IndexedDB module stores a local Business Profile draft in a versioned database; create/update survives reload; trimmed 1–80 character validation, stable `createdAt`/`businessId`, local revision metadata, and unavailable-storage error handling are covered by CI. The local draft omits server-authoritative `ownerId` and `revision` until WP1.4. See [WP1.3 app-shell CI run 38176993521](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38176993521) and [baseline CI run 38176993535](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38176993535).
 - WP1.4 — Complete (local-only gate): Supabase migration, owner-derived identity/revision trigger, RLS policies, and 21 pgTAP assertions passed against the isolated local Supabase stack in [CI run 38177790964](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38177790964). Tests cover anonymous denial, no delete grant, server-owned field enforcement, trimmed names, revision increments, and cross-owner isolation. No hosted project, credentials, or billing.
 - WP1.5 — Complete (local mechanics gate): durable owner-partitioned profile/outbox/conflict stores, atomic profile+operation writes, stable operation IDs, coalescing unsent creates, persisted sync states, bounded jittered retry scheduling, auth pause/permanent failure states, and explicit conflict resolution. [CI run 38178596957](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38178596957) passed 15/15 Node tests, 14/14 spike Chromium tests, dependency audit (0 vulnerabilities), and dependency tree; [CI run 38178596967](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38178596967) passed 6/6 Chromium app-shell tests. The engine remains transport-injected; actual authenticated online/offline vertical-slice behavior is WP1.6.
-- WP1.6 — Not started
-- WP1.7 — Not started
+- WP1.6 — Complete (feature-branch CI passed; merged to main). [WP1.4 CI run 38180363553](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38180363553), [WP1.6 CI run 38180363713](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38180363713), and [app-shell run 38180363601](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38180363601) passed on the PR head SHA. Post-merge main CI runs 38181264500, 38181264524, 38181264533, and 38181264526 were still in progress at last check.
+- WP1.7 — In progress (Phase 1 integration, recovery, security, and acceptance review). Do not declare Phase 1 complete until post-merge CI is green and remaining acceptance evidence/limitations are reviewed.
 
 ## Current blockers / guardrails
 
@@ -50,4 +50,4 @@
 
 ## Next action
 
-Current work: review the WP1.6 acceptance plan, then implement the local Supabase Auth + idempotent Business Profile operation path and connect it to the UI/WP1.5 queue. Keep all tests on the local/emulator stack. Hosted provisioning, billing, hosted tests, production credentials, and deployment remain unauthorized. Do not provision hosted infrastructure, enable billing, add production credentials, or deploy. The [decision log](./DECISIONS.md) is canonical for accepted decisions and their boundaries.
+Finish the post-merge main-branch CI verification, then complete WP1.7 acceptance/recovery review against the Phase 1 exit criteria. Record concrete test evidence and remaining limitations before deciding whether Phase 1 is complete. Keep all tests on the local/emulator stack. Hosted provisioning, billing, production credentials, and deployment remain unauthorized. The [decision log](./DECISIONS.md) is canonical for accepted decisions and their boundaries.
