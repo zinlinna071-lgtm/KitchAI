@@ -120,7 +120,7 @@ test("sign-out locks the previous owner's unsynced queue before another account 
     const previous = await sync.listOperations(previousOwner);
     const active = JSON.parse(sessionStorage.getItem("kitchai.auth.session")).user.id;
     return {
-      previousOwnerStillHasPending: previous.some(operation => operation.state === "pending"),
+      previousOwnerStillHasPending: previous.some(operation => ["pending", "retryable_error", "in_flight"].includes(operation.state)),
       activeOwnerHasPreviousQueue: (await sync.listOperations(active)).some(operation => operation.ownerId === previousOwner),
     };
   }, ownerA);
