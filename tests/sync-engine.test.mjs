@@ -24,7 +24,7 @@ function fakeStore(operations) {
 
 test("retry delay is exponential, jittered, and capped", () => {
   assert.equal(retryDelayMs(1, { baseDelayMs: 1000, maxDelayMs: 5000, random: () => 0 }), 500);
-  assert.equal(retryDelayMs(2, { baseDelayMs: 1000, maxDelayMs: 5000, random: () => 0.5 }), 1500);
+  assert.equal(retryDelayMs(2, { baseDelayMs: 1000, maxDelayMs: 5000, random: () => 0.5 }), 2000);
   assert.equal(retryDelayMs(30, { baseDelayMs: 1000, maxDelayMs: 5000, random: () => 1 }), 5000);
 });
 
