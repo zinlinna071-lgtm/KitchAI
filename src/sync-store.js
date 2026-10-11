@@ -299,3 +299,43 @@ export async function applyRemoteAndResolve(conflict, ownerId) {
     tx.onabort = () => reject(tx.error ?? new Error("Conflict resolution was aborted."));
   });
 }
+
+/**
+ * Import an authoritative remote profile only when this owner has no local copy.
+ * Pending local work is never overwritten by a remote refresh.
+ * @param {string} ownerId
+ * @param {any} remoteProfile
+ */
+export async function adoptRemoteProfile(ownerId, remoteProfile) {
+  ownerId = requireOwner(ownerId);
+  if (!remoteProfile || remoteProfile.ownerId !== ownerId || !remoteProfile.id) {
+    throw new Error("Remote profile does not match the active owner.");
+  }
+  const db = await openDatabase();
+  const tx = db.transaction(PROFILE_STORE, "readwrite");
+  const profiles = tx.objectStore(PROFILE_STORE);
+  const existing = await requestValue(profiles.get([ownerId, remoteProfile.id]));
+  const profile = existing ?? { ...remoteProfile, ownerId, syncState: "synced" };
+  if (!existing) profiles.put(profile);
+  await new Promise((resolve, reject) => {
+    tx.oncomplete = resolve;
+    tx.onerror = () => reject(tx.error ?? new Error("Could not import the remote profile."));
+    tx.onabort = () => reject(tx.error ?? new Error("Remote profile import was aborted."));
+  });
+  return profile;
+}
+
+/** Reset interrupted in-flight operations after a reload so they can retry with the same ID. @param {string} ownerId */
+export async function recoverInterruptedOperations(ownerId) {
+  ownerId = requireOwner(ownerId);
+  const operations = await listOperations(ownerId);
+  let recovered = 0;
+  for (const operation of operations) {
+    if (operation.state !== "in_flight") continue;
+    await mutateOperation(operation.operationId, ownerId, op => ({
+      ...op, state: "retryable_error", nextAttemptAt: 0, lastError: "Sync was interrupted; safe retry is pending.",
+    }), "retryable_error");
+    recovered++;
+  }
+  return recovered;
+}
