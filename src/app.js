@@ -1,3 +1,5 @@
+/** @typedef {Event & { prompt: () => Promise<void> }} BeforeInstallPromptEvent */
+
 const connectionStatus = document.querySelector("#connection-status");
 const installButton = document.querySelector("#install-button");
 
@@ -11,15 +13,18 @@ window.addEventListener("online", updateConnectionStatus);
 window.addEventListener("offline", updateConnectionStatus);
 updateConnectionStatus();
 
+/** @type {BeforeInstallPromptEvent | undefined} */
 let installPrompt;
 window.addEventListener("beforeinstallprompt", (event) => {
-  event.preventDefault();
-  installPrompt = event;
+  const promptEvent = /** @type {BeforeInstallPromptEvent} */ (event);
+  promptEvent.preventDefault();
+  installPrompt = promptEvent;
   if (installButton) installButton.hidden = false;
 });
 installButton?.addEventListener("click", async () => {
-  if (!installPrompt) return;
-  await installPrompt.prompt();
+  const promptEvent = installPrompt;
+  if (!promptEvent) return;
+  await promptEvent.prompt();
   installPrompt = undefined;
   installButton.hidden = true;
 });
