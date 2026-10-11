@@ -13,7 +13,7 @@
 
 ## Current milestone
 
-**Milestone:** Owner-approved Phase 1 decisions reconciled into the sync contract, Phase 1 plan, and Coding AI handoff. The isolated spike now has 14 passing Chromium tests and CI dependency checks; WP1.1 local requirements/architecture evidence gate is met. Production authentication and provider-side authorization remain deferred until the non-production environment and cost boundary are explicitly approved.
+**Milestone:** WP1.1–WP1.4 local gates are met. WP1.5 is in progress on branch `wp1-5-sync-state-retry-conflicts`, adding a durable owner-scoped outbox, deterministic retry orchestration, and conflict snapshot preservation. No hosted transport or provisioning is included.
 
 | Item | Status | Evidence / next action |
 |---|---|---|
@@ -34,7 +34,7 @@
 - WP1.2 — Complete: [app-shell CI run 38176493973](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38176493973) passed 3/3 Chromium smoke tests covering desktop/mobile responsive layout, service-worker-controlled offline navigation, connection status, and install-prompt handler. [Baseline CI run 38176494030](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38176494030) also passed the 6 Node tests, JSDoc TypeScript check, production build, 14 WP1.1 tests, dependency audit, and dependency-tree check. Native operating-system installation was not exercised; install prompt behavior was tested with a simulated browser event. The shell does not yet implement business persistence, authentication, or cloud sync.
 - WP1.3 — Complete: production IndexedDB module stores a local Business Profile draft in a versioned database; create/update survives reload; trimmed 1–80 character validation, stable `createdAt`/`businessId`, local revision metadata, and unavailable-storage error handling are covered by CI. The local draft omits server-authoritative `ownerId` and `revision` until WP1.4. See [WP1.3 app-shell CI run 38176993521](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38176993521) and [baseline CI run 38176993535](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38176993535).
 - WP1.4 — Complete (local-only gate): Supabase migration, owner-derived identity/revision trigger, RLS policies, and 21 pgTAP assertions passed against the isolated local Supabase stack in [CI run 38177790964](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38177790964). Tests cover anonymous denial, no delete grant, server-owned field enforcement, trimmed names, revision increments, and cross-owner isolation. No hosted project, credentials, or billing.
-- WP1.5 — Not started
+- WP1.5 — In progress (local-only): durable owner-partitioned profile/outbox/conflict stores, idempotent operation IDs, bounded jittered retry scheduling, auth pause/permanent failure states, and explicit conflict resolution orchestration. Verification pending CI; no real network transport is wired.
 - WP1.6 — Not started
 - WP1.7 — Not started
 
@@ -46,8 +46,8 @@
 - Official free-tier limits and product behavior can change; recheck published terms before provisioning. No cloud project, billing, domain purchase, secrets, or production deployment is approved.
 - Browser storage is not guaranteed encrypted; local storage is not a backup.
 - Do not mark implementation work complete based on documentation alone.
-- WP1.1 local evidence is reviewed and recorded as met. WP1.2 and WP1.3 local gates are complete. WP1.4 is the next WP; implementation must remain local/emulator-only until its server-side authorization behavior can be tested. Hosted provider tests, cloud provisioning, billing, secrets, and deployment remain separately gated.
+- WP1.1–WP1.4 local gates are complete. WP1.5 is in progress and must remain local-only; the sync engine is transport-injected and cannot contact a hosted service by itself. Hosted provider tests, cloud provisioning, billing, secrets, and deployment remain separately gated.
 
 ## Next action
 
-Current work: begin WP1.5 — Sync State, Retry & Conflict Preservation. WP1.4's local migration and pgTAP suite passed in CI and was merged to main. Hosted provisioning, billing, hosted tests, production credentials, and deployment remain unauthorized. Do not provision hosted infrastructure, enable billing, add production credentials, or deploy. The [decision log](./DECISIONS.md) is canonical for accepted decisions and their boundaries.
+Current work: validate WP1.5 durable queue, retry, owner isolation, and conflict behavior in CI; fix any failures before merge. Hosted provisioning, billing, hosted tests, production credentials, and deployment remain unauthorized. Do not provision hosted infrastructure, enable billing, add production credentials, or deploy. The [decision log](./DECISIONS.md) is canonical for accepted decisions and their boundaries.
