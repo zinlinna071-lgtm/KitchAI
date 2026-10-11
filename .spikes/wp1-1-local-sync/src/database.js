@@ -1,6 +1,11 @@
 const databaseName = "kitchai-wp1-1-local-sync-owner-partitioned";
 const databaseVersion = 1;
 let databasePromise;
+let failNextStorageWrite = false;
+
+export function simulateNextStorageWriteFailure() {
+  failNextStorageWrite = true;
+}
 
 function openDatabase() {
   if (!databasePromise) {
@@ -24,6 +29,10 @@ function openDatabase() {
 
 async function transact(storeNames, mode, work) {
   const database = await openDatabase();
+  if (mode === "readwrite" && failNextStorageWrite) {
+    failNextStorageWrite = false;
+    throw new Error("Simulated IndexedDB write failure");
+  }
   return new Promise((resolve, reject) => {
     const transaction = database.transaction(storeNames, mode);
     let result;
@@ -81,8 +90,6 @@ export async function restoreOwnerRecords(payload, ownerId) {
     }
   }
   return writeRecords(["profiles", "outbox", "conflicts"], (transaction) => {
-    const existing = ["profiles", "outbox", "conflicts"].some((storeName) => false);
-    void existing;
     for (const [storeName, records] of [
       ["profiles", payload.profiles],
       ["outbox", payload.outbox],
