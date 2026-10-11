@@ -127,7 +127,7 @@ test("an offline create colliding with an existing remote profile becomes a reso
   const ownerAndProfile = await page.evaluate(async () => {
     const sync = await import("/src/sync-store.js");
     const profile = (await sync.listOwnerProfiles(JSON.parse(sessionStorage.getItem("kitchai.auth.session")).user.id))[0];
-    return { ownerId: profile.ownerId, profileId: profile.id };
+    return { ownerId: profile.ownerId, profileId: profile.id, businessId: profile.businessId };
   });
   await page.evaluate(async ({ ownerId, profileId }) => {
     const request = indexedDB.open("kitchai-sync", 2);
@@ -164,5 +164,5 @@ test("an offline create colliding with an existing remote profile becomes a reso
     return (await sync.listOwnerProfiles(ownerId))[0];
   });
   expect(finalProfile.id).toBe(ownerAndProfile.profileId);
-  expect(finalProfile.businessId).toBeTruthy();
+  expect(finalProfile.businessId).toBe(ownerAndProfile.businessId);
 });
