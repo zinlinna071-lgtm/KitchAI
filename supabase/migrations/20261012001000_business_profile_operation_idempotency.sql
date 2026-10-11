@@ -38,7 +38,7 @@ begin
   if p_operation_id is null or p_record_id is null then
     raise exception 'Operation and record IDs are required' using errcode = '22023';
   end if;
-  if p_operation not in ('create', 'update') then
+  if p_operation is null or p_operation not in ('create', 'update') then
     raise exception 'Unsupported Business Profile operation' using errcode = '22023';
   end if;
   if p_name is null or pg_catalog.char_length(pg_catalog.btrim(p_name)) not between 1 and 80 then
@@ -48,6 +48,9 @@ begin
     or (p_operation = 'update' and (p_base_revision is null or p_base_revision < 1)) then
     raise exception 'Invalid base revision for operation' using errcode = '22023';
   end if;
+
+  -- Serialize writes per owner so concurrent retries observe the same idempotency result.
+  perform pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended(v_owner::text, 0));
 
   v_request := pg_catalog.jsonb_build_object(
     'recordId', p_record_id,
@@ -69,13 +72,27 @@ begin
   end if;
 
   if p_operation = 'create' then
-    insert into public.business_profiles (id, name)
-      values (p_record_id, pg_catalog.btrim(p_name))
-      returning * into v_profile;
-    v_result := pg_catalog.jsonb_build_object(
-      'status', 'accepted',
-      'profile', pg_catalog.to_jsonb(v_profile)
-    );
+    select * into v_profile
+      from public.business_profiles
+      where owner_id = v_owner
+      for update;
+
+    if found then
+      -- A device may create a local draft while offline before it knows that this
+      -- owner already has a remote profile. Preserve both candidates for review.
+      v_result := pg_catalog.jsonb_build_object(
+        'status', 'conflict',
+        'remoteProfile', pg_catalog.to_jsonb(v_profile)
+      );
+    else
+      insert into public.business_profiles (id, name)
+        values (p_record_id, pg_catalog.btrim(p_name))
+        returning * into v_profile;
+      v_result := pg_catalog.jsonb_build_object(
+        'status', 'accepted',
+        'profile', pg_catalog.to_jsonb(v_profile)
+      );
+    end if;
   else
     select * into v_profile
       from public.business_profiles
