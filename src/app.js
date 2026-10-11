@@ -1,7 +1,7 @@
 /** @typedef {Event & { prompt: () => Promise<void> }} BeforeInstallPromptEvent */
 
-const connectionStatus = document.querySelector("#connection-status");
-const installButton = document.querySelector("#install-button");
+const connectionStatus = /** @type {HTMLParagraphElement | null} */ (document.querySelector("#connection-status"));
+const installButton = /** @type {HTMLButtonElement | null} */ (document.querySelector("#install-button"));
 
 function updateConnectionStatus() {
   if (!connectionStatus) return;
