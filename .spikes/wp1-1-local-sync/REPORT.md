@@ -84,4 +84,4 @@ The spike now includes executable scenarios for:
 - Exporting and restoring profile plus pending outbox data into a fresh browser context, and rejecting a backup tagged for a different owner.
 - Fake-remote records partitioned by owner and profile ID.
 
-These are local spike tests only. The session switch is a test seam, not authentication; the fake remote is not server-side authorization. Backup restore currently requires a fresh workspace and the same owner ID. CI results must be checked before treating these cases as passing. WP1.1 remains in progress.
+These are local spike tests only. The session switch is a test seam, not authentication; the fake remote is not server-side authorization. Backup restore currently requires a fresh workspace and the same owner ID. An initial CI run found session re-authentication and missing-record expectation issues; both were corrected on main. The updated suite must pass before treating these cases as verified. WP1.1 remains in progress.
