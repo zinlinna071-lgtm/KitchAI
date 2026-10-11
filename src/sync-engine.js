@@ -95,7 +95,7 @@ export async function syncPendingOperations(input) {
 /**
  * Resolution always writes against the currently observed remote revision.
  * The repository is responsible for retaining the original conflict record.
- * @param {{ownerId:string,conflict:SyncConflict,choice:"keep_local"|"use_remote",store:{enqueue:(input:any)=>Promise<void>,applyRemoteAndResolve:(conflict:SyncConflict,ownerId:string)=>Promise<void>},operationId?:string,now?:()=>number}} input
+ * @param {{ownerId:string,conflict:SyncConflict,choice:"keep_local"|"use_remote",store:{keepLocalAndResolve:(conflict:SyncConflict,ownerId:string,operation:any)=>Promise<void>,applyRemoteAndResolve:(conflict:SyncConflict,ownerId:string)=>Promise<void>},operationId?:string,now?:()=>number}} input
  */
 export async function resolveSyncConflict(input) {
   const { ownerId, conflict, choice } = input;
@@ -109,8 +109,8 @@ export async function resolveSyncConflict(input) {
   if (!Number.isInteger(conflict.remoteRevision) || conflict.remoteRevision < 1) {
     throw new Error("Conflict is missing the current remote revision.");
   }
-  await input.store.enqueue({
-    operationId: input.operationId,
+  await input.store.keepLocalAndResolve(conflict, ownerId, {
+    operationId: input.operationId ?? crypto.randomUUID(),
     ownerId,
     recordId: conflict.recordId,
     operation: "update",
