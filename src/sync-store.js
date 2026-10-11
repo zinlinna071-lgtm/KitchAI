@@ -268,6 +268,7 @@ export async function keepLocalAndResolve(conflict, ownerId, operation) {
   };
   const newOperation = {
     ...operation,
+    operationId: crypto.randomUUID(),
     ownerId,
     recordId: targetRecordId,
     operation: "update",
@@ -281,8 +282,9 @@ export async function keepLocalAndResolve(conflict, ownerId, operation) {
   };
   if (remapCreateCollision) profiles.delete([ownerId, conflict.recordId]);
   profiles.put(localCandidate);
-  // Reuse the original operation ID as an idempotency key while replacing its
-  // conflicted payload with the explicitly resolved update.
+  operations.put({ ...operation, state: "conflict_resolved" });
+  // Conflict resolution is a new logical write with a new idempotency key;
+  // the original operation remains in the local history as conflict_resolved.
   operations.put(newOperation);
   conflicts.put({ ...savedConflict, state: "resolved", resolution: { choice: "keep_local", resolvedAt: new Date().toISOString() } });
   await new Promise((resolve, reject) => {
