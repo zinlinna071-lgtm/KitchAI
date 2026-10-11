@@ -5,7 +5,7 @@
 
 A work package (WP) is a bounded implementation unit with dependencies and evidence of completion. The workflow maintains this registry so the owner does not need to manually split tasks.
 
-**Coding-agent handoff:** [CODING_AI_PHASE1_EXECUTION_PROMPT.md](./CODING_AI_PHASE1_EXECUTION_PROMPT.md) contains the repository-first execution prompt and mandatory decision/security gates. It does not approve unresolved owner decisions.
+**Coding-agent handoff:** [CODING_AI_PHASE1_EXECUTION_PROMPT.md](./CODING_AI_PHASE1_EXECUTION_PROMPT.md) contains the repository-first execution prompt and mandatory decision/security gates. Owner-approved planning defaults are recorded in [DECISIONS.md](./DECISIONS.md); approval does not authorize provisioning or billing.
 
 ## Phase 1 WPs
 
@@ -13,10 +13,10 @@ A work package (WP) is a bounded implementation unit with dependencies and evide
 - **Priority:** Blocking
 - **Status:** In progress
 - **Dependencies:** None
-- **Scope:** inspect repository and product constraints; compare local storage and cloud/auth/sync architecture options; identify data ownership, threat boundaries, expected cost, offline behavior, migrations, testability, and operational burden; document recommendations and unresolved owner decisions; run an isolated local-sync spike.
-- **Current evidence:** Official provider docs/pricing checked 2026-10-11; consistent comparison, advisory Supabase/PostgreSQL lead, proposed Business Profile schema, conflict-review workflow, threat assumptions, and open owner gates are recorded in [ARCHITECTURE_OPTIONS.md](./ARCHITECTURE_OPTIONS.md) and [DECISIONS.md](./DECISIONS.md). The proposed provider-neutral write/retry/idempotency/conflict contract and acceptance matrix are in [LOCAL_SYNC_CONTRACT.md](./LOCAL_SYNC_CONTRACT.md). The isolated spike report records 6 passing Chromium tests in [REPORT.md](../.spikes/wp1-1-local-sync/REPORT.md). Fake-owner rejection is simulation only.
-- **Not allowed:** silently committing to a paid service or material vendor decision without owner approval; treating a fake remote as proof of real cloud authorization.
-- **Done when:** options and trade-offs are recorded; the owner accepts the initial data model and conflict/offline expectations; isolated spike results are recorded; provider, hosting, cost, and data-protection decisions are recorded; provider-specific authorization/security behavior is validated after explicit provider and non-production test-environment approval. Current recommendation and schema are proposals, not decisions. WP1.1 remains in progress.
+- **Scope:** inspect repository and product constraints; compare local storage and cloud/auth/sync architecture options; document data ownership, threat boundaries, expected cost, offline behavior, migrations, testability, and operational burden; run an isolated local-sync spike; reconcile owner-approved defaults into the contract and acceptance checks.
+- **Current evidence:** Official provider docs/pricing were checked 2026-10-11; Supabase/PostgreSQL is now the owner-selected target architecture, with a KitchAI-owned explicit local-first sync layer. The approved minimal Business Profile schema, explicit conflict choices, owner-partitioned local data, safe sign-out/account switching, and local/emulator-first guardrails are recorded in [DECISIONS.md](./DECISIONS.md). The proposed provider-neutral write/retry/idempotency/conflict contract and acceptance matrix are in [LOCAL_SYNC_CONTRACT.md](./LOCAL_SYNC_CONTRACT.md). The isolated spike report records 6 passing Chromium tests in [REPORT.md](../.spikes/wp1-1-local-sync/REPORT.md). Fake-owner rejection is simulation only.
+- **Not allowed:** cloud project provisioning, paid plan/billing activation, domain purchase, secret addition, or production deployment without separate explicit authorization; treating a fake remote as proof of real cloud authorization.
+- **Done when:** approved decisions are reflected consistently in the contract and acceptance checks; isolated spike results are reproducibly verified; local/emulator sync, retry/idempotency, conflict preservation, and recovery behavior have reviewable evidence; provider authorization/security testing is performed only after an explicitly approved hosted test environment and cost boundary, or is clearly recorded as deferred with no false claim of provider validation. Update status with exact evidence before marking complete.
 
 ### WP1.2 — Application Shell & PWA Baseline
 - **Priority:** High
@@ -37,7 +37,7 @@ A work package (WP) is a bounded implementation unit with dependencies and evide
 - **Status:** Not started
 - **Dependencies:** WP1.1, WP1.2
 - **Scope:** minimum authentication and cloud persistence required for sync; enforce ownership on trusted server/database boundaries; protect secrets; test unauthenticated and cross-owner access.
-- **Done when:** authorized operations work and negative authorization tests demonstrate isolation. Full account-management UI is not required.
+- **Done when:** authorized operations work and negative authorization tests demonstrate isolation. Full account-management UI is not required. Hosted tests require an explicitly approved non-production environment and cost boundary.
 
 ### WP1.5 — Sync State, Retry & Conflict Preservation
 - **Priority:** High
