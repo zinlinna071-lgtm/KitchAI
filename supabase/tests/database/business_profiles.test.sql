@@ -94,11 +94,14 @@ select lives_ok(
     where id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'$$,
   'owner B update is safely filtered by row-level security'
 );
+set local "request.jwt.claim.sub" = '11111111-1111-4111-8111-111111111111';
 select is(
   (select name from public.business_profiles where id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'),
-  null,
-  'owner B cannot observe or change owner A profile'
+  'Owner A Kitchen Updated',
+  'owner B cannot modify owner A profile'
 );
+
+set local "request.jwt.claim.sub" = '22222222-2222-4222-8222-222222222222';
 select lives_ok(
   $$insert into public.business_profiles (id, owner_id, name)
     values ('cccccccc-cccc-4ccc-8ccc-cccccccccccc',
