@@ -28,7 +28,7 @@ function openDatabase() {
       if (!database.objectStoreNames.contains(METADATA_STORE)) {
         database.createObjectStore(METADATA_STORE, { keyPath: "key" });
       }
-      database.transaction?.objectStore(METADATA_STORE).put({
+      request.transaction?.objectStore(METADATA_STORE).put({
         key: "schemaVersion",
         value: DATABASE_VERSION,
         appliedAt: new Date().toISOString(),
