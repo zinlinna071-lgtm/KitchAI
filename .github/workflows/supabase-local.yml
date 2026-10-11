@@ -15,15 +15,20 @@ jobs:
     name: Local schema and RLS tests
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    env:
+      SUPABASE_CLI_TELEMETRY_DISABLED: "true"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 24
       - name: Start isolated local Supabase stack
-        run: npx --yes supabase@2.39.2 start --exclude studio,mailpit,storage-api,imgproxy
+        timeout-minutes: 15
+        run: npx --yes supabase@2.39.2 start --debug --exclude studio,mailpit,storage-api,imgproxy
       - name: Run database migration and pgTAP authorization tests
-        run: npx --yes supabase@2.39.2 test db
+        timeout-minutes: 7
+        run: npx --yes supabase@2.39.2 test db --debug
       - name: Stop local Supabase stack
         if: always()
+        timeout-minutes: 3
         run: npx --yes supabase@2.39.2 stop --no-backup
