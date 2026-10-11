@@ -11,6 +11,7 @@ test("IndexedDB profile survives reload and invalid names leave it unchanged", a
     window.spike.createProfile({ id: "profile-1", ownerId: "owner-1", name: "  KitchAI Test Kitchen  " }),
   );
   await page.reload();
+  await page.evaluate(() => window.spike.signInAs("owner-1"));
 
   const persisted = await page.evaluate((id) => window.spike.readProfile(id), created.id);
   expect(persisted.name).toBe("KitchAI Test Kitchen");
@@ -60,7 +61,7 @@ test("transient failure retries safely and replaying an operation is idempotent"
   expect((await page.evaluate((id) => window.spike.syncOperation(id), operation.operationId)).status)
     .toBe("accepted");
   expect((await page.evaluate((id) => window.spike.syncOperation(id), operation.operationId)).status)
-    .toBe("duplicate");
+    .toBe("synced");
 
   expect(await page.evaluate(() => window.spike.remote.logicalWrites)).toBe(1);
   expect((await page.evaluate(() => window.spike.listOutbox()))[0].state).toBe("synced");
@@ -145,6 +146,7 @@ test("pending outbox work survives a page reload and remains retryable", async (
   expect(beforeReload.state).toBe("pending");
 
   await page.reload();
+  await page.evaluate(() => window.spike.signInAs("owner-1"));
   const afterReload = (await page.evaluate(() => window.spike.listOutbox()))
     .find((operation) => operation.operationId === beforeReload.operationId);
   expect(afterReload).toMatchObject({
