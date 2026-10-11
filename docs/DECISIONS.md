@@ -20,12 +20,22 @@ This log distinguishes accepted planning constraints from proposals and unresolv
 
 | ID | Decision needed | Why it matters | Current status |
 |---|---|---|---|
-| O-001 | Cloud backend/auth/database provider and hosting model | Determines security policies, sync approach, operating cost, vendor lock-in, and deployment. | Open; current lead recommendation is Supabase/Postgres + explicit local-first sync; Appwrite + RxDB remains alternative; prototype and owner decision still required |
-| O-002 | Exact first vertical-slice fields and validation rules | Defines schema, ownership boundary, migration and acceptance tests. | Proposed Business Profile; refine in WP1.1 |
-| O-003 | Conflict review UX and resolution policy | Determines how users compare and choose between competing versions. | Preserve both versions required; detailed UX open |
-| O-004 | Offline data protection expectations on shared devices | Affects local data exposure, sign-out behavior, and device threat assumptions. | Open; document threat model in WP1.1 |
-| O-005 | Deployment and domain approach | Affects PWA installability, authentication redirects, secure transport, and cost. | Open; do not purchase or configure paid services yet |
+| O-001 | Cloud backend/auth/database provider and hosting model | Determines security policies, sync approach, operating cost, vendor lock-in, and deployment. | Open; technical lead recommends Supabase/PostgreSQL + explicit local-first sync; Appwrite + RxDB remains active alternative. Official-doc review is in ARCHITECTURE_OPTIONS.md; this is not owner approval. |
+| O-002 | Exact first vertical-slice fields and validation rules | Defines schema, ownership boundary, migration and acceptance tests. | Proposed minimal Business Profile and validation are recorded in ARCHITECTURE_OPTIONS.md; owner acceptance remains open. |
+| O-003 | Conflict review UX and resolution policy | Determines how users compare and choose between competing versions. | Preserve base/local/remote snapshots and require explicit resolution; review UI, audit retention, and exact choices remain open for owner review. |
+| O-004 | Offline data protection expectations on shared devices | Affects local data exposure, sign-out behavior, and device threat assumptions. | Browser-storage threat assumptions and sign-out questions are documented in ARCHITECTURE_OPTIONS.md; retention, encryption/locking, and account-switch behavior remain open. |
+| O-005 | Deployment and domain approach | Affects PWA installability, authentication redirects, secure transport, and cost. | HTTPS and separated environments are proposed; provider, region, domain, budget cap, and deployment approval remain open. Do not provision or purchase. |
 | O-006 | First AI feature and provider/cost limits | Needed before Phase 6 implementation, not a Phase 1 blocker. | Deferred |
+
+## Owner decision brief (WP1.1)
+
+**Recommended option (pending O-001):** Supabase/PostgreSQL with a separate explicit local-first layer. It best fits the relational roadmap and leaves revision checks, outbox semantics, and conflict preservation under KitchAI's control. Appwrite Cloud + RxDB remains the alternative if a KitchAI-specific replication test demonstrates less complexity without losing conflict snapshots or ownership guarantees. Firebase remains a comparator; Firestore's documented same-document last-write-wins needs an additional conflict layer. This recommendation is not provider approval or permission to provision.
+
+**Trade-offs:** Supabase requires KitchAI to own/test the local queue, retries, idempotency, migrations, and conflict UI; Free projects pause after a week of inactivity and have no automatic backups. Appwrite offers documented push/pull and RxDB integration, but this review could not verify exact Free quotas or whether projects pause; conflict policy is application-owned. Firebase reduces basic sync work but web persistence is opt-in, cache can persist across sessions, and default conflict behavior does not meet the preserve-both requirement.
+
+**Material owner decisions still needed:** provider and hosting/region; monthly spend cap and billing permission; Business Profile fields and name rules; conflict-review UX and resolution/audit retention; local-data protection and sign-out/account-switch behavior; deployment/domain and backup/export expectations.
+
+**Evidence required before provider authorization tests:** (1) record provider/plan/region and owner cost approval or explicitly constrain tests to a no-billing local emulator; (2) approve an isolated non-production environment with no real data and secret-manager handling; (3) review the final schema and provider-native server-side ownership policy, including privileged server SDK paths; (4) create separate test owners/business scopes and document unauthenticated, allowed-owner, cross-owner read/write, and delete-denial cases; (5) record reproducible emulator/provider test instructions and reviewable results. The fake-owner spike test is simulation only and is not evidence for this gate.
 
 ## Decision process
 
