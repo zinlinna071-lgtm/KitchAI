@@ -90,3 +90,20 @@ Phase 1 is complete only when:
 - no unresolved critical security or data-loss issue remains.
 
 A green build alone is not sufficient evidence of completion.
+
+
+## 8. WP1.7 acceptance review (2026-10-12)
+
+**Automated local-only evidence:**
+- WP1.6 merged to `main` as [commit 89838aa](https://github.com/zinlinna071-lgtm/KitchAI/commit/89838aa517999e98fd3c80cf830e10f25ba07d59).
+- [Post-merge WP1.4 run 38181264500](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38181264500) passed 40 pgTAP assertions against local Supabase Auth/Postgres/RLS and operation-idempotency RPCs.
+- [Post-merge WP1.6 run 38181264533](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38181264533) passed the production build, the 40 pgTAP assertions, and 5 Playwright browser integration tests: online create + offline edit/reconnect/reload; explicit anonymous-draft import; stale-revision conflict preservation across two sessions; sign-out queue lock before account switch; and duplicate-create conflict.
+- [Post-merge app-shell run 38181264524](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38181264524) and [baseline run 38181264526](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38181264526) passed.
+
+**Limitations / manual-only evidence not yet completed:**
+- Real Android/iOS and desktop-browser install experience has not been manually verified; CI simulates browser install prompt behavior.
+- Real-device offline navigation, assistive-technology/accessibility review, browser storage quota exhaustion, and interrupted-device/power-loss recovery have not been independently manually verified beyond the automated failure/reload scenarios recorded in CI.
+- All Supabase integration is local/emulated. No hosted provider project, production environment, cross-device hosted sync, backups, monitoring, or deployment has been tested or authorized.
+- Local browser storage is not guaranteed encrypted and is not a backup.
+
+**Exit decision:** Automated CI gates are green, but Phase 1 should remain **in acceptance review** until the owner explicitly accepts the above manual-only checks as deferred for this local-only milestone or they are performed. This document does not claim hosted-sync validation or production readiness. Any hosted environment, billing, secrets, or deployment remains separately gated by explicit authorization.
