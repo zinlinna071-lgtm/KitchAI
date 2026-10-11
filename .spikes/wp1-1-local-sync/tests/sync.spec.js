@@ -135,3 +135,58 @@ test("fake owner rejection is simulation only", async ({ page }) => {
   expect(await page.evaluate(() => window.spike.remote.logicalWrites)).toBe(0);
   expect(operation.ownerId).toBe("owner-1");
 });
+
+test("pending outbox work survives a page reload and remains retryable", async ({ page }) => {
+  const profile = await page.evaluate(() =>
+    window.spike.createProfile({ id: "profile-reload", ownerId: "owner-1", name: "Reload Recovery Kitchen" }),
+  );
+  const beforeReload = (await page.evaluate(() => window.spike.listOutbox()))[0];
+  expect(beforeReload.state).toBe("pending");
+
+  await page.reload();
+  const afterReload = (await page.evaluate(() => window.spike.listOutbox()))
+    .find((operation) => operation.operationId === beforeReload.operationId);
+  expect(afterReload).toMatchObject({
+    operationId: beforeReload.operationId,
+    profileId: profile.id,
+    ownerId: "owner-1",
+    state: "pending",
+    attempts: 0,
+  });
+  expect((await page.evaluate((id) => window.spike.readProfile(id), profile.id)).name)
+    .toBe("Reload Recovery Kitchen");
+
+  expect((await page.evaluate((id) => window.spike.syncOperation(id), afterReload.operationId)).status)
+    .toBe("accepted");
+  expect((await page.evaluate(() => window.spike.listOutbox()))
+    .find((operation) => operation.operationId === beforeReload.operationId).state).toBe("synced");
+});
+
+test("explicit remote conflict resolution keeps the remote candidate and preserves snapshots", async ({ page }) => {
+  const profile = await page.evaluate(() =>
+    window.spike.createProfile({ id: "profile-remote-resolution", ownerId: "owner-1", name: "Base Resolution Kitchen" }),
+  );
+  const createOperation = (await page.evaluate(() => window.spike.listOutbox()))[0];
+  await page.evaluate((id) => window.spike.syncOperation(id), createOperation.operationId);
+  const remote = await page.evaluate((id) => window.spike.remote.compete(id, "Authoritative Remote Kitchen"), profile.id);
+  await page.evaluate((id) => window.spike.updateProfile(id, "Unselected Local Kitchen"), profile.id);
+  const updateOperation = (await page.evaluate(() => window.spike.listOutbox()))
+    .find((operation) => operation.operationId !== createOperation.operationId);
+  const conflict = await page.evaluate((id) => window.spike.syncOperation(id), updateOperation.operationId);
+  expect(conflict.status).toBe("conflict");
+
+  const resolution = await page.evaluate((id) => window.spike.resolveConflict(id, "remote"), conflict.conflictId);
+  expect(resolution).toMatchObject({
+    status: "resolved",
+    resolution: "remote",
+    baseCandidate: { name: "Base Resolution Kitchen" },
+    localCandidate: { name: "Unselected Local Kitchen" },
+    remoteCandidate: { name: "Authoritative Remote Kitchen", revision: remote.revision },
+  });
+  expect((await page.evaluate((id) => window.spike.readProfile(id), profile.id)).name)
+    .toBe("Authoritative Remote Kitchen");
+  expect((await page.evaluate(() => window.spike.listOutbox()))
+    .some((operation) => operation.state === "pending" && operation.candidate.name === "Unselected Local Kitchen"))
+    .toBe(true);
+});
+
