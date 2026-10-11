@@ -1,6 +1,6 @@
 # Phase 1 Plan — Application Foundation & Local–Cloud Sync
 
-**Status:** Draft plan; vendor and material architecture choices remain open.  
+**Status:** Planning baseline; Supabase + PostgreSQL is the owner-selected target architecture. Hosted provisioning, billing, hosted security tests, region/domain, and production deployment remain unauthorized until separately approved.  
 **Roadmap:** [ROADMAP.md](./ROADMAP.md)  
 **Target:** One owner, one business, offline-first web/PWA, with one simple business-record vertical slice.
 
@@ -29,7 +29,7 @@ Prove that KitchAI can safely create and read a simple business record locally, 
 
 ## 3. Suggested vertical slice
 
-Use a minimal **Business Profile** record as the candidate vertical slice, with a stable ID, owner/business scope, display name, timestamps, and a version/sync marker as needed. Final fields and persistence representation should be established in WP1.1 after examining the repository and comparing architecture options.
+Use the owner-approved minimal **Business Profile** record: stable UUID `id`, server-authoritative `ownerId`, stable `businessId`, required trimmed `name` (1–80 characters), immutable UTC `createdAt`, UTC `updatedAt`, and server-controlled monotonic `revision`. Keep sync bookkeeping separate from the domain record. The approved contract is in [LOCAL_SYNC_CONTRACT.md](./LOCAL_SYNC_CONTRACT.md).
 
 Acceptance flow:
 1. An authenticated owner creates or edits the profile while online.
@@ -63,7 +63,7 @@ Acceptance flow:
 - Use idempotent operations and explicit versioning/metadata where needed to avoid duplicate writes and lost updates.
 - Do not use last-write-wins as a silent universal conflict policy.
 - Keep schema changes versioned and provide a migration strategy before relying on persistent user data.
-- Record the selected stack, costs/limits, and reasons in the decision log.
+- Record the selected stack and reasons in the decision log. The selected target architecture does not authorize provisioning, billing, or hosted deployment; confirm current costs/limits and explicit spend boundary before any hosted use.
 - Do not enable paid services or incur material costs without the owner's explicit approval.
 
 ## 6. Required tests
