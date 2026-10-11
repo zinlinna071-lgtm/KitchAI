@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { mkdir } from "node:fs/promises";
 
 test("shell is responsive and reports connection state at desktop and mobile widths", async ({ page }) => {
   await page.goto("/");
@@ -13,6 +14,16 @@ test("shell is responsive and reports connection state at desktop and mobile wid
   const mobileColumns = await page.locator(".status-grid").evaluate((element) => getComputedStyle(element).gridTemplateColumns.split(" ").length);
   expect(mobileColumns).toBe(1);
   await expect(page.locator('link[rel="manifest"]')).toHaveAttribute("href", "/manifest.webmanifest");
+});
+
+test("capture desktop and mobile UI previews for review", async ({ page }) => {
+  await mkdir("artifacts", { recursive: true });
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "Good work starts with a clear view." })).toBeVisible();
+  await page.setViewportSize({ width: 1365, height: 900 });
+  await page.screenshot({ path: "artifacts/kitchai-ui-preview-desktop.png", fullPage: true });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.screenshot({ path: "artifacts/kitchai-ui-preview-mobile.png", fullPage: true });
 });
 
 test("service worker keeps the app shell navigable after going offline", async ({ page, context }) => {
