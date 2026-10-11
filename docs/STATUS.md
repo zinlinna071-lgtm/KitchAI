@@ -13,7 +13,7 @@
 
 ## Current milestone
 
-**Milestone:** WP1.1 spike, official-doc review, provider-neutral sync contract, and consolidated owner review brief recorded; owner/provider decision gates remain open.
+**Milestone:** WP1.1 spike, official-doc review, provider-neutral sync contract, owner review brief, and guarded Coding AI handoff prompt recorded; owner/provider decision gates remain open.
 
 | Item | Status | Evidence / next action |
 |---|---|---|
@@ -22,13 +22,15 @@
 | WP registry | Initial baseline | docs/WP_REGISTRY.md |
 | Decision log | Initial baseline with consolidated owner review brief | [docs/DECISIONS.md](./DECISIONS.md), [docs/OWNER_REVIEW_BRIEF.md](./OWNER_REVIEW_BRIEF.md) |
 | Architecture comparison | Official-doc comparison refreshed; recommendation remains advisory | docs/ARCHITECTURE_OPTIONS.md |
+| Local–cloud sync contract | Proposed; pending owner acceptance | docs/LOCAL_SYNC_CONTRACT.md |
+| Coding AI execution prompt | Added; includes repo-first workflow and decision/security stop gates | [docs/CODING_AI_PHASE1_EXECUTION_PROMPT.md](./CODING_AI_PHASE1_EXECUTION_PROMPT.md) |
 | Isolated sync spike | Executed; 6 Chromium tests pass | .spikes/wp1-1-local-sync/REPORT.md |
 | Application scaffold | Not started | Do not begin until WP1.1 gate is met |
 | Automated application tests | Not started | The isolated spike has 6 passing Chromium tests; no production app/test harness exists |
 
 ## Current WP status
 
-- WP1.1 — In progress: isolated spike executed; 6 Chromium browser tests pass. Official provider documentation was rechecked on 2026-10-11; the advisory comparison, proposed schema, conflict workflow, owner brief, and provider-neutral write/retry/idempotency/conflict acceptance contract are recorded in [architecture options](./ARCHITECTURE_OPTIONS.md), [decisions](./DECISIONS.md), and [local sync contract](./LOCAL_SYNC_CONTRACT.md). Fake-owner rejection is simulation only. O-001 through O-005 and provider-specific authorization/security evidence remain open; WP1.1 is not complete. See [spike report](../.spikes/wp1-1-local-sync/REPORT.md).
+- WP1.1 — In progress: isolated spike executed; 6 Chromium browser tests pass. Official provider documentation was rechecked on 2026-10-11; the advisory comparison, proposed schema, conflict workflow, owner brief, provider-neutral write/retry/idempotency/conflict acceptance contract, and guarded Coding AI handoff prompt are recorded in the planning docs. Fake-owner rejection is simulation only. O-001 through O-005 and provider-specific authorization/security evidence remain open; WP1.1 is not complete. See [spike report](../.spikes/wp1-1-local-sync/REPORT.md).
 - WP1.2 — Not started
 - WP1.3 — Not started
 - WP1.4 — Not started
@@ -47,4 +49,4 @@
 
 ## Next action
 
-Review the [owner review brief](./OWNER_REVIEW_BRIEF.md) and resolve O-001 through O-005; the [decision log](./DECISIONS.md) remains the canonical record of accepted decisions. Only after provider, test environment, policy boundary, test identities, and cost constraints are approved should provider-specific authenticated allow/deny and security tests begin. The isolated spike is evidence for local sync mechanics only. Do not start WP1.2 until the WP1.1 decision gate is met.
+Use [the Coding AI Phase 1 execution prompt](./CODING_AI_PHASE1_EXECUTION_PROMPT.md) as the single reusable coding-agent handoff, but verify the live repository state first. The agent must stop at unresolved owner decisions and may perform only safe, provider-neutral work until O-001 through O-005 and the WP1.1 exit evidence are satisfied. The [owner review brief](./OWNER_REVIEW_BRIEF.md) summarizes recommendations; the [decision log](./DECISIONS.md) remains the canonical record of accepted decisions. Do not start WP1.2 until the WP1.1 decision gate is met.
