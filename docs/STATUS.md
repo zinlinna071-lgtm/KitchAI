@@ -13,7 +13,7 @@
 
 ## Current milestone
 
-**Milestone:** WP1.1–WP1.5 local gates are met. WP1.5 added a durable owner-scoped outbox, persisted profile sync states, deterministic retry orchestration, and conflict snapshot preservation. End-to-end transport/UI integration is reserved for WP1.6. No hosted transport or provisioning is included.
+**Milestone:** WP1.1–WP1.5 local gates are met. WP1.6 planning now defines the local-only end-to-end Business Profile path, including Auth, server-side idempotency, revision conflict handling, and owner-safe session lifecycle. No hosted transport or provisioning is included.
 
 | Item | Status | Evidence / next action |
 |---|---|---|
@@ -50,4 +50,4 @@
 
 ## Next action
 
-Current work: begin WP1.6 — Business Profile Vertical Slice, wiring the UI, local persistence, local Supabase authentication/authorization, and the WP1.5 sync engine without hosted provisioning. Hosted provisioning, billing, hosted tests, production credentials, and deployment remain unauthorized. Do not provision hosted infrastructure, enable billing, add production credentials, or deploy. The [decision log](./DECISIONS.md) is canonical for accepted decisions and their boundaries.
+Current work: review the WP1.6 acceptance plan, then implement the local Supabase Auth + idempotent Business Profile operation path and connect it to the UI/WP1.5 queue. Keep all tests on the local/emulator stack. Hosted provisioning, billing, hosted tests, production credentials, and deployment remain unauthorized. Do not provision hosted infrastructure, enable billing, add production credentials, or deploy. The [decision log](./DECISIONS.md) is canonical for accepted decisions and their boundaries.
