@@ -27,4 +27,4 @@ This WP1.2 shell provides responsive layout, online/offline status, a web app ma
 
 ## Current status
 
-WP1.1 and WP1.2 app-shell baseline gates are complete. CI passes the type check, six Node tests, production build, and three Chromium smoke tests for responsive layout, offline navigation, and install-prompt handling. WP1.3 local persistence is next. Supabase/PostgreSQL is the selected target architecture, but no cloud project, billing, secrets, or deployment is authorized.
+WP1.1–WP1.3 local planning, app-shell, and IndexedDB draft-persistence gates are complete. CI passes type checking, eight Node tests, the production build, and five Chromium smoke tests for responsive layout, offline navigation, profile persistence across reload, validation, and storage failure. WP1.4 local/emulator authorization work is next; hosted provisioning and billing remain unauthorized. Supabase/PostgreSQL is the selected target architecture, but no cloud project, billing, secrets, or deployment is authorized.
