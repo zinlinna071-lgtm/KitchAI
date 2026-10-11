@@ -83,6 +83,15 @@ test("two sessions based on the same revision preserve both candidates and requi
   await expect(secondPage.locator("#profile-state")).toContainText("revision 3", { timeout: 15000 });
   await expect(secondPage.locator("#business-name")).toHaveValue("Local Candidate Kitchen");
 
+  await firstPage.locator("#business-name").fill("Stale First Session Candidate");
+  await firstPage.getByRole("button", { name: "Save profile" }).click();
+  await expect(firstPage.locator("#conflict-panel")).toBeVisible({ timeout: 15000 });
+  await expect(firstPage.locator("#conflict-remote")).toContainText("Local Candidate Kitchen");
+  await firstPage.getByRole("button", { name: "Use remote" }).click();
+  await expect(firstPage.locator("#business-name")).toHaveValue("Local Candidate Kitchen");
+  await expect(firstPage.locator("#profile-state")).toContainText("revision 3");
+  await expect(firstPage.locator("#conflict-panel")).toBeHidden();
+
   await firstContext.close();
   await secondContext.close();
 });
