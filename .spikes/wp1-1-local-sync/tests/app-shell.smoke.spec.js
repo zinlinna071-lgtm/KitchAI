@@ -169,7 +169,7 @@ test("owner-scoped outbox persists atomically and conflict snapshots survive res
   expect(result.operationStates).toContain("conflict");
   expect(result.operationStates).toContain("pending");
   expect(result.conflictCount).toBe(1);
-  expect(result.conflictState).toBe("resolved");
+  expect(result.conflictRecordState).toBe("resolved");
   expect(result.baseName).toBe("Alpha Kitchen");
   expect(result.localName).toBe("Alpha Kitchen Local");
   expect(result.remoteName).toBe("Alpha Kitchen Remote");
