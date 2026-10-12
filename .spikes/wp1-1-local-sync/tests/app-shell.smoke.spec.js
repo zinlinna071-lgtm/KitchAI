@@ -538,3 +538,151 @@ test("WP2.5a disposable migration preserves sources, rolls back interruption, an
   expect(result.recipeLines[0]).toMatchObject({ recipeId: "recipe-1", ingredientId: "ingredient-1", quantity: 250, unit: "g" });
   expect([result.sourceIngredients.length, result.sourceMenuItems.length, result.sourceRecipes.length, result.sourceLines.length]).toEqual([1, 1, 1, 1]);
 });
+
+test("WP2.5b migrates legacy entities to stable profile scope and preserves concurrent changes", async ({ page }) => {
+  await page.goto("/favicon.svg");
+  await page.evaluate(async () => {
+    const deleteDatabase = (name) => new Promise((resolve, reject) => {
+      const request = indexedDB.deleteDatabase(name);
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
+      request.onblocked = () => reject(new Error("Could not clear disposable test database " + name));
+    });
+    for (const name of ["kitchai-business-data", "kitchai-ingredients", "kitchai-menu", "kitchai-recipes", "kitchai-local", "kitchai-sync"]) {
+      await deleteDatabase(name);
+    }
+    const stamp = "2026-10-12T00:00:00.000Z";
+    const scope = { ownerId: "local:business-old", businessId: "business-old" };
+    const seed = (name, definitions) => new Promise((resolve, reject) => {
+      const request = indexedDB.open(name, 1);
+      request.onupgradeneeded = () => {
+        for (const [storeName, definition] of Object.entries(definitions)) {
+          const store = request.result.createObjectStore(storeName, { keyPath: definition.keyPath });
+          for (const [indexName, keyPath] of definition.indexes ?? []) store.createIndex(indexName, keyPath, { unique: false });
+          for (const row of definition.rows) store.put(row);
+        }
+      };
+      request.onsuccess = () => { request.result.close(); resolve(); };
+      request.onerror = () => reject(request.error);
+    });
+    await seed("kitchai-local", {
+      profiles: { keyPath: "id", rows: [{ id: "profile-1", businessId: "business-old", name: "Migration Kitchen", createdAt: stamp, updatedAt: stamp }] },
+      metadata: { keyPath: "key", rows: [{ key: "businessId", value: "business-old" }, { key: "localRevision:profile-1", value: 1 }] },
+    });
+    await seed("kitchai-ingredients", {
+      ingredients: { keyPath: ["ownerId", "businessId", "id"], indexes: [["byScope", ["ownerId", "businessId"]]], rows: [{ ...scope, id: "ingredient-1", name: "Legacy Basil", status: "active", createdAt: stamp, updatedAt: stamp }] },
+    });
+    await seed("kitchai-menu", {
+      menuItems: { keyPath: ["ownerId", "businessId", "id"], indexes: [["byScope", ["ownerId", "businessId"]]], rows: [{ ...scope, id: "menu-1", name: "Legacy Soup", status: "active", createdAt: stamp, updatedAt: stamp }] },
+    });
+    await seed("kitchai-recipes", {
+      recipes: { keyPath: ["ownerId", "businessId", "id"], indexes: [["byScope", ["ownerId", "businessId"]], ["byScopeMenuItem", ["ownerId", "businessId", "menuItemId"]]], rows: [{ ...scope, id: "recipe-1", menuItemId: "menu-1", name: "Legacy Recipe", status: "draft", yieldPortions: 2, createdAt: stamp, updatedAt: stamp }] },
+      recipeLines: { keyPath: ["ownerId", "businessId", "id"], indexes: [["byScope", ["ownerId", "businessId"]], ["byRecipe", ["ownerId", "businessId", "recipeId"]], ["byRecipePosition", ["ownerId", "businessId", "recipeId", "position"]]], rows: [{ ...scope, id: "line-1", recipeId: "recipe-1", ingredientId: "ingredient-1", quantity: 200, unit: "g", position: 0, createdAt: stamp, updatedAt: stamp }] },
+    });
+  });
+
+  await page.goto("/");
+  await expect(page.locator("#business-name")).toHaveValue("Migration Kitchen");
+  await expect(page.locator("#ingredient-list")).toContainText("Legacy Basil");
+  await expect(page.locator("#menu-item-list")).toContainText("Legacy Soup");
+  await expect(page.locator("#recipe-list")).toContainText("Legacy Recipe");
+  await expect(page.locator("#recipe-line-list")).toContainText("200 g");
+
+  await page.evaluate(async () => {
+    const db = await new Promise((resolve, reject) => {
+      const request = indexedDB.open("kitchai-ingredients");
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    const tx = db.transaction("ingredients", "readwrite");
+    const store = tx.objectStore("ingredients");
+    const read = store.get(["local:business-old", "business-old", "ingredient-1"]);
+    read.onsuccess = () => store.put({ ...read.result, name: "Legacy Basil updated by old tab", updatedAt: "2026-10-12T00:01:00.000Z" });
+    tx.oncomplete = () => db.close();
+    tx.onerror = () => reject(tx.error);
+  });
+  await page.reload();
+  await expect(page.locator("#ingredient-list")).toContainText("Legacy Basil updated by old tab");
+
+  const queued = await page.evaluate(async () => {
+    const profileDb = await new Promise((resolve, reject) => {
+      const request = indexedDB.open("kitchai-local");
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    const profile = await new Promise((resolve, reject) => {
+      const tx = profileDb.transaction("profiles", "readonly");
+      const request = tx.objectStore("profiles").get("profile-1");
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+      tx.oncomplete = () => profileDb.close();
+    });
+    const module = await import("/src/ingredient-store.js");
+    const scope = { ownerId: "local:" + profile.id, businessId: profile.id };
+    await module.saveIngredient(scope, { id: "ingredient-1", name: "New app edit" });
+    const first = await module.listIngredients(scope);
+    await module.saveIngredient(scope, { id: "ingredient-1", name: "New app edit v2" });
+    const db = await new Promise((resolve, reject) => {
+      const request = indexedDB.open("kitchai-business-data");
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    const operations = await new Promise((resolve, reject) => {
+      const tx = db.transaction("operations", "readonly");
+      const request = tx.objectStore("operations").index("byOwnerBusinessEntityRecord").getAll([scope.ownerId, scope.businessId, "ingredient", "ingredient-1"]);
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+      tx.oncomplete = () => db.close();
+    });
+    return { first: first[0], operations };
+  });
+  expect(queued.first.name).toBe("New app edit v2");
+  expect(queued.operations).toHaveLength(1);
+  expect(queued.operations[0]).toMatchObject({ operation: "create", state: "pending", baseRevision: null });
+  expect(queued.operations[0].payload.name).toBe("New app edit v2");
+  const operationId = queued.operations[0].operationId;
+
+  await page.evaluate(async () => {
+    const db = await new Promise((resolve, reject) => {
+      const request = indexedDB.open("kitchai-ingredients");
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    await new Promise((resolve, reject) => {
+      const tx = db.transaction("ingredients", "readwrite");
+      const store = tx.objectStore("ingredients");
+      const read = store.get(["local:business-old", "business-old", "ingredient-1"]);
+      read.onsuccess = () => store.put({ ...read.result, name: "Legacy concurrent edit", updatedAt: "2026-10-12T00:02:00.000Z" });
+      tx.oncomplete = resolve;
+      tx.onerror = () => reject(tx.error);
+    });
+    db.close();
+  });
+  await page.reload();
+  await expect(page.locator("#ingredient-state")).toContainText("Both the legacy and shared Phase 2 record changed independently");
+  const preserved = await page.evaluate(async () => {
+    const read = async (databaseName, storeName, key) => {
+      const db = await new Promise((resolve, reject) => {
+        const request = indexedDB.open(databaseName);
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+      const row = await new Promise((resolve, reject) => {
+        const tx = db.transaction(storeName, "readonly");
+        const request = tx.objectStore(storeName).get(key);
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+        tx.oncomplete = () => db.close();
+      });
+      return row;
+    };
+    return {
+      source: await read("kitchai-ingredients", "ingredients", ["local:business-old", "business-old", "ingredient-1"]),
+      target: await read("kitchai-business-data", "ingredients", ["local:profile-1", "profile-1", "ingredient-1"]),
+      operation: await read("kitchai-business-data", "operations", operationId),
+    };
+  });
+  expect(preserved.source.name).toBe("Legacy concurrent edit");
+  expect(preserved.target.name).toBe("New app edit v2");
+  expect(preserved.operation.payload.name).toBe("New app edit v2");
+});
