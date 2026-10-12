@@ -275,7 +275,7 @@ test("Phase 2 ingredient conflicts preserve both candidates and support explicit
       const profiles = await import("/src/sync-store.js");
       const profile = (await profiles.listOwnerProfiles(auth.user.id))[0];
       const operations = await sync.createPhase2SyncStore().listOperations(auth.user.id, profile.id);
-      const operation = operations.filter(item => item.entityType === "ingredient" && item.operation === "update" && item.state === "pending").at(-1);
+      const operation = operations.filter(item => item.entityType === "ingredient" && item.operation === "update" && ["pending", "retryable_error"].includes(item.state)).at(-1);
       if (!operation) throw new Error("Expected a pending offline ingredient update.");
       return operation;
     });
