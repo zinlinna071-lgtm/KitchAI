@@ -110,18 +110,22 @@ Planning documents do not count as implementation completion. WP1.1 completion m
 - **Not allowed:** silently choosing advanced conversions, permanent deletion/tombstones, costing/accounting, inventory deduction, hosted schema rollout, or production provisioning.
 
 ### WP2.2 — Ingredient Catalog & Validation
-- **Status:** In progress (local-first implementation and regression evidence pending CI)
+- **Status:** Complete (local-only workflow; automated regression gates passed)
 - **Dependencies:** WP2.1 accepted
-- **Current implementation on this branch:** separate kitchai-ingredients IndexedDB v1 store with compound owner/business/record key, scope index, Unicode-code-point text validation, create/edit/list/archive/reactivate, and a local-only accessible UI. No ingredient sync queue, remote table, or hosted schema is added; new-entity sync remains WP2.5.
-- **Acceptance evidence:** Node validation tests and browser tests cover create/edit/reload/archive/reactivate, scope isolation, and offline shell asset inclusion. Mark complete only after relevant CI checks pass and the diff is reviewed.
+- **Implementation:** PR [#26](https://github.com/zinlinna071-lgtm/KitchAI/pull/26) merged to main as `4801066cb2e15f7f5f28d3615311ee45c34cc25c`. Separate `kitchai-ingredients` IndexedDB v1 store with compound owner/business/record key, scope index, Unicode-code-point text validation, create/edit/list/archive/reactivate, and a local-only accessible UI.
+- **Verification:** Baseline [run 38233064585](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38233064585), app-shell [run 38233064639](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38233064639), and static preview [run 38233064598](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38233064598) passed. Tests cover validation, create/edit/reload/archive/reactivate, owner/business partition isolation, and offline shell asset inclusion. The post-merge WP1.6 local Supabase regression run is tracked separately; Phase 1 sync code and SQL were not changed.
+- **Boundary:** Ingredient changes are local-only. No ingredient sync queue, remote table, or hosted schema was added; new-entity sync remains WP2.5.
 
-### WP2.3 — Recipe & Ingredient Lines
-- **Status:** Not started
+### WP2.3 — Menu Item Workflow
+- **Status:** In progress (local-first implementation and regression evidence pending CI)
 - **Dependencies:** WP2.1 and WP2.2
+- **Scope:** create/list/edit/archive/reactivate menu items scoped to the active owner/business, with validation and reload durability. Recipe association is intentionally deferred to WP2.4 so menu items exist before recipes reference them.
+- **Not allowed:** pricing, taxes, modifiers, sales availability, inventory consumption, destructive deletion, or cloud-sync claims.
 
-### WP2.4 — Menu Item Workflow
+### WP2.4 — Recipe & Ingredient Lines
 - **Status:** Not started
-- **Dependencies:** WP2.2 and WP2.3
+- **Dependencies:** WP2.1, WP2.2, and WP2.3
+- **Scope:** recipe drafts and ingredient lines linked to existing menu items and ingredients; validated quantities/yield and explicit unit policy.
 
 ### WP2.5 — Local-first Sync & Conflict Integration
 - **Status:** Not started; blocking for any newly synced entity
