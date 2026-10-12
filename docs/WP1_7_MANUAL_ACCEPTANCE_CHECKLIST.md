@@ -64,12 +64,13 @@ Use only a disposable test account and sample profile, and only an environment e
 
 ### Owner-reported Android accessibility findings — 2026-10-12
 
+**Owner decision:** Defer the Android system-font-scaling issue for a future iteration; do not block the current milestone on this item. Keep it documented for later.
+
 **Evidence source:** Owner's written report in ChatGPT. No screenshot, exact device/OS, browser/version, or deployed URL was provided.
 
-- [ ] **System font scaling: FAIL — owner-reported.** Increasing the font size in Android phone Settings does not increase the text size in the app. Investigate whether the app's CSS uses fixed pixel sizes or otherwise fails to respect user/browser text scaling; verify with a real-device retest after a fix. This is a recorded finding, not a diagnosis of the exact cause.
+- [ ] **System font scaling: DEFERRED — owner-reported.** Increasing the font size in Android phone Settings does not increase the text size in the app. No fix is planned for the current milestone; revisit if needed in a future iteration.
 - [x] Owner reports checks “2” and “3” passed. The exact mapping to checklist items was not specified, so do not infer which individual accessibility checks those results cover.
-- [ ] Accessibility overall: NOT PASSED; system font scaling issue remains open, and other checks remain unverified unless individually recorded.
-
+- [ ] Accessibility overall: not fully verified; this font-scaling issue is explicitly deferred, and other checks remain unverified unless individually recorded.
 
 ## D. Recovery boundary
 
