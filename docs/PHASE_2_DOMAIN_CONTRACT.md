@@ -28,14 +28,14 @@ This inspection verifies the current baseline; it does not validate hosted Supab
 
 - **Identity:** Each entity has an immutable, opaque, stable ID generated using the established app mechanism. Display names are not primary keys.
 - **Ownership:** Every entity belongs to one business and authenticated owner. Client owner IDs are local partition keys only; trusted server code derives owner identity from the authenticated session.
-- **Business scope:** Carry explicit business scope through entity relationships so records cannot cross partitions.
+- **Business scope:** The local entity partition uses the stable Business Profile ID, not the mutable remote `businessId` returned by the first profile sync. Local entity rows use that profile ID as their `businessId` partition key; the server derives the actual remote business ID from the authenticated owner/profile relationship. This client key is never authorization evidence. Carry explicit scope through entity relationships so records cannot cross local partitions.
 - **Timestamps:** Use ISO 8601 UTC strings consistent with current conventions. createdAt is immutable; updatedAt changes only after a valid persisted change.
 - **Validation:** Validate at the domain boundary and trusted server boundary. Reject malformed data; do not silently coerce quantities, IDs, units, status, or ownership.
-- **Persistence:** Report success only after the local transaction commits. A queued operation is not remote success.
+- **Persistence:** Report success only after the local transaction commits. Phase 2 entity mutations and their durable outbox operation commit in one `kitchai-business-data` transaction. A queued operation is not remote success.
 - **Sync:** Reuse established operation IDs, base revisions, durable outbox, retry/idempotency, and conflict snapshots. Do not invent semantics that contradict Phase 1.
 - **Deletion:** Archive/deactivate by default. Permanent deletion and synced tombstones are out of scope.
 - **Conflicts:** Preserve base/local/remote snapshots for explicit resolution; no silent last-write-wins overwrite.
-- **Migration:** Additive, versioned migrations only after current versions and upgrade patterns are inspected. Preserve Business Profile, outbox, and conflict records. Never silently erase user data on migration failure.
+- **Migration:** The Phase 2 entity stores and entity outbox use a dedicated, versioned `kitchai-business-data` database; Phase 1 `kitchai-local` and `kitchai-sync` remain separate and unchanged. An additive migration ledger maps old entity scopes to stable profile IDs. Legacy source stores remain intact. If a legacy source changes after migration and the target has not changed independently, reconcile it; if both changed differently, abort and preserve both copies for review. Preserve Phase 1 Business Profile, outbox, and conflict records. Never silently erase user data on migration failure.
 - **Privacy:** No customer, employee, health, or financial data is required. Do not log full payloads or secrets.
 
 ## 4. Logical entities
