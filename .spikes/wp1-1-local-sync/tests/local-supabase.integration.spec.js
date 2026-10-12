@@ -286,7 +286,7 @@ test("Phase 2 ingredient conflicts preserve both candidates and support explicit
   // blocks fetch(), so issuing the competing write from the offline page fails
   // before it can reach the local Supabase RPC.
   const remotePage = await browser.newPage();
-  await remotePage.goto("/");
+  await remotePage.goto(new URL("/", page.url()).href);
 
   async function createRemoteWinner(operation, name) {
     const auth = await page.evaluate(() => JSON.parse(sessionStorage.getItem("kitchai.auth.session")));
