@@ -917,7 +917,8 @@ async function loadLocalProfile() {
     if (adoptLocalButton) adoptLocalButton.hidden = true;
     await refreshIngredientView();
     await refreshMenuView();
-      await refreshRecipeView();
+    await refreshRecipeView();
+    await runPhase2EntitySync();
   } catch (error) {
     setProfileState(error instanceof Error
       ? "Local storage is unavailable: " + error.message
@@ -1203,7 +1204,7 @@ async function resolveConflictChoice(choice) {
 keepLocalButton?.addEventListener("click", () => { void resolveConflictChoice("keep_local"); });
 useRemoteButton?.addEventListener("click", () => { void resolveConflictChoice("use_remote"); });
 window.addEventListener("online", () => { void runSync(); });
-phase2SyncButton?.addEventListener("click", () => { void runSync(); });
+phase2SyncButton?.addEventListener("click", () => { if (activeSession) void runSync(); else void runPhase2EntitySync(); });
 
 updateAuthControls();
 void (async () => {
