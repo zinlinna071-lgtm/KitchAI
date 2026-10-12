@@ -8,7 +8,7 @@
 
 - Use a disposable test profile and non-sensitive sample business name only.
 - Do not enter real customer, employee, supplier, financial, or other sensitive data.
-- Do not create a hosted cloud project, enable billing, add production secrets, or deploy.
+- Do not create a hosted cloud project, enable billing, add production secrets, or deploy to production. The only permitted public deployment for this check is the owner-enabled, temporary GitHub Pages static test preview described in [MOBILE_TEST_PREVIEW.md](./MOBILE_TEST_PREVIEW.md).
 - Do not simulate storage exhaustion or power loss against any valuable profile. If tested, use a disposable browser profile with no important local data.
 - A screenshot or a green CI run is not evidence that every real-device/manual check passed.
 
@@ -16,7 +16,8 @@
 
 ### Android browser / PWA
 
-- [ ] Open the app shell over the test environment actually provided; record the exact URL and environment. Do not assume a GitHub Actions artifact is an installable app.
+- [ ] After the owner enables Pages and manually publishes the test artifact, open the static preview at the expected URL format `https://zinlinna071-lgtm.github.io/KitchAI/`; record the actual URL and environment. Do not assume a GitHub Actions artifact is an installable app.
+- [ ] Confirm the non-production static-preview warning is visible and sign-in/account-creation controls are absent.
 - [ ] Confirm the page loads without horizontal overflow at portrait width.
 - [ ] If the browser offers installation, install the PWA and launch it from the home screen.
 - [ ] Confirm the app opens and the visible connection status is understandable.
