@@ -131,7 +131,7 @@ Planning documents do not count as implementation completion. WP1.1 completion m
 - **Boundary:** Recipes and ingredient lines are local-only. No remote schema, sync queue, unit conversion, line deletion, costing, inventory deduction, or cloud-sync claim; new-entity sync remains WP2.5.
 
 ### WP2.5 — Local-first Sync & Conflict Integration
-- **Status:** WP2.5a proof complete; WP2.5b shared-store migration and atomic outbox implementation in progress
+- **Status:** WP2.5a proof complete; WP2.5b and WP2.5c implementation merged to main; WP2.5d1 entity transport/retry implementation in progress
 - **Dependencies:** WP2.2–WP2.4 and verified Phase 1 sync contracts
 - **Sub-WP sequence:** WP2.5a sync/storage architecture spike → WP2.5b atomic entity outbox and migration → WP2.5c remote schema/RLS/idempotency (local Supabase only) → WP2.5d client transport/retry/conflict integration.
 - **WP2.5a evidence:** `.spikes/wp2-5-entity-sync/REPORT.md` compares per-entity outboxes, a shared Phase 2 entity database/outbox, and unsafe best-effort writes across independent databases. `.spikes/wp2-5-entity-sync/migration-prototype.js` and the browser regression test exercise disposable migration rollback, source preservation, and idempotent restart. Baseline [run 38238622571](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38238622571) and app-shell/browser [run 38238622636](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38238622636) passed.
