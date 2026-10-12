@@ -202,3 +202,30 @@ test("owner-scoped outbox persists atomically and conflict snapshots survive res
   expect(persisted.conflicts[0].state).toBe("resolved");
   expect(persisted.ownerBProfiles).toHaveLength(0);
 });
+
+
+test("keyboard skip link moves focus to main and primary controls have accessible names", async ({ page }) => {
+  await page.goto("/");
+  await page.keyboard.press("Tab");
+  const skipLink = page.getByRole("link", { name: "Skip to content" });
+  await expect(skipLink).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(page.locator("#main")).toBeFocused();
+
+  await expect(page.getByRole("textbox", { name: "Business name" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Save profile" })).toBeVisible();
+  await expect(page.getByRole("status").first()).toBeVisible();
+});
+
+test("large text at narrow viewport does not introduce horizontal overflow", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 720 });
+  await page.goto("/");
+  await page.evaluate(() => { document.documentElement.style.fontSize = "200%"; });
+  const dimensions = await page.evaluate(() => ({
+    viewport: document.documentElement.clientWidth,
+    content: document.documentElement.scrollWidth,
+  }));
+  expect(dimensions.content).toBeLessThanOrEqual(dimensions.viewport);
+  await expect(page.getByRole("heading", { name: "Good work starts with a clear view." })).toBeVisible();
+  await expect(page.getByRole("textbox", { name: "Business name" })).toBeVisible();
+});
