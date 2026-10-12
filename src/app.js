@@ -283,12 +283,12 @@ function resetRecipeLineForm() {
 
 async function refreshRecipeLines(scope, recipes, ingredients) {
   if (!recipeLineRecipeSelect || !recipeLineIngredientSelect || !recipeLineList || !recipeLineForm || !recipeLineQuantityInput || !recipeLinePositionInput || !recipeLineUnitSelect || !saveRecipeLineButton) return;
-  const usableRecipes = recipes.filter((recipe) => recipe.status !== "archived");
-  setSelectOptions(recipeLineRecipeSelect, usableRecipes.map((recipe) => ({
-    value: recipe.id, label: recipe.name + (recipe.status === "active" ? " · Active" : " · Draft"),
+  const availableRecipes = recipes;
+  setSelectOptions(recipeLineRecipeSelect, availableRecipes.map((recipe) => ({
+    value: recipe.id, label: recipe.name + (recipe.status === "active" ? " · Active" : recipe.status === "archived" ? " · Archived" : " · Draft"),
   })), "Choose a recipe", selectedRecipeId);
-  if (!recipeLineRecipeSelect.value && usableRecipes.length) {
-    selectedRecipeId = usableRecipes[0].id;
+  if (!recipeLineRecipeSelect.value && availableRecipes.length) {
+    selectedRecipeId = (availableRecipes.find((recipe) => recipe.status !== "archived") ?? availableRecipes[0]).id;
     recipeLineRecipeSelect.value = selectedRecipeId;
   } else {
     selectedRecipeId = recipeLineRecipeSelect.value;
@@ -296,9 +296,9 @@ async function refreshRecipeLines(scope, recipes, ingredients) {
   setSelectOptions(recipeLineIngredientSelect, ingredients.filter((item) => item.status === "active").map((item) => ({
     value: item.id, label: item.name,
   })), "Choose an ingredient", recipeLineIngredientSelect.value);
-  const selectedRecipe = usableRecipes.find((recipe) => recipe.id === selectedRecipeId);
-  const editable = Boolean(scope && selectedRecipe);
-  recipeLineRecipeSelect.disabled = !scope || usableRecipes.length === 0;
+  const selectedRecipe = availableRecipes.find((recipe) => recipe.id === selectedRecipeId);
+  const editable = Boolean(scope && selectedRecipe && selectedRecipe.status !== "archived");
+  recipeLineRecipeSelect.disabled = !scope || availableRecipes.length === 0;
   recipeLineIngredientSelect.disabled = !editable || ingredients.every((item) => item.status !== "active");
   recipeLineQuantityInput.disabled = !editable;
   recipeLineUnitSelect.disabled = !editable;
@@ -378,8 +378,8 @@ async function refreshRecipeView() {
     const [menuItems, ingredients, recipes] = await Promise.all([
       listMenuItems(scope), listIngredients(scope), listRecipes(scope),
     ]);
-    setSelectOptions(recipeMenuItemSelect, menuItems.filter((item) => item.status === "active").map((item) => ({
-      value: item.id, label: item.name,
+    setSelectOptions(recipeMenuItemSelect, menuItems.map((item) => ({
+      value: item.id, label: item.name + (item.status === "archived" ? " · Archived" : ""),
     })), "Choose a menu item", recipeMenuItemSelect.value);
     recipeListState.textContent = recipes.length ? recipes.length + (recipes.length === 1 ? " recipe in this business." : " recipes in this business.") : "No recipes yet. Create a draft for a menu item.";
     if (!editingRecipeId && !recipeMenuItemSelect.value && menuItems.some((item) => item.status === "active")) {
