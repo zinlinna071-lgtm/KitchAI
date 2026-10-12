@@ -11,7 +11,7 @@ test("document has accessible landmarks, viewport metadata, and clear scope",asy
  const html=await read("../index.html");
  assert.match(html,/<html lang="en">/);assert.match(html,/name="viewport"/);assert.match(html,/class="skip-link" href="#main"/);assert.match(html,/<main id="main" class="page-shell" tabindex="-1">/);
  assert.match(html,/id="connection-status" class="connection-status" role="status"/);assert.match(html,/LOCAL BUSINESS PROFILE/);assert.match(html,/Implemented for local testing/);assert.match(html,/Hosted sync is not configured/);assert.match(html,/full operational pages arrive in later phases/i);
- assert.match(html,/id="profile-form"/);assert.match(html,/id="ingredient-form"/);assert.match(html,/id="menu-item-form"/);assert.match(html,/id="recipe-form"/);assert.match(html,/id="recipe-line-form"/);assert.match(html,/ingredient cloud sync is not implemented yet/i);
+ assert.match(html,/id="profile-form"/);assert.match(html,/id="ingredient-form"/);assert.match(html,/id="menu-item-form"/);assert.match(html,/id="recipe-form"/);assert.match(html,/id="recipe-line-form"/);assert.match(html,/Phase 2 entity cloud sync is not implemented yet/i);
 });
 test("manifest declares standalone app and local icon",async()=>{
  const manifest=JSON.parse(await read("../public/manifest.webmanifest"));
