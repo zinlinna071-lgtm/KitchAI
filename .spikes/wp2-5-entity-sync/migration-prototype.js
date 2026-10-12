@@ -89,10 +89,10 @@
           checkpoint.onsuccess = () => {
             if (!checkpoint.result) metadata.put({ key: MARKER, completedAt: new Date().toISOString(), sourceCounts });
           };
-          checkpoint.onerror = () => fail(checkpoint.error ?? new Error("Could not record migration checkpoint."));
+          checkpoint.onerror = () => { if (!failureInjected) fail(checkpoint.error ?? new Error("Could not record migration checkpoint.")); };
         };
         tx.oncomplete = resolve;
-        tx.onerror = () => reject(tx.error ?? new Error("Entity migration transaction failed."));
+        tx.onerror = () => { if (!failureInjected) reject(tx.error ?? new Error("Entity migration transaction failed.")); };
         tx.onabort = () => reject(failureInjected ? new Error("Injected interruption; transaction rolled back.") : (tx.error ?? new Error("Entity migration transaction aborted.")));
 
         for (const source of SOURCES) {
@@ -120,7 +120,7 @@
               pending--;
               finishReads();
             };
-            request.onerror = () => fail(request.error ?? new Error("Could not inspect target record."));
+            request.onerror = () => { if (!failureInjected) fail(request.error ?? new Error("Could not inspect target record.")); };
           }
         }
         finishReads();
