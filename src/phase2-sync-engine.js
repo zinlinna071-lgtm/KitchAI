@@ -142,6 +142,36 @@ export function normalizeRemoteEntity(entityType, row) {
   throw new TypeError("Unsupported Phase 2 entity type.");
 }
 
+function payloadFromEntitySnapshot(entityType, snapshot) {
+  if (!snapshot || typeof snapshot !== "object") throw new TypeError("A local entity snapshot is required.");
+  if (entityType === "ingredient" || entityType === "menuItem") {
+    return { name: snapshot.name, ...(snapshot.description ? { description: snapshot.description } : {}), status: snapshot.status };
+  }
+  if (entityType === "recipe") {
+    return {
+      menuItemId: snapshot.menuItemId, name: snapshot.name,
+      ...(snapshot.description ? { description: snapshot.description } : {}),
+      ...(snapshot.instructions ? { instructions: snapshot.instructions } : {}),
+      ...(snapshot.yieldPortions != null ? { yieldPortions: snapshot.yieldPortions } : {}),
+      status: snapshot.status,
+    };
+  }
+  if (entityType === "recipeLine") {
+    return {
+      recipeId: snapshot.recipeId, ingredientId: snapshot.ingredientId,
+      quantity: snapshot.quantity, unit: snapshot.unit, position: snapshot.position,
+      ...(snapshot.note ? { note: snapshot.note } : {}),
+    };
+  }
+  throw new TypeError("Unsupported Phase 2 entity type.");
+}
+
+function localStoreName(entityType) {
+  const name = TABLE_BY_TYPE[entityType];
+  if (!name) throw new TypeError("Unsupported Phase 2 entity type.");
+  return name === "menu_items" ? "menuItems" : name === "recipe_lines" ? "recipeLines" : name;
+}
+
 /** Durable IndexedDB operations for the Phase 2 outbox. */
 export function createPhase2SyncStore() {
   async function transaction(storeNames, mode, action) {
@@ -197,7 +227,9 @@ export function createPhase2SyncStore() {
       if (!normalized || normalized.id !== operation.recordId || normalized.ownerId !== operation.ownerId) {
         throw new Error("Remote acknowledgement does not match the queued entity scope.");
       }
-      await transaction(["operations", "syncMetadata", table], "readwrite", tx => {
+      const stores = ["operations", "syncMetadata", table];
+      if (operation.resolvesConflictId) stores.push("conflicts");
+      await transaction(stores, "readwrite", tx => {
         tx.objectStore("syncMetadata").put({
           ownerId: operation.ownerId, businessId: operation.businessId, entityType,
           recordId: operation.recordId, revision: normalized.revision,
@@ -207,6 +239,16 @@ export function createPhase2SyncStore() {
           ...operation, state: "synced", remoteRevision: normalized.revision,
           updatedAt: new Date().toISOString(), lastError: undefined,
         });
+        if (operation.resolvesConflictId) {
+          const conflicts = tx.objectStore("conflicts");
+          const conflictRequest = conflicts.get(operation.resolvesConflictId);
+          conflictRequest.onsuccess = () => {
+            const conflict = conflictRequest.result;
+            if (conflict && conflict.ownerId === operation.ownerId && conflict.businessId === operation.businessId) {
+              conflicts.put({ ...conflict, state: "resolved", resolutionChoice: "keep_local", resolvedAt: new Date().toISOString() });
+            }
+          };
+        }
         const recordStore = tx.objectStore(table === "menu_items" ? "menuItems" : table === "recipe_lines" ? "recipeLines" : table);
         const key = [operation.ownerId, operation.businessId, operation.recordId];
         const request = recordStore.get(key);
@@ -227,6 +269,7 @@ export function createPhase2SyncStore() {
         const tx = db.transaction(["operations", "conflicts"], "readwrite");
         const conflict = {
           conflictId: crypto.randomUUID(), operationId: operation.operationId,
+          ...(operation.resolvesConflictId ? { supersedesConflictId: operation.resolvesConflictId } : {}),
           ownerId: operation.ownerId, businessId: operation.businessId,
           entityType: operation.entityType, recordId: operation.recordId,
           baseRevision: operation.baseRevision, baseSnapshot: structuredClone(operation.baseSnapshot ?? null),
@@ -236,6 +279,16 @@ export function createPhase2SyncStore() {
         };
         tx.objectStore("conflicts").add(conflict);
         tx.objectStore("operations").put({ ...operation, state: "conflict", updatedAt: new Date().toISOString() });
+        if (operation.resolvesConflictId) {
+          const conflicts = tx.objectStore("conflicts");
+          const priorRequest = conflicts.get(operation.resolvesConflictId);
+          priorRequest.onsuccess = () => {
+            const prior = priorRequest.result;
+            if (prior && prior.ownerId === operation.ownerId && prior.businessId === operation.businessId) {
+              conflicts.put({ ...prior, state: "superseded", supersededByConflictId: conflict.conflictId, updatedAt: new Date().toISOString() });
+            }
+          };
+        }
         tx.oncomplete = resolve;
         tx.onerror = () => reject(tx.error ?? new Error("Could not preserve Phase 2 conflict."));
         tx.onabort = () => reject(tx.error ?? new Error("Phase 2 conflict was not preserved."));
@@ -290,6 +343,90 @@ export function createPhase2SyncStore() {
         }
       });
       return interrupted.length;
+    },
+    async resolveKeepLocal(conflict) {
+      if (!conflict || conflict.state !== "unresolved" || !conflict.ownerId || !conflict.businessId ||
+          !conflict.remoteSnapshot || !conflict.localSnapshot || !Number.isInteger(conflict.remoteRevision) || conflict.remoteRevision < 1) {
+        throw new Error("This conflict is not ready for resolution.");
+      }
+      const operation = {
+        operationId: crypto.randomUUID(), ownerId: conflict.ownerId, businessId: conflict.businessId,
+        entityType: conflict.entityType, recordId: conflict.recordId, operation: "update",
+        baseRevision: conflict.remoteRevision, baseSnapshot: structuredClone(conflict.remoteSnapshot),
+        localSnapshot: structuredClone(conflict.localSnapshot),
+        payload: payloadFromEntitySnapshot(conflict.entityType, conflict.localSnapshot),
+        createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+        attemptCount: 0, state: "pending", nextAttemptAt: 0, dependsOnOperationIds: [],
+        resolvesConflictId: conflict.conflictId,
+      };
+      const db = await openBusinessDatabase();
+      await new Promise((resolve, reject) => {
+        const tx = db.transaction(["operations", "conflicts"], "readwrite");
+        const conflicts = tx.objectStore("conflicts");
+        const request = conflicts.get(conflict.conflictId);
+        request.onsuccess = () => {
+          const current = request.result;
+          if (!current || current.ownerId !== conflict.ownerId || current.businessId !== conflict.businessId || current.state !== "unresolved") {
+            try { tx.abort(); } catch {}
+            reject(new Error("Conflict changed before resolution; refresh and review it again."));
+            return;
+          }
+          tx.objectStore("operations").add(operation);
+          conflicts.put({ ...current, state: "resolution_pending", resolutionChoice: "keep_local", resolutionOperationId: operation.operationId, updatedAt: new Date().toISOString() });
+        };
+        request.onerror = () => reject(request.error ?? new Error("Could not verify conflict state."));
+        tx.oncomplete = resolve;
+        tx.onerror = () => reject(tx.error ?? new Error("Could not queue conflict resolution."));
+        tx.onabort = () => reject(tx.error ?? new Error("Conflict resolution was not queued."));
+      });
+      return operation;
+    },
+    async resolveUseRemote(conflict) {
+      if (!conflict || conflict.state !== "unresolved" || !conflict.ownerId || !conflict.businessId ||
+          !conflict.remoteSnapshot || !Number.isInteger(conflict.remoteRevision) || conflict.remoteRevision < 1) {
+        throw new Error("This conflict is not ready for resolution.");
+      }
+      const storeName = localStoreName(conflict.entityType);
+      const remote = { ...structuredClone(conflict.remoteSnapshot), businessId: conflict.businessId };
+      if (remote.ownerId !== conflict.ownerId || remote.id !== conflict.recordId || remote.revision !== conflict.remoteRevision) {
+        throw new Error("The preserved remote snapshot does not match this conflict.");
+      }
+      const db = await openBusinessDatabase();
+      await new Promise((resolve, reject) => {
+        const tx = db.transaction([storeName, "operations", "syncMetadata", "conflicts"], "readwrite");
+        const conflicts = tx.objectStore("conflicts");
+        const request = conflicts.get(conflict.conflictId);
+        request.onsuccess = () => {
+          const current = request.result;
+          if (!current || current.ownerId !== conflict.ownerId || current.businessId !== conflict.businessId || current.state !== "unresolved") {
+            try { tx.abort(); } catch {}
+            reject(new Error("Conflict changed before resolution; refresh and review it again."));
+            return;
+          }
+          const operationStore = tx.objectStore("operations");
+          const matching = operationStore.index("byOwnerBusinessEntityRecord").getAll([
+            conflict.ownerId, conflict.businessId, conflict.entityType, conflict.recordId,
+          ]);
+          matching.onsuccess = () => {
+            for (const operation of matching.result) {
+              if (!["synced", "permanent_error", "superseded"].includes(operation.state)) {
+                operationStore.put({ ...operation, state: "superseded", supersededAt: new Date().toISOString(), lastError: "Superseded by the explicit remote-version conflict choice." });
+              }
+            }
+          };
+          tx.objectStore(storeName).put(remote);
+          tx.objectStore("syncMetadata").put({
+            ownerId: conflict.ownerId, businessId: conflict.businessId, entityType: conflict.entityType,
+            recordId: conflict.recordId, revision: conflict.remoteRevision,
+            lastSyncedSnapshot: structuredClone(remote), syncedAt: new Date().toISOString(),
+          });
+          conflicts.put({ ...current, state: "resolved", resolutionChoice: "use_remote", resolvedAt: new Date().toISOString() });
+        };
+        request.onerror = () => reject(request.error ?? new Error("Could not verify conflict state."));
+        tx.oncomplete = resolve;
+        tx.onerror = () => reject(tx.error ?? new Error("Could not apply remote conflict resolution."));
+        tx.onabort = () => reject(tx.error ?? new Error("Remote conflict resolution was not applied."));
+      });
     },
     async listConflicts(ownerId, businessId) {
       const db = await openBusinessDatabase();
