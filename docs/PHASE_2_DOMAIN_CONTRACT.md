@@ -9,7 +9,22 @@ The current app is a browser-first JavaScript PWA using IndexedDB and a transpor
 
 This is a logical contract, not a mandate to copy these exact objects into IndexedDB or a remote database. WP2.1 must not add runtime behavior or alter Phase 1 schemas. Implementation WPs must inspect current DB versions, migration patterns, test fixtures, and sync payloads first.
 
-## 2. Shared rules
+## 2. Verified current implementation baseline
+
+Repository review on `main` (2026-10-12) confirms:
+
+- `src/local-store.js` uses IndexedDB database `kitchai-local`, schema version 1, with `profiles` and `metadata` stores. Its Business Profile name limit is 80 JavaScript string code units; it persists a local profile and revision metadata in one read-write transaction.
+- `src/sync-store.js` uses a separate IndexedDB database `kitchai-sync`, schema version 2, with `profiles` keyed by `[ownerId, id]`, `operations` keyed by `operationId`, and `conflicts` keyed by `conflictId`. Owner and owner/record indexes support queue partitioning. Profile/outbox writes are atomic in this store.
+- `src/sync-engine.js` is transport-injected and supports retry scheduling, auth pause, permanent failure, conflict preservation, and explicit keep-local/use-remote resolution. Keep its behavior and tests intact.
+- `src/supabase-api.js` currently maps only the Business Profile contract to Supabase Auth/PostgREST/RPC.
+- The current SQL migrations are `20261012000000_create_business_profiles.sql` and `20261012001000_business_profile_operation_idempotency.sql`. They establish one remote Business Profile per authenticated owner, RLS, server-controlled ownership/revision fields, and an idempotency ledger/RPC. There are no menu-item, ingredient, recipe, or recipe-line SQL tables yet.
+- Current tracked production modules and tests contain no Phase 2 entity implementation. Phase 2 entities in this document are proposed logical contracts only.
+- The existing Business Profile name limit and JavaScript string-length behavior are specific to Phase 1 and must not be silently copied to Phase 2 text fields. Where this contract specifies Unicode code points, implementations must count code points explicitly (for example, `[...value].length`) and test astral characters.
+- The two IndexedDB databases have independent schema versions. Future migrations must target the database that owns each store, increment that database's version only, and include upgrade tests proving both Phase 1 stores and sync state survive.
+
+This inspection verifies the current baseline; it does not validate hosted Supabase behavior or authorize a remote schema rollout.
+
+## 3. Shared rules
 
 - **Identity:** Each entity has an immutable, opaque, stable ID generated using the established app mechanism. Display names are not primary keys.
 - **Ownership:** Every entity belongs to one business and authenticated owner. Client owner IDs are local partition keys only; trusted server code derives owner identity from the authenticated session.
@@ -23,7 +38,7 @@ This is a logical contract, not a mandate to copy these exact objects into Index
 - **Migration:** Additive, versioned migrations only after current versions and upgrade patterns are inspected. Preserve Business Profile, outbox, and conflict records. Never silently erase user data on migration failure.
 - **Privacy:** No customer, employee, health, or financial data is required. Do not log full payloads or secrets.
 
-## 3. Logical entities
+## 4. Logical entities
 
 ### 3.1 Menu item
 
@@ -70,7 +85,7 @@ Required: id, businessId, recipeId, ingredientId, quantity, unit, position, crea
 - Reordering changes position only and must not replace or duplicate other lines.
 - No automatic stock deduction, costing, nutrition calculation, or unit conversion.
 
-## 4. Initial unit policy
+## 5. Initial unit policy
 
 Initial allowlist: mass = g, kg; volume = ml, l; count = each.
 
@@ -78,7 +93,7 @@ Preserve entered quantity and unit. This allowlist does not authorize conversion
 
 Quantities must be finite numbers. Do not use binary-float equality for business comparisons or round stored quantities merely for display. Display formatting must not alter stored values. Fractional count behavior remains an open decision if it becomes relevant.
 
-## 5. Relationships and lifecycle
+## 6. Relationships and lifecycle
 
 | Relationship/action | Contract |
 |---|---|
@@ -90,7 +105,7 @@ Quantities must be finite numbers. Do not use binary-float equality for business
 | Archive recipe | Preserve lines for review; do not delete ingredients. |
 | Permanent delete | Out of scope pending a deletion/tombstone policy. |
 
-## 6. Validation baseline
+## 7. Validation baseline
 
 - Text fields must be strings, trimmed as documented, and within length limits.
 - IDs and business references must be present and validated against the active business partition.
@@ -100,7 +115,7 @@ Quantities must be finite numbers. Do not use binary-float equality for business
 - Validation failures must be understandable and must not partially persist a multi-record edit.
 - Duplicate submissions must not create duplicate logical writes when using the established operation/idempotency path.
 
-## 7. Persistence, sync, and migration
+## 8. Persistence, sync, and migration
 
 - Persist a record and its local operation atomically where supported by the existing store architecture.
 - Retry the same logical operation with the same stable operation/idempotency ID.
@@ -111,7 +126,7 @@ Quantities must be finite numbers. Do not use binary-float equality for business
 - Migration tests must prove existing Business Profile data, pending operations, and conflict snapshots survive upgrades.
 - No hosted Supabase project, remote schema rollout, billing, production credentials, or deployment is authorized by WP2.1.
 
-## 8. Decisions intentionally not made
+## 9. Decisions intentionally not made
 
 - Advanced unit conversion, fractional count behavior, precision and rounding.
 - Recipe revision history and concurrent recipe editing beyond current conflict preservation.
@@ -120,7 +135,7 @@ Quantities must be finite numbers. Do not use binary-float equality for business
 - Multiple recipes per menu item, menu variants, and modifiers.
 - Hosted test environment, costs, and production rollout.
 
-## 9. WP2.1 acceptance evidence
+## 10. WP2.1 acceptance evidence
 
 WP2.1 may be marked complete when:
 1. Current repository/schema/sync conventions have been inspected and this contract reconciled with them.
