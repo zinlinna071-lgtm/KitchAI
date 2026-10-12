@@ -221,7 +221,7 @@ These are planning defaults, not approval to add unrelated features. The Coding 
 
 ## 6. Suggested implementation order
 
-WP2.1 → WP2.2 → WP2.3 → WP2.4 → WP2.5 → WP2.6.
+WP2.1 → WP2.2 → WP2.3 → WP2.4 → WP2.5a → WP2.5b → WP2.5c → WP2.5d → WP2.6.
 
 WP2.5 may be split into smaller implementation WPs if the existing sync contract requires a substantial adapter or entity-specific migration; document the split before implementation rather than hiding a large change inside a feature WP.
 
@@ -235,4 +235,4 @@ Do not provision hosted services, enable billing, add production secrets, deploy
 
 ## 8. Phase 2 exit summary
 
-Phase 2 is complete only when WP2.1–WP2.6 have explicit evidence, required CI is green, critical data-integrity and authorization tests pass, known limitations and deferred checks are recorded, and no unresolved critical security/data-loss issue is known. Planning completion alone does not mean implementation completion.
+Phase 2 is complete only when WP2.1–WP2.4, WP2.5a–WP2.5d, and WP2.6 have explicit evidence, required CI is green, critical data-integrity and authorization tests pass, known limitations and deferred checks are recorded, and no unresolved critical security/data-loss issue is known. Planning completion alone does not mean implementation completion.
