@@ -162,6 +162,7 @@ test("recipe store uses owner/business partitioned versioned stores and explicit
   assert.match(store, /byScopeMenuItem/);
   assert.match(store, /byRecipePosition/);
   assert.match(store, /new Set\(\["g", "kg", "ml", "l", "each"\]\)/);
-  assert.match(store, /Other lines are preserved|Existing lines/i);
-  assert.match(store, /no.*remote|cloud sync/i);
+  assert.match(store, /status === "archived"/);
+  assert.match(store, /createdAt: existing\?\.createdAt \?\? now/);
+  assert.match(store, /byScopeMenuItem/);
 });
