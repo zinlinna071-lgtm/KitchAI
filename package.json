@@ -9,7 +9,7 @@
     "build:pages-preview": "node scripts/build.mjs --base-path=/KitchAI/ --preview",
     "check:pages-preview": "npm run build:pages-preview && node scripts/check-pages-build.mjs",
     "test": "node --test",
-    "check": "node --check src/app.js && node --check src/local-store.js && node --check src/ingredient-store.js && node --check src/menu-item-store.js && node --check src/recipe-store.js && node --check src/sync-store.js && node --check src/sync-engine.js && node --check src/supabase-api.js && node --check public/sw.js && node --check public/runtime-config.js && node --check scripts/build.mjs && node --check scripts/serve.mjs && npm run typecheck && npm test && npm run build",
+    "check": "node --check src/app.js && node --check src/local-store.js && node --check src/business-data-store.js && node --check src/ingredient-store.js && node --check src/menu-item-store.js && node --check src/recipe-store.js && node --check src/sync-store.js && node --check src/sync-engine.js && node --check src/supabase-api.js && node --check public/sw.js && node --check public/runtime-config.js && node --check scripts/build.mjs && node --check scripts/serve.mjs && npm run typecheck && npm test && npm run build",
     "typecheck": "npx --yes --package typescript@5.9.3 tsc --project tsconfig.json"
   },
   "engines": {
