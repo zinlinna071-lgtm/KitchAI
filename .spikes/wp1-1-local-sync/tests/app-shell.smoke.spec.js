@@ -279,3 +279,53 @@ test("local ingredient catalog creates, edits, archives, reloads, and stays in i
   await item.getByRole("button", { name: "Reactivate" }).click();
   await expect(item).toContainText("Active");
 });
+
+test("local menu workflow creates, edits, archives, reloads, and stays in its business partition", async ({ page }) => {
+  await page.goto("/");
+  await page.locator("#business-name").fill("Menu Test Kitchen");
+  await page.getByRole("button", { name: "Save profile" }).click();
+  await expect(page.locator("#profile-state")).toContainText("Saved on this device");
+  const name = page.locator("#menu-item-name");
+  await expect(name).toBeEnabled();
+  await name.fill("  Noodle Soup  ");
+  await page.locator("#menu-item-description").fill("  House broth and rice noodles  ");
+  await page.getByRole("button", { name: "Add menu item" }).click();
+  await expect(page.locator("#menu-item-state")).toContainText("saved on this device");
+  let item = page.locator("#menu-item-list .ingredient-list-item").filter({ hasText: "Noodle Soup" });
+  await expect(item).toContainText("House broth and rice noodles");
+  await expect(item).toContainText("Active");
+
+  const partitionResult = await page.evaluate(async () => {
+    const request = indexedDB.open("kitchai-local", 1);
+    const profile = await new Promise((resolve, reject) => {
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => {
+        const tx = request.result.transaction("profiles", "readonly");
+        const read = tx.objectStore("profiles").getAll();
+        read.onsuccess = () => { resolve(read.result[0]); request.result.close(); };
+        read.onerror = () => reject(read.error);
+      };
+    });
+    const store = await import("/src/menu-item-store.js");
+    const sameScope = await store.listMenuItems({ ownerId: "local:" + profile.businessId, businessId: profile.businessId });
+    const otherScope = await store.listMenuItems({ ownerId: "other-owner", businessId: profile.businessId });
+    return { profile, sameScope, otherScope };
+  });
+  expect(partitionResult.sameScope).toHaveLength(1);
+  expect(partitionResult.sameScope[0].name).toBe("Noodle Soup");
+  expect(partitionResult.sameScope[0].ownerId).toBe("local:" + partitionResult.profile.businessId);
+  expect(partitionResult.otherScope).toHaveLength(0);
+
+  await page.reload();
+  item = page.locator("#menu-item-list .ingredient-list-item").filter({ hasText: "Noodle Soup" });
+  await expect(item).toContainText("House broth and rice noodles");
+  await item.getByRole("button", { name: "Edit" }).click();
+  await page.locator("#menu-item-name").fill("Chicken Noodle Soup");
+  await page.getByRole("button", { name: "Save changes" }).click();
+  item = page.locator("#menu-item-list .ingredient-list-item").filter({ hasText: "Chicken Noodle Soup" });
+  await expect(item).toContainText("Active");
+  await item.getByRole("button", { name: "Archive" }).click();
+  await expect(item).toContainText("Archived");
+  await item.getByRole("button", { name: "Reactivate" }).click();
+  await expect(item).toContainText("Active");
+});
