@@ -229,3 +229,53 @@ test("large text at narrow viewport does not introduce horizontal overflow", asy
   await expect(page.getByRole("heading", { name: "Good work starts with a clear view." })).toBeVisible();
   await expect(page.getByRole("textbox", { name: "Business name" })).toBeVisible();
 });
+
+test("local ingredient catalog creates, edits, archives, reloads, and stays in its business partition", async ({ page }) => {
+  await page.goto("/");
+  await page.locator("#business-name").fill("Ingredient Test Kitchen");
+  await page.getByRole("button", { name: "Save profile" }).click();
+  await expect(page.locator("#profile-state")).toContainText("Saved on this device");
+  const name = page.locator("#ingredient-name");
+  await expect(name).toBeEnabled();
+  await name.fill("  Fresh basil  ");
+  await page.locator("#ingredient-description").fill("  Leaves for garnish  ");
+  await page.getByRole("button", { name: "Add ingredient" }).click();
+  await expect(page.locator("#ingredient-state")).toContainText("saved on this device");
+  let item = page.locator(".ingredient-list-item").filter({ hasText: "Fresh basil" });
+  await expect(item).toContainText("Leaves for garnish");
+  await expect(item).toContainText("Active");
+
+  const partitionResult = await page.evaluate(async () => {
+    const request = indexedDB.open("kitchai-local", 1);
+    const profile = await new Promise((resolve, reject) => {
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => {
+        const tx = request.result.transaction("profiles", "readonly");
+        const read = tx.objectStore("profiles").getAll();
+        read.onsuccess = () => { resolve(read.result[0]); request.result.close(); };
+        read.onerror = () => reject(read.error);
+      };
+    });
+    const store = await import("/src/ingredient-store.js");
+    const sameScope = await store.listIngredients({ ownerId: "local:" + profile.businessId, businessId: profile.businessId });
+    const otherScope = await store.listIngredients({ ownerId: "other-owner", businessId: profile.businessId });
+    return { profile, sameScope, otherScope };
+  });
+  expect(partitionResult.sameScope).toHaveLength(1);
+  expect(partitionResult.sameScope[0].name).toBe("Fresh basil");
+  expect(partitionResult.sameScope[0].ownerId).toBe("local:" + partitionResult.profile.businessId);
+  expect(partitionResult.otherScope).toHaveLength(0);
+
+  await page.reload();
+  item = page.locator(".ingredient-list-item").filter({ hasText: "Fresh basil" });
+  await expect(item).toContainText("Leaves for garnish");
+  await item.getByRole("button", { name: "Edit" }).click();
+  await page.locator("#ingredient-name").fill("Thai basil");
+  await page.getByRole("button", { name: "Save changes" }).click();
+  item = page.locator(".ingredient-list-item").filter({ hasText: "Thai basil" });
+  await expect(item).toContainText("Active");
+  await item.getByRole("button", { name: "Archive" }).click();
+  await expect(item).toContainText("Archived");
+  await item.getByRole("button", { name: "Reactivate" }).click();
+  await expect(item).toContainText("Active");
+});
