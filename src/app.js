@@ -990,7 +990,8 @@ ingredientForm?.addEventListener("submit", async (event) => {
     resetIngredientForm();
     await refreshIngredientView();
     await refreshRecipeView();
-    setIngredientState((saved.status === "archived" ? "Ingredient updated." : "Ingredient saved on this device.") + " Cloud sync is not implemented yet.");
+    setIngredientState(entitySaveMessage());
+    if (activeSession) void runSync();
   } catch (error) {
     setIngredientState(error instanceof Error ? error.message : "Could not save ingredient.", true);
   } finally {
@@ -1203,7 +1204,8 @@ async function resolveConflictChoice(choice) {
 }
 keepLocalButton?.addEventListener("click", () => { void resolveConflictChoice("keep_local"); });
 useRemoteButton?.addEventListener("click", () => { void resolveConflictChoice("use_remote"); });
-window.addEventListener("online", () => { void runSync(); });
+window.addEventListener("online", () => { if (activeSession) void runSync(); else void runPhase2EntitySync(); });
+window.addEventListener("offline", () => { setPhase2SyncState("Offline. Phase 2 changes remain queued locally and will retry when online."); });
 phase2SyncButton?.addEventListener("click", () => { if (activeSession) void runSync(); else void runPhase2EntitySync(); });
 
 updateAuthControls();
