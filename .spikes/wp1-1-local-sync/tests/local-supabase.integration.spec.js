@@ -185,7 +185,7 @@ test("Phase 2 ingredient, menu item, recipe, and recipe line sync end to end aga
 
   await page.locator("#ingredient-name").fill("Integration Mushrooms");
   await page.locator("#ingredient-description").fill("Created by the Phase 2 integration test");
-  await page.getByRole("button", { name: "Add ingredient" }).click();
+  await page.getByRole("button", { name: "Add ingredient", exact: true }).click();
   await expect(page.locator("#ingredient-list")).toContainText("Integration Mushrooms");
   await expect.poll(async () => page.evaluate(async () => {
     const auth = JSON.parse(sessionStorage.getItem("kitchai.auth.session"));
