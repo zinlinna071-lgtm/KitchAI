@@ -389,10 +389,10 @@ export function createPhase2SyncStore() {
           ]);
           matching.onsuccess = () => {
             const supersededIds = matching.result
-              .filter(item => item.state === "conflict")
+              .filter(item => item.state === "conflict" || (item.state === "permanent_error" && item.resolvesConflictId === conflict.conflictId))
               .map(item => item.operationId);
             for (const item of matching.result) {
-              if (item.state === "conflict") {
+              if (supersededIds.includes(item.operationId)) {
                 operationStore.put({ ...item, state: "superseded", supersededByOperationId: operation.operationId, updatedAt: new Date().toISOString() });
               }
             }
@@ -449,11 +449,11 @@ export function createPhase2SyncStore() {
           ]);
           matching.onsuccess = () => {
             const supersededIds = matching.result
-              .filter(item => !["synced", "permanent_error", "superseded"].includes(item.state))
+              .filter(item => !["synced", "superseded"].includes(item.state) && (!["permanent_error"].includes(item.state) || item.resolvesConflictId === conflict.conflictId))
               .map(item => item.operationId);
             for (const item of matching.result) {
               if (supersededIds.includes(item.operationId)) {
-                operationStore.put({ ...item, state: "superseded", supersededAt: new Date().toISOString(), lastError: "Superseded by the explicit remote-version conflict choice." });
+                operationStore.put({ ...item, state: "superseded", supersededAt: new Date().toISOString(), lastError: item.lastError ?? "Superseded by the explicit remote-version conflict choice." });
               }
             }
             const all = operationStore.index("byOwner").getAll(conflict.ownerId);
