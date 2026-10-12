@@ -110,8 +110,10 @@ Planning documents do not count as implementation completion. WP1.1 completion m
 - **Not allowed:** silently choosing advanced conversions, permanent deletion/tombstones, costing/accounting, inventory deduction, hosted schema rollout, or production provisioning.
 
 ### WP2.2 — Ingredient Catalog & Validation
-- **Status:** Not started
+- **Status:** In progress (local-first implementation and regression evidence pending CI)
 - **Dependencies:** WP2.1 accepted
+- **Current implementation on this branch:** separate kitchai-ingredients IndexedDB v1 store with compound owner/business/record key, scope index, Unicode-code-point text validation, create/edit/list/archive/reactivate, and a local-only accessible UI. No ingredient sync queue, remote table, or hosted schema is added; new-entity sync remains WP2.5.
+- **Acceptance evidence:** Node validation tests and browser tests cover create/edit/reload/archive/reactivate, scope isolation, and offline shell asset inclusion. Mark complete only after relevant CI checks pass and the diff is reviewed.
 
 ### WP2.3 — Recipe & Ingredient Lines
 - **Status:** Not started

@@ -38,7 +38,19 @@
 </form>
 <div id="conflict-panel" class="conflict-panel" hidden aria-labelledby="conflict-title"><p class="eyebrow">SYNC CONFLICT</p><h3 id="conflict-title">Review both versions.</h3><p id="conflict-base"></p><p id="conflict-local"></p><p id="conflict-remote"></p><div class="auth-actions"><button id="keep-local-button" class="button button-primary" type="button">Keep local</button><button id="use-remote-button" class="button button-secondary" type="button">Use remote</button></div></div>
 </section>
-<section class="offline-panel" aria-labelledby="offline-title"><div class="offline-panel-copy"><p class="eyebrow">BUILT FOR REAL KITCHENS</p><h2 id="offline-title">Keep the essentials close.</h2><p>Interface assets remain available offline after the first successful load. Local profile drafts and queued account changes are preserved when sync cannot complete; hosted sync is not configured in this environment.</p></div><div class="offline-indicator" aria-hidden="true"><span class="offline-ring"></span><span class="offline-center">K</span></div></section>
-<footer class="page-footer"><span>KitchAI · Early foundation</span><span id="app-version">Phase 1 · WP1.6</span></footer>
+<section class="offline-panel" aria-labelledby="offline-title"><div class="offline-panel-copy"><p class="eyebrow">BUILT FOR REAL KITCHENS</p><h2 id="offline-title">Keep the essentials close.</h2><p>Interface assets remain available offline after the first successful load. Business Profile and ingredient records are stored locally; ingredient cloud sync is not implemented yet.</p></div><div class="offline-indicator" aria-hidden="true"><span class="offline-ring"></span><span class="offline-center">K</span></div></section>
+<section id="ingredient-panel" class="profile-editor ingredient-editor" aria-labelledby="ingredient-title">
+<div class="profile-editor-heading"><p class="eyebrow">PHASE 2 · INGREDIENT CATALOG</p><h2 id="ingredient-title">Keep your ingredients organized.</h2><p id="ingredient-help">Create and maintain an ingredient catalog for the active business. Ingredient changes are saved on this device only; cloud sync is not implemented yet.</p></div>
+<div class="ingredient-workspace">
+<form id="ingredient-form" class="profile-form" aria-describedby="ingredient-help">
+<label for="ingredient-name">Ingredient name</label><input id="ingredient-name" name="ingredientName" type="text" maxlength="240" required autocomplete="off" aria-describedby="ingredient-state">
+<label for="ingredient-description">Description (optional)</label><textarea id="ingredient-description" name="ingredientDescription" rows="3" maxlength="4000"></textarea>
+<div class="auth-actions"><button id="save-ingredient-button" class="button button-primary" type="submit">Add ingredient</button><button id="cancel-ingredient-edit" class="button button-secondary" type="button" hidden>Cancel edit</button></div>
+<p id="ingredient-state" class="profile-state" role="status" aria-live="polite">Save a Business Profile first to start an ingredient catalog.</p>
+</form>
+<div class="ingredient-list-panel"><h3>Ingredients</h3><p id="ingredient-list-state" class="profile-state" role="status" aria-live="polite">No business workspace selected.</p><ul id="ingredient-list" class="ingredient-list" aria-label="Saved ingredients"></ul></div>
+</div>
+</section>
+<footer class="page-footer"><span>KitchAI · Early foundation</span><span id="app-version">Phase 2 · WP2.2</span></footer>
 </main>
 </body></html>
