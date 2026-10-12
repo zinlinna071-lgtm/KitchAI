@@ -7,6 +7,7 @@ import {
 import { resolveSyncConflict, syncPendingOperations } from "./sync-engine.js";
 import { getSession, isSupabaseConfigured, readRemoteProfile, sendProfileOperation, signIn, signOut, signUp } from "./supabase-api.js";
 import { listIngredients, saveIngredient, setIngredientStatus } from "./ingredient-store.js";
+import { listMenuItems, saveMenuItem, setMenuItemStatus } from "./menu-item-store.js";
 
 /** @typedef {Event & { prompt: () => Promise<void> }} BeforeInstallPromptEvent */
 const connectionStatus = /** @type {HTMLParagraphElement | null} */ (document.querySelector("#connection-status"));
@@ -88,6 +89,122 @@ const ingredientList = /** @type {HTMLUListElement | null} */ (document.querySel
 const saveIngredientButton = /** @type {HTMLButtonElement | null} */ (document.querySelector("#save-ingredient-button"));
 const cancelIngredientEditButton = /** @type {HTMLButtonElement | null} */ (document.querySelector("#cancel-ingredient-edit"));
 let editingIngredientId = null;
+
+const menuItemForm = /** @type {HTMLFormElement | null} */ (document.querySelector("#menu-item-form"));
+const menuItemNameInput = /** @type {HTMLInputElement | null} */ (document.querySelector("#menu-item-name"));
+const menuItemDescriptionInput = /** @type {HTMLTextAreaElement | null} */ (document.querySelector("#menu-item-description"));
+const menuItemState = /** @type {HTMLParagraphElement | null} */ (document.querySelector("#menu-item-state"));
+const menuListState = /** @type {HTMLParagraphElement | null} */ (document.querySelector("#menu-list-state"));
+const menuItemList = /** @type {HTMLUListElement | null} */ (document.querySelector("#menu-item-list"));
+const saveMenuItemButton = /** @type {HTMLButtonElement | null} */ (document.querySelector("#save-menu-item-button"));
+const cancelMenuItemEditButton = /** @type {HTMLButtonElement | null} */ (document.querySelector("#cancel-menu-item-edit"));
+let editingMenuItemId = null;
+
+function activeMenuScope() {
+  if (activeSession?.user?.id) {
+    if (!currentOwnerProfile?.businessId) return null;
+    return { ownerId: activeSession.user.id, businessId: currentOwnerProfile.businessId };
+  }
+  if (!currentProfile?.businessId) return null;
+  return { ownerId: "local:" + currentProfile.businessId, businessId: currentProfile.businessId };
+}
+
+/** @param {string} message @param {boolean=} isError */
+function setMenuItemState(message, isError = false) {
+  if (!menuItemState) return;
+  menuItemState.textContent = message;
+  menuItemState.classList.toggle("is-error", isError);
+}
+
+function resetMenuItemForm() {
+  editingMenuItemId = null;
+  if (menuItemForm) menuItemForm.reset();
+  if (saveMenuItemButton) saveMenuItemButton.textContent = "Add menu item";
+  if (cancelMenuItemEditButton) cancelMenuItemEditButton.hidden = true;
+}
+
+async function refreshMenuView() {
+  if (!menuItemForm || !menuItemNameInput || !menuItemDescriptionInput || !menuItemList || !menuListState || !saveMenuItemButton) return;
+  const scope = activeMenuScope();
+  const disabled = !scope;
+  menuItemNameInput.disabled = disabled;
+  menuItemDescriptionInput.disabled = disabled;
+  saveMenuItemButton.disabled = disabled;
+  if (cancelMenuItemEditButton) cancelMenuItemEditButton.disabled = disabled;
+  menuItemList.replaceChildren();
+  if (!scope) {
+    menuListState.textContent = activeSession
+      ? "Create or load this account's Business Profile before managing menu items."
+      : "Save a Business Profile first to start a menu.";
+    setMenuItemState("Menu items are stored locally and are not synced to the cloud.");
+    return;
+  }
+  try {
+    const records = await listMenuItems(scope);
+    menuListState.textContent = records.length
+      ? records.length + (records.length === 1 ? " menu item in this business." : " menu items in this business.")
+      : "No menu items yet. Add the first one using the form.";
+    for (const record of records) {
+      const item = document.createElement("li");
+      item.className = "ingredient-list-item";
+      const copy = document.createElement("div");
+      copy.className = "ingredient-item-copy";
+      const name = document.createElement("strong");
+      name.textContent = record.name;
+      copy.append(name);
+      if (record.description) {
+        const description = document.createElement("p");
+        description.textContent = record.description;
+        copy.append(description);
+      }
+      const status = document.createElement("span");
+      status.className = "ingredient-item-status" + (record.status === "archived" ? " is-archived" : "");
+      status.textContent = record.status === "archived" ? "Archived" : "Active";
+      copy.append(status);
+      const actions = document.createElement("div");
+      actions.className = "ingredient-item-actions";
+      const actionButton = (label, action) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "button button-secondary";
+        button.textContent = label;
+        button.addEventListener("click", async () => {
+          try {
+            if (action === "edit") {
+              editingMenuItemId = record.id;
+              menuItemNameInput.value = record.name;
+              menuItemDescriptionInput.value = record.description ?? "";
+              saveMenuItemButton.textContent = "Save changes";
+              if (cancelMenuItemEditButton) cancelMenuItemEditButton.hidden = false;
+              setMenuItemState("Editing " + record.name + ". Changes stay on this device.");
+              menuItemNameInput.focus();
+              return;
+            }
+            await setMenuItemStatus(scope, record.id, action === "archive" ? "archived" : "active");
+            if (editingMenuItemId === record.id) resetMenuItemForm();
+            await refreshMenuView();
+            setMenuItemState(action === "archive" ? "Menu item archived. It has not been deleted." : "Menu item reactivated.");
+          } catch (error) {
+            setMenuItemState(error instanceof Error ? error.message : "Could not update menu item status.", true);
+          }
+        });
+        return button;
+      };
+      if (record.status === "active") {
+        actions.append(actionButton("Edit", "edit"), actionButton("Archive", "archive"));
+      } else {
+        actions.append(actionButton("Reactivate", "reactivate"));
+      }
+      item.append(copy, actions);
+      menuItemList.append(item);
+    }
+    if (!editingMenuItemId) setMenuItemState("Saved on this device only · menu item cloud sync is not implemented yet.");
+  } catch (error) {
+    menuListState.textContent = "Menu could not be loaded.";
+    setMenuItemState(error instanceof Error ? "Local menu storage is unavailable: " + error.message : "Local menu storage is unavailable.", true);
+  }
+}
+
 
 /** A signed-in workspace never falls back to another local identity's catalog. */
 function activeIngredientScope() {
@@ -279,6 +396,7 @@ async function refreshOwnerView() {
   }
   await showUnresolvedConflict(ownerId);
   await refreshIngredientView();
+  await refreshMenuView();
 }
 
 async function scheduleRetryForOwner(ownerId) {
@@ -385,6 +503,7 @@ async function loadLocalProfile() {
     }
     if (adoptLocalButton) adoptLocalButton.hidden = true;
     await refreshIngredientView();
+    await refreshMenuView();
   } catch (error) {
     setProfileState(error instanceof Error
       ? "Local storage is unavailable: " + error.message
@@ -414,6 +533,7 @@ profileForm?.addEventListener("submit", async (event) => {
       businessNameInput.value = saved.profile.name;
       setProfileState(stateLabel(saved.profile));
       await refreshIngredientView();
+      await refreshMenuView();
       await runSync();
     } else {
       const saved = await saveLocalProfile({ id: currentProfile?.id, name: businessNameInput.value });
@@ -421,6 +541,7 @@ profileForm?.addEventListener("submit", async (event) => {
       businessNameInput.value = saved.profile.name;
       setProfileState("Saved on this device · not synced (local version " + saved.localRevision + ").");
       await refreshIngredientView();
+      await refreshMenuView();
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unexpected storage error.";
@@ -465,6 +586,38 @@ cancelIngredientEditButton?.addEventListener("click", () => {
   setIngredientState("Edit cancelled. No changes were made.");
 });
 
+
+menuItemForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const scope = activeMenuScope();
+  if (!scope || !menuItemNameInput || !menuItemDescriptionInput || !saveMenuItemButton) {
+    setMenuItemState("Save or load a Business Profile before adding menu items.", true);
+    return;
+  }
+  saveMenuItemButton.disabled = true;
+  if (cancelMenuItemEditButton) cancelMenuItemEditButton.disabled = true;
+  try {
+    await saveMenuItem(scope, {
+      ...(editingMenuItemId ? { id: editingMenuItemId } : {}),
+      name: menuItemNameInput.value,
+      description: menuItemDescriptionInput.value,
+    });
+    resetMenuItemForm();
+    await refreshMenuView();
+    setMenuItemState("Menu item saved on this device. Recipe association and cloud sync are not implemented yet.");
+  } catch (error) {
+    setMenuItemState(error instanceof Error ? error.message : "Could not save menu item.", true);
+  } finally {
+    saveMenuItemButton.disabled = !activeMenuScope();
+    if (cancelMenuItemEditButton) cancelMenuItemEditButton.disabled = false;
+  }
+});
+
+cancelMenuItemEditButton?.addEventListener("click", () => {
+  resetMenuItemForm();
+  setMenuItemState("Edit cancelled. No changes were made.");
+});
+
 adoptLocalButton?.addEventListener("click", async () => {
   if (!activeSession || !currentProfile) return;
   adoptLocalButton.disabled = true;
@@ -472,6 +625,7 @@ adoptLocalButton?.addEventListener("click", async () => {
     const saved = await saveOwnerProfileDraft({ ownerId: activeSession.user.id, name: currentProfile.name });
     currentOwnerProfile = saved.profile;
     await refreshIngredientView();
+    await refreshMenuView();
     await runSync();
   } catch (error) {
     setProfileState("Could not copy the local draft into this account. The original draft remains unchanged. " + (error instanceof Error ? error.message : ""), true);

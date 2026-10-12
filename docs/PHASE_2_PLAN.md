@@ -75,15 +75,38 @@ Tests/evidence:
 
 Non-goals: suppliers, stock quantities, purchase prices, nutrition data.
 
-### WP2.3 — Recipe and recipe-ingredient domain
+### WP2.3 — Menu item workflow
 
 **Priority:** High  
 **Dependencies:** WP2.1, WP2.2  
-**Deliverables:** Recipe data and ingredient lines associated with a menu item; deterministic quantity/yield calculations and validation.
+**Deliverables:** Local-first menu item create/list/detail/edit/archive workflow, validation, ownership isolation, empty/loading/error states. Recipe association is intentionally deferred to WP2.4 so menu items exist before recipes reference them.
+
+Acceptance:
+- Users can create, inspect, and edit menu items with validated names and documented status/lifecycle.
+- Menu items are scoped to the active owner/business partition and persist through reload while offline.
+- Duplicate submissions do not create duplicate logical records; invalid and failed storage writes do not report success.
+- Archiving/deactivation preserves all records and does not perform destructive deletion.
+- Price, tax, modifiers, sales availability, inventory consumption, and recipe association are not introduced in this WP.
+- Keyboard interaction, labels, focus, status messages, narrow viewport, and zoom behavior receive automated coverage consistent with current tests.
+- Existing Phase 1 Business Profile and sync flows continue to pass.
+
+Tests/evidence:
+- Unit tests for normalization, required fields, IDs, and invalid input.
+- Browser tests for create/edit/reload/archive/reactivate, validation, partition isolation, and narrow viewport.
+- Regression suite for Phase 1.
+- No claim of manually tested screen-reader/device acceptance unless performed and recorded.
+
+Non-goals: sales availability, prices, modifiers, categories/tags, recipe association, order entry.
+
+### WP2.4 — Recipe and recipe-ingredient domain
+
+**Priority:** High  
+**Dependencies:** WP2.1, WP2.2, WP2.3  
+**Deliverables:** Recipe data and ingredient lines associated with an existing menu item; deterministic quantity/yield calculations and validation.
 
 Acceptance:
 - A recipe can contain zero or more ingredient lines during draft editing, but a recipe cannot be marked complete/usable if required fields are invalid.
-- Each ingredient line references an existing ingredient in the same owner/business partition.
+- Each recipe references an existing menu item and each ingredient line references an existing ingredient in the same owner/business partition.
 - Quantity must be finite and greater than zero when a line is saved as valid; units must be supported by WP2.1.
 - Yield/portion count must be finite and greater than zero where required.
 - Editing recipe lines preserves unrelated lines and records changes through the existing local-first operation model.
@@ -96,27 +119,6 @@ Tests/evidence:
 - Migration tests for newly introduced recipe entities.
 
 Non-goals: deducting inventory, calculating food cost, nutrition estimates, or scaling across incompatible units.
-
-### WP2.4 — Menu item workflow and recipe association
-
-**Priority:** High  
-**Dependencies:** WP2.2, WP2.3  
-**Deliverables:** Menu item create/list/detail/edit and a clear association to a recipe.
-
-Acceptance:
-- Users can create, inspect, and edit menu items with validated names and documented status/lifecycle.
-- A menu item can be saved as a draft before a recipe is complete if the domain contract permits it; UI must make completeness clear.
-- Recipe association remains valid across reload and migration.
-- Archiving/deactivation does not silently delete recipes or ingredient records.
-- Keyboard interaction, labels, focus, status messages, narrow viewport, and zoom behavior receive automated coverage consistent with current tests.
-- Existing Phase 1 Business Profile and sync flows continue to pass.
-
-Tests/evidence:
-- Browser tests for menu item lifecycle, recipe association, validation messages, reload, and narrow viewport.
-- Regression suite for Phase 1.
-- No claim of manually tested screen-reader/device acceptance unless performed and recorded.
-
-Non-goals: sales availability, prices, modifiers, categories/tags beyond what is required for a usable first list, order entry.
 
 ### WP2.5 — Local-first sync and conflict integration
 

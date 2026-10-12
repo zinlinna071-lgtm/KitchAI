@@ -51,6 +51,18 @@
 <div class="ingredient-list-panel"><h3>Ingredients</h3><p id="ingredient-list-state" class="profile-state" role="status" aria-live="polite">No business workspace selected.</p><ul id="ingredient-list" class="ingredient-list" aria-label="Saved ingredients"></ul></div>
 </div>
 </section>
-<footer class="page-footer"><span>KitchAI · Early foundation</span><span id="app-version">Phase 2 · WP2.2</span></footer>
+<section id="menu-panel" class="profile-editor menu-editor" aria-labelledby="menu-title">
+<div class="profile-editor-heading"><p class="eyebrow">PHASE 2 · MENU ITEMS</p><h2 id="menu-title">Build your menu, one item at a time.</h2><p id="menu-help">Create and maintain menu items for the active business. Items are stored on this device only. Recipe links will be added in the next work package.</p></div>
+<div class="menu-workspace">
+<form id="menu-item-form" class="profile-form" aria-describedby="menu-help">
+<label for="menu-item-name">Menu item name</label><input id="menu-item-name" name="menuItemName" type="text" maxlength="240" required autocomplete="off" aria-describedby="menu-item-state">
+<label for="menu-item-description">Description (optional)</label><textarea id="menu-item-description" name="menuItemDescription" rows="3" maxlength="4000"></textarea>
+<div class="auth-actions"><button id="save-menu-item-button" class="button button-primary" type="submit">Add menu item</button><button id="cancel-menu-item-edit" class="button button-secondary" type="button" hidden>Cancel edit</button></div>
+<p id="menu-item-state" class="profile-state" role="status" aria-live="polite">Save a Business Profile first to start a menu.</p>
+</form>
+<div class="menu-list-panel"><h3>Menu items</h3><p id="menu-list-state" class="profile-state" role="status" aria-live="polite">No business workspace selected.</p><ul id="menu-item-list" class="ingredient-list" aria-label="Saved menu items"></ul></div>
+</div>
+</section>
+<footer class="page-footer"><span>KitchAI · Early foundation</span><span id="app-version">Phase 2 · WP2.3</span></footer>
 </main>
 </body></html>
