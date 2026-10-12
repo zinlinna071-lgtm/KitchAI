@@ -175,3 +175,90 @@ test("an offline create colliding with an existing remote profile becomes a reso
   expect(finalProfile.id).toBe(ownerAndProfile.profileId);
   expect(finalProfile.businessId).toBe(ownerAndProfile.businessId);
 });
+
+
+test("Phase 2 ingredient, menu item, recipe, and recipe line sync end to end against local Supabase", async ({ page }) => {
+  await createAccount(page);
+  await page.locator("#business-name").fill("Phase Two Integration Kitchen");
+  await page.getByRole("button", { name: "Save profile" }).click();
+  await expect(page.locator("#profile-state")).toContainText("Synced with your account · revision 1", { timeout: 15000 });
+
+  await page.locator("#ingredient-name").fill("Integration Mushrooms");
+  await page.locator("#ingredient-description").fill("Created by the Phase 2 integration test");
+  await page.getByRole("button", { name: "Add ingredient" }).click();
+  await expect(page.locator("#ingredient-list")).toContainText("Integration Mushrooms");
+  await expect.poll(async () => page.evaluate(async () => {
+    const auth = JSON.parse(sessionStorage.getItem("kitchai.auth.session"));
+    const sync = await import("/src/phase2-sync-engine.js");
+    const profiles = await import("/src/sync-store.js");
+    const profile = (await profiles.listOwnerProfiles(auth.user.id))[0];
+    const operations = await sync.createPhase2SyncStore().listOperations(auth.user.id, profile.id);
+    return operations.filter(item => item.entityType === "ingredient").map(item => item.state);
+  }), { timeout: 15000 }).toEqual(["synced"]);
+
+  await page.locator("#menu-item-name").fill("Integration Mushroom Soup");
+  await page.locator("#menu-item-description").fill("Phase 2 sync test menu item");
+  await page.getByRole("button", { name: "Add menu item" }).click();
+  await expect(page.locator("#menu-item-list")).toContainText("Integration Mushroom Soup");
+  await expect.poll(async () => page.evaluate(async () => {
+    const auth = JSON.parse(sessionStorage.getItem("kitchai.auth.session"));
+    const sync = await import("/src/phase2-sync-engine.js");
+    const profiles = await import("/src/sync-store.js");
+    const profile = (await profiles.listOwnerProfiles(auth.user.id))[0];
+    const operations = await sync.createPhase2SyncStore().listOperations(auth.user.id, profile.id);
+    return operations.filter(item => item.entityType === "menuItem").map(item => item.state);
+  }), { timeout: 15000 }).toEqual(["synced"]);
+
+  await page.locator("#recipe-menu-item").selectOption({ label: "Integration Mushroom Soup" });
+  await page.locator("#recipe-name").fill("Integration Mushroom Soup Base");
+  await page.locator("#recipe-yield").fill("4");
+  await page.getByRole("button", { name: "Save recipe draft" }).click();
+  await expect(page.locator("#recipe-list")).toContainText("Integration Mushroom Soup Base");
+  await expect.poll(async () => page.evaluate(async () => {
+    const auth = JSON.parse(sessionStorage.getItem("kitchai.auth.session"));
+    const sync = await import("/src/phase2-sync-engine.js");
+    const profiles = await import("/src/sync-store.js");
+    const profile = (await profiles.listOwnerProfiles(auth.user.id))[0];
+    const operations = await sync.createPhase2SyncStore().listOperations(auth.user.id, profile.id);
+    return operations.filter(item => item.entityType === "recipe").map(item => item.state);
+  }), { timeout: 15000 }).toEqual(["synced"]);
+
+  await page.locator("#recipe-line-recipe").selectOption({ label: "Integration Mushroom Soup Base · Draft" });
+  await page.locator("#recipe-line-ingredient").selectOption({ label: "Integration Mushrooms" });
+  await page.locator("#recipe-line-quantity").fill("250");
+  await page.locator("#recipe-line-unit").selectOption("g");
+  await page.locator("#recipe-line-position").fill("0");
+  await page.locator("#recipe-line-note").fill("Integration test line");
+  await page.getByRole("button", { name: "Add ingredient line" }).click();
+  await expect(page.locator("#recipe-line-list")).toContainText("250 g");
+  await expect.poll(async () => page.evaluate(async () => {
+    const auth = JSON.parse(sessionStorage.getItem("kitchai.auth.session"));
+    const sync = await import("/src/phase2-sync-engine.js");
+    const profiles = await import("/src/sync-store.js");
+    const profile = (await profiles.listOwnerProfiles(auth.user.id))[0];
+    const operations = await sync.createPhase2SyncStore().listOperations(auth.user.id, profile.id);
+    return operations.filter(item => item.entityType === "recipeLine").map(item => item.state);
+  }), { timeout: 15000 }).toEqual(["synced"]);
+
+  const operationEvidence = await page.evaluate(async () => {
+    const auth = JSON.parse(sessionStorage.getItem("kitchai.auth.session"));
+    const sync = await import("/src/phase2-sync-engine.js");
+    const profiles = await import("/src/sync-store.js");
+    const profile = (await profiles.listOwnerProfiles(auth.user.id))[0];
+    const operations = await sync.createPhase2SyncStore().listOperations(auth.user.id, profile.id);
+    return {
+      types: [...new Set(operations.map(item => item.entityType))].sort(),
+      allAcknowledged: operations.length === 4 && operations.every(item => item.state === "synced" && Number.isInteger(item.remoteRevision) && item.remoteRevision > 0),
+      operationIds: operations.map(item => item.operationId),
+    };
+  });
+  expect(operationEvidence.types).toEqual(["ingredient", "menuItem", "recipe", "recipeLine"]);
+  expect(operationEvidence.allAcknowledged).toBe(true);
+  expect(new Set(operationEvidence.operationIds).size).toBe(4);
+
+  await page.reload();
+  await expect(page.locator("#ingredient-list")).toContainText("Integration Mushrooms");
+  await expect(page.locator("#menu-item-list")).toContainText("Integration Mushroom Soup");
+  await expect(page.locator("#recipe-list")).toContainText("Integration Mushroom Soup Base");
+  await expect(page.locator("#recipe-line-list")).toContainText("250 g");
+});
