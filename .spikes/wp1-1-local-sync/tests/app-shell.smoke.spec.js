@@ -588,6 +588,51 @@ test("WP2.5b migrates legacy entities to stable profile scope and preserves conc
   await expect(page.locator("#recipe-list")).toContainText("Legacy Recipe");
   await expect(page.locator("#recipe-line-list")).toContainText("200 g");
 
+  const initialOutbox = await page.evaluate(async () => {
+    const db = await new Promise((resolve, reject) => {
+      const request = indexedDB.open("kitchai-business-data");
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    const operations = await new Promise((resolve, reject) => {
+      const tx = db.transaction("operations", "readonly");
+      const request = tx.objectStore("operations").getAll();
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+      tx.oncomplete = () => db.close();
+    });
+    return operations;
+  });
+  expect(initialOutbox).toHaveLength(4);
+  const initialByRecord = Object.fromEntries(initialOutbox.map((operation) => [operation.recordId, operation]));
+  expect(initialByRecord["ingredient-1"]).toMatchObject({ entityType: "ingredient", operation: "create", state: "pending" });
+  expect(initialByRecord["menu-1"]).toMatchObject({ entityType: "menuItem", operation: "create", state: "pending" });
+  expect(initialByRecord["recipe-1"]).toMatchObject({ entityType: "recipe", operation: "create", state: "blocked_dependency" });
+  expect(initialByRecord["line-1"]).toMatchObject({ entityType: "recipeLine", operation: "create", state: "blocked_dependency" });
+  expect(initialByRecord["recipe-1"].dependsOnOperationIds).toContain(initialByRecord["menu-1"].operationId);
+  expect(initialByRecord["line-1"].dependsOnOperationIds).toEqual(expect.arrayContaining([
+    initialByRecord["recipe-1"].operationId,
+    initialByRecord["ingredient-1"].operationId,
+  ]));
+
+  await page.reload();
+  const restartedOutboxCount = await page.evaluate(async () => {
+    const db = await new Promise((resolve, reject) => {
+      const request = indexedDB.open("kitchai-business-data");
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    const count = await new Promise((resolve, reject) => {
+      const tx = db.transaction("operations", "readonly");
+      const request = tx.objectStore("operations").count();
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+      tx.oncomplete = () => db.close();
+    });
+    return count;
+  });
+  expect(restartedOutboxCount).toBe(4);
+
   await page.evaluate(async () => {
     const db = await new Promise((resolve, reject) => {
       const request = indexedDB.open("kitchai-ingredients");
