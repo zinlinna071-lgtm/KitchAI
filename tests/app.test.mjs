@@ -136,7 +136,7 @@ test("recipe validation normalizes text and requires a positive yield for active
   assert.throws(() => validateRecipe({ menuItemId: "menu-1", name: " " }), /Enter a recipe name/);
   assert.throws(() => validateRecipe({ menuItemId: "menu-1", name: "Soup", yieldPortions: 0 }), /greater than zero/);
   assert.throws(() => validateRecipe({ menuItemId: "menu-1", name: "Soup", status: "active" }), /positive yield/);
-  assert.throws(() => validateRecipe({ menuItemId: "menu-1", name: "Soup", instructions: "x".repeat(10001) }), /10,000 characters or fewer/);
+  assert.throws(() => validateRecipe({ menuItemId: "menu-1", name: "Soup", instructions: "x".repeat(10001) }), /10000 characters or fewer/);
 });
 
 test("recipe ingredient lines enforce finite positive quantities, exact units, position, and note length", () => {
