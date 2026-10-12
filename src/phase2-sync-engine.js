@@ -375,6 +375,7 @@ export function createPhase2SyncStore() {
       await new Promise((resolve, reject) => {
         const tx = db.transaction(["operations", "conflicts"], "readwrite");
         const conflicts = tx.objectStore("conflicts");
+        const operationStore = tx.objectStore("operations");
         const request = conflicts.get(conflict.conflictId);
         request.onsuccess = () => {
           const current = request.result;
@@ -383,7 +384,34 @@ export function createPhase2SyncStore() {
             reject(new Error("Conflict changed before resolution; refresh and review it again."));
             return;
           }
-          tx.objectStore("operations").add(operation);
+          const matching = operationStore.index("byOwnerBusinessEntityRecord").getAll([
+            conflict.ownerId, conflict.businessId, conflict.entityType, conflict.recordId,
+          ]);
+          matching.onsuccess = () => {
+            const supersededIds = matching.result
+              .filter(item => item.state === "conflict")
+              .map(item => item.operationId);
+            for (const item of matching.result) {
+              if (item.state === "conflict") {
+                operationStore.put({ ...item, state: "superseded", supersededByOperationId: operation.operationId, updatedAt: new Date().toISOString() });
+              }
+            }
+            operationStore.add(operation);
+            const all = operationStore.index("byOwner").getAll(conflict.ownerId);
+            all.onsuccess = () => {
+              for (const candidate of all.result) {
+                if (candidate.businessId !== conflict.businessId || candidate.operationId === operation.operationId) continue;
+                const dependencies = candidate.dependsOnOperationIds ?? (candidate.dependsOnOperationId ? [candidate.dependsOnOperationId] : []);
+                if (!dependencies.some(id => supersededIds.includes(id))) continue;
+                const nextDependencies = [...new Set(dependencies.map(id => supersededIds.includes(id) ? operation.operationId : id))];
+                operationStore.put({
+                  ...candidate, dependsOnOperationIds: nextDependencies,
+                  dependsOnOperationId: nextDependencies.length === 1 ? nextDependencies[0] : undefined,
+                  state: "blocked_dependency", updatedAt: new Date().toISOString(),
+                });
+              }
+            };
+          };
           conflicts.put({ ...current, state: "resolution_pending", resolutionChoice: "keep_local", resolutionOperationId: operation.operationId, updatedAt: new Date().toISOString() });
         };
         request.onerror = () => reject(request.error ?? new Error("Could not verify conflict state."));
@@ -407,6 +435,7 @@ export function createPhase2SyncStore() {
       await new Promise((resolve, reject) => {
         const tx = db.transaction([storeName, "operations", "syncMetadata", "conflicts"], "readwrite");
         const conflicts = tx.objectStore("conflicts");
+        const operationStore = tx.objectStore("operations");
         const request = conflicts.get(conflict.conflictId);
         request.onsuccess = () => {
           const current = request.result;
@@ -415,16 +444,48 @@ export function createPhase2SyncStore() {
             reject(new Error("Conflict changed before resolution; refresh and review it again."));
             return;
           }
-          const operationStore = tx.objectStore("operations");
           const matching = operationStore.index("byOwnerBusinessEntityRecord").getAll([
             conflict.ownerId, conflict.businessId, conflict.entityType, conflict.recordId,
           ]);
           matching.onsuccess = () => {
-            for (const operation of matching.result) {
-              if (!["synced", "permanent_error", "superseded"].includes(operation.state)) {
-                operationStore.put({ ...operation, state: "superseded", supersededAt: new Date().toISOString(), lastError: "Superseded by the explicit remote-version conflict choice." });
+            const supersededIds = matching.result
+              .filter(item => !["synced", "permanent_error", "superseded"].includes(item.state))
+              .map(item => item.operationId);
+            for (const item of matching.result) {
+              if (supersededIds.includes(item.operationId)) {
+                operationStore.put({ ...item, state: "superseded", supersededAt: new Date().toISOString(), lastError: "Superseded by the explicit remote-version conflict choice." });
               }
             }
+            const all = operationStore.index("byOwner").getAll(conflict.ownerId);
+            all.onsuccess = () => {
+              for (const candidate of all.result) {
+                if (candidate.businessId !== conflict.businessId || supersededIds.includes(candidate.operationId)) continue;
+                const dependencies = candidate.dependsOnOperationIds ?? (candidate.dependsOnOperationId ? [candidate.dependsOnOperationId] : []);
+                if (!dependencies.some(id => supersededIds.includes(id))) continue;
+                const nextDependencies = dependencies.filter(id => !supersededIds.includes(id));
+                const updated = {
+                  ...candidate, dependsOnOperationIds: nextDependencies,
+                  dependsOnOperationId: nextDependencies.length === 1 ? nextDependencies[0] : undefined,
+                  state: nextDependencies.length ? "blocked_dependency" : "pending",
+                  nextAttemptAt: 0, updatedAt: new Date().toISOString(),
+                };
+                if (nextDependencies.length || updated.operation === "create") {
+                  operationStore.put(updated);
+                } else {
+                  const metadataRequest = tx.objectStore("syncMetadata").get([
+                    updated.ownerId, updated.businessId, updated.entityType, updated.recordId,
+                  ]);
+                  metadataRequest.onsuccess = () => {
+                    const metadata = metadataRequest.result;
+                    if (Number.isInteger(metadata?.revision) && metadata.revision > 0) {
+                      operationStore.put({ ...updated, baseRevision: metadata.revision, baseSnapshot: structuredClone(metadata.lastSyncedSnapshot ?? null) });
+                    } else {
+                      operationStore.put({ ...updated, state: "permanent_error", lastError: "Dependency was resolved remotely but this update has no confirmed base revision." });
+                    }
+                  };
+                }
+              }
+            };
           };
           tx.objectStore(storeName).put(remote);
           tx.objectStore("syncMetadata").put({
