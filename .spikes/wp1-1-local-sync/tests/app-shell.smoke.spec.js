@@ -594,12 +594,14 @@ test("WP2.5b migrates legacy entities to stable profile scope and preserves conc
       request.onsuccess = () => resolve(request.result);
       request.onerror = () => reject(request.error);
     });
-    const tx = db.transaction("ingredients", "readwrite");
-    const store = tx.objectStore("ingredients");
-    const read = store.get(["local:business-old", "business-old", "ingredient-1"]);
-    read.onsuccess = () => store.put({ ...read.result, name: "Legacy Basil updated by old tab", updatedAt: "2026-10-12T00:01:00.000Z" });
-    tx.oncomplete = () => db.close();
-    tx.onerror = () => reject(tx.error);
+    await new Promise((resolve, reject) => {
+      const tx = db.transaction("ingredients", "readwrite");
+      const store = tx.objectStore("ingredients");
+      const read = store.get(["local:business-old", "business-old", "ingredient-1"]);
+      read.onsuccess = () => store.put({ ...read.result, name: "Legacy Basil updated by old tab", updatedAt: "2026-10-12T00:01:00.000Z" });
+      tx.oncomplete = () => { db.close(); resolve(); };
+      tx.onerror = () => { db.close(); reject(tx.error); };
+    });
   });
   await page.reload();
   await expect(page.locator("#ingredient-list")).toContainText("Legacy Basil updated by old tab");
@@ -660,7 +662,7 @@ test("WP2.5b migrates legacy entities to stable profile scope and preserves conc
   });
   await page.reload();
   await expect(page.locator("#ingredient-state")).toContainText("Both the legacy and shared Phase 2 record changed independently");
-  const preserved = await page.evaluate(async () => {
+  const preserved = await page.evaluate(async (operationId) => {
     const read = async (databaseName, storeName, key) => {
       const db = await new Promise((resolve, reject) => {
         const request = indexedDB.open(databaseName);
@@ -681,7 +683,7 @@ test("WP2.5b migrates legacy entities to stable profile scope and preserves conc
       target: await read("kitchai-business-data", "ingredients", ["local:profile-1", "profile-1", "ingredient-1"]),
       operation: await read("kitchai-business-data", "operations", operationId),
     };
-  });
+  }, operationId);
   expect(preserved.source.name).toBe("Legacy concurrent edit");
   expect(preserved.target.name).toBe("New app edit v2");
   expect(preserved.operation.payload.name).toBe("New app edit v2");
