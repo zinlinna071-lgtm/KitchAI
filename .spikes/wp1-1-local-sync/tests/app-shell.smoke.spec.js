@@ -329,3 +329,57 @@ test("local menu workflow creates, edits, archives, reloads, and stays in its bu
   await item.getByRole("button", { name: "Reactivate" }).click();
   await expect(item).toContainText("Active");
 });
+
+test("recipe workflow links menu items and ingredients, validates activation, and preserves edited lines", async ({ page }) => {
+  await page.goto("/");
+  await page.locator("#business-name").fill("Recipe Test Kitchen");
+  await page.getByRole("button", { name: "Save profile" }).click();
+  await expect(page.locator("#profile-state")).toContainText("Saved on this device");
+
+  await page.locator("#ingredient-name").fill("Rice noodles");
+  await page.getByRole("button", { name: "Add ingredient" }).click();
+  await expect(page.locator("#ingredient-state")).toContainText("saved on this device");
+  await expect(page.locator("#recipe-line-ingredient option", { hasText: "Rice noodles" })).toHaveCount(1);
+
+  await page.locator("#menu-item-name").fill("Noodle Soup");
+  await page.getByRole("button", { name: "Add menu item" }).click();
+  await expect(page.locator("#menu-item-state")).toContainText("saved on this device");
+  await expect(page.locator("#recipe-menu-item option", { hasText: "Noodle Soup" })).toHaveCount(1);
+
+  await page.locator("#recipe-menu-item").selectOption({ label: "Noodle Soup" });
+  await page.locator("#recipe-name").fill("House Noodle Soup");
+  await page.locator("#recipe-instructions").fill("Simmer the broth, then add noodles.");
+  await page.locator("#recipe-yield").fill("2");
+  await page.getByRole("button", { name: "Save recipe draft" }).click();
+  let recipe = page.locator("#recipe-list .ingredient-list-item").filter({ hasText: "House Noodle Soup" });
+  await expect(recipe).toContainText("Draft");
+  await page.locator("#recipe-line-ingredient").selectOption({ label: "Rice noodles" });
+  await page.locator("#recipe-line-quantity").fill("250");
+  await page.locator("#recipe-line-unit").selectOption("g");
+  await page.getByRole("button", { name: "Add ingredient line" }).click();
+  let line = page.locator("#recipe-line-list .ingredient-list-item").filter({ hasText: "Rice noodles" });
+  await expect(line).toContainText("250 g");
+
+  await line.getByRole("button", { name: "Edit line" }).click();
+  await page.locator("#recipe-line-quantity").fill("275");
+  await page.getByRole("button", { name: "Save line changes" }).click();
+  line = page.locator("#recipe-line-list .ingredient-list-item").filter({ hasText: "Rice noodles" });
+  await expect(line).toContainText("275 g");
+  await expect(page.locator("#recipe-line-list .ingredient-list-item")).toHaveCount(1);
+
+  await recipe.getByRole("button", { name: "Activate" }).click();
+  await expect(recipe).toContainText("Active");
+  await page.reload();
+  recipe = page.locator("#recipe-list .ingredient-list-item").filter({ hasText: "House Noodle Soup" });
+  await expect(recipe).toContainText("Active");
+  line = page.locator("#recipe-line-list .ingredient-list-item").filter({ hasText: "Rice noodles" });
+  await expect(line).toContainText("275 g");
+
+  const isolation = await page.evaluate(async () => {
+    const module = await import("/src/recipe-store.js");
+    const own = await module.listRecipes({ ownerId: "local:recipe-business", businessId: "recipe-business" });
+    const other = await module.listRecipes({ ownerId: "different-owner", businessId: "recipe-business" });
+    return { own: own.length, other: other.length };
+  });
+  expect(isolation.other).toBe(0);
+});
