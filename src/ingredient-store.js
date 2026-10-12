@@ -20,7 +20,8 @@ export function validateIngredient(input) {
   const name = input.name.trim();
   if (!name) throw new Error("Enter an ingredient name.");
   if ([...name].length > 120) throw new Error("Ingredient name must be 120 characters or fewer.");
-  /** @type {{name:string,description?:string}} */\n  const result = { name };
+  /** @type {{name:string,description?:string}} */
+  const result = { name };
   if (input.description !== undefined && input.description !== null) {
     if (typeof input.description !== "string") throw new TypeError("Ingredient description must be text.");
     const description = input.description.trim();
