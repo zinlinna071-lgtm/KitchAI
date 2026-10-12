@@ -99,6 +99,8 @@ test("ingredient catalog uses shared owner/business storage and atomically queue
   assert.match(database, /kitchai-ingredients/);
   assert.match(database, /\["ingredients", \["ownerId", "businessId", "id"\]/);
   assert.match(database, /\["byScope", \["ownerId", "businessId"\]\]/);
+  assert.match(database, /store\.createIndex\(indexName, path, \{ unique: false \}\)/);
+  assert.match(database, /const MIGRATION_LEDGER = "migrationLedger"/);
   assert.match(store, /enqueueEntityOperation/);
   assert.match(store, /tx\.objectStore\("operations"\)/);
   assert.match(store, /status: existing\?\.status \?\? "active"/);
