@@ -1,5 +1,3 @@
-  uses: actions/deploy-pages@v4
-
 name: Static test preview
 
 on:

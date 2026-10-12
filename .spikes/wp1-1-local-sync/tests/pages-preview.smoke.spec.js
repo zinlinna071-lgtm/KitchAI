@@ -1,5 +1,3 @@
-});
-
 import { expect, test } from "@playwright/test";
 
 test("project-path preview loads local assets and exposes no backend sign-in controls", async ({ page }) => {

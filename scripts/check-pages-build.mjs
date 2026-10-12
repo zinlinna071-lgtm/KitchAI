@@ -1,5 +1,3 @@
-console.log(`Pages preview artifact checks passed for ${basePath}; runtime backend config is empty.`);
-
 import assert from "node:assert/strict";
 import { readdir, readFile, stat } from "node:fs/promises";
 import path from "node:path";

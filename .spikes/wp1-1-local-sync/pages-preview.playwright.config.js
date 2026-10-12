@@ -1,5 +1,3 @@
-});
-
 import { defineConfig } from "@playwright/test";
 import chromium from "@sparticuz/chromium";
 

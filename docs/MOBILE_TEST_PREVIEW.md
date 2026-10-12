@@ -1,5 +1,3 @@
-Automated checks do not publish the site and do not prove hosted backend behavior.
-
 # KitchAI Mobile Static Test Preview
 
 **Status:** Preparation only. No Pages setting has been enabled and no preview has been published. Android manual acceptance is pending.
