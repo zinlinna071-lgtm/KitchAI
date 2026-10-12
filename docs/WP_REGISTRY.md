@@ -67,10 +67,10 @@ A work package (WP) is a bounded implementation unit with dependencies and evide
 
 ### WP1.7 — Integration, Recovery, Security & Acceptance
 - **Priority:** Blocking for Phase exit
-- **Status:** In progress (CI acceptance evidence recorded; final review/manual checks remain)
+- **Status:** In progress (automated integration evidence recorded; manual acceptance remains)
 - **Dependencies:** WP1.2–WP1.6
 - **Scope:** consolidate end-to-end tests, offline/reconnection and conflict recovery evidence, authorization review, build/type checks, manual PWA/accessibility checks, and known-limitations/Phase exit documentation.
-- **Evidence:** main-branch CI is green after WP1.6 merge. WP1.6 local integration suite passes five browser scenarios; database suite passes 40 pgTAP assertions. Manual real-device install/offline/accessibility checks have not been performed by this workflow and remain explicit limitations.
+- **Evidence:** WP1.6 main-branch integration suite passed five browser scenarios and 40 pgTAP assertions. PR [#14](https://github.com/zinlinna071-lgtm/KitchAI/pull/14) corrected outdated UI sync-status copy and added regression assertions. Its feature-branch local Supabase, app-shell, and baseline CI runs [38186745954](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38186745954), [38186745953](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38186745953), and [38186745952](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38186745952) passed. After PR #14 merged as `f5f05158337ce84d80ea698b070ed13ae7598de5`, main-branch baseline [38189391199](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38189391199) and app-shell [38189391200](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38189391200) passed; post-merge local Supabase [38189391159](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38189391159) was pending at the time of recording. Manual real-device install/offline/accessibility checks have not been performed by CI. Follow [WP1_7_MANUAL_ACCEPTANCE_CHECKLIST.md](./WP1_7_MANUAL_ACCEPTANCE_CHECKLIST.md) to record actual results.
 - **Done when:** all Phase 1 exit criteria are reviewed against concrete evidence, manual-only checks are either performed or explicitly accepted as deferred with rationale, unresolved critical security/data-loss issues are absent, and the final status documents limitations. Do not imply hosted-provider validation or production readiness.
 
 ## Workflow for each WP
