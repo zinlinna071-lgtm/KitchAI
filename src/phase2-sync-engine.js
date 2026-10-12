@@ -31,6 +31,7 @@ export function phase2RetryDelayMs(attemptCount, options = {}) {
  * @param {{
  * ownerId:string,businessId:string,session:{user?:{id?:string},access_token?:string},
  * store:{listOperations:(ownerId:string,businessId:string)=>Promise<any[]>,
+ * prepareForDispatch?:(operation:any)=>Promise<any|null>,
  * markInFlight:(operation:any)=>Promise<void>,acknowledge:(operation:any,remoteRecord:any)=>Promise<void>,
  * preserveConflict:(operation:any,remoteRecord:any)=>Promise<void>,pauseForAuth:(operation:any)=>Promise<void>,
  * markPermanentFailure:(operation:any,message:string)=>Promise<void>,scheduleRetry:(operation:any,attemptCount:number,nextAttemptAt:number,message:string)=>Promise<void>,
