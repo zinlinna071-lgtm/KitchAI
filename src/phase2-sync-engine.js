@@ -506,6 +506,42 @@ export function createPhase2SyncStore() {
         tx.onabort = () => reject(tx.error ?? new Error("Remote conflict resolution was not applied."));
       });
     },
+    async refreshConflictRemote(conflict, remoteRecord) {
+      const normalizedRemote = normalizeRemoteEntity(conflict.entityType, remoteRecord);
+      const normalized = normalizedRemote ? { ...normalizedRemote, businessId: conflict.businessId } : null;
+      if (!normalized || normalized.id !== conflict.recordId || normalized.ownerId !== conflict.ownerId ||
+          !Number.isInteger(normalized.revision) || normalized.revision < 1) {
+        throw new Error("Latest remote record does not match the conflict scope.");
+      }
+      const db = await openBusinessDatabase();
+      await new Promise((resolve, reject) => {
+        const tx = db.transaction("conflicts", "readwrite");
+        const store = tx.objectStore("conflicts");
+        const request = store.get(conflict.conflictId);
+        request.onsuccess = () => {
+          const current = request.result;
+          if (!current || current.ownerId !== conflict.ownerId || current.businessId !== conflict.businessId || current.state !== "unresolved") {
+            try { tx.abort(); } catch {}
+            reject(new Error("Conflict changed before refresh; review the current conflict again."));
+            return;
+          }
+          const history = current.remoteHistory ?? [];
+          history.push({
+            snapshot: structuredClone(current.remoteSnapshot),
+            revision: current.remoteRevision,
+            observedAt: current.remoteRefreshedAt ?? current.detectedAt,
+          });
+          store.put({
+            ...current, remoteSnapshot: structuredClone(normalized), remoteRevision: normalized.revision,
+            remoteHistory: history.slice(-10), remoteRefreshedAt: new Date().toISOString(),
+          });
+        };
+        request.onerror = () => reject(request.error ?? new Error("Could not verify conflict state."));
+        tx.oncomplete = resolve;
+        tx.onerror = () => reject(tx.error ?? new Error("Could not refresh remote conflict state."));
+        tx.onabort = () => reject(tx.error ?? new Error("Conflict remote state was not refreshed."));
+      });
+    },
     async listConflicts(ownerId, businessId) {
       const db = await openBusinessDatabase();
       const tx = db.transaction("conflicts", "readonly");
@@ -516,6 +552,45 @@ export function createPhase2SyncStore() {
       });
     },
   };
+}
+
+/** Read the latest owner-visible remote row before applying an explicit remote conflict choice. */
+export async function readRemotePhase2Entity(entityType, recordId, session, requestFn) {
+  if (!session?.access_token || !session?.user?.id) throw new Error("Sign in again before reviewing remote entity state.");
+  const table = TABLE_BY_TYPE[entityType];
+  if (!table || typeof recordId !== "string" || !recordId) throw new TypeError("Unsupported Phase 2 entity reference.");
+  const request = requestFn ?? (async (path, init) => {
+    const config = /** @type {any} */ (globalThis).KITCHAI_CONFIG ?? {};
+    if (!config.supabaseUrl || !config.supabaseAnonKey) throw new Error("Supabase is not configured.");
+    let response;
+    try {
+      response = await fetch(config.supabaseUrl.replace(/\\/$/, "") + path, {
+        ...init,
+        headers: {
+          apikey: config.supabaseAnonKey,
+          Authorization: "Bearer " + session.access_token,
+          Accept: "application/json",
+        },
+      });
+    } catch (error) {
+      throw new Error(error instanceof Error ? error.message : "Network unavailable.");
+    }
+    const text = await response.text();
+    let data = null;
+    if (text) { try { data = JSON.parse(text); } catch { data = { message: text }; } }
+    if (!response.ok) {
+      const error = new Error(data?.message ?? data?.msg ?? "Could not read the latest remote entity.");
+      Object.assign(error, { status: response.status, code: data?.code });
+      throw error;
+    }
+    return data;
+  });
+  const rows = await request("/rest/v1/" + table + "?id=eq." + encodeURIComponent(recordId) + "&select=*", { method: "GET" });
+  if (!Array.isArray(rows) || !rows[0]) throw new Error("The remote record is no longer visible. Local data and conflict history were preserved.");
+  if (rows[0].owner_id !== session.user.id || rows[0].id !== recordId) {
+    throw new Error("The latest remote record does not match the signed-in owner.");
+  }
+  return rows[0];
 }
 
 /** @param {any} operation @param {any} session @param {(path:string,init:any)=>Promise<any>=} requestFn */
