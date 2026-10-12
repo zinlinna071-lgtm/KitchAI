@@ -164,10 +164,10 @@ begin
   if p_operation_id is null or p_record_id is null then
     raise exception 'Operation and record IDs are required' using errcode = '22023';
   end if;
-  if p_entity_type not in ('ingredient', 'menu_item', 'recipe', 'recipe_line') then
+  if p_entity_type is null or p_entity_type not in ('ingredient', 'menu_item', 'recipe', 'recipe_line') then
     raise exception 'Unsupported Phase 2 entity type' using errcode = '22023';
   end if;
-  if p_operation not in ('create', 'update', 'archive') then
+  if p_operation is null or p_operation not in ('create', 'update', 'archive') then
     raise exception 'Unsupported Phase 2 operation' using errcode = '22023';
   end if;
   if jsonb_typeof(p_payload) is distinct from 'object' then
@@ -311,9 +311,11 @@ begin
           where id=v_menu_item and owner_id=v_owner and business_id=v_business;
         if not found then raise exception 'Menu item not found in this business' using errcode = '42501'; end if;
         if v_status='active' then
-          select count(*) into v_line_count from public.recipe_lines
-            where recipe_id=p_record_id and owner_id=v_owner and business_id=v_business;
-          if v_line_count=0 then raise exception 'An active recipe requires at least one ingredient line' using errcode = '22023'; end if;
+          select count(*) into v_line_count
+            from public.recipe_lines l
+            join public.ingredients i on i.id=l.ingredient_id and i.owner_id=l.owner_id and i.business_id=l.business_id
+            where l.recipe_id=p_record_id and l.owner_id=v_owner and l.business_id=v_business and i.status='active';
+          if v_line_count=0 then raise exception 'An active recipe requires at least one active ingredient line' using errcode = '22023'; end if;
         end if;
         if p_operation='create' then
           insert into public.recipes(id,owner_id,business_id,menu_item_id,name,description,instructions,yield_portions,status)
