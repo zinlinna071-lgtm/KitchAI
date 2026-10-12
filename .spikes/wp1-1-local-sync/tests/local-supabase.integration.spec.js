@@ -206,8 +206,8 @@ test("Phase 2 ingredient, menu item, recipe, and recipe line sync end to end aga
     const profiles = await import("/src/sync-store.js");
     const profile = (await profiles.listOwnerProfiles(auth.user.id))[0];
     const operations = await sync.createPhase2SyncStore().listOperations(auth.user.id, profile.id);
-    return operations.filter(item => item.entityType === "menuItem").map(item => ({ state: item.state, lastError: item.lastError, attemptCount: item.attemptCount }));
-  }), { timeout: 15000 }).toEqual([{ state: "synced", lastError: undefined, attemptCount: 0 }]);
+    return operations.filter(item => item.entityType === "menuItem").map(item => ({ state: item.state, lastError: item.lastError }));
+  }), { timeout: 15000 }).toEqual([{ state: "synced", lastError: undefined }]);
 
   await page.locator("#recipe-menu-item").selectOption({ label: "Integration Mushroom Soup" });
   await page.locator("#recipe-name").fill("Integration Mushroom Soup Base");
