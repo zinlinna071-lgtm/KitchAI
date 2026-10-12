@@ -28,3 +28,5 @@
 
 .ingredient-workspace,.ingredient-list-panel,.ingredient-list,.ingredient-list-item{min-width:0;max-width:100%}
 .ingredient-editor .profile-form .button{min-width:0;max-width:100%;white-space:normal;overflow-wrap:anywhere}
+
+.ingredient-list-panel h3{min-width:0;overflow-wrap:anywhere}
