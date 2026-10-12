@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
-  phase2RetryDelayMs, syncPhase2Operations, normalizeRemoteEntity, sendPhase2EntityOperation,
+  phase2RetryDelayMs, syncPhase2Operations, normalizeRemoteEntity, sendPhase2EntityOperation, readRemotePhase2Entity,
 } from "../src/phase2-sync-engine.js";
 
 const operation = (overrides = {}) => ({
@@ -184,6 +184,22 @@ test("remote records normalize without replacing the stable local business parti
     createdAt: "a", updatedAt: "b", revision: 2, recipeId: "recipe-1",
     ingredientId: "ingredient-1", quantity: 2.5, unit: "g", position: 0,
   });
+});
+
+test("remote conflict recheck is owner-scoped and reads the latest revision", async () => {
+  let requestPath;
+  const row = { id: "ingredient-1", owner_id: "owner-1", business_id: "remote-business", name: "Rice", status: "active", revision: 5 };
+  const result = await readRemotePhase2Entity("ingredient", "ingredient-1", session, async (path, init) => {
+    requestPath = path;
+    assert.equal(init.method, "GET");
+    return [row];
+  });
+  assert.equal(requestPath, "/rest/v1/ingredients?id=eq.ingredient-1&select=*");
+  assert.equal(result.revision, 5);
+  await assert.rejects(
+    readRemotePhase2Entity("ingredient", "ingredient-1", session, async () => [{ ...row, owner_id: "owner-2" }]),
+    /does not match the signed-in owner/,
+  );
 });
 
 test("RPC transport sends the stable operation ID and maps accepted results", async () => {
