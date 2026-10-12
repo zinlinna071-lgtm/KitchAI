@@ -87,7 +87,11 @@ test("dependent update refreshes its base revision after the parent operation is
   const child = operation({ operationId: "child", operation: "update", baseRevision: null, state: "blocked_dependency", dependsOnOperationIds: ["parent"] });
   const store = fakeStore([parent, child], {
     async prepareForDispatch(item) {
-      return item.operationId === "child" ? { ...item, baseRevision: 3, baseSnapshot: { name: "Remote base" } } : item;
+      if (item.operationId === "child") {
+        item.baseRevision = 3;
+        item.baseSnapshot = { name: "Remote base" };
+      }
+      return item;
     },
   });
   let sent;
