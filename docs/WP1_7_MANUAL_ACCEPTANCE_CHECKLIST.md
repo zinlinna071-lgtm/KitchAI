@@ -62,6 +62,17 @@ Use only a disposable test account and sample profile, and only an environment e
 - [x] Owner reports checks “2” and “3” passed. Their exact mapping to individual checklist items was not specified, so no specific items are inferred from that report.
 - [ ] Accessibility overall remains not fully verified. The system-font-scaling issue is deferred; all other checks remain pending unless separately evidenced.
 
+### Owner-reported manual preview session — 2026-10-12
+
+**Owner report:** The owner states that all steps from the latest manual preview/acceptance instructions were completed and worked as expected.
+
+**Evidence limitation:** This is a user-reported result in ChatGPT. The exact test date/time, Android/desktop device and OS versions, browser versions, deployed URL, screenshots, and per-check results were not supplied in this message. Do not describe these as independently verified.
+
+- [x] Owner reports the instructed manual steps were completed successfully.
+- [ ] Detailed per-check evidence and environment metadata: not yet recorded.
+- [ ] This report does not establish hosted authentication, cloud sync, backup, or production readiness. The GitHub Pages preview is static/local-only; any local draft/offline behavior must not be represented as remote sync.
+- [ ] Keep WP1.7 open until the latest required automated workflows are verified on the same main-branch commit and the acceptance record is sufficiently specific to support closure.
+
 ## D. Recovery boundary
 
 - [ ] Review automated local tests for unavailable storage, reload recovery, queued-operation preservation, retry/idempotency, sign-out queue isolation, and conflict snapshots.
