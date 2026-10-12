@@ -543,6 +543,7 @@ async function refreshIngredientView() {
             await setIngredientStatus(scope, record.id, action === "archive" ? "archived" : "active");
             if (editingIngredientId === record.id) resetIngredientForm();
             await refreshIngredientView();
+            await refreshRecipeView();
             setIngredientState(action === "archive" ? "Ingredient archived. It has not been deleted." : "Ingredient reactivated.");
           } catch (error) {
             setIngredientState(error instanceof Error ? error.message : "Could not update ingredient status.", true);
@@ -828,6 +829,7 @@ ingredientForm?.addEventListener("submit", async (event) => {
     });
     resetIngredientForm();
     await refreshIngredientView();
+    await refreshRecipeView();
     setIngredientState((saved.status === "archived" ? "Ingredient updated." : "Ingredient saved on this device.") + " Cloud sync is not implemented yet.");
   } catch (error) {
     setIngredientState(error instanceof Error ? error.message : "Could not save ingredient.", true);
