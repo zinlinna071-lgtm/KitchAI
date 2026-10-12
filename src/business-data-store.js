@@ -75,8 +75,33 @@ function openRawDatabase(name, version, initialize) {
 }
 
 /** @param {string} databaseName @param {string} storeName */
+async function openLegacyDatabaseIfPresent(databaseName) {
+  if (typeof indexedDB.databases === "function") {
+    const databases = await indexedDB.databases();
+    if (!databases.some((database) => database.name === databaseName)) return null;
+  }
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(databaseName);
+    let absentDatabase = false;
+    request.onupgradeneeded = () => {
+      if (request.oldVersion === 0) {
+        absentDatabase = true;
+        request.transaction.abort();
+      }
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => {
+      if (absentDatabase && request.error?.name === "AbortError") resolve(null);
+      else reject(request.error ?? new Error("Could not inspect legacy database " + databaseName + "."));
+    };
+    request.onblocked = () => reject(new Error("Legacy database inspection was blocked: " + databaseName));
+  });
+}
+
+/** @param {string} databaseName @param {string} storeName */
 async function readLegacyStore(databaseName, storeName) {
-  const db = await openRawDatabase(databaseName);
+  const db = await openLegacyDatabaseIfPresent(databaseName);
+  if (!db) return [];
   try {
     if (!db.objectStoreNames.contains(storeName)) return [];
     const tx = db.transaction(storeName, "readonly");
