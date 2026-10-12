@@ -152,7 +152,7 @@ export async function saveRecipe(scope, input) {
   const menuItem = menuItems.find((item) => item.id === draft.menuItemId);
   if (!menuItem) throw new Error("Choose a menu item in the active business workspace.");
   if (draft.status === "active" && menuItem.status !== "active") throw new Error("Reactivate the menu item before activating its recipe.");
-  const lines = await listRecipeLines(partition, input.id ?? "");
+  const lines = input.id ? await listRecipeLines(partition, input.id) : [];
   if (draft.status === "active") {
     if (!input.id || lines.length === 0) throw new Error("Add at least one ingredient line before activating a recipe.");
     const ingredients = await listIngredients(partition);
