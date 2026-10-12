@@ -75,7 +75,7 @@ Use only a disposable test account and sample profile, and only an environment e
 
 ## D. Recovery boundary
 
-- [x] **DEFERRED by owner** — Review automated local tests for unavailable storage, reload recovery, queued-operation preservation, retry/idempotency, sign-out queue isolation, and conflict snapshots.
+- [x] Review automated local tests for unavailable storage, reload recovery, queued-operation preservation, retry/idempotency, sign-out queue isolation, and conflict snapshots; evidence is recorded in the WP1.1/WP1.6 reports and linked CI runs.
 - [x] **DEFERRED by owner** — If storage quota or interrupted-device recovery is manually explored, use a disposable browser profile only; record exact steps and whether recovery is possible.
 - [x] **DEFERRED by owner** — Never infer encrypted-at-rest storage or backup protection from IndexedDB persistence.
 - [x] **DEFERRED by owner** — Record any recovery scenario not safely reproducible and leave it explicitly unverified.
