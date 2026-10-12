@@ -7,3 +7,21 @@
 .preview-notice{display:flex;flex-wrap:wrap;justify-content:center;gap:.35rem .75rem;padding:.75rem 1rem;background:#fff1c8;color:#513c0d;text-align:center;font-size:.85rem;line-height:1.45}
 .preview-notice strong{font-size:.78rem}
 .preview-notice[hidden]{display:none}
+
+.profile-form textarea{width:100%;min-height:88px;padding:.7rem .8rem;border:1px solid #cbd8d0;border-radius:10px;color:#19342e;background:white;font:inherit;resize:vertical}
+.profile-form textarea:focus-visible{outline:3px solid #b9d8c4;outline-offset:2px;border-color:#356a50}
+.ingredient-editor{align-items:start}
+.ingredient-workspace{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:1.4rem;min-width:0}
+.ingredient-list-panel{min-width:0}
+.ingredient-list-panel h3{margin:.2rem 0 .6rem;color:var(--green)}
+.ingredient-list{display:grid;gap:.65rem;margin:.75rem 0 0;padding:0;list-style:none}
+.ingredient-list-item{display:flex;align-items:flex-start;justify-content:space-between;gap:.75rem;padding:.85rem;border:1px solid var(--line);border-radius:12px;background:#fbfcfa;min-width:0}
+.ingredient-item-copy{min-width:0;overflow-wrap:anywhere}
+.ingredient-item-copy strong{display:block;color:var(--green)}
+.ingredient-item-copy p{margin:.3rem 0;color:var(--muted);font-size:.88rem;line-height:1.5;white-space:pre-wrap}
+.ingredient-item-status{display:inline-block;margin-top:.35rem;color:#4e7563;font-size:.75rem;font-weight:700}
+.ingredient-item-status.is-archived{color:#7b6850}
+.ingredient-item-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:.4rem;flex:0 0 auto}
+.ingredient-item-actions .button{padding:.4rem .55rem;font-size:.8rem}
+@media(max-width:800px){.ingredient-workspace{grid-template-columns:1fr}}
+@media(max-width:560px){.ingredient-list-item{flex-direction:column}.ingredient-item-actions{justify-content:flex-start}}
