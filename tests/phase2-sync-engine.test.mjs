@@ -104,6 +104,29 @@ test("dependent update refreshes its base revision after the parent operation is
   assert.deepEqual(sent.baseSnapshot, { name: "Remote base" });
 });
 
+test("a child listed before its parent is dispatched after the parent is acknowledged", async () => {
+  const child = operation({
+    operationId: "child-late-parent", entityType: "recipe", recordId: "recipe-1",
+    state: "blocked_dependency", dependsOnOperationIds: ["parent-late"],
+    createdAt: "2026-10-12T00:00:00.000Z",
+  });
+  const parent = operation({
+    operationId: "parent-late", entityType: "menuItem", recordId: "menu-1", state: "pending",
+    createdAt: "2026-10-12T00:00:01.000Z",
+  });
+  const store = fakeStore([child, parent]);
+  const sent = [];
+  const result = await syncPhase2Operations({
+    ownerId: "owner-1", businessId: "local-profile-1", session, store,
+    async send(item) {
+      sent.push(item.operationId);
+      return { status: "accepted", remoteRecord: { id: item.recordId, owner_id: "owner-1", business_id: "remote", revision: 1 } };
+    },
+  });
+  assert.deepEqual(sent, ["parent-late", "child-late-parent"]);
+  assert.equal(result.synced, 2);
+});
+
 test("a conflict preserves base, local, and remote snapshots and is not retried", async () => {
   const queued = operation({ baseRevision: 1, baseSnapshot: { name: "Old" }, localSnapshot: { name: "Local" } });
   const store = fakeStore([queued]);
