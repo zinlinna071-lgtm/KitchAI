@@ -6,6 +6,7 @@ import {
 } from "./sync-store.js";
 import { resolveSyncConflict, syncPendingOperations } from "./sync-engine.js";
 import { getSession, isSupabaseConfigured, readRemoteProfile, sendProfileOperation, signIn, signOut, signUp } from "./supabase-api.js";
+import { listIngredients, saveIngredient, setIngredientStatus } from "./ingredient-store.js";
 
 /** @typedef {Event & { prompt: () => Promise<void> }} BeforeInstallPromptEvent */
 const connectionStatus = /** @type {HTMLParagraphElement | null} */ (document.querySelector("#connection-status"));
@@ -77,6 +78,125 @@ let currentOwnerProfile = null;
 let activeSession = null;
 let syncRunning = false;
 let retryTimer;
+
+const ingredientForm = /** @type {HTMLFormElement | null} */ (document.querySelector("#ingredient-form"));
+const ingredientNameInput = /** @type {HTMLInputElement | null} */ (document.querySelector("#ingredient-name"));
+const ingredientDescriptionInput = /** @type {HTMLTextAreaElement | null} */ (document.querySelector("#ingredient-description"));
+const ingredientState = /** @type {HTMLParagraphElement | null} */ (document.querySelector("#ingredient-state"));
+const ingredientListState = /** @type {HTMLParagraphElement | null} */ (document.querySelector("#ingredient-list-state"));
+const ingredientList = /** @type {HTMLUListElement | null} */ (document.querySelector("#ingredient-list"));
+const saveIngredientButton = /** @type {HTMLButtonElement | null} */ (document.querySelector("#save-ingredient-button"));
+const cancelIngredientEditButton = /** @type {HTMLButtonElement | null} */ (document.querySelector("#cancel-ingredient-edit"));
+let editingIngredientId = null;
+
+/** A signed-in workspace never falls back to another local identity's catalog. */
+function activeIngredientScope() {
+  if (activeSession?.user?.id) {
+    if (!currentOwnerProfile?.businessId) return null;
+    return { ownerId: activeSession.user.id, businessId: currentOwnerProfile.businessId };
+  }
+  if (!currentProfile?.businessId) return null;
+  return { ownerId: "local:" + currentProfile.businessId, businessId: currentProfile.businessId };
+}
+
+/** @param {string} message @param {boolean=} isError */
+function setIngredientState(message, isError = false) {
+  if (!ingredientState) return;
+  ingredientState.textContent = message;
+  ingredientState.classList.toggle("is-error", isError);
+}
+
+function resetIngredientForm() {
+  editingIngredientId = null;
+  if (ingredientForm) ingredientForm.reset();
+  if (saveIngredientButton) saveIngredientButton.textContent = "Add ingredient";
+  if (cancelIngredientEditButton) cancelIngredientEditButton.hidden = true;
+}
+
+/** Render only records returned for the current owner/business partition. */
+async function refreshIngredientView() {
+  if (!ingredientForm || !ingredientNameInput || !ingredientDescriptionInput || !ingredientList || !ingredientListState || !saveIngredientButton) return;
+  const scope = activeIngredientScope();
+  const disabled = !scope;
+  ingredientNameInput.disabled = disabled;
+  ingredientDescriptionInput.disabled = disabled;
+  saveIngredientButton.disabled = disabled;
+  if (cancelIngredientEditButton) cancelIngredientEditButton.disabled = disabled;
+  ingredientList.replaceChildren();
+  if (!scope) {
+    ingredientListState.textContent = activeSession
+      ? "Create or load this account's Business Profile before managing its ingredients."
+      : "Save a Business Profile first to start an ingredient catalog.";
+    setIngredientState("Ingredient changes are stored locally and are not synced to the cloud.");
+    return;
+  }
+  try {
+    const records = await listIngredients(scope);
+    ingredientListState.textContent = records.length
+      ? records.length + (records.length === 1 ? " ingredient in this business." : " ingredients in this business.")
+      : "No ingredients yet. Add the first one using the form.";
+    for (const record of records) {
+      const item = document.createElement("li");
+      item.className = "ingredient-list-item";
+      const copy = document.createElement("div");
+      copy.className = "ingredient-item-copy";
+      const name = document.createElement("strong");
+      name.textContent = record.name;
+      copy.append(name);
+      if (record.description) {
+        const description = document.createElement("p");
+        description.textContent = record.description;
+        copy.append(description);
+      }
+      const status = document.createElement("span");
+      status.className = "ingredient-item-status" + (record.status === "archived" ? " is-archived" : "");
+      status.textContent = record.status === "archived" ? "Archived" : "Active";
+      copy.append(status);
+      const actions = document.createElement("div");
+      actions.className = "ingredient-item-actions";
+      const actionButton = (label, action, variant = "button-secondary") => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "button " + variant;
+        button.textContent = label;
+        button.addEventListener("click", async () => {
+          try {
+            if (action === "edit") {
+              editingIngredientId = record.id;
+              ingredientNameInput.value = record.name;
+              ingredientDescriptionInput.value = record.description ?? "";
+              saveIngredientButton.textContent = "Save changes";
+              if (cancelIngredientEditButton) cancelIngredientEditButton.hidden = false;
+              setIngredientState("Editing " + record.name + ". Changes stay on this device.");
+              ingredientNameInput.focus();
+              return;
+            }
+            await setIngredientStatus(scope, record.id, action === "archive" ? "archived" : "active");
+            if (editingIngredientId === record.id) resetIngredientForm();
+            await refreshIngredientView();
+            setIngredientState(action === "archive" ? "Ingredient archived. It has not been deleted." : "Ingredient reactivated.");
+          } catch (error) {
+            setIngredientState(error instanceof Error ? error.message : "Could not update ingredient status.", true);
+          }
+        });
+        return button;
+      };
+      if (record.status === "active") {
+        actions.append(actionButton("Edit", "edit"));
+        actions.append(actionButton("Archive", "archive"));
+      } else {
+        actions.append(actionButton("Reactivate", "reactivate"));
+      }
+      item.append(copy, actions);
+      ingredientList.append(item);
+    }
+    if (!editingIngredientId) setIngredientState("Saved on this device only · ingredient cloud sync is not implemented yet.");
+  } catch (error) {
+    ingredientListState.textContent = "Ingredient catalog could not be loaded.";
+    setIngredientState(error instanceof Error ? "Local ingredient storage is unavailable: " + error.message : "Local ingredient storage is unavailable.", true);
+  }
+}
+
 
 /** @param {string} message @param {boolean=} isError */
 function setProfileState(message, isError = false) {
@@ -158,6 +278,7 @@ async function refreshOwnerView() {
     if (adoptLocalButton) adoptLocalButton.hidden = !currentProfile;
   }
   await showUnresolvedConflict(ownerId);
+  await refreshIngredientView();
 }
 
 async function scheduleRetryForOwner(ownerId) {
@@ -263,6 +384,7 @@ async function loadLocalProfile() {
       setProfileState("No profile saved on this device yet.");
     }
     if (adoptLocalButton) adoptLocalButton.hidden = true;
+    await refreshIngredientView();
   } catch (error) {
     setProfileState(error instanceof Error
       ? "Local storage is unavailable: " + error.message
@@ -291,12 +413,14 @@ profileForm?.addEventListener("submit", async (event) => {
       currentOwnerProfile = saved.profile;
       businessNameInput.value = saved.profile.name;
       setProfileState(stateLabel(saved.profile));
+      await refreshIngredientView();
       await runSync();
     } else {
       const saved = await saveLocalProfile({ id: currentProfile?.id, name: businessNameInput.value });
       currentProfile = saved.profile;
       businessNameInput.value = saved.profile.name;
       setProfileState("Saved on this device · not synced (local version " + saved.localRevision + ").");
+      await refreshIngredientView();
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unexpected storage error.";
@@ -309,12 +433,45 @@ profileForm?.addEventListener("submit", async (event) => {
   }
 });
 
+
+ingredientForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const scope = activeIngredientScope();
+  if (!scope || !ingredientNameInput || !ingredientDescriptionInput || !saveIngredientButton) {
+    setIngredientState("Save or load a Business Profile before adding ingredients.", true);
+    return;
+  }
+  saveIngredientButton.disabled = true;
+  if (cancelIngredientEditButton) cancelIngredientEditButton.disabled = true;
+  try {
+    const saved = await saveIngredient(scope, {
+      ...(editingIngredientId ? { id: editingIngredientId } : {}),
+      name: ingredientNameInput.value,
+      description: ingredientDescriptionInput.value,
+    });
+    resetIngredientForm();
+    await refreshIngredientView();
+    setIngredientState((saved.status === "archived" ? "Ingredient updated." : "Ingredient saved on this device.") + " Cloud sync is not implemented yet.");
+  } catch (error) {
+    setIngredientState(error instanceof Error ? error.message : "Could not save ingredient.", true);
+  } finally {
+    saveIngredientButton.disabled = !activeIngredientScope();
+    if (cancelIngredientEditButton) cancelIngredientEditButton.disabled = false;
+  }
+});
+
+cancelIngredientEditButton?.addEventListener("click", () => {
+  resetIngredientForm();
+  setIngredientState("Edit cancelled. No changes were made.");
+});
+
 adoptLocalButton?.addEventListener("click", async () => {
   if (!activeSession || !currentProfile) return;
   adoptLocalButton.disabled = true;
   try {
     const saved = await saveOwnerProfileDraft({ ownerId: activeSession.user.id, name: currentProfile.name });
     currentOwnerProfile = saved.profile;
+    await refreshIngredientView();
     await runSync();
   } catch (error) {
     setProfileState("Could not copy the local draft into this account. The original draft remains unchanged. " + (error instanceof Error ? error.message : ""), true);
