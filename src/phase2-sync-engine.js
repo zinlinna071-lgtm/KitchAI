@@ -48,7 +48,7 @@ export async function syncPhase2Operations(input) {
   const operations = await input.store.listOperations(input.ownerId, input.businessId);
   operations.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
 
-  for (const operation of operations) {
+  for (let operation of operations) {
     if (operation.ownerId !== input.ownerId || operation.businessId !== input.businessId ||
         !ACTIVE_STATES.has(operation.state)) {
       summary.skipped++;
@@ -65,6 +65,15 @@ export async function syncPhase2Operations(input) {
     if (operation.nextAttemptAt !== undefined && operation.nextAttemptAt > now()) {
       summary.skipped++;
       continue;
+    }
+    if (input.store.prepareForDispatch) {
+      const prepared = await input.store.prepareForDispatch(operation);
+      if (!prepared) {
+        await input.store.markPermanentFailure(operation, "This update has no confirmed remote revision. Local data was preserved; manual recovery is required.");
+        summary.failed++;
+        continue;
+      }
+      operation = prepared;
     }
 
     await input.store.markInFlight(operation);
@@ -161,6 +170,22 @@ export function createPhase2SyncStore() {
       await transaction(["operations"], "readwrite", tx => {
         tx.objectStore("operations").put({ ...operation, state: "in_flight", updatedAt: new Date().toISOString() });
       });
+    },
+    async prepareForDispatch(operation) {
+      if (operation.operation === "create") return operation;
+      const db = await openBusinessDatabase();
+      const tx = db.transaction("syncMetadata", "readonly");
+      const request = tx.objectStore("syncMetadata").get([operation.ownerId, operation.businessId, operation.entityType, operation.recordId]);
+      const metadata = await new Promise((resolve, reject) => {
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error ?? new Error("Could not read entity revision metadata."));
+      });
+      if (operation.dependsOnOperationIds?.length) {
+        if (!Number.isInteger(metadata?.revision) || metadata.revision < 1) return null;
+        return { ...operation, baseRevision: metadata.revision, baseSnapshot: structuredClone(metadata.lastSyncedSnapshot ?? null) };
+      }
+      if (!Number.isInteger(operation.baseRevision) || operation.baseRevision < 1) return null;
+      return operation;
     },
     async acknowledge(operation, remoteRecord) {
       const entityType = operation.entityType;
