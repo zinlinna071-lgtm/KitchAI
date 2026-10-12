@@ -744,3 +744,132 @@ test("WP2.5b blocks recipe and recipe-line outbox operations behind unsynced par
   expect(lineOperation.dependsOnOperationIds).toContain(recipeOperation.operationId);
   expect(lineOperation.dependsOnOperationIds).toContain(ingredientOperation.operationId);
 });
+
+
+test("WP2.5b rolls back a failed migration transaction and retries safely after restart", async ({ page }) => {
+  await page.goto("/favicon.svg");
+  await page.evaluate(async () => {
+    const deleteDatabase = (name) => new Promise((resolve, reject) => {
+      const request = indexedDB.deleteDatabase(name);
+      request.onsuccess = resolve;
+      request.onerror = () => reject(request.error);
+      request.onblocked = () => reject(new Error("Could not clear disposable test database " + name));
+    });
+    for (const name of ["kitchai-business-data", "kitchai-ingredients", "kitchai-menu", "kitchai-recipes", "kitchai-local", "kitchai-sync"]) {
+      await deleteDatabase(name);
+    }
+    const stamp = "2026-10-12T00:00:00.000Z";
+    const seed = (name, definitions) => new Promise((resolve, reject) => {
+      const request = indexedDB.open(name, 1);
+      request.onupgradeneeded = () => {
+        for (const [storeName, definition] of Object.entries(definitions)) {
+          const store = request.result.createObjectStore(storeName, { keyPath: definition.keyPath });
+          for (const [indexName, keyPath] of definition.indexes ?? []) store.createIndex(indexName, keyPath, { unique: false });
+          for (const row of definition.rows ?? []) store.put(row);
+        }
+      };
+      request.onsuccess = () => { request.result.close(); resolve(); };
+      request.onerror = () => reject(request.error);
+    });
+    const scope = { ownerId: "local:old-business", businessId: "old-business" };
+    await seed("kitchai-local", {
+      profiles: { keyPath: "id", rows: [{ id: "profile-retry", businessId: "old-business", name: "Retry Kitchen", createdAt: stamp, updatedAt: stamp }] },
+      metadata: { keyPath: "key", rows: [{ key: "businessId", value: "old-business" }] },
+    });
+    await seed("kitchai-ingredients", {
+      ingredients: { keyPath: ["ownerId", "businessId", "id"], indexes: [["byScope", ["ownerId", "businessId"]]], rows: [
+        { ...scope, id: "ingredient-a", name: "First imported ingredient", status: "active", createdAt: stamp, updatedAt: stamp },
+        { ...scope, id: "ingredient-z", name: "Legacy ingredient", status: "active", createdAt: stamp, updatedAt: stamp },
+      ] },
+    });
+    await seed("kitchai-menu", { menuItems: { keyPath: ["ownerId", "businessId", "id"], indexes: [["byScope", ["ownerId", "businessId"]]], rows: [] } });
+    await seed("kitchai-recipes", {
+      recipes: { keyPath: ["ownerId", "businessId", "id"], indexes: [["byScope", ["ownerId", "businessId"]], ["byScopeMenuItem", ["ownerId", "businessId", "menuItemId"]]], rows: [] },
+      recipeLines: { keyPath: ["ownerId", "businessId", "id"], indexes: [["byScope", ["ownerId", "businessId"]], ["byRecipe", ["ownerId", "businessId", "recipeId"]], ["byRecipePosition", ["ownerId", "businessId", "recipeId", "position"]]], rows: [] },
+    });
+    await seed("kitchai-business-data", {
+      ingredients: { keyPath: ["ownerId", "businessId", "id"], indexes: [["byScope", ["ownerId", "businessId"]]], rows: [
+        { ownerId: "local:profile-retry", businessId: "profile-retry", id: "ingredient-z", name: "Independent target edit", status: "active", createdAt: stamp, updatedAt: stamp },
+      ] },
+      menuItems: { keyPath: ["ownerId", "businessId", "id"], indexes: [["byScope", ["ownerId", "businessId"]]], rows: [] },
+      recipes: { keyPath: ["ownerId", "businessId", "id"], indexes: [["byScope", ["ownerId", "businessId"]], ["byScopeMenuItem", ["ownerId", "businessId", "menuItemId"]]], rows: [] },
+      recipeLines: { keyPath: ["ownerId", "businessId", "id"], indexes: [["byScope", ["ownerId", "businessId"]], ["byRecipe", ["ownerId", "businessId", "recipeId"]], ["byRecipePosition", ["ownerId", "businessId", "recipeId", "position"]]], rows: [] },
+      operations: { keyPath: "operationId", indexes: [["byOwner", "ownerId"], ["byOwnerAndRecord", ["ownerId", "recordId"]], ["byOwnerBusinessEntityRecord", ["ownerId", "businessId", "entityType", "recordId"]], ["byOwnerAndState", ["ownerId", "state"]]], rows: [] },
+      syncMetadata: { keyPath: ["ownerId", "businessId", "entityType", "recordId"], indexes: [["byOwner", "ownerId"], ["byScope", ["ownerId", "businessId"]]], rows: [] },
+      metadata: { keyPath: "key", rows: [] },
+      migrationLedger: { keyPath: ["sourceDatabase", "sourceStore", "sourceOwnerId", "sourceBusinessId", "sourceRecordId"], rows: [] },
+    });
+  });
+
+  await page.goto("/");
+  await expect(page.locator("#ingredient-state")).toContainText("Migration collision");
+  const failedAttempt = await page.evaluate(async () => {
+    const db = await new Promise((resolve, reject) => {
+      const request = indexedDB.open("kitchai-business-data");
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    const result = await new Promise((resolve, reject) => {
+      const tx = db.transaction(["ingredients", "migrationLedger", "metadata"], "readonly");
+      const ingredients = tx.objectStore("ingredients");
+      const first = ingredients.get(["local:profile-retry", "profile-retry", "ingredient-a"]);
+      const collision = ingredients.get(["local:profile-retry", "profile-retry", "ingredient-z"]);
+      const marker = tx.objectStore("metadata").get("legacy-phase2-entities-v1");
+      const ledger = tx.objectStore("migrationLedger").get(["kitchai-ingredients", "ingredients", "local:old-business", "old-business", "ingredient-a"]);
+      const result = {};
+      first.onsuccess = () => { result.first = first.result; };
+      collision.onsuccess = () => { result.collision = collision.result; };
+      marker.onsuccess = () => { result.marker = marker.result; };
+      ledger.onsuccess = () => { result.ledger = ledger.result; };
+      tx.oncomplete = () => { db.close(); resolve(result); };
+      tx.onerror = () => reject(tx.error);
+    });
+    return result;
+  });
+  expect(failedAttempt.first).toBeUndefined();
+  expect(failedAttempt.collision.name).toBe("Independent target edit");
+  expect(failedAttempt.marker).toBeUndefined();
+  expect(failedAttempt.ledger).toBeUndefined();
+
+  await page.evaluate(async () => {
+    const db = await new Promise((resolve, reject) => {
+      const request = indexedDB.open("kitchai-business-data");
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    await new Promise((resolve, reject) => {
+      const tx = db.transaction("ingredients", "readwrite");
+      tx.objectStore("ingredients").delete(["local:profile-retry", "profile-retry", "ingredient-z"]);
+      tx.oncomplete = resolve;
+      tx.onerror = () => reject(tx.error);
+    });
+    db.close();
+  });
+
+  await page.reload();
+  await expect(page.locator("#ingredient-list")).toContainText("First imported ingredient");
+  await expect(page.locator("#ingredient-list")).toContainText("Legacy ingredient");
+  const recovered = await page.evaluate(async () => {
+    const db = await new Promise((resolve, reject) => {
+      const request = indexedDB.open("kitchai-business-data");
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    const result = await new Promise((resolve, reject) => {
+      const tx = db.transaction(["ingredients", "migrationLedger", "metadata"], "readonly");
+      const rows = tx.objectStore("ingredients").index("byScope").getAll(["local:profile-retry", "profile-retry"]);
+      const marker = tx.objectStore("metadata").get("legacy-phase2-entities-v1");
+      const ledger = tx.objectStore("migrationLedger").get(["kitchai-ingredients", "ingredients", "local:old-business", "old-business", "ingredient-a"]);
+      const value = {};
+      rows.onsuccess = () => { value.rows = rows.result; };
+      marker.onsuccess = () => { value.marker = marker.result; };
+      ledger.onsuccess = () => { value.ledger = ledger.result; };
+      tx.oncomplete = () => { db.close(); resolve(value); };
+      tx.onerror = () => reject(tx.error);
+    });
+    return result;
+  });
+  expect(recovered.rows.map((row) => row.name).sort()).toEqual(["First imported ingredient", "Legacy ingredient"]);
+  expect(recovered.marker).toBeTruthy();
+  expect(recovered.ledger).toBeTruthy();
+});
