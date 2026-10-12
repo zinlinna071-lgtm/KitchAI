@@ -76,15 +76,16 @@ function openRawDatabase(name, version, initialize) {
 
 /** @param {string} databaseName @param {string} storeName */
 async function openLegacyDatabaseIfPresent(databaseName) {
-  if (typeof indexedDB.databases === "function") {
-    const databases = await indexedDB.databases();
+  const factory = /** @type {any} */ (indexedDB);
+  if (typeof factory.databases === "function") {
+    const databases = await factory.databases();
     if (!databases.some((database) => database.name === databaseName)) return null;
   }
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(databaseName);
     let absentDatabase = false;
-    request.onupgradeneeded = () => {
-      if (request.oldVersion === 0) {
+    request.onupgradeneeded = (event) => {
+      if (event.oldVersion === 0) {
         absentDatabase = true;
         request.transaction.abort();
       }
