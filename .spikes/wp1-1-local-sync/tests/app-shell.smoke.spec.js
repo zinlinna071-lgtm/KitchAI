@@ -353,6 +353,9 @@ test("recipe workflow links menu items and ingredients, validates activation, an
   await page.getByRole("button", { name: "Save recipe draft" }).click();
   let recipe = page.locator("#recipe-list .ingredient-list-item").filter({ hasText: "House Noodle Soup" });
   await expect(recipe).toContainText("Draft");
+  await recipe.getByRole("button", { name: "Activate" }).click();
+  await expect(page.locator("#recipe-state")).toContainText("Add at least one ingredient line");
+  await expect(recipe).toContainText("Draft");
   await page.locator("#recipe-line-ingredient").selectOption({ label: "Rice noodles" });
   await page.locator("#recipe-line-quantity").fill("250");
   await page.locator("#recipe-line-unit").selectOption("g");
@@ -395,4 +398,33 @@ test("recipe workflow links menu items and ingredients, validates activation, an
   expect(isolation.own).toHaveLength(1);
   expect(isolation.own[0].name).toBe("House Noodle Soup");
   expect(isolation.other).toHaveLength(0);
+  const foreignWrite = await page.evaluate(async () => {
+    const request = indexedDB.open("kitchai-local", 1);
+    const profile = await new Promise((resolve, reject) => {
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => {
+        const tx = request.result.transaction("profiles", "readonly");
+        const read = tx.objectStore("profiles").getAll();
+        read.onsuccess = () => { resolve(read.result[0]); request.result.close(); };
+        read.onerror = () => reject(read.error);
+      };
+    });
+    const recipes = await import("/src/recipe-store.js");
+    const ownScope = { ownerId: "local:" + profile.businessId, businessId: profile.businessId };
+    const ownRecipes = await recipes.listRecipes(ownScope);
+    const lines = await recipes.listRecipeLines(ownScope, ownRecipes[0].id);
+    try {
+      await recipes.saveRecipeLine({ ownerId: "different-owner", businessId: profile.businessId }, {
+        recipeId: ownRecipes[0].id,
+        ingredientId: lines[0].ingredientId,
+        quantity: 1,
+        unit: "g",
+        position: 99,
+      });
+      return "unexpected success";
+    } catch (error) {
+      return error instanceof Error ? error.message : "rejected";
+    }
+  });
+  expect(foreignWrite).toContain("recipe in this business");
 });
