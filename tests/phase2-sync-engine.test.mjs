@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
-  phase2RetryDelayMs, syncPhase2Operations, normalizeRemoteEntity, sendPhase2EntityOperation,
+  phase2RetryDelayMs, syncPhase2Operations, normalizeRemoteEntity, sendPhase2EntityOperation, readRemotePhase2Entity,
 } from "../src/phase2-sync-engine.js";
 
 const operation = (overrides = {}) => ({
@@ -87,7 +87,11 @@ test("dependent update refreshes its base revision after the parent operation is
   const child = operation({ operationId: "child", operation: "update", baseRevision: null, state: "blocked_dependency", dependsOnOperationIds: ["parent"] });
   const store = fakeStore([parent, child], {
     async prepareForDispatch(item) {
-      return item.operationId === "child" ? { ...item, baseRevision: 3, baseSnapshot: { name: "Remote base" } } : item;
+      if (item.operationId === "child") {
+        item.baseRevision = 3;
+        item.baseSnapshot = { name: "Remote base" };
+      }
+      return item;
     },
   });
   let sent;
@@ -102,6 +106,29 @@ test("dependent update refreshes its base revision after the parent operation is
   assert.equal(sent.operationId, "child");
   assert.equal(sent.baseRevision, 3);
   assert.deepEqual(sent.baseSnapshot, { name: "Remote base" });
+});
+
+test("a child listed before its parent is dispatched after the parent is acknowledged", async () => {
+  const child = operation({
+    operationId: "child-late-parent", entityType: "recipe", recordId: "recipe-1",
+    state: "blocked_dependency", dependsOnOperationIds: ["parent-late"],
+    createdAt: "2026-10-12T00:00:00.000Z",
+  });
+  const parent = operation({
+    operationId: "parent-late", entityType: "menuItem", recordId: "menu-1", state: "pending",
+    createdAt: "2026-10-12T00:00:01.000Z",
+  });
+  const store = fakeStore([child, parent]);
+  const sent = [];
+  const result = await syncPhase2Operations({
+    ownerId: "owner-1", businessId: "local-profile-1", session, store,
+    async send(item) {
+      sent.push(item.operationId);
+      return { status: "accepted", remoteRecord: { id: item.recordId, owner_id: "owner-1", business_id: "remote", revision: 1 } };
+    },
+  });
+  assert.deepEqual(sent, ["parent-late", "child-late-parent"]);
+  assert.equal(result.synced, 2);
 });
 
 test("a conflict preserves base, local, and remote snapshots and is not retried", async () => {
@@ -161,6 +188,22 @@ test("remote records normalize without replacing the stable local business parti
     createdAt: "a", updatedAt: "b", revision: 2, recipeId: "recipe-1",
     ingredientId: "ingredient-1", quantity: 2.5, unit: "g", position: 0,
   });
+});
+
+test("remote conflict recheck is owner-scoped and reads the latest revision", async () => {
+  let requestPath;
+  const row = { id: "ingredient-1", owner_id: "owner-1", business_id: "remote-business", name: "Rice", status: "active", revision: 5 };
+  const result = await readRemotePhase2Entity("ingredient", "ingredient-1", session, async (path, init) => {
+    requestPath = path;
+    assert.equal(init.method, "GET");
+    return [row];
+  });
+  assert.equal(requestPath, "/rest/v1/ingredients?id=eq.ingredient-1&select=*");
+  assert.equal(result.revision, 5);
+  await assert.rejects(
+    readRemotePhase2Entity("ingredient", "ingredient-1", session, async () => [{ ...row, owner_id: "owner-2" }]),
+    /does not match the signed-in owner/,
+  );
 });
 
 test("RPC transport sends the stable operation ID and maps accepted results", async () => {

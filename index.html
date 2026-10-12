@@ -38,9 +38,17 @@
 </form>
 <div id="conflict-panel" class="conflict-panel" hidden aria-labelledby="conflict-title"><p class="eyebrow">SYNC CONFLICT</p><h3 id="conflict-title">Review both versions.</h3><p id="conflict-base"></p><p id="conflict-local"></p><p id="conflict-remote"></p><div class="auth-actions"><button id="keep-local-button" class="button button-primary" type="button">Keep local</button><button id="use-remote-button" class="button button-secondary" type="button">Use remote</button></div></div>
 </section>
-<section class="offline-panel" aria-labelledby="offline-title"><div class="offline-panel-copy"><p class="eyebrow">BUILT FOR REAL KITCHENS</p><h2 id="offline-title">Keep the essentials close.</h2><p>Interface assets remain available offline after the first successful load. Business Profile, ingredient, menu, and recipe records are stored locally. Phase 2 entity cloud sync is not implemented yet.</p></div><div class="offline-indicator" aria-hidden="true"><span class="offline-ring"></span><span class="offline-center">K</span></div></section>
+<section class="offline-panel" aria-labelledby="offline-title"><div class="offline-panel-copy"><p class="eyebrow">BUILT FOR REAL KITCHENS</p><h2 id="offline-title">Keep the essentials close.</h2><p>Interface assets remain available offline after the first successful load. Business Profile, ingredient, menu, and recipe records are stored locally. Phase 2 entity sync requires a configured local Supabase account and remains local-first.</p></div><div class="offline-indicator" aria-hidden="true"><span class="offline-ring"></span><span class="offline-center">K</span></div></section>
+<section id="entity-sync-panel" class="profile-editor entity-sync-panel" aria-labelledby="entity-sync-title">
+<div class="profile-editor-heading"><p class="eyebrow">PHASE 2 · LOCAL SUPABASE SYNC</p><h2 id="entity-sync-title">Sync your business records.</h2><p>Ingredient, menu, recipe, and recipe-line changes stay in the local queue until an authenticated account and business profile are available. Conflicts are preserved for explicit review.</p></div>
+<div class="profile-form">
+<p id="phase2-sync-state" class="profile-state" role="status" aria-live="polite">Entity sync is waiting for an account workspace.</p>
+<div class="auth-actions"><button id="phase2-sync-now" class="button button-primary" type="button">Sync now</button></div>
+</div>
+<div id="phase2-conflict-list" class="phase2-conflict-list" hidden aria-label="Phase 2 entity conflicts"></div>
+</section>
 <section id="ingredient-panel" class="profile-editor ingredient-editor" aria-labelledby="ingredient-title">
-<div class="profile-editor-heading"><p class="eyebrow">PHASE 2 · INGREDIENT CATALOG</p><h2 id="ingredient-title">Keep your ingredients organized.</h2><p id="ingredient-help">Create and maintain an ingredient catalog for the active business. Ingredient changes are saved on this device only; cloud sync is not implemented yet.</p></div>
+<div class="profile-editor-heading"><p class="eyebrow">PHASE 2 · INGREDIENT CATALOG</p><h2 id="ingredient-title">Keep your ingredients organized.</h2><p id="ingredient-help">Create and maintain an ingredient catalog for the active business. Changes are saved locally first. When signed in to the configured local Supabase environment, queued changes can sync.</p></div>
 <div class="ingredient-workspace">
 <form id="ingredient-form" class="profile-form" aria-describedby="ingredient-help">
 <label for="ingredient-name">Ingredient name</label><input id="ingredient-name" name="ingredientName" type="text" maxlength="240" required autocomplete="off" aria-describedby="ingredient-state">
@@ -52,7 +60,7 @@
 </div>
 </section>
 <section id="menu-panel" class="profile-editor menu-editor" aria-labelledby="menu-title">
-<div class="profile-editor-heading"><p class="eyebrow">PHASE 2 · MENU ITEMS</p><h2 id="menu-title">Build your menu, one item at a time.</h2><p id="menu-help">Create and maintain menu items for the active business. Items are stored on this device only. Recipe links will be added in the next work package.</p></div>
+<div class="profile-editor-heading"><p class="eyebrow">PHASE 2 · MENU ITEMS</p><h2 id="menu-title">Build your menu, one item at a time.</h2><p id="menu-help">Create and maintain menu items for the active business. Items are saved locally first and queued for account sync when signed in.</p></div>
 <div class="menu-workspace">
 <form id="menu-item-form" class="profile-form" aria-describedby="menu-help">
 <label for="menu-item-name">Menu item name</label><input id="menu-item-name" name="menuItemName" type="text" maxlength="240" required autocomplete="off" aria-describedby="menu-item-state">
@@ -64,7 +72,7 @@
 </div>
 </section>
 <section id="recipe-panel" class="profile-editor recipe-editor" aria-labelledby="recipe-title">
-<div class="profile-editor-heading"><p class="eyebrow">PHASE 2 · RECIPES</p><h2 id="recipe-title">Connect recipes to your menu.</h2><p id="recipe-help">Draft a recipe, add measured ingredient lines, and activate it when its yield and ingredients are valid. Changes are saved on this device only; recipe cloud sync is not implemented yet.</p></div>
+<div class="profile-editor-heading"><p class="eyebrow">PHASE 2 · RECIPES</p><h2 id="recipe-title">Connect recipes to your menu.</h2><p id="recipe-help">Draft a recipe, add measured ingredient lines, and activate it when its yield and ingredients are valid. Changes are saved locally first and queued for account sync when signed in.</p></div>
 <div class="recipe-workspace">
 <form id="recipe-form" class="profile-form" aria-describedby="recipe-help">
 <label for="recipe-menu-item">Menu item</label><select id="recipe-menu-item" required><option value="">Choose a menu item</option></select>

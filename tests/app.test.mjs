@@ -12,7 +12,7 @@ test("document has accessible landmarks, viewport metadata, and clear scope",asy
  const html=await read("../index.html");
  assert.match(html,/<html lang="en">/);assert.match(html,/name="viewport"/);assert.match(html,/class="skip-link" href="#main"/);assert.match(html,/<main id="main" class="page-shell" tabindex="-1">/);
  assert.match(html,/id="connection-status" class="connection-status" role="status"/);assert.match(html,/LOCAL BUSINESS PROFILE/);assert.match(html,/Implemented for local testing/);assert.match(html,/Hosted sync is not configured/);assert.match(html,/full operational pages arrive in later phases/i);
- assert.match(html,/id="profile-form"/);assert.match(html,/id="ingredient-form"/);assert.match(html,/id="menu-item-form"/);assert.match(html,/id="recipe-form"/);assert.match(html,/id="recipe-line-form"/);assert.match(html,/Phase 2 entity cloud sync is not implemented yet/i);
+ assert.match(html,/id="profile-form"/);assert.match(html,/id="ingredient-form"/);assert.match(html,/id="menu-item-form"/);assert.match(html,/id="recipe-form"/);assert.match(html,/id="recipe-line-form"/);assert.match(html,/id="entity-sync-panel"/);assert.match(html,/id="phase2-sync-now"/);assert.match(html,/id="phase2-conflict-list"/);
 });
 test("manifest declares standalone app and local icon",async()=>{
  const manifest=JSON.parse(await read("../public/manifest.webmanifest"));
@@ -23,7 +23,7 @@ test("service worker caches shell assets and falls back for offline navigation",
  const assetsMatch=worker.match(/const APP_SHELL = \[([\s\S]*?)\]\.map/);
  assert.ok(assetsMatch,"service worker declares a shell asset list");
  const assets=JSON.parse(`[${assetsMatch[1].replace(/,\s*$/,"")}]`);
- for(const asset of ["","index.html","src/app.js","src/local-store.js","src/ingredient-store.js","src/menu-item-store.js","src/recipe-store.js","src/sync-store.js","src/sync-engine.js","src/supabase-api.js","runtime-config.js","src/styles.css","manifest.webmanifest","favicon.svg"])assert.ok(assets.includes(asset),"missing app-shell asset: "+asset);
+ for(const asset of ["","index.html","src/app.js","src/local-store.js","src/ingredient-store.js","src/menu-item-store.js","src/recipe-store.js","src/phase2-sync-engine.js","src/sync-store.js","src/sync-engine.js","src/supabase-api.js","runtime-config.js","src/styles.css","manifest.webmanifest","favicon.svg"])assert.ok(assets.includes(asset),"missing app-shell asset: "+asset);
  assert.match(worker,/new URL\(asset, self\.registration\.scope\)/);assert.match(worker,/new URL\("index\.html", self\.registration\.scope\)/);
  assert.match(worker,/request\.mode === "navigate"/);assert.match(worker,/caches\.match\(INDEX_URL\)/);assert.match(worker,/request\.method !== "GET"/);
 });
@@ -31,13 +31,27 @@ test("client shell handles connection changes and install prompt",async()=>{
  const app=await read("../src/app.js");
  assert.match(app,/addEventListener\("online", updateConnectionStatus\)/);assert.match(app,/addEventListener\("offline", updateConnectionStatus\)/);assert.match(app,/navigator\.serviceWorker\.register\(`\$\{appBasePath\}sw\.js`, \{ scope: appBasePath \}\)/);assert.match(app,/beforeinstallprompt/);
 });
+test("Phase 2 entity sync is integrated with authenticated lifecycle and owner-scoped conflict resolution", async () => {
+ const app=await read("../src/app.js");
+ const engine=await read("../src/phase2-sync-engine.js");
+ assert.match(app,/runPhase2EntitySync/);
+ assert.match(app,/phase2SyncStore\.recoverInterrupted/);
+ assert.match(app,/phase2SyncStore\.resolveKeepLocal/);
+ assert.match(app,/phase2SyncStore\.resolveUseRemote/);
+ assert.match(app,/phase2ConflictList/);
+ assert.match(engine,/resolvesConflictId/);
+ assert.match(engine,/resolutionChoice: "use_remote"/);
+ assert.match(engine,/state: "resolution_pending"/);
+ assert.match(engine,/lastResolutionError/);
+});
+
 test("responsive stylesheet includes small viewport, focus, and reduced-motion support",async()=>{
  const css=await read("../src/styles.css");assert.match(css,/@media\(max-width:560px\)/);assert.match(css,/:focus-visible/);assert.match(css,/prefers-reduced-motion/);
 });
 test("production build emits every shell asset without modifying source files",async()=>{
  const sourceHtml=await read("../index.html");
  const result=spawnSync(process.execPath,["scripts/build.mjs"],{encoding:"utf8"});assert.equal(result.status,0,result.stderr);
- await Promise.all(["index.html","src/app.js","src/local-store.js","src/sync-store.js","src/sync-engine.js","src/supabase-api.js","runtime-config.js","src/styles.css","sw.js","manifest.webmanifest","favicon.svg"].map(path=>access(new URL("../dist/"+path,import.meta.url))));
+ await Promise.all(["index.html","src/app.js","src/local-store.js","src/phase2-sync-engine.js","src/sync-store.js","src/sync-engine.js","src/supabase-api.js","runtime-config.js","src/styles.css","sw.js","manifest.webmanifest","favicon.svg"].map(path=>access(new URL("../dist/"+path,import.meta.url))));
  assert.equal(await read("../index.html"),sourceHtml);
 });
 

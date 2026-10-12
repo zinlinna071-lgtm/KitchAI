@@ -46,3 +46,12 @@
 .recipe-line-form .auth-actions,.recipe-line-form .profile-state{grid-column:1/-1}
 .recipe-editor .profile-form .button,.recipe-line-form .button{min-width:0;max-width:100%;white-space:normal;overflow-wrap:anywhere}
 @media(max-width:800px){.recipe-workspace{grid-template-columns:1fr}.recipe-line-form{grid-template-columns:1fr}}
+
+
+.entity-sync-panel{grid-template-columns:minmax(0,1fr) minmax(240px,.8fr)}
+.phase2-conflict-list{grid-column:1/-1;display:grid;gap:.8rem;min-width:0}
+.phase2-conflict-card{padding:1rem;border:1px solid #d9b982;border-radius:14px;background:#fffaf0;min-width:0}
+.phase2-conflict-card h3{margin:.15rem 0 .6rem;color:var(--green);font-size:1rem}
+.phase2-conflict-card p{color:#5c4a31;line-height:1.55;overflow-wrap:anywhere}
+.phase2-conflict-card .conflict-actions{display:flex;flex-wrap:wrap;gap:.65rem}
+@media(max-width:700px){.entity-sync-panel{grid-template-columns:1fr}.phase2-conflict-list{grid-column:auto}}
