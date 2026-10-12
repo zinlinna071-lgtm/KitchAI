@@ -10,6 +10,7 @@ import { getSession, isSupabaseConfigured, readRemoteProfile, sendProfileOperati
 import { listIngredients, saveIngredient, setIngredientStatus } from "./ingredient-store.js";
 import { listMenuItems, saveMenuItem, setMenuItemStatus } from "./menu-item-store.js";
 import { listRecipes, listRecipeLines, saveRecipe, saveRecipeLine, setRecipeStatus } from "./recipe-store.js";
+import { createPhase2SyncStore, syncPhase2Operations, sendPhase2EntityOperation } from "./phase2-sync-engine.js";
 
 /** @typedef {Event & { prompt: () => Promise<void> }} BeforeInstallPromptEvent */
 const connectionStatus = /** @type {HTMLParagraphElement | null} */ (document.querySelector("#connection-status"));
@@ -76,11 +77,16 @@ const conflictLocal = /** @type {HTMLParagraphElement | null} */ (document.query
 const conflictRemote = /** @type {HTMLParagraphElement | null} */ (document.querySelector("#conflict-remote"));
 const keepLocalButton = /** @type {HTMLButtonElement | null} */ (document.querySelector("#keep-local-button"));
 const useRemoteButton = /** @type {HTMLButtonElement | null} */ (document.querySelector("#use-remote-button"));
+const phase2SyncState = /** @type {HTMLParagraphElement | null} */ (document.querySelector("#phase2-sync-state"));
+const phase2SyncButton = /** @type {HTMLButtonElement | null} */ (document.querySelector("#phase2-sync-now"));
+const phase2ConflictList = /** @type {HTMLElement | null} */ (document.querySelector("#phase2-conflict-list"));
 let currentProfile = null;
 let currentOwnerProfile = null;
 let activeSession = null;
 let syncRunning = false;
+let phase2SyncRunning = false;
 let retryTimer;
+const phase2SyncStore = createPhase2SyncStore();
 
 const ingredientForm = /** @type {HTMLFormElement | null} */ (document.querySelector("#ingredient-form"));
 const ingredientNameInput = /** @type {HTMLInputElement | null} */ (document.querySelector("#ingredient-name"));
@@ -607,6 +613,148 @@ const syncStore = {
   markPermanentFailure,
   scheduleRetry,
 };
+
+function setPhase2SyncState(message, isError = false) {
+  if (!phase2SyncState) return;
+  phase2SyncState.textContent = message;
+  phase2SyncState.classList.toggle("is-error", isError);
+}
+
+function summarizeEntitySnapshot(entityType, snapshot) {
+  if (!snapshot) return "No snapshot available";
+  if (snapshot.name) return snapshot.name;
+  if (entityType === "recipeLine") return "Recipe " + snapshot.recipeId + " · ingredient " + snapshot.ingredientId + " · " + snapshot.quantity + " " + snapshot.unit;
+  return snapshot.id ?? "Saved entity";
+}
+
+async function refreshPhase2ConflictView() {
+  if (!phase2ConflictList) return;
+  if (!activeSession?.user?.id || !currentOwnerProfile?.id) {
+    phase2ConflictList.hidden = true;
+    phase2ConflictList.replaceChildren();
+    return;
+  }
+  const scope = scopeForBusinessProfile({ ownerId: activeSession.user.id, profileId: currentOwnerProfile.id });
+  const conflicts = (await phase2SyncStore.listConflicts(scope.ownerId, scope.businessId))
+    .filter(item => item.state === "unresolved" || item.state === "resolution_pending")
+    .sort((a, b) => a.detectedAt.localeCompare(b.detectedAt));
+  phase2ConflictList.replaceChildren();
+  phase2ConflictList.hidden = conflicts.length === 0;
+  for (const conflict of conflicts) {
+    const card = document.createElement("article");
+    card.className = "phase2-conflict-card";
+    const heading = document.createElement("h3");
+    heading.textContent = conflict.entityType + " conflict · " + conflict.recordId;
+    const base = document.createElement("p");
+    base.textContent = "Base (revision " + (conflict.baseRevision ?? "new") + "): " + summarizeEntitySnapshot(conflict.entityType, conflict.baseSnapshot);
+    const local = document.createElement("p");
+    local.textContent = "Your version: " + summarizeEntitySnapshot(conflict.entityType, conflict.localSnapshot);
+    const remote = document.createElement("p");
+    remote.textContent = "Remote version (revision " + conflict.remoteRevision + "): " + summarizeEntitySnapshot(conflict.entityType, conflict.remoteSnapshot);
+    card.append(heading, base, local, remote);
+    if (conflict.state === "resolution_pending") {
+      const pending = document.createElement("p");
+      pending.className = "profile-state";
+      pending.textContent = "Keep-local resolution is queued. It will be marked resolved only after the server confirms it.";
+      card.append(pending);
+    } else {
+      const actions = document.createElement("div");
+      actions.className = "conflict-actions";
+      const keep = document.createElement("button");
+      keep.type = "button";
+      keep.className = "button button-primary";
+      keep.textContent = "Keep my version";
+      keep.addEventListener("click", async () => {
+        keep.disabled = true;
+        remoteChoice.disabled = true;
+        try {
+          await phase2SyncStore.resolveKeepLocal(conflict);
+          await refreshPhase2ConflictView();
+          await runPhase2EntitySync();
+        } catch (error) {
+          setPhase2SyncState("Conflict resolution could not be queued. Both versions remain preserved. " + (error instanceof Error ? error.message : ""), true);
+          await refreshPhase2ConflictView();
+        } finally {
+          keep.disabled = false;
+          remoteChoice.disabled = false;
+        }
+      });
+      const remoteChoice = document.createElement("button");
+      remoteChoice.type = "button";
+      remoteChoice.className = "button button-secondary";
+      remoteChoice.textContent = "Use remote version";
+      remoteChoice.addEventListener("click", async () => {
+        keep.disabled = true;
+        remoteChoice.disabled = true;
+        try {
+          await phase2SyncStore.resolveUseRemote(conflict);
+          await refreshOwnerView();
+          setPhase2SyncState("Remote version applied by your choice. Conflict history and superseded operations are retained.");
+        } catch (error) {
+          setPhase2SyncState("Remote version was not applied. Both versions remain preserved. " + (error instanceof Error ? error.message : ""), true);
+          await refreshPhase2ConflictView();
+        } finally {
+          keep.disabled = false;
+          remoteChoice.disabled = false;
+        }
+      });
+      actions.append(keep, remoteChoice);
+      card.append(actions);
+    }
+    phase2ConflictList.append(card);
+  }
+}
+
+async function runPhase2EntitySync(session = activeSession) {
+  if (!session?.user?.id || session.user.id !== activeSession?.user?.id) {
+    setPhase2SyncState(isSupabaseConfigured() ? "Sign in and load your business profile to sync Phase 2 records." : "Local-only mode: Phase 2 records remain on this device.");
+    await refreshPhase2ConflictView();
+    return;
+  }
+  if (!currentOwnerProfile?.id) {
+    setPhase2SyncState("Create or load the account's Business Profile before syncing Phase 2 records.");
+    await refreshPhase2ConflictView();
+    return;
+  }
+  if (!isSupabaseConfigured()) {
+    setPhase2SyncState("Supabase is not configured. Phase 2 records remain safely queued on this device.");
+    return;
+  }
+  if (!navigator.onLine) {
+    setPhase2SyncState("Offline. Phase 2 changes remain queued locally and will retry when online.");
+    return;
+  }
+  if (phase2SyncRunning) return;
+  phase2SyncRunning = true;
+  if (phase2SyncButton) phase2SyncButton.disabled = true;
+  try {
+    const scope = scopeForBusinessProfile({ ownerId: session.user.id, profileId: currentOwnerProfile.id });
+    await phase2SyncStore.recoverInterrupted(scope.ownerId, scope.businessId);
+    const summary = await syncPhase2Operations({
+      ownerId: scope.ownerId, businessId: scope.businessId, session, store: phase2SyncStore,
+      send: (operation, currentSession) => sendPhase2EntityOperation(operation, currentSession),
+    });
+    await refreshPhase2ConflictView();
+    if (summary.pausedForAuth) setPhase2SyncState("Authentication needs attention. Phase 2 operations are preserved and paused.", true);
+    else if (summary.conflicts) setPhase2SyncState("A Phase 2 conflict needs review. Both local and remote versions are preserved.", true);
+    else if (summary.failed) setPhase2SyncState("A Phase 2 operation was rejected. Local data is preserved; review the operation before retrying.", true);
+    else if (summary.retried) setPhase2SyncState("A temporary sync failure occurred. The same operation IDs remain queued for retry.", true);
+    else if (summary.synced) setPhase2SyncState("Phase 2 sync acknowledged " + summary.synced + " operation(s).");
+    else setPhase2SyncState("Phase 2 sync checked the queue. No due operations were sent.");
+  } catch (error) {
+    setPhase2SyncState("Phase 2 sync could not complete. Local records and outbox operations remain preserved. " + (error instanceof Error ? error.message : ""), true);
+  } finally {
+    phase2SyncRunning = false;
+    if (phase2SyncButton) phase2SyncButton.disabled = false;
+  }
+}
+
+function entitySaveMessage() {
+  if (!activeSession?.user?.id) return "Saved on this device only. Sign in to queue account sync.";
+  if (!navigator.onLine) return "Saved locally and queued; sync will resume when online.";
+  return "Saved locally and queued for account sync.";
+}
+
 
 async function showUnresolvedConflict(ownerId) {
   if (!conflictPanel) return;
