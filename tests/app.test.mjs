@@ -97,8 +97,8 @@ test("ingredient catalog uses shared owner/business storage and atomically queue
   const database = await read("../src/business-data-store.js");
   assert.match(database, /const DATABASE_NAME = "kitchai-business-data"/);
   assert.match(database, /kitchai-ingredients/);
-  assert.match(database, /keyPath: \["ownerId", "businessId", "id"\]/);
-  assert.match(database, /createIndex\("byScope", \["ownerId", "businessId"\]/);
+  assert.match(database, /\["ingredients", \["ownerId", "businessId", "id"\]/);
+  assert.match(database, /\["byScope", \["ownerId", "businessId"\]\]/);
   assert.match(store, /enqueueEntityOperation/);
   assert.match(store, /tx\.objectStore\("operations"\)/);
   assert.match(store, /status: existing\?\.status \?\? "active"/);
