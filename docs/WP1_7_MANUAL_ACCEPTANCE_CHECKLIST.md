@@ -80,6 +80,30 @@ Fill this section for each actual manual session; leave fields blank rather than
 - Follow-up issue/PR:
 - Explicitly deferred checks and rationale:
 
+## Owner-reported Android test evidence — 2026-10-12
+
+**Evidence source:** Owner's written report in ChatGPT. No screenshot, exact browser/version, Android OS version, or deployed URL was provided; these details remain unrecorded.
+
+### Local persistence checks reported by owner
+
+- [x] Entered sample data, closed the app, reopened it, and confirmed the data remained.
+- [x] Edited data, refreshed the page, and confirmed the edited values remained.
+- [x] Went offline, refreshed, and confirmed data remained available.
+- [x] Edited data while offline, refreshed, and confirmed the edits remained.
+- [x] Reconnected to the internet, then refreshed, and confirmed the data remained available.
+
+**Interpretation:** These results support persistence across app restart/refresh and availability during offline refresh in the tested environment. They do **not** prove that offline edits synchronized to a cloud backend, that another device received the edits, or that account isolation/recovery passed. The preview is intended to have no configured Supabase backend, so cloud-sync acceptance remains unverified.
+
+**Session details:**
+- Date: 2026-10-12 (recorded from this conversation; exact test time not provided)
+- Tester: Project owner
+- Device: Android phone (model and OS version not provided)
+- Browser/version: Not provided
+- Test environment / URL: Static preview environment; exact URL not provided in the report
+- Evidence: Owner's written test report; no screenshot link provided
+- Follow-up: Complete remaining install/launch and accessibility checks where feasible. Review automated recovery evidence; do not use scarce Coding AI credits for work that can be recorded manually.
+- Still unverified: desktop checks, PWA install/launch, accessibility checks, storage-quota recovery, cloud sync, cross-device sync, account isolation, hosted auth, production readiness.
+
 ## Exit decision
 
 WP1.7 may be closed only after the automated evidence is green, concrete manual evidence is recorded or the owner explicitly accepts specific manual-only items as deferred, remaining limitations are documented, and no unresolved critical security/data-loss issue remains. Hosted-provider validation and production readiness are outside this local-only gate.
