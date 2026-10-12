@@ -224,10 +224,12 @@ test("large text at narrow viewport does not introduce horizontal overflow", asy
   const dimensions = await page.evaluate(() => ({
     viewport: document.documentElement.clientWidth,
     content: document.documentElement.scrollWidth,
+    root: { htmlWidth: document.documentElement.clientWidth, htmlScroll: document.documentElement.scrollWidth, bodyWidth: document.body.clientWidth, bodyScroll: document.body.scrollWidth, bodyRect: Math.round(document.body.getBoundingClientRect().width) },
     overflowing: [...document.querySelectorAll("body *")].map((element) => {
       const rect = element.getBoundingClientRect();
-      return { tag: element.tagName, id: element.id, className: typeof element.className === "string" ? element.className : "", right: Math.round(rect.right), width: Math.round(rect.width), scrollWidth: element.scrollWidth, clientWidth: element.clientWidth, text: (element.textContent ?? "").trim().slice(0, 70) };
-    }).filter((element) => element.right > document.documentElement.clientWidth + 1).sort((a, b) => b.right - a.right).slice(0, 12),
+      const style = getComputedStyle(element);
+      return { tag: element.tagName, id: element.id, className: typeof element.className === "string" ? element.className : "", left: Math.round(rect.left), right: Math.round(rect.right), width: Math.round(rect.width), scrollWidth: element.scrollWidth, clientWidth: element.clientWidth, whiteSpace: style.whiteSpace, text: (element.textContent ?? "").trim().slice(0, 50) };
+    }).filter((element) => element.right > document.documentElement.clientWidth + 1 || element.scrollWidth > element.clientWidth + 2).sort((a, b) => b.right - a.right).slice(0, 20),
   }));
   expect(dimensions.content, JSON.stringify(dimensions.overflowing)).toBeLessThanOrEqual(dimensions.viewport);
   await expect(page.getByRole("heading", { name: "Good work starts with a clear view." })).toBeVisible();
