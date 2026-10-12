@@ -82,6 +82,28 @@ test("dependencies block child dispatch until the parent is synced", async () =>
   assert.equal(store.calls.some(call => call[0] === "release" && call[1] === "child"), true);
 });
 
+test("dependent update refreshes its base revision after the parent operation is acknowledged", async () => {
+  const parent = operation({ operationId: "parent", recordId: "ingredient-1", state: "synced" });
+  const child = operation({ operationId: "child", operation: "update", baseRevision: null, state: "blocked_dependency", dependsOnOperationIds: ["parent"] });
+  const store = fakeStore([parent, child], {
+    async prepareForDispatch(item) {
+      return item.operationId === "child" ? { ...item, baseRevision: 3, baseSnapshot: { name: "Remote base" } } : item;
+    },
+  });
+  let sent;
+  const result = await syncPhase2Operations({
+    ownerId: "owner-1", businessId: "local-profile-1", session, store,
+    async send(item) {
+      sent = item;
+      return { status: "accepted", remoteRecord: { id: item.recordId, owner_id: "owner-1", business_id: "remote", revision: 4 } };
+    },
+  });
+  assert.equal(result.synced, 1);
+  assert.equal(sent.operationId, "child");
+  assert.equal(sent.baseRevision, 3);
+  assert.deepEqual(sent.baseSnapshot, { name: "Remote base" });
+});
+
 test("a conflict preserves base, local, and remote snapshots and is not retried", async () => {
   const queued = operation({ baseRevision: 1, baseSnapshot: { name: "Old" }, localSnapshot: { name: "Local" } });
   const store = fakeStore([queued]);
