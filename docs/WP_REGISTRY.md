@@ -101,11 +101,12 @@ Planning documents do not count as implementation completion. WP1.1 completion m
 
 ### WP2.1 — Domain Rules & Data Contract
 - **Priority:** Blocking
-- **Status:** Review required (proposed contract documented; repository reconciliation and acceptance review remain)
+- **Status:** Complete (logical contract reconciled with current repository baseline; implementation remains unstarted)
 - **Dependencies:** Phase 1 local-only foundation; Phase 2 plan
 - **Scope:** define menu item, ingredient, recipe, and recipe-ingredient entities; ownership/business partitioning; lifecycle; validation; initial unit allowlist; migration compatibility; sync constraints; and unresolved decisions.
 - **Current artifact:** [PHASE_2_DOMAIN_CONTRACT.md](./PHASE_2_DOMAIN_CONTRACT.md).
-- **Acceptance evidence still required:** reconcile the logical contract with the actual source, IndexedDB versions, migration patterns, sync payloads, and tests; record any discrepancy before marking complete. No runtime code or schema migration is included in this WP.
+- **Reconciliation evidence:** reviewed `src/local-store.js` (kitchai-local v1), `src/sync-store.js` (kitchai-sync v2), `src/sync-engine.js`, `src/supabase-api.js`, both current Business Profile SQL migrations, and the current test/package baseline. Documented that Phase 2 entities do not yet exist, the two IndexedDB databases version independently, Phase 1 uses separate profile/outbox/conflict stores, and current remote SQL supports only Business Profile plus idempotency. Text length and migration compatibility notes now distinguish the existing Phase 1 behavior from the proposed Phase 2 contract.
+- **Completion boundary:** the domain contract and repository reconciliation are complete; no Phase 2 runtime code or schema migration is included. WP2.2 may begin as a bounded local-first ingredient catalog implementation. Syncing new entities remains gated on WP2.5 and must not be implied by local persistence.
 - **Not allowed:** silently choosing advanced conversions, permanent deletion/tombstones, costing/accounting, inventory deduction, hosted schema rollout, or production provisioning.
 
 ### WP2.2 — Ingredient Catalog & Validation
