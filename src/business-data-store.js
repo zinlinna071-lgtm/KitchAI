@@ -270,6 +270,163 @@ async function migrateLegacyPhase2Data(db) {
   return counts;
 }
 
+/**
+ * Queue all legacy records for their first entity sync. The ledger flag and operation
+ * are committed in the same transaction, so a restart between migration and queueing
+ * safely resumes without duplicating operations.
+ * @param {IDBDatabase} db
+ */
+async function queueLegacyMigrationOperations(db) {
+  const entityTypeByStore = { ingredients: "ingredient", menuItems: "menuItem", recipes: "recipe", recipeLines: "recipeLine" };
+  const sourceOrder = new Map(LEGACY_SOURCES.map((source, index) => [source.store, index]));
+  const coalescibleStates = new Set(["pending", "retryable_error", "needs_auth", "blocked_dependency"]);
+  const dependenciesFor = (record, entityType) => {
+    if (entityType === "recipe") return [{ entityType: "menuItem", recordId: record.menuItemId }];
+    if (entityType === "recipeLine") return [
+      { entityType: "recipe", recordId: record.recipeId },
+      { entityType: "ingredient", recordId: record.ingredientId },
+    ];
+    return [];
+  };
+  const payloadFor = (record, entityType) => {
+    if (entityType === "ingredient" || entityType === "menuItem") {
+      return { name: record.name, ...(record.description ? { description: record.description } : {}), status: record.status };
+    }
+    if (entityType === "recipe") {
+      return {
+        menuItemId: record.menuItemId,
+        name: record.name,
+        ...(record.description ? { description: record.description } : {}),
+        ...(record.instructions ? { instructions: record.instructions } : {}),
+        ...(record.yieldPortions !== undefined ? { yieldPortions: record.yieldPortions } : {}),
+        status: record.status,
+      };
+    }
+    return {
+      recipeId: record.recipeId,
+      ingredientId: record.ingredientId,
+      quantity: record.quantity,
+      unit: record.unit,
+      position: record.position,
+      ...(record.note ? { note: record.note } : {}),
+    };
+  };
+
+  await new Promise((resolve, reject) => {
+    const tx = db.transaction([...ENTITY_STORES, OPERATIONS, SYNC_METADATA, MIGRATION_LEDGER], "readwrite");
+    const ledger = tx.objectStore(MIGRATION_LEDGER);
+    const operations = tx.objectStore(OPERATIONS);
+    const syncMetadata = tx.objectStore(SYNC_METADATA);
+    let failure = null;
+    const fail = (error) => {
+      if (failure) return;
+      failure = error instanceof Error ? error : new Error("Could not queue legacy entity migration.");
+      try { tx.abort(); } catch {}
+    };
+    tx.oncomplete = resolve;
+    tx.onerror = () => { if (!failure) failure = tx.error ?? new Error("Legacy entity outbox transaction failed."); };
+    tx.onabort = () => reject(failure ?? tx.error ?? new Error("Legacy entity outbox transaction was aborted."));
+
+    const allRequest = ledger.getAll();
+    allRequest.onerror = () => fail(allRequest.error ?? new Error("Could not inspect the migration ledger."));
+    allRequest.onsuccess = () => {
+      const entries = allRequest.result
+        .filter((entry) => entry.needsOutbox !== false)
+        .sort((a, b) => (sourceOrder.get(a.sourceStore) ?? 99) - (sourceOrder.get(b.sourceStore) ?? 99));
+      const processEntry = (index) => {
+        if (failure || index >= entries.length) return;
+        const entry = entries[index];
+        const recordRequest = tx.objectStore(entry.sourceStore).get(entry.targetKey);
+        recordRequest.onerror = () => fail(recordRequest.error ?? new Error("Could not read a migrated entity for outbox queueing."));
+        recordRequest.onsuccess = () => {
+          if (failure) return;
+          const record = recordRequest.result;
+          if (!record) {
+            fail(new Error("A migration-ledger target is missing; source data remains preserved for review."));
+            return;
+          }
+          const entityType = entityTypeByStore[entry.sourceStore];
+          const scope = { ownerId: record.ownerId, businessId: record.businessId, entityType, recordId: record.id };
+          const queuedRequest = operations.index("byOwnerBusinessEntityRecord").getAll([
+            scope.ownerId, scope.businessId, scope.entityType, scope.recordId,
+          ]);
+          queuedRequest.onerror = () => fail(queuedRequest.error ?? new Error("Could not inspect an entity's existing outbox operations."));
+          queuedRequest.onsuccess = () => {
+            if (failure) return;
+            const queued = queuedRequest.result.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+            const latest = queued.at(-1);
+            const metadataRequest = syncMetadata.get([scope.ownerId, scope.businessId, scope.entityType, scope.recordId]);
+            metadataRequest.onerror = () => fail(metadataRequest.error ?? new Error("Could not read entity sync metadata during migration."));
+            metadataRequest.onsuccess = () => {
+              if (failure) return;
+              const remote = metadataRequest.result;
+              const dependencies = dependenciesFor(record, entityType);
+              const dependencyIds = [];
+              let remaining = dependencies.length;
+              const finishDependencies = () => {
+                if (remaining !== 0 || failure) return;
+                const dependsOnOperationIds = [...new Set(dependencyIds)];
+                const payload = payloadFor(record, entityType);
+                if (latest && coalescibleStates.has(latest.state)) {
+                  operations.put({
+                    ...latest,
+                    payload: structuredClone(payload),
+                    localSnapshot: structuredClone(record),
+                    dependsOnOperationIds,
+                    ...(dependsOnOperationIds.length === 1 ? { dependsOnOperationId: dependsOnOperationIds[0] } : { dependsOnOperationId: undefined }),
+                    state: dependsOnOperationIds.length ? "blocked_dependency" : latest.state === "blocked_dependency" || latest.state === "retryable_error" ? "pending" : latest.state,
+                    updatedAt: new Date().toISOString(),
+                  });
+                } else {
+                  if (latest && latest.state !== "synced" && !dependsOnOperationIds.includes(latest.operationId)) {
+                    dependsOnOperationIds.push(latest.operationId);
+                  }
+                  const operation = {
+                    operationId: crypto.randomUUID(),
+                    ...scope,
+                    operation: remote && Number.isInteger(remote.revision) ? "update" : "create",
+                    baseRevision: remote && Number.isInteger(remote.revision) ? remote.revision : null,
+                    baseSnapshot: remote?.lastSyncedSnapshot ? structuredClone(remote.lastSyncedSnapshot) : null,
+                    localSnapshot: structuredClone(record),
+                    payload: structuredClone(payload),
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString(),
+                    attemptCount: 0,
+                    state: dependsOnOperationIds.length ? "blocked_dependency" : "pending",
+                    nextAttemptAt: 0,
+                    dependsOnOperationIds,
+                    ...(dependsOnOperationIds.length === 1 ? { dependsOnOperationId: dependsOnOperationIds[0] } : {}),
+                  };
+                  operations.add(operation);
+                }
+                ledger.put({ ...entry, needsOutbox: false, outboxQueuedAt: new Date().toISOString() });
+                processEntry(index + 1);
+              };
+              for (const dependency of dependencies) {
+                const request = operations.index("byOwnerBusinessEntityRecord").getAll([
+                  scope.ownerId, scope.businessId, dependency.entityType, dependency.recordId,
+                ]);
+                request.onerror = () => fail(request.error ?? new Error("Could not inspect a parent entity operation during migration."));
+                request.onsuccess = () => {
+                  const parentOperations = request.result
+                    .filter((operation) => operation.state !== "synced")
+                    .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+                  const parent = parentOperations.at(-1);
+                  if (parent) dependencyIds.push(parent.operationId);
+                  remaining--;
+                  finishDependencies();
+                };
+              }
+              finishDependencies();
+            };
+          };
+        };
+      };
+      processEntry(0);
+    };
+  });
+}
+
 /** Open the shared Phase 2 entity database only after legacy data is reconciled. */
 export function openBusinessDatabase() {
   if (databasePromise) return databasePromise;
