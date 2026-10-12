@@ -376,10 +376,23 @@ test("recipe workflow links menu items and ingredients, validates activation, an
   await expect(line).toContainText("275 g");
 
   const isolation = await page.evaluate(async () => {
+    const request = indexedDB.open("kitchai-local", 1);
+    const profile = await new Promise((resolve, reject) => {
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => {
+        const tx = request.result.transaction("profiles", "readonly");
+        const read = tx.objectStore("profiles").getAll();
+        read.onsuccess = () => { resolve(read.result[0]); request.result.close(); };
+        read.onerror = () => reject(read.error);
+      };
+    });
     const module = await import("/src/recipe-store.js");
-    const own = await module.listRecipes({ ownerId: "local:recipe-business", businessId: "recipe-business" });
-    const other = await module.listRecipes({ ownerId: "different-owner", businessId: "recipe-business" });
-    return { own: own.length, other: other.length };
+    const scope = { ownerId: "local:" + profile.businessId, businessId: profile.businessId };
+    const own = await module.listRecipes(scope);
+    const other = await module.listRecipes({ ownerId: "different-owner", businessId: profile.businessId });
+    return { own, other };
   });
-  expect(isolation.other).toBe(0);
+  expect(isolation.own).toHaveLength(1);
+  expect(isolation.own[0].name).toBe("House Noodle Soup");
+  expect(isolation.other).toHaveLength(0);
 });
