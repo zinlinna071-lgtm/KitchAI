@@ -21,6 +21,12 @@ window.addEventListener("online", updateConnectionStatus);
 window.addEventListener("offline", updateConnectionStatus);
 updateConnectionStatus();
 
+const basePathMeta = /** @type {HTMLMetaElement | null} */ (document.querySelector('meta[name="kitchai-base-path"]'));
+const configuredBasePath = basePathMeta?.content ?? "/";
+const appBasePath = configuredBasePath.startsWith("/") && configuredBasePath.endsWith("/")
+  ? configuredBasePath
+  : "/";
+
 /** @type {BeforeInstallPromptEvent | undefined} */
 let installPrompt;
 window.addEventListener("beforeinstallprompt", (event) => {
@@ -42,7 +48,8 @@ window.addEventListener("appinstalled", () => {
 });
 if ("serviceWorker" in navigator && window.location.protocol !== "file:") {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/sw.js").catch((error) => console.error("KitchAI offline support could not be registered.", error));
+    navigator.serviceWorker.register(`${appBasePath}sw.js`, { scope: appBasePath })
+      .catch((error) => console.error("KitchAI offline support could not be registered.", error));
   });
 }
 

@@ -1,0 +1,80 @@
+name: Static test preview
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "index.html"
+      - "public/**"
+      - "src/**"
+      - "scripts/**"
+      - "tests/**"
+      - "package.json"
+      - ".spikes/wp1-1-local-sync/pages-preview.playwright.config.js"
+      - ".spikes/wp1-1-local-sync/tests/pages-preview.smoke.spec.js"
+      - ".github/workflows/pages-preview.yml"
+      - "docs/MOBILE_TEST_PREVIEW.md"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: static-test-preview-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Verify static test preview
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Run existing type, regression, and root build checks
+        run: npm run check
+      - name: Build and inspect GitHub Pages preview artifact
+        run: npm run check:pages-preview
+      - name: Install isolated Chromium test dependencies
+        run: npm ci --prefix .spikes/wp1-1-local-sync
+      - name: Test project path, auth visibility, 404 fallback, and offline scope
+        working-directory: .spikes/wp1-1-local-sync
+        run: npx playwright test --config pages-preview.playwright.config.js
+      - name: Retain manually requested Pages artifact
+        if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: kitchai-static-test-preview
+          path: dist/
+          retention-days: 2
+
+  deploy-preview:
+    name: Publish temporary static test preview
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    needs: verify
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      actions: read
+      contents: read
+      pages: write
+      id-token: write
+    steps:
+      - name: Configure GitHub Pages deployment
+        uses: actions/configure-pages@v5
+      - name: Download the verified static preview artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: kitchai-static-test-preview
+          path: dist
+      - name: Prepare GitHub Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+      - name: Deploy test preview
+        id: deployment
+        uses: actions/deploy-pages@v4
