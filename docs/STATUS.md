@@ -49,6 +49,6 @@
 - Do not mark implementation work complete based on documentation alone.
 - WP1.1–WP1.5 local gates are complete. WP1.6 must integrate the Business Profile vertical slice against local/emulated Supabase only; the sync engine is transport-injected and does not contact a hosted service by itself. Hosted provider tests, cloud provisioning, billing, secrets, and deployment remain separately gated.
 
-## Next action
+## Current Phase 2 milestone
 
-The owner has explicitly accepted deferring non-critical manual-only checks until the app is more complete. WP1.7 is closed for the local-only Phase 1 milestone based on green automated integration/security/data-integrity evidence, with those manual checks explicitly deferred rather than marked passed. Proceed to Phase 2 WP breakdown; keep deferred manual checks visible for the later app-completion/release-readiness pass. Hosted provisioning, billing, production credentials, and deployment remain unauthorized. The [decision log](./DECISIONS.md) is canonical for accepted decisions and their boundaries.
+PR #24 merged Phase 2 planning in `docs/PHASE_2_PLAN.md`. WP2.1's proposed logical domain contract is documented in `docs/PHASE_2_DOMAIN_CONTRACT.md`; it remains review-required until reconciled with actual source, database versions, sync contracts, and tests. Next: finish WP2.1 reconciliation and acceptance evidence, then implement WP2.2 ingredient catalog as a bounded change. Keep Phase 1 manual-only deferrals visible for later app-completion/release-readiness. Hosted provisioning, billing, production credentials, and deployment remain unauthorized. The [decision log](./DECISIONS.md) is canonical for accepted decisions and their boundaries.
