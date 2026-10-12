@@ -624,6 +624,7 @@ test("WP2.5b migrates legacy entities to stable profile scope and preserves conc
     await module.saveIngredient(scope, { id: "ingredient-1", name: "New app edit" });
     const first = await module.listIngredients(scope);
     await module.saveIngredient(scope, { id: "ingredient-1", name: "New app edit v2" });
+    const latest = await module.listIngredients(scope);
     const db = await new Promise((resolve, reject) => {
       const request = indexedDB.open("kitchai-business-data");
       request.onsuccess = () => resolve(request.result);
@@ -636,9 +637,10 @@ test("WP2.5b migrates legacy entities to stable profile scope and preserves conc
       request.onerror = () => reject(request.error);
       tx.oncomplete = () => db.close();
     });
-    return { first: first[0], operations };
+    return { first: first[0], latest: latest[0], operations };
   });
-  expect(queued.first.name).toBe("New app edit v2");
+  expect(queued.first.name).toBe("New app edit");
+  expect(queued.latest.name).toBe("New app edit v2");
   expect(queued.operations).toHaveLength(1);
   expect(queued.operations[0]).toMatchObject({ operation: "create", state: "pending", baseRevision: null });
   expect(queued.operations[0].payload.name).toBe("New app edit v2");
