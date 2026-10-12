@@ -750,7 +750,7 @@ async function runPhase2EntitySync(session = activeSession) {
 }
 
 function entitySaveMessage() {
-  if (!activeSession?.user?.id) return "Saved on this device only. Sign in to queue account sync.";
+  if (!activeSession?.user?.id) return "Changes saved on this device only. Sign in to queue account sync.";
   if (!navigator.onLine) return "Saved locally and queued; sync will resume when online.";
   return "Saved locally and queued for account sync.";
 }
