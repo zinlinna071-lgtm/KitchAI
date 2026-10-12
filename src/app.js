@@ -1,4 +1,5 @@
 import { readLocalProfile, saveLocalProfile } from "./local-store.js";
+import { scopeForBusinessProfile } from "./business-data-store.js";
 import {
   adoptRemoteProfile, acknowledge, applyRemoteAndResolve, keepLocalAndResolve,
   listConflicts, listOperations, listOwnerProfiles, markInFlight, markPermanentFailure,
@@ -103,11 +104,11 @@ let editingMenuItemId = null;
 
 function activeMenuScope() {
   if (activeSession?.user?.id) {
-    if (!currentOwnerProfile?.businessId) return null;
-    return { ownerId: activeSession.user.id, businessId: currentOwnerProfile.businessId };
+    if (!currentOwnerProfile?.id) return null;
+    return scopeForBusinessProfile({ ownerId: activeSession.user.id, profileId: currentOwnerProfile.id });
   }
-  if (!currentProfile?.businessId) return null;
-  return { ownerId: "local:" + currentProfile.businessId, businessId: currentProfile.businessId };
+  if (!currentProfile?.id) return null;
+  return scopeForBusinessProfile({ profileId: currentProfile.id, local: true });
 }
 
 /** @param {string} message @param {boolean=} isError */
@@ -461,11 +462,11 @@ function setRecipeOptionsWithoutScope() {
 /** A signed-in workspace never falls back to another local identity's catalog. */
 function activeIngredientScope() {
   if (activeSession?.user?.id) {
-    if (!currentOwnerProfile?.businessId) return null;
-    return { ownerId: activeSession.user.id, businessId: currentOwnerProfile.businessId };
+    if (!currentOwnerProfile?.id) return null;
+    return scopeForBusinessProfile({ ownerId: activeSession.user.id, profileId: currentOwnerProfile.id });
   }
-  if (!currentProfile?.businessId) return null;
-  return { ownerId: "local:" + currentProfile.businessId, businessId: currentProfile.businessId };
+  if (!currentProfile?.id) return null;
+  return scopeForBusinessProfile({ profileId: currentProfile.id, local: true });
 }
 
 /** @param {string} message @param {boolean=} isError */

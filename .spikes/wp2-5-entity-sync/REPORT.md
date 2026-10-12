@@ -23,7 +23,7 @@
 
 Prefer a dedicated, versioned `kitchai-business-data` database containing `ingredients`, `menuItems`, `recipes`, `recipeLines`, `operations`, and `metadata`. Keep the Phase 1 `kitchai-sync` database and profile transport unchanged. The Phase 2 entity outbox can reuse Phase 1's *behavioral invariants*—stable operation IDs, server-authoritative ownership, idempotent retry, revision checks, conflict snapshots, auth pause, and sign-out isolation—without coupling entity acknowledgement to the profile store.
 
-This is a recommendation for implementation review, not an already-applied migration. Do not silently replace or clear any existing database. The eventual migration must be additive and idempotent, preserve stable IDs/timestamps/relationships, pause legacy writes while copying, record a durable completion marker in the target transaction, and leave all source databases untouched until post-migration verification passes.
+This is a recommendation for implementation review, not an already-applied migration. Do not silently replace or clear any existing database. The production migration must be additive and idempotent, map old local partitions to stable Business Profile IDs, preserve stable entity IDs/timestamps/relationships, and record a durable completion marker and per-record source/target snapshots in the target transaction. On subsequent loads, legacy-only changes are reconciled if the target is unchanged; divergent concurrent changes abort and preserve both copies. Source databases are never deleted.
 
 ## Disposable prototype
 

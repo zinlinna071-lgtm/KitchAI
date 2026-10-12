@@ -150,7 +150,9 @@ Acceptance:
 - A valid entity mutation and its pending operation commit atomically in the selected database.
 - Existing Phase 1 profile/outbox/conflict data remain untouched and readable.
 - Re-running or interrupting migration cannot duplicate or silently drop ingredients, menu items, recipes, or recipe lines.
-- Operations carry stable operation IDs, owner/business scope, entity type, record ID, operation kind, base revision, validated payload, and the snapshots needed for conflict recovery.
+- Map old entity partitions to the stable Business Profile ID so the local scope does not change when the server assigns a different remote business ID.
+- A migration ledger records source and target snapshots. Legacy-only edits are reconciled when the target is unchanged; concurrent divergent edits abort migration and preserve both copies for explicit review.
+- Operations carry stable operation IDs, owner/business scope, entity type, record ID, operation kind, base revision, validated payload, and the snapshots needed for conflict recovery. Pending creates/updates for the same record coalesce without changing operation ID.
 - Related entity changes are ordered safely; unsupported deletes remain out of scope.
 - Sign-out and account switching cannot dispatch another owner's operation.
 

@@ -6,6 +6,7 @@ import { readLocalProfile, saveLocalProfile, validateBusinessName } from "../src
 import { validateIngredient } from "../src/ingredient-store.js";
 import { validateMenuItem } from "../src/menu-item-store.js";
 import { validateRecipe, validateRecipeLine } from "../src/recipe-store.js";
+import { scopeForBusinessProfile } from "../src/business-data-store.js";
 const read=path=>readFile(new URL(path,import.meta.url),"utf8");
 test("document has accessible landmarks, viewport metadata, and clear scope",async()=>{
  const html=await read("../index.html");
@@ -91,14 +92,19 @@ test("ingredient validation trims fields and counts Unicode code points", () => 
   assert.throws(() => validateIngredient({ name: "Salt", description: "x".repeat(2001) }), /2,000 characters or fewer/);
 });
 
-test("ingredient catalog implementation is local-only and partitioned by owner and business", async () => {
+test("ingredient catalog uses shared owner/business storage and atomically queues mutations", async () => {
   const store = await read("../src/ingredient-store.js");
-  assert.match(store, /const DATABASE_NAME = "kitchai-ingredients"/);
-  assert.match(store, /keyPath: \["ownerId", "businessId", "id"\]/);
-  assert.match(store, /createIndex\("byScope", \["ownerId", "businessId"\]/);
+  const database = await read("../src/business-data-store.js");
+  assert.match(database, /const DATABASE_NAME = "kitchai-business-data"/);
+  assert.match(database, /kitchai-ingredients/);
+  assert.match(database, /\["ingredients", \["ownerId", "businessId", "id"\]/);
+  assert.match(database, /\["byScope", \["ownerId", "businessId"\]\]/);
+  assert.match(database, /store\.createIndex\(indexName, path, \{ unique: false \}\)/);
+  assert.match(database, /const MIGRATION_LEDGER = "migrationLedger"/);
+  assert.match(store, /enqueueEntityOperation/);
+  assert.match(store, /tx\.objectStore\("operations"\)/);
   assert.match(store, /status: existing\?\.status \?\? "active"/);
   assert.match(store, /status !== "active" && status !== "archived"/);
-  assert.match(store, /no remote sync is claimed or queued in WP2\.2/i);
 });
 
 test("menu item validation trims fields and counts Unicode code points", () => {
@@ -113,12 +119,13 @@ test("menu item validation trims fields and counts Unicode code points", () => {
   assert.throws(() => validateMenuItem({ name: "Soup", description: "x".repeat(2001) }), /2,000 characters or fewer/);
 });
 
-test("menu item store remains local-only and partitioned by owner and business", async () => {
+test("menu item store uses shared owner/business storage and atomically queues mutations", async () => {
   const store = await read("../src/menu-item-store.js");
-  assert.match(store, /const DATABASE_NAME = "kitchai-menu"/);
-  assert.match(store, /keyPath: \["ownerId", "businessId", "id"\]/);
-  assert.match(store, /createIndex\("byScope", \["ownerId", "businessId"\]/);
-  assert.match(store, /Recipe links and remote sync are future WPs/i);
+  const database = await read("../src/business-data-store.js");
+  assert.match(database, /const DATABASE_NAME = "kitchai-business-data"/);
+  assert.match(database, /kitchai-menu/);
+  assert.match(store, /enqueueEntityOperation/);
+  assert.match(store, /tx\.objectStore\("operations"\)/);
   assert.match(store, /status !== "active" && status !== "archived"/);
 });
 
@@ -154,15 +161,27 @@ test("recipe ingredient lines enforce finite positive quantities, exact units, p
   assert.throws(() => validateRecipeLine({ recipeId: "r", ingredientId: "i", quantity: 1, unit: "g", position: 0, note: "x".repeat(501) }), /500 characters or fewer/);
 });
 
-test("recipe store uses owner/business partitioned versioned stores and explicit unit policy", async () => {
+test("recipe store uses shared partitioned storage and atomically queues recipe and line changes", async () => {
   const store = await read("../src/recipe-store.js");
-  assert.match(store, /const DATABASE_NAME = "kitchai-recipes"/);
-  assert.match(store, /const DATABASE_VERSION = 1/);
-  assert.match(store, /keyPath: \["ownerId", "businessId", "id"\]/);
-  assert.match(store, /byScopeMenuItem/);
-  assert.match(store, /byRecipePosition/);
+  const database = await read("../src/business-data-store.js");
+  assert.match(database, /const DATABASE_NAME = "kitchai-business-data"/);
+  assert.match(database, /kitchai-recipes/);
+  assert.match(database, /byScopeMenuItem/);
+  assert.match(database, /byRecipePosition/);
+  assert.match(store, /enqueueEntityOperation/);
+  assert.match(store, /entityType: "recipe"/);
+  assert.match(store, /entityType: "recipeLine"/);
   assert.match(store, /new Set\(\["g", "kg", "ml", "l", "each"\]\)/);
   assert.match(store, /status === "archived"/);
   assert.match(store, /createdAt: existing\?\.createdAt \?\? now/);
-  assert.match(store, /byScopeMenuItem/);
+});
+
+test("entity scope stays stable when the server assigns a different remote business ID", () => {
+  assert.deepEqual(scopeForBusinessProfile({ profileId: "profile-1", local: true }), {
+    ownerId: "local:profile-1", businessId: "profile-1",
+  });
+  assert.deepEqual(scopeForBusinessProfile({ ownerId: "owner-1", profileId: "profile-1" }), {
+    ownerId: "owner-1", businessId: "profile-1",
+  });
+  assert.throws(() => scopeForBusinessProfile({ ownerId: "owner-1", profileId: "" }), /Business Profile ID is required/);
 });
