@@ -120,18 +120,22 @@ Planning documents do not count as implementation completion. WP1.1 completion m
 - **Status:** Complete (local-only workflow; baseline, browser, and Local Supabase regression gates passed)
 - **Dependencies:** WP2.1 and WP2.2
 - **Implementation:** PR [#27](https://github.com/zinlinna071-lgtm/KitchAI/pull/27) merged to main as `19fe1a39dfb1b2c254aecd9faa69c041fa4c4760`. Separate `kitchai-menu` IndexedDB v1 store, owner/business partitioning, validation, create/list/edit/archive/reactivate, responsive UI, and offline precaching.
-- **Verification:** Main-branch baseline [run 38233845463](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38233845463) and application shell/browser [run 38233845452](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38233845452) passed. Post-merge Phase 1 Local Supabase regression [run 38233845498](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38233845498) was still running at this update; do not claim it passed until completed.
+- **Verification:** Main-branch baseline [run 38233845463](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38233845463) and application shell/browser [run 38233845452](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38233845452) passed. The later main-branch Phase 1 Local Supabase regression [run 38237714165](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38237714165) also passed with Phase 2 source present.
 - **Boundary:** Menu items are local-only. Recipe association belongs to WP2.4; new-entity sync remains WP2.5. No pricing, taxes, modifiers, sales availability, inventory consumption, destructive deletion, or cloud-sync claims.
 
 ### WP2.4 — Recipe & Ingredient Lines
-- **Status:** Implementation in progress on `feat/wp2-4-recipe-domain`; CI/review pending
+- **Status:** Complete for the local-only milestone; all required automated gates passed
 - **Dependencies:** WP2.1, WP2.2, and WP2.3
-- **Scope:** owner/business-partitioned local recipes and ingredient lines, recipe lifecycle (draft/active/archived), one current recipe per menu item, finite positive quantity/yield validation, exact `g`, `kg`, `ml`, `l`, `each` allowlist, same-business relationship validation, reload durability, and accessible UI.
-- **Boundary:** No unit conversion, ingredient deletion, line deletion, costing, inventory deduction, remote schema, or cloud-sync claims. Sync integration remains WP2.5.
+- **Implementation:** PR [#28](https://github.com/zinlinna071-lgtm/KitchAI/pull/28) merged to main as `7ac52371fb3b603eac5035e8320fa5386a087fb5`. Separate `kitchai-recipes` IndexedDB v1 stores recipes and ingredient lines with owner/business compound keys, draft/active/archived lifecycle, relationship validation, exact unit allowlist, accessible UI, and offline precaching.
+- **Verification:** Main-branch baseline [run 38237714151](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38237714151), app-shell/browser [run 38237714136](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38237714136), PR-head static preview [run 38237452881](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38237452881), and main-branch Local Supabase regression [run 38237714165](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38237714165) passed.
+- **Boundary:** Recipes and ingredient lines are local-only. No remote schema, sync queue, unit conversion, line deletion, costing, inventory deduction, or cloud-sync claim; new-entity sync remains WP2.5.
 
 ### WP2.5 — Local-first Sync & Conflict Integration
-- **Status:** Not started; blocking for any newly synced entity
+- **Status:** Planning breakdown added in PR #29; WP2.5a is next after the plan merges
 - **Dependencies:** WP2.2–WP2.4 and verified Phase 1 sync contracts
+- **Sub-WP sequence:** WP2.5a sync/storage architecture spike → WP2.5b atomic entity outbox and migration → WP2.5c remote schema/RLS/idempotency (local Supabase only) → WP2.5d client transport/retry/conflict integration.
+- **Design concern:** WP2.2, WP2.3, and WP2.4 currently use independent IndexedDB databases, while Phase 1's outbox is in `kitchai-sync`. A record and outbox operation cannot be committed atomically across those databases. WP2.5a must compare alternatives and test migration/recovery before any sync implementation.
+- **Guardrails:** No hosted provisioning, production secrets, billing, or deployment; never claim cloud sync until remote-path tests and evidence pass.
 
 ### WP2.6 — Integration, Regression & Phase Exit
 - **Status:** Not started; blocking for Phase 2 exit
