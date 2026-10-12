@@ -241,3 +241,84 @@ test("Phase 2 ingredient, menu item, recipe, and recipe line sync end to end aga
   await expect(page.locator("#recipe-list")).toContainText("Integration Mushroom Soup Base");
   await expect(page.locator("#recipe-line-list")).toContainText("250 g");
 });
+
+test("Phase 2 ingredient conflicts preserve both candidates and support explicit remote/local resolution", async ({ page, context }) => {
+  await createAccount(page);
+  await page.locator("#business-name").fill("Phase Two Conflict Kitchen");
+  await page.getByRole("button", { name: "Save profile" }).click();
+  await expect(page.locator("#profile-state")).toContainText("Synced with your account · revision 1", { timeout: 15000 });
+
+  await page.locator("#ingredient-name").fill("Conflict Test Ingredient");
+  await page.locator("#ingredient-description").fill("Initial synced value");
+  await page.getByRole("button", { name: "Add ingredient", exact: true }).click();
+  const ingredientRow = page.locator("#ingredient-list li").filter({ hasText: "Conflict Test Ingredient" });
+  await expect(ingredientRow).toBeVisible();
+  await expect.poll(async () => page.evaluate(async () => {
+    const auth = JSON.parse(sessionStorage.getItem("kitchai.auth.session"));
+    const sync = await import("/src/phase2-sync-engine.js");
+    const profiles = await import("/src/sync-store.js");
+    const profile = (await profiles.listOwnerProfiles(auth.user.id))[0];
+    const operations = await sync.createPhase2SyncStore().listOperations(auth.user.id, profile.id);
+    return operations.filter(item => item.entityType === "ingredient").map(item => item.state);
+  }), { timeout: 15000 }).toEqual(["synced"]);
+
+  async function queueLocalEdit(name) {
+    await context.setOffline(true);
+    const row = page.locator("#ingredient-list li").filter({ hasText: /Conflict Test Ingredient|Remote Candidate Ingredient|Local Kept Candidate/ }).first();
+    await row.getByRole("button", { name: "Edit" }).click();
+    await page.locator("#ingredient-name").fill(name);
+    await page.getByRole("button", { name: "Save changes" }).click();
+    await expect(page.locator("#ingredient-list")).toContainText(name);
+    return await page.evaluate(async () => {
+      const auth = JSON.parse(sessionStorage.getItem("kitchai.auth.session"));
+      const sync = await import("/src/phase2-sync-engine.js");
+      const profiles = await import("/src/sync-store.js");
+      const profile = (await profiles.listOwnerProfiles(auth.user.id))[0];
+      const operations = await sync.createPhase2SyncStore().listOperations(auth.user.id, profile.id);
+      const operation = operations.filter(item => item.entityType === "ingredient" && item.operation === "update" && item.state === "pending").at(-1);
+      if (!operation) throw new Error("Expected a pending offline ingredient update.");
+      return operation;
+    });
+  }
+
+  async function createRemoteWinner(operation, name) {
+    const result = await page.evaluate(async ({ operation, name }) => {
+      const auth = JSON.parse(sessionStorage.getItem("kitchai.auth.session"));
+      const sync = await import("/src/phase2-sync-engine.js");
+      return sync.sendPhase2EntityOperation({
+        ...operation,
+        operationId: crypto.randomUUID(),
+        payload: { ...operation.payload, name },
+        localSnapshot: { ...operation.localSnapshot, name },
+      }, auth);
+    }, { operation, name });
+    expect(result.status).toBe("accepted");
+    expect(result.remoteRecord.revision).toBe(operation.baseRevision + 1);
+  }
+
+  const firstLocal = await queueLocalEdit("Local Candidate Ingredient");
+  await createRemoteWinner(firstLocal, "Remote Candidate Ingredient");
+  await context.setOffline(false);
+
+  const conflicts = page.locator("#phase2-conflict-list");
+  await expect(conflicts).toBeVisible({ timeout: 15000 });
+  await expect(conflicts).toContainText("Conflict Test Ingredient");
+  await expect(conflicts).toContainText("Local Candidate Ingredient");
+  await expect(conflicts).toContainText("Remote Candidate Ingredient");
+  await conflicts.getByRole("button", { name: "Use remote version" }).click();
+  await expect(page.locator("#ingredient-list")).toContainText("Remote Candidate Ingredient");
+  await expect(conflicts).toBeHidden({ timeout: 10000 });
+
+  const secondLocal = await queueLocalEdit("Local Kept Candidate");
+  await createRemoteWinner(secondLocal, "Remote Newer Candidate");
+  await context.setOffline(false);
+
+  await expect(conflicts).toBeVisible({ timeout: 15000 });
+  await expect(conflicts).toContainText("Local Kept Candidate");
+  await expect(conflicts).toContainText("Remote Newer Candidate");
+  await conflicts.getByRole("button", { name: "Keep my version" }).click();
+  await expect(page.locator("#ingredient-list")).toContainText("Local Kept Candidate", { timeout: 15000 });
+  await expect(conflicts).toBeHidden({ timeout: 15000 });
+  await expect(page.locator("#phase2-sync-state")).toContainText(/acknowledged|checked the queue/i);
+});
+
