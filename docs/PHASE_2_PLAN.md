@@ -172,7 +172,9 @@ Acceptance:
 #### WP2.5d — Client transport, retry, conflict review, and recovery
 
 **Dependencies:** WP2.5b and WP2.5c  
-**Deliverables:** Entity-specific or safely generalized transport adapters, acknowledgement/retry behavior, conflict preservation and resolution, and truthful UI sync states.
+**Execution split:** WP2.5d1 establishes tested entity transport, dependency-aware dispatch, durable acknowledgement/retry/auth pause, and conflict snapshot persistence. WP2.5d2 wires the engine into the authenticated app lifecycle and adds owner-scoped conflict review/resolution UI and end-to-end recovery evidence. These are sequential gates; WP2.5d is not complete until both are reviewed.
+
+**WP2.5d1 deliverables:** Entity-specific or safely generalized RPC transport, dependency-aware outbox processing, durable acknowledgement/retry/auth pause, interrupted-operation recovery, and conflict snapshot persistence primitives. No UI claim that sync is active until WP2.5d2 integrates the path.
 
 Acceptance:
 - Acknowledgement updates local revision/state and removes the operation only after durable success.
@@ -223,7 +225,7 @@ These are planning defaults, not approval to add unrelated features. The Coding 
 
 ## 6. Suggested implementation order
 
-WP2.1 → WP2.2 → WP2.3 → WP2.4 → WP2.5a → WP2.5b → WP2.5c → WP2.5d → WP2.6.
+WP2.1 → WP2.2 → WP2.3 → WP2.4 → WP2.5a → WP2.5b → WP2.5c → WP2.5d1 → WP2.5d2 → WP2.6.
 
 WP2.5 may be split into smaller implementation WPs if the existing sync contract requires a substantial adapter or entity-specific migration; document the split before implementation rather than hiding a large change inside a feature WP.
 
