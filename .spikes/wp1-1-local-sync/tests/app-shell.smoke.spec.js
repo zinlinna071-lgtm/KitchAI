@@ -136,7 +136,7 @@ test("owner-scoped outbox persists atomically and conflict snapshots survive res
     const ownerAProfiles = await sync.listOwnerProfiles("owner-a");
     const ownerBProfiles = await sync.listOwnerProfiles("owner-b");
     await sync.acknowledge(coalesced.operation.operationId, "owner-a", {
-      id: coalesced.profile.id, businessId: coalesced.profile.businessId, name: coalesced.profile.name,
+      id: coalesced.profile.id, businessId: coalesced.profile.id, name: coalesced.profile.name,
       createdAt: coalesced.profile.createdAt, updatedAt: new Date(Date.now() + 1).toISOString(), revision: 1,
     });
     const syncedState = (await sync.listOwnerProfiles("owner-a"))[0].syncState;
@@ -144,7 +144,7 @@ test("owner-scoped outbox persists atomically and conflict snapshots survive res
       ownerId: "owner-a", id: created.profile.id, name: "Alpha Kitchen Local", baseRevision: 1,
     });
     await sync.preserveConflict(edited.operation, {
-      id: created.profile.id, businessId: created.profile.businessId, name: "Alpha Kitchen Remote",
+      id: created.profile.id, businessId: created.profile.id, name: "Alpha Kitchen Remote",
       createdAt: created.profile.createdAt, updatedAt: new Date(Date.now() + 2).toISOString(), revision: 2,
     });
     const conflicts = await sync.listConflicts("owner-a");
@@ -258,13 +258,13 @@ test("local ingredient catalog creates, edits, archives, reloads, and stays in i
       };
     });
     const store = await import("/src/ingredient-store.js");
-    const sameScope = await store.listIngredients({ ownerId: "local:" + profile.businessId, businessId: profile.businessId });
-    const otherScope = await store.listIngredients({ ownerId: "other-owner", businessId: profile.businessId });
+    const sameScope = await store.listIngredients({ ownerId: "local:" + profile.id, businessId: profile.id });
+    const otherScope = await store.listIngredients({ ownerId: "other-owner", businessId: profile.id });
     return { profile, sameScope, otherScope };
   });
   expect(partitionResult.sameScope).toHaveLength(1);
   expect(partitionResult.sameScope[0].name).toBe("Fresh basil");
-  expect(partitionResult.sameScope[0].ownerId).toBe("local:" + partitionResult.profile.businessId);
+  expect(partitionResult.sameScope[0].ownerId).toBe("local:" + partitionResult.profile.id);
   expect(partitionResult.otherScope).toHaveLength(0);
 
   await page.reload();
@@ -308,13 +308,13 @@ test("local menu workflow creates, edits, archives, reloads, and stays in its bu
       };
     });
     const store = await import("/src/menu-item-store.js");
-    const sameScope = await store.listMenuItems({ ownerId: "local:" + profile.businessId, businessId: profile.businessId });
-    const otherScope = await store.listMenuItems({ ownerId: "other-owner", businessId: profile.businessId });
+    const sameScope = await store.listMenuItems({ ownerId: "local:" + profile.id, businessId: profile.id });
+    const otherScope = await store.listMenuItems({ ownerId: "other-owner", businessId: profile.id });
     return { profile, sameScope, otherScope };
   });
   expect(partitionResult.sameScope).toHaveLength(1);
   expect(partitionResult.sameScope[0].name).toBe("Noodle Soup");
-  expect(partitionResult.sameScope[0].ownerId).toBe("local:" + partitionResult.profile.businessId);
+  expect(partitionResult.sameScope[0].ownerId).toBe("local:" + partitionResult.profile.id);
   expect(partitionResult.otherScope).toHaveLength(0);
 
   await page.reload();
@@ -391,9 +391,9 @@ test("recipe workflow links menu items and ingredients, validates activation, an
       };
     });
     const module = await import("/src/recipe-store.js");
-    const scope = { ownerId: "local:" + profile.businessId, businessId: profile.businessId };
+    const scope = { ownerId: "local:" + profile.id, businessId: profile.id };
     const own = await module.listRecipes(scope);
-    const other = await module.listRecipes({ ownerId: "different-owner", businessId: profile.businessId });
+    const other = await module.listRecipes({ ownerId: "different-owner", businessId: profile.id });
     return { own, other };
   });
   expect(isolation.own).toHaveLength(1);
@@ -411,11 +411,11 @@ test("recipe workflow links menu items and ingredients, validates activation, an
       };
     });
     const recipes = await import("/src/recipe-store.js");
-    const ownScope = { ownerId: "local:" + profile.businessId, businessId: profile.businessId };
+    const ownScope = { ownerId: "local:" + profile.id, businessId: profile.id };
     const ownRecipes = await recipes.listRecipes(ownScope);
     const lines = await recipes.listRecipeLines(ownScope, ownRecipes[0].id);
     try {
-      await recipes.saveRecipeLine({ ownerId: "different-owner", businessId: profile.businessId }, {
+      await recipes.saveRecipeLine({ ownerId: "different-owner", businessId: profile.id }, {
         recipeId: ownRecipes[0].id,
         ingredientId: lines[0].ingredientId,
         quantity: 1,
