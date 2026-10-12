@@ -224,8 +224,12 @@ test("large text at narrow viewport does not introduce horizontal overflow", asy
   const dimensions = await page.evaluate(() => ({
     viewport: document.documentElement.clientWidth,
     content: document.documentElement.scrollWidth,
+    overflowing: [...document.querySelectorAll("body *")].map((element) => {
+      const rect = element.getBoundingClientRect();
+      return { tag: element.tagName, id: element.id, className: typeof element.className === "string" ? element.className : "", right: Math.round(rect.right), width: Math.round(rect.width), scrollWidth: element.scrollWidth, clientWidth: element.clientWidth, text: (element.textContent ?? "").trim().slice(0, 70) };
+    }).filter((element) => element.right > document.documentElement.clientWidth + 1).sort((a, b) => b.right - a.right).slice(0, 12),
   }));
-  expect(dimensions.content).toBeLessThanOrEqual(dimensions.viewport);
+  expect(dimensions.content, JSON.stringify(dimensions.overflowing)).toBeLessThanOrEqual(dimensions.viewport);
   await expect(page.getByRole("heading", { name: "Good work starts with a clear view." })).toBeVisible();
   await expect(page.getByRole("textbox", { name: "Business name" })).toBeVisible();
 });
