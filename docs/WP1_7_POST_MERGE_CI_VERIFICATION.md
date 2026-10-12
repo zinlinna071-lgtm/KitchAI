@@ -2,35 +2,38 @@
 
 ## Result
 
-The latest checked main-branch CI for the UI-status correction and its subsequent documentation update is green. This satisfies the automated workflow verification item for these commits only; it does **not** close WP1.7 or Phase 1.
+PR [#21](https://github.com/zinlinna071-lgtm/KitchAI/pull/21) merged to `main` as documentation-only merge commit `d1341bd9586e5b77ebcaf992d1437e80771fd954`. Its only changed file is `docs/WP1_7_MANUAL_ACCEPTANCE_CHECKLIST.md`; the application-code parent remains `1b7169f7569fe012ffacfca44356bb144d86f86d`.
 
-| Workflow | Commit | Run | Result |
+The three code workflows below passed on that parent application-code commit. Their path filters correctly did not rerun on the documentation-only PR #21 merge. The static test-preview workflow also passed on the new merge commit. This is valid automated evidence for the unchanged application code, but it does **not** close WP1.7 or Phase 1.
+
+| Workflow | Tested commit | Run | Result |
 |---|---|---|---|
-| Local Supabase integration | `f5f05158337ce84d80ea698b070ed13ae7598de5` | [38189391159](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38189391159) | Success |
-| Baseline checks | `f5f05158337ce84d80ea698b070ed13ae7598de5` | [38189391199](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38189391199) | Success |
-| Application shell | `f5f05158337ce84d80ea698b070ed13ae7598de5` | [38189391200](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38189391200) | Success |
-| Baseline checks after documentation update | `6dbe587fe3ac4d1ff0a9a8d48ca157d1173bfac2` | [38189491782](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38189491782) | Success |
-
-The local Supabase job completed successfully with no failed steps. The latest docs-commit baseline run reports both “Browser tests and dependency checks” and “Application shell checks and production build” as successful.
+| Baseline checks (WP1.2) | `1b7169f7569fe012ffacfca44356bb144d86f86d` | [38224312266](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38224312266) | Success |
+| Application shell | `1b7169f7569fe012ffacfca44356bb144d86f86d` | [38224312431](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38224312431) | Success |
+| Local Supabase integration | `1b7169f7569fe012ffacfca44356bb144d86f86d` | [38224312312](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38224312312) | Success |
+| Verify static test preview | `d1341bd9586e5b77ebcaf992d1437e80771fd954` | [38228933877](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38228933877) | Success |
+| Publish temporary static test preview | `d1341bd9586e5b77ebcaf992d1437e80771fd954` | [38228933877](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38228933877) | Success |
 
 ## What this establishes
 
-- Automated local Supabase integration for the `f5f0515` merge commit completed successfully.
-- Baseline and app-shell workflows for `f5f0515` passed.
-- Baseline checks for the later documentation-only commit `6dbe587` passed.
-- These are local/emulated checks; they do not validate a hosted Supabase project, cross-device hosted sync, production operations, or actual device installation/accessibility.
+- The latest checked application-code commit passed baseline, app-shell, and local Supabase integration workflows.
+- PR #21 changed only the manual acceptance checklist; no application code, database migration, or workflow configuration changed.
+- Both jobs in the static preview workflow succeeded on the PR #21 merge commit.
+- Existing local Supabase authorization and browser vertical-slice coverage remains the relevant automated evidence. These are local/emulated tests, not hosted-provider authorization.
+- CI screenshots are temporary artifacts; the GitHub Pages preview is a static test preview, not evidence of hosted authentication or remote sync.
 
 ## WP1.7 remains open
 
 The manual acceptance checklist remains authoritative: [WP1_7_MANUAL_ACCEPTANCE_CHECKLIST.md](./WP1_7_MANUAL_ACCEPTANCE_CHECKLIST.md).
 
-Still needing actual results or an explicit owner decision to defer:
-- Android and desktop real-browser PWA install/launch checks, where supported.
-- Real-browser offline/reconnection acceptance using only a disposable test account and approved local test environment.
-- Keyboard-only, skip-link, screen-reader, 200% zoom, contrast, and focus review.
-- Final recovery review for storage interruption/quota limitations using disposable data only.
+The owner reported that all steps from the latest manual preview/acceptance instructions were completed successfully. The report is preserved as owner-reported evidence. Device/OS and browser versions, actual test URL, screenshots, exact per-check results, and recovery observations were not supplied, so this document does not claim independent verification or mark individual manual checks passed.
 
-No manual result is asserted by this document. Do not use real or sensitive business data for these checks.
+Remaining closure work:
+- Record sufficiently specific results for the manual session, including environment metadata and any issue observed; do not invent missing details.
+- Confirm which PWA install/launch checks were applicable on Android and desktop.
+- Record the accessibility checks actually performed (including keyboard/focus, zoom, screen reader where available, and contrast); Android system-font scaling is explicitly deferred by owner decision.
+- Ensure storage interruption/quota scenarios not safely tested remain documented as unverified or are explicitly deferred with rationale.
+- Confirm there is no unresolved critical security or data-loss issue.
 
 ## Guardrails
 

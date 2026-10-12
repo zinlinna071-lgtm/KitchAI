@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-10-12  
 **Current branch:** main  
-**Overall state:** WP1.1–WP1.6 implementation gates passed and are merged to main. PR #18 (`c67504b`) is merged; its accessibility smoke tests passed on the PR head: local Supabase integration [38190575289](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38190575289), app shell [38190575294](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38190575294), and baseline [38190575298](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38190575298). WP1.7 remains open for manual-only acceptance and recovery review. No hosted resources are provisioned.
+**Overall state:** WP1.1–WP1.6 implementation gates passed and are merged to main. PR #21 merged as documentation-only commit `d1341bd9586e5b77ebcaf992d1437e80771fd954`; it changed only `docs/WP1_7_MANUAL_ACCEPTANCE_CHECKLIST.md`. Baseline [38224312266](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38224312266), app shell [38224312431](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38224312431), and local Supabase [38224312312](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38224312312) passed on unchanged application-code parent `1b7169f7569fe012ffacfca44356bb144d86f86d`; static preview [38228933877](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38228933877) passed on the merge commit. WP1.7 remains open for sufficiently specific manual acceptance evidence and recovery review. No hosted resources are provisioned.
 
 ## Repository audit
 

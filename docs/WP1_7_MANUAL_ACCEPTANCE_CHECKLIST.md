@@ -58,7 +58,7 @@ Use only a disposable test account and sample profile, and only an environment e
 
 **Evidence source:** Owner's written report in ChatGPT. No screenshot, exact device/OS, browser/version, or deployed URL was provided.
 
-- [ ] **Android system font scaling: DEFERRED — owner-reported.** Increasing font size in Android phone Settings does not increase text size in the app. No fix is planned for the current milestone.
+- [x] **Android system font scaling: DEFERRED — owner-reported.** Increasing font size in Android phone Settings does not increase text size in the app. No fix is planned for the current milestone.
 - [x] Owner reports checks “2” and “3” passed. Their exact mapping to individual checklist items was not specified, so no specific items are inferred from that report.
 - [ ] Accessibility overall remains not fully verified. The system-font-scaling issue is deferred; all other checks remain pending unless separately evidenced.
 
@@ -71,7 +71,7 @@ Use only a disposable test account and sample profile, and only an environment e
 - [x] Owner reports the instructed manual steps were completed successfully.
 - [ ] Detailed per-check evidence and environment metadata: not yet recorded.
 - [ ] This report does not establish hosted authentication, cloud sync, backup, or production readiness. The GitHub Pages preview is static/local-only; any local draft/offline behavior must not be represented as remote sync.
-- [ ] Keep WP1.7 open until the latest required automated workflows are verified on the same main-branch commit and the acceptance record is sufficiently specific to support closure.
+- [ ] Keep WP1.7 open until the manual acceptance record is sufficiently specific to support closure. Automated checks are verified against the unchanged application-code commit; the PR #21 merge changed documentation only.
 
 ## D. Recovery boundary
 
@@ -82,9 +82,9 @@ Use only a disposable test account and sample profile, and only an environment e
 
 ## E. Automated evidence already required
 
-- [ ] Confirm the latest main-branch baseline, app-shell, and local Supabase integration workflows are green on the same merge commit.
-- [ ] Confirm the local Supabase database authorization suite and browser vertical-slice tests passed.
-- [ ] Confirm screenshots are treated as temporary CI artifacts, not a public deployment or a hosted application URL.
+- [x] Confirm baseline, app-shell, and local Supabase integration workflows passed on the latest application-code commit `1b7169f7569fe012ffacfca44356bb144d86f86d`. PR #21 merged as `d1341bd9586e5b77ebcaf992d1437e80771fd954` and changed only this checklist, so path-filtered code workflows correctly did not rerun on that docs-only merge. See [post-merge verification](./WP1_7_POST_MERGE_CI_VERIFICATION.md).
+- [x] Confirm the local Supabase database authorization suite and browser vertical-slice tests passed in the recorded WP1.6/local integration workflow evidence.
+- [x] Confirm screenshots are temporary CI artifacts and the GitHub Pages URL is a static test preview, not a hosted application or evidence of remote sync.
 
 ## Evidence record
 
