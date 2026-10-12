@@ -117,7 +117,7 @@ Planning documents do not count as implementation completion. WP1.1 completion m
 - **Boundary:** Ingredient changes are local-only. No ingredient sync queue, remote table, or hosted schema was added; new-entity sync remains WP2.5.
 
 ### WP2.3 — Menu Item Workflow
-- **Status:** Implementation merged; post-merge Phase 1 Local Supabase regression gate pending
+- **Status:** Complete (local-only workflow; baseline, browser, and Local Supabase regression gates passed)
 - **Dependencies:** WP2.1 and WP2.2
 - **Implementation:** PR [#27](https://github.com/zinlinna071-lgtm/KitchAI/pull/27) merged to main as `19fe1a39dfb1b2c254aecd9faa69c041fa4c4760`. Separate `kitchai-menu` IndexedDB v1 store, owner/business partitioning, validation, create/list/edit/archive/reactivate, responsive UI, and offline precaching.
 - **Verification:** Main-branch baseline [run 38233845463](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38233845463) and application shell/browser [run 38233845452](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38233845452) passed. Post-merge Phase 1 Local Supabase regression [run 38233845498](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38233845498) was still running at this update; do not claim it passed until completed.
