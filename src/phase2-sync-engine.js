@@ -564,7 +564,7 @@ export async function readRemotePhase2Entity(entityType, recordId, session, requ
     if (!config.supabaseUrl || !config.supabaseAnonKey) throw new Error("Supabase is not configured.");
     let response;
     try {
-      response = await fetch(config.supabaseUrl.replace(/\\/$/, "") + path, {
+      response = await fetch((config.supabaseUrl.endsWith("/") ? config.supabaseUrl.slice(0, -1) : config.supabaseUrl) + path, {
         ...init,
         headers: {
           apikey: config.supabaseAnonKey,
