@@ -74,7 +74,7 @@ function openRawDatabase(name, version, initialize) {
   });
 }
 
-/** @param {string} databaseName @param {string} storeName */
+/** @param {string} databaseName */
 async function openLegacyDatabaseIfPresent(databaseName) {
   const factory = /** @type {any} */ (indexedDB);
   if (typeof factory.databases === "function") {
