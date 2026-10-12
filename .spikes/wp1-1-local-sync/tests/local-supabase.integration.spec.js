@@ -262,9 +262,9 @@ test("Phase 2 ingredient conflicts preserve both candidates and support explicit
     return operations.filter(item => item.entityType === "ingredient").map(item => item.state);
   }), { timeout: 15000 }).toEqual(["synced"]);
 
-  async function queueLocalEdit(name) {
+  async function queueLocalEdit(name, rowPattern) {
     await context.setOffline(true);
-    const row = page.locator("#ingredient-list li").filter({ hasText: /Conflict Test Ingredient|Remote Candidate Ingredient|Local Kept Candidate/ }).first();
+    const row = page.locator("#ingredient-list li").filter({ hasText: new RegExp(rowPattern) }).first();
     await row.getByRole("button", { name: "Edit" }).click();
     await page.locator("#ingredient-name").fill(name);
     await page.getByRole("button", { name: "Save changes" }).click();
@@ -303,7 +303,7 @@ test("Phase 2 ingredient conflicts preserve both candidates and support explicit
     expect(result.remoteRecord.revision).toBe(operation.baseRevision + 1);
   }
 
-  const firstLocal = await queueLocalEdit("Local Candidate Ingredient");
+  const firstLocal = await queueLocalEdit("Local Candidate Ingredient", "Conflict Test Ingredient|Remote Candidate Ingredient|Local Candidate Ingredient");
   await createRemoteWinner(firstLocal, "Remote Candidate Ingredient");
   await context.setOffline(false);
 
@@ -329,7 +329,22 @@ test("Phase 2 ingredient conflicts preserve both candidates and support explicit
     return operations.filter(item => item.entityType === "ingredient").map(item => item.state);
   }), { timeout: 15000 }).toContain("synced");
 
-  const secondLocal = await queueLocalEdit("Local Kept Candidate");
+  // Use a separate synced ingredient for the Keep-local path. This keeps the
+  // second scenario independent of the first entity's resolved outbox history.
+  await page.locator("#ingredient-name").fill("Keep Local Test Ingredient");
+  await page.locator("#ingredient-description").fill("Separate entity for Keep-local resolution");
+  await page.getByRole("button", { name: "Add ingredient", exact: true }).click();
+  await expect(page.locator("#ingredient-list")).toContainText("Keep Local Test Ingredient");
+  await expect.poll(async () => page.evaluate(async () => {
+    const auth = JSON.parse(sessionStorage.getItem("kitchai.auth.session"));
+    const sync = await import("/src/phase2-sync-engine.js");
+    const profiles = await import("/src/sync-store.js");
+    const profile = (await profiles.listOwnerProfiles(auth.user.id))[0];
+    const operations = await sync.createPhase2SyncStore().listOperations(auth.user.id, profile.id);
+    return operations.filter(item => item.entityType === "ingredient" && item.localSnapshot?.name === "Keep Local Test Ingredient").map(item => item.state);
+  }), { timeout: 15000 }).toEqual(["synced"]);
+
+  const secondLocal = await queueLocalEdit("Local Kept Candidate", "Keep Local Test Ingredient|Remote Newer Candidate|Local Kept Candidate");
   await createRemoteWinner(secondLocal, "Remote Newer Candidate");
   await context.setOffline(false);
 
