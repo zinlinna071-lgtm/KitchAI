@@ -1,5 +1,5 @@
 const DATABASE_NAME = "kitchai-business-data";
-const DATABASE_VERSION = 1;
+const DATABASE_VERSION = 2;
 const ENTITY_STORES = ["ingredients", "menuItems", "recipes", "recipeLines"];
 const OPERATIONS = "operations";
 const SYNC_METADATA = "syncMetadata";
@@ -61,6 +61,12 @@ function createSchema(db) {
     db.createObjectStore(MIGRATION_LEDGER, {
       keyPath: ["sourceDatabase", "sourceStore", "sourceOwnerId", "sourceBusinessId", "sourceRecordId"],
     });
+  }
+  if (!db.objectStoreNames.contains("conflicts")) {
+    const store = db.createObjectStore("conflicts", { keyPath: "conflictId" });
+    store.createIndex("byOwnerBusiness", ["ownerId", "businessId"], { unique: false });
+    store.createIndex("byOwnerState", ["ownerId", "state"], { unique: false });
+    store.createIndex("byOwnerBusinessRecord", ["ownerId", "businessId", "entityType", "recordId"], { unique: false });
   }
 }
 
