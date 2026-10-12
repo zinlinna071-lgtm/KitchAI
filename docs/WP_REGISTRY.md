@@ -143,8 +143,11 @@ Planning documents do not count as implementation completion. WP1.1 completion m
 - **Guardrails:** No hosted provisioning, production secrets, billing, or deployment; never claim cloud sync until remote-path tests and evidence pass.
 
 ### WP2.6 — Integration, Regression & Phase Exit
-- **Status:** In progress; blocking for Phase 2 exit
-- **Current implementation:** Adding an authenticated local-Supabase Playwright vertical slice for all four Phase 2 entity types, durable operation acknowledgements, and reload persistence. CI results are pending on the PR.
+- **Status:** Integration gates passing; acceptance review remains open and blocks Phase 2 exit
+- **Current implementation:** PR [#35](https://github.com/zinlinna071-lgtm/KitchAI/pull/35), commit [b92d435](https://github.com/zinlinna071-lgtm/KitchAI/commit/b92d4359b963e3b2f403a08ae30dfaffa929c275), adds an authenticated local-Supabase Playwright scenario that creates an ingredient, menu item, recipe, and recipe line while offline; reconnects; verifies all four operations are acknowledged with unique IDs and positive remote revisions; and verifies all records survive reload.
+- **Verification:** PR-head Local Supabase [run 38267857368](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38267857368) passed 77 pgTAP assertions and six Playwright scenarios. Baseline [run 38267857725](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38267857725), app-shell [run 38267857817](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38267857817), and static preview [run 38267857550](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38267857550) passed at the same code commit. Local/emulated Supabase only.
+- **Still open before Phase 2 exit:** Add or explicitly defer a Phase 2 app-level conflict-resolution browser scenario covering preserved base/local/remote candidates and the Keep-local/Use-remote choices; verify owner isolation and schema/migration upgrade behavior across the shared Phase 2 entity store; reconcile the IndexedDB/outbox atomicity design note against the current migration/runtime; and record the final known-limitations/acceptance decision. Existing unit and SQL tests cover sync-engine conflict snapshots, dependency ordering/retry, RLS/owner partitioning, revision conflicts, and idempotency, but do not by themselves prove the entire Phase 2 conflict UI and migration lifecycle in the browser.
+- **Guardrails:** Phase 2 exit is not declared. No hosted provider testing, provisioning, billing, production secrets, or production deployment.
 - **Dependencies:** WP2.1–WP2.4 and WP2.5a–WP2.5d
 
 Planning artifacts do not count as implementation completion. Implement one bounded WP at a time and retain Phase 1 regression gates.
