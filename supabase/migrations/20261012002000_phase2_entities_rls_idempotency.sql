@@ -253,7 +253,7 @@ begin
     end if;
   else
     if p_entity_type in ('ingredient','menu_item','recipe') then
-      v_name := pg_catalog.btrim(p_payload->>'name');
+      v_name := nullif(pg_catalog.btrim(p_payload->>'name'), '');
       v_description := nullif(pg_catalog.btrim(p_payload->>'description'), '');
       v_status := coalesce(p_payload->>'status', case when p_entity_type='recipe' then 'draft' else 'active' end);
       if v_name is null or pg_catalog.char_length(v_name) > 120 then
