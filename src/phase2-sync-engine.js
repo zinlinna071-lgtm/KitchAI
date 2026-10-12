@@ -166,7 +166,8 @@ export function createPhase2SyncStore() {
       const entityType = operation.entityType;
       const table = TABLE_BY_TYPE[entityType];
       if (!table) throw new TypeError("Unsupported Phase 2 entity type.");
-      const normalized = normalizeRemoteEntity(entityType, remoteRecord);
+      const normalizedRemote = normalizeRemoteEntity(entityType, remoteRecord);
+      const normalized = normalizedRemote ? { ...normalizedRemote, businessId: operation.businessId } : null;
       if (!normalized || normalized.id !== operation.recordId || normalized.ownerId !== operation.ownerId) {
         throw new Error("Remote acknowledgement does not match the queued entity scope.");
       }
@@ -190,7 +191,8 @@ export function createPhase2SyncStore() {
       });
     },
     async preserveConflict(operation, remoteRecord) {
-      const normalized = normalizeRemoteEntity(operation.entityType, remoteRecord);
+      const normalizedRemote = normalizeRemoteEntity(operation.entityType, remoteRecord);
+      const normalized = normalizedRemote ? { ...normalizedRemote, businessId: operation.businessId } : null;
       if (!normalized || normalized.id !== operation.recordId || normalized.ownerId !== operation.ownerId) {
         throw new Error("Conflict response does not match the queued entity scope.");
       }
