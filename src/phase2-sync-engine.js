@@ -300,8 +300,20 @@ export function createPhase2SyncStore() {
       });
     },
     async markPermanentFailure(operation, message) {
-      await transaction(["operations"], "readwrite", tx => {
+      const stores = ["operations"];
+      if (operation.resolvesConflictId) stores.push("conflicts");
+      await transaction(stores, "readwrite", tx => {
         tx.objectStore("operations").put({ ...operation, state: "permanent_error", lastError: message, updatedAt: new Date().toISOString() });
+        if (operation.resolvesConflictId) {
+          const conflicts = tx.objectStore("conflicts");
+          const request = conflicts.get(operation.resolvesConflictId);
+          request.onsuccess = () => {
+            const conflict = request.result;
+            if (conflict && conflict.ownerId === operation.ownerId && conflict.businessId === operation.businessId) {
+              conflicts.put({ ...conflict, state: "unresolved", resolutionChoice: undefined, resolutionOperationId: undefined, lastResolutionError: message, updatedAt: new Date().toISOString() });
+            }
+          };
+        }
       });
     },
     async scheduleRetry(operation, attemptCount, nextAttemptAt, message) {
