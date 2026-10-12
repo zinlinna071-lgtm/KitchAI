@@ -400,7 +400,7 @@ export function createPhase2SyncStore() {
             const all = operationStore.index("byOwner").getAll(conflict.ownerId);
             all.onsuccess = () => {
               for (const candidate of all.result) {
-                if (candidate.businessId !== conflict.businessId || candidate.operationId === operation.operationId) continue;
+                if (candidate.businessId !== conflict.businessId || candidate.operationId === operation.operationId || ["synced", "permanent_error", "conflict", "superseded"].includes(candidate.state)) continue;
                 const dependencies = candidate.dependsOnOperationIds ?? (candidate.dependsOnOperationId ? [candidate.dependsOnOperationId] : []);
                 if (!dependencies.some(id => supersededIds.includes(id))) continue;
                 const nextDependencies = [...new Set(dependencies.map(id => supersededIds.includes(id) ? operation.operationId : id))];
@@ -459,7 +459,7 @@ export function createPhase2SyncStore() {
             const all = operationStore.index("byOwner").getAll(conflict.ownerId);
             all.onsuccess = () => {
               for (const candidate of all.result) {
-                if (candidate.businessId !== conflict.businessId || supersededIds.includes(candidate.operationId)) continue;
+                if (candidate.businessId !== conflict.businessId || supersededIds.includes(candidate.operationId) || ["synced", "permanent_error", "conflict", "superseded"].includes(candidate.state)) continue;
                 const dependencies = candidate.dependsOnOperationIds ?? (candidate.dependsOnOperationId ? [candidate.dependsOnOperationId] : []);
                 if (!dependencies.some(id => supersededIds.includes(id))) continue;
                 const nextDependencies = dependencies.filter(id => !supersededIds.includes(id));
