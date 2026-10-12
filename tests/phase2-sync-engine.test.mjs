@@ -70,7 +70,7 @@ test("transient failures preserve the operation ID and schedule a durable retry"
 
 test("dependencies block child dispatch until the parent is synced", async () => {
   const parent = operation({ operationId: "parent", recordId: "menu-1", entityType: "menuItem", state: "synced" });
-  const child = operation({ operationId: "child", entityType: "recipe", recordId: "recipe-1", dependsOnOperationIds: ["parent"] });
+  const child = operation({ operationId: "child", entityType: "recipe", recordId: "recipe-1", state: "blocked_dependency", dependsOnOperationIds: ["parent"] });
   const store = fakeStore([parent, child]);
   let sent = 0;
   const result = await syncPhase2Operations({
