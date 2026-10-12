@@ -242,7 +242,7 @@ test("Phase 2 ingredient, menu item, recipe, and recipe line sync end to end aga
   await expect(page.locator("#recipe-line-list")).toContainText("250 g");
 });
 
-test("Phase 2 ingredient conflicts preserve both candidates and support explicit remote/local resolution", async ({ page, context }) => {
+test("Phase 2 ingredient conflicts preserve both candidates and support explicit remote/local resolution", async ({ page, context, browser }) => {
   await createAccount(page);
   await page.locator("#business-name").fill("Phase Two Conflict Kitchen");
   await page.getByRole("button", { name: "Save profile" }).click();
@@ -281,9 +281,16 @@ test("Phase 2 ingredient conflicts preserve both candidates and support explicit
     });
   }
 
+  // Keep the app context offline while a separate online browser context
+  // simulates a concurrent remote writer. Browser-context offline mode also
+  // blocks fetch(), so issuing the competing write from the offline page fails
+  // before it can reach the local Supabase RPC.
+  const remotePage = await browser.newPage();
+  await remotePage.goto("/");
+
   async function createRemoteWinner(operation, name) {
-    const result = await page.evaluate(async ({ operation, name }) => {
-      const auth = JSON.parse(sessionStorage.getItem("kitchai.auth.session"));
+    const auth = await page.evaluate(() => JSON.parse(sessionStorage.getItem("kitchai.auth.session")));
+    const result = await remotePage.evaluate(async ({ operation, name, auth }) => {
       const sync = await import("/src/phase2-sync-engine.js");
       return sync.sendPhase2EntityOperation({
         ...operation,
@@ -291,7 +298,7 @@ test("Phase 2 ingredient conflicts preserve both candidates and support explicit
         payload: { ...operation.payload, name },
         localSnapshot: { ...operation.localSnapshot, name },
       }, auth);
-    }, { operation, name });
+    }, { operation, name, auth });
     expect(result.status).toBe("accepted");
     expect(result.remoteRecord.revision).toBe(operation.baseRevision + 1);
   }
