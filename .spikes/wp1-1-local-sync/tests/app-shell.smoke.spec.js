@@ -21,7 +21,7 @@ test("capture desktop and mobile UI previews for review", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "Good work starts with a clear view." })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Implemented for local testing" })).toBeVisible();
-  await expect(page.getByText("Hosted sync is not configured")).toBeVisible();
+  await expect(page.getByText("Hosted sync is not configured", { exact: true })).toBeVisible();
   await expect(page.getByText("Cloud identity and sync will be introduced only after their security checks.")).toHaveCount(0);
   await expect(page.getByText("Full operational pages arrive in later phases.")).toBeVisible();
   await page.setViewportSize({ width: 1365, height: 900 });
