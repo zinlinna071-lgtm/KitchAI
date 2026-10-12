@@ -239,7 +239,7 @@ test("local ingredient catalog creates, edits, archives, reloads, and stays in i
   await expect(name).toBeEnabled();
   await name.fill("  Fresh basil  ");
   await page.locator("#ingredient-description").fill("  Leaves for garnish  ");
-  await page.getByRole("button", { name: "Add ingredient" }).click();
+  await page.getByRole("button", { name: "Add ingredient", exact: true }).click();
   await expect(page.locator("#ingredient-state")).toContainText("saved on this device");
   let item = page.locator(".ingredient-list-item").filter({ hasText: "Fresh basil" });
   await expect(item).toContainText("Leaves for garnish");
@@ -337,7 +337,7 @@ test("recipe workflow links menu items and ingredients, validates activation, an
   await expect(page.locator("#profile-state")).toContainText("Saved on this device");
 
   await page.locator("#ingredient-name").fill("Rice noodles");
-  await page.getByRole("button", { name: "Add ingredient" }).click();
+  await page.getByRole("button", { name: "Add ingredient", exact: true }).click();
   await expect(page.locator("#ingredient-state")).toContainText("saved on this device");
   await expect(page.locator("#recipe-line-ingredient option", { hasText: "Rice noodles" })).toHaveCount(1);
 
