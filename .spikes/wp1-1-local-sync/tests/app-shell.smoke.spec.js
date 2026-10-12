@@ -239,7 +239,7 @@ test("local ingredient catalog creates, edits, archives, reloads, and stays in i
   await expect(name).toBeEnabled();
   await name.fill("  Fresh basil  ");
   await page.locator("#ingredient-description").fill("  Leaves for garnish  ");
-  await page.getByRole("button", { name: "Add ingredient" }).click();
+  await page.getByRole("button", { name: "Add ingredient", exact: true }).click();
   await expect(page.locator("#ingredient-state")).toContainText("saved on this device");
   let item = page.locator(".ingredient-list-item").filter({ hasText: "Fresh basil" });
   await expect(item).toContainText("Leaves for garnish");
@@ -328,4 +328,103 @@ test("local menu workflow creates, edits, archives, reloads, and stays in its bu
   await expect(item).toContainText("Archived");
   await item.getByRole("button", { name: "Reactivate" }).click();
   await expect(item).toContainText("Active");
+});
+
+test("recipe workflow links menu items and ingredients, validates activation, and preserves edited lines", async ({ page }) => {
+  await page.goto("/");
+  await page.locator("#business-name").fill("Recipe Test Kitchen");
+  await page.getByRole("button", { name: "Save profile" }).click();
+  await expect(page.locator("#profile-state")).toContainText("Saved on this device");
+
+  await page.locator("#ingredient-name").fill("Rice noodles");
+  await page.getByRole("button", { name: "Add ingredient", exact: true }).click();
+  await expect(page.locator("#ingredient-state")).toContainText("saved on this device");
+  await expect(page.locator("#recipe-line-ingredient option", { hasText: "Rice noodles" })).toHaveCount(1);
+
+  await page.locator("#menu-item-name").fill("Noodle Soup");
+  await page.getByRole("button", { name: "Add menu item" }).click();
+  await expect(page.locator("#menu-item-state")).toContainText("saved on this device");
+  await expect(page.locator("#recipe-menu-item option", { hasText: "Noodle Soup" })).toHaveCount(1);
+
+  await page.locator("#recipe-menu-item").selectOption({ label: "Noodle Soup" });
+  await page.locator("#recipe-name").fill("House Noodle Soup");
+  await page.locator("#recipe-instructions").fill("Simmer the broth, then add noodles.");
+  await page.locator("#recipe-yield").fill("2");
+  await page.getByRole("button", { name: "Save recipe draft" }).click();
+  let recipe = page.locator("#recipe-list .ingredient-list-item").filter({ hasText: "House Noodle Soup" });
+  await expect(recipe).toContainText("Draft");
+  await recipe.getByRole("button", { name: "Activate" }).click();
+  await expect(page.locator("#recipe-state")).toContainText("Add at least one ingredient line");
+  await expect(recipe).toContainText("Draft");
+  await page.locator("#recipe-line-ingredient").selectOption({ label: "Rice noodles" });
+  await page.locator("#recipe-line-quantity").fill("250");
+  await page.locator("#recipe-line-unit").selectOption("g");
+  await page.getByRole("button", { name: "Add ingredient line" }).click();
+  let line = page.locator("#recipe-line-list .ingredient-list-item").filter({ hasText: "Rice noodles" });
+  await expect(line).toContainText("250 g");
+
+  await line.getByRole("button", { name: "Edit line" }).click();
+  await page.locator("#recipe-line-quantity").fill("275");
+  await page.getByRole("button", { name: "Save line changes" }).click();
+  line = page.locator("#recipe-line-list .ingredient-list-item").filter({ hasText: "Rice noodles" });
+  await expect(line).toContainText("275 g");
+  await expect(page.locator("#recipe-line-list .ingredient-list-item")).toHaveCount(1);
+
+  await recipe.getByRole("button", { name: "Activate" }).click();
+  await expect(recipe).toContainText("Active");
+  await page.reload();
+  recipe = page.locator("#recipe-list .ingredient-list-item").filter({ hasText: "House Noodle Soup" });
+  await expect(recipe).toContainText("Active");
+  line = page.locator("#recipe-line-list .ingredient-list-item").filter({ hasText: "Rice noodles" });
+  await expect(line).toContainText("275 g");
+
+  const isolation = await page.evaluate(async () => {
+    const request = indexedDB.open("kitchai-local", 1);
+    const profile = await new Promise((resolve, reject) => {
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => {
+        const tx = request.result.transaction("profiles", "readonly");
+        const read = tx.objectStore("profiles").getAll();
+        read.onsuccess = () => { resolve(read.result[0]); request.result.close(); };
+        read.onerror = () => reject(read.error);
+      };
+    });
+    const module = await import("/src/recipe-store.js");
+    const scope = { ownerId: "local:" + profile.businessId, businessId: profile.businessId };
+    const own = await module.listRecipes(scope);
+    const other = await module.listRecipes({ ownerId: "different-owner", businessId: profile.businessId });
+    return { own, other };
+  });
+  expect(isolation.own).toHaveLength(1);
+  expect(isolation.own[0].name).toBe("House Noodle Soup");
+  expect(isolation.other).toHaveLength(0);
+  const foreignWrite = await page.evaluate(async () => {
+    const request = indexedDB.open("kitchai-local", 1);
+    const profile = await new Promise((resolve, reject) => {
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => {
+        const tx = request.result.transaction("profiles", "readonly");
+        const read = tx.objectStore("profiles").getAll();
+        read.onsuccess = () => { resolve(read.result[0]); request.result.close(); };
+        read.onerror = () => reject(read.error);
+      };
+    });
+    const recipes = await import("/src/recipe-store.js");
+    const ownScope = { ownerId: "local:" + profile.businessId, businessId: profile.businessId };
+    const ownRecipes = await recipes.listRecipes(ownScope);
+    const lines = await recipes.listRecipeLines(ownScope, ownRecipes[0].id);
+    try {
+      await recipes.saveRecipeLine({ ownerId: "different-owner", businessId: profile.businessId }, {
+        recipeId: ownRecipes[0].id,
+        ingredientId: lines[0].ingredientId,
+        quantity: 1,
+        unit: "g",
+        position: 99,
+      });
+      return "unexpected success";
+    } catch (error) {
+      return error instanceof Error ? error.message : "rejected";
+    }
+  });
+  expect(foreignWrite).toContain("recipe in this business");
 });

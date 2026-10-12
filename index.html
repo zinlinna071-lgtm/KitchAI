@@ -38,7 +38,7 @@
 </form>
 <div id="conflict-panel" class="conflict-panel" hidden aria-labelledby="conflict-title"><p class="eyebrow">SYNC CONFLICT</p><h3 id="conflict-title">Review both versions.</h3><p id="conflict-base"></p><p id="conflict-local"></p><p id="conflict-remote"></p><div class="auth-actions"><button id="keep-local-button" class="button button-primary" type="button">Keep local</button><button id="use-remote-button" class="button button-secondary" type="button">Use remote</button></div></div>
 </section>
-<section class="offline-panel" aria-labelledby="offline-title"><div class="offline-panel-copy"><p class="eyebrow">BUILT FOR REAL KITCHENS</p><h2 id="offline-title">Keep the essentials close.</h2><p>Interface assets remain available offline after the first successful load. Business Profile and ingredient records are stored locally; ingredient cloud sync is not implemented yet.</p></div><div class="offline-indicator" aria-hidden="true"><span class="offline-ring"></span><span class="offline-center">K</span></div></section>
+<section class="offline-panel" aria-labelledby="offline-title"><div class="offline-panel-copy"><p class="eyebrow">BUILT FOR REAL KITCHENS</p><h2 id="offline-title">Keep the essentials close.</h2><p>Interface assets remain available offline after the first successful load. Business Profile, ingredient, menu, and recipe records are stored locally. Phase 2 entity cloud sync is not implemented yet.</p></div><div class="offline-indicator" aria-hidden="true"><span class="offline-ring"></span><span class="offline-center">K</span></div></section>
 <section id="ingredient-panel" class="profile-editor ingredient-editor" aria-labelledby="ingredient-title">
 <div class="profile-editor-heading"><p class="eyebrow">PHASE 2 · INGREDIENT CATALOG</p><h2 id="ingredient-title">Keep your ingredients organized.</h2><p id="ingredient-help">Create and maintain an ingredient catalog for the active business. Ingredient changes are saved on this device only; cloud sync is not implemented yet.</p></div>
 <div class="ingredient-workspace">
@@ -63,6 +63,37 @@
 <div class="menu-list-panel"><h3>Menu items</h3><p id="menu-list-state" class="profile-state" role="status" aria-live="polite">No business workspace selected.</p><ul id="menu-item-list" class="ingredient-list" aria-label="Saved menu items"></ul></div>
 </div>
 </section>
-<footer class="page-footer"><span>KitchAI · Early foundation</span><span id="app-version">Phase 2 · WP2.3</span></footer>
+<section id="recipe-panel" class="profile-editor recipe-editor" aria-labelledby="recipe-title">
+<div class="profile-editor-heading"><p class="eyebrow">PHASE 2 · RECIPES</p><h2 id="recipe-title">Connect recipes to your menu.</h2><p id="recipe-help">Draft a recipe, add measured ingredient lines, and activate it when its yield and ingredients are valid. Changes are saved on this device only; recipe cloud sync is not implemented yet.</p></div>
+<div class="recipe-workspace">
+<form id="recipe-form" class="profile-form" aria-describedby="recipe-help">
+<label for="recipe-menu-item">Menu item</label><select id="recipe-menu-item" required><option value="">Choose a menu item</option></select>
+<label for="recipe-name">Recipe name</label><input id="recipe-name" type="text" maxlength="240" required autocomplete="off">
+<label for="recipe-description">Description (optional)</label><textarea id="recipe-description" rows="2" maxlength="4000"></textarea>
+<label for="recipe-instructions">Instructions (optional)</label><textarea id="recipe-instructions" rows="4" maxlength="12000"></textarea>
+<label for="recipe-yield">Yield / portions (required to activate)</label><input id="recipe-yield" type="number" min="0.000001" step="any" inputmode="decimal">
+<label for="recipe-status">Recipe status</label><select id="recipe-status"><option value="draft">Draft</option><option value="active">Active</option></select>
+<div class="auth-actions"><button id="save-recipe-button" class="button button-primary" type="submit">Save recipe draft</button><button id="cancel-recipe-edit" class="button button-secondary" type="button" hidden>Cancel edit</button></div>
+<p id="recipe-state" class="profile-state" role="status" aria-live="polite">Save a Business Profile and create a menu item first.</p>
+</form>
+<div class="recipe-list-panel"><h3>Recipes</h3><p id="recipe-list-state" class="profile-state" role="status" aria-live="polite">No business workspace selected.</p><ul id="recipe-list" class="ingredient-list" aria-label="Saved recipes"></ul></div>
+</div>
+<div class="recipe-lines-panel">
+<h3>Recipe ingredients</h3>
+<p id="recipe-lines-help">Select a draft or active recipe, then add ingredient quantities. Supported units: g, kg, ml, l, each. No automatic unit conversion is performed.</p>
+<form id="recipe-line-form" class="recipe-line-form" aria-describedby="recipe-lines-help">
+<label for="recipe-line-recipe">Recipe</label><select id="recipe-line-recipe" required><option value="">Choose a recipe</option></select>
+<label for="recipe-line-ingredient">Ingredient</label><select id="recipe-line-ingredient" required><option value="">Choose an ingredient</option></select>
+<label for="recipe-line-quantity">Quantity</label><input id="recipe-line-quantity" type="number" min="0.000001" step="any" inputmode="decimal" required>
+<label for="recipe-line-unit">Unit</label><select id="recipe-line-unit" required><option value="g">g · grams</option><option value="kg">kg · kilograms</option><option value="ml">ml · millilitres</option><option value="l">l · litres</option><option value="each">each · count</option></select>
+<label for="recipe-line-position">Position (zero-based)</label><input id="recipe-line-position" type="number" min="0" step="1" value="0" required>
+<label for="recipe-line-note">Note (optional)</label><input id="recipe-line-note" type="text" maxlength="1000">
+<div class="auth-actions"><button id="save-recipe-line-button" class="button button-primary" type="submit">Add ingredient line</button><button id="cancel-recipe-line-edit" class="button button-secondary" type="button" hidden>Cancel edit</button></div>
+<p id="recipe-line-state" class="profile-state" role="status" aria-live="polite">Select a recipe to manage its ingredient lines.</p>
+</form>
+<ul id="recipe-line-list" class="ingredient-list" aria-label="Recipe ingredient lines"></ul>
+</div>
+</section>
+<footer class="page-footer"><span>KitchAI · Early foundation</span><span id="app-version">Phase 2 · WP2.4</span></footer>
 </main>
 </body></html>

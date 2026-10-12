@@ -8,6 +8,7 @@ import { resolveSyncConflict, syncPendingOperations } from "./sync-engine.js";
 import { getSession, isSupabaseConfigured, readRemoteProfile, sendProfileOperation, signIn, signOut, signUp } from "./supabase-api.js";
 import { listIngredients, saveIngredient, setIngredientStatus } from "./ingredient-store.js";
 import { listMenuItems, saveMenuItem, setMenuItemStatus } from "./menu-item-store.js";
+import { listRecipes, listRecipeLines, saveRecipe, saveRecipeLine, setRecipeStatus } from "./recipe-store.js";
 
 /** @typedef {Event & { prompt: () => Promise<void> }} BeforeInstallPromptEvent */
 const connectionStatus = /** @type {HTMLParagraphElement | null} */ (document.querySelector("#connection-status"));
@@ -183,6 +184,7 @@ async function refreshMenuView() {
             await setMenuItemStatus(scope, record.id, action === "archive" ? "archived" : "active");
             if (editingMenuItemId === record.id) resetMenuItemForm();
             await refreshMenuView();
+      await refreshRecipeView();
             setMenuItemState(action === "archive" ? "Menu item archived. It has not been deleted." : "Menu item reactivated.");
           } catch (error) {
             setMenuItemState(error instanceof Error ? error.message : "Could not update menu item status.", true);
@@ -205,6 +207,256 @@ async function refreshMenuView() {
   }
 }
 
+
+
+const recipeForm = /** @type {HTMLFormElement | null} */ (document.querySelector("#recipe-form"));
+const recipeMenuItemSelect = /** @type {HTMLSelectElement | null} */ (document.querySelector("#recipe-menu-item"));
+const recipeNameInput = /** @type {HTMLInputElement | null} */ (document.querySelector("#recipe-name"));
+const recipeDescriptionInput = /** @type {HTMLTextAreaElement | null} */ (document.querySelector("#recipe-description"));
+const recipeInstructionsInput = /** @type {HTMLTextAreaElement | null} */ (document.querySelector("#recipe-instructions"));
+const recipeYieldInput = /** @type {HTMLInputElement | null} */ (document.querySelector("#recipe-yield"));
+const recipeStatusSelect = /** @type {HTMLSelectElement | null} */ (document.querySelector("#recipe-status"));
+const saveRecipeButton = /** @type {HTMLButtonElement | null} */ (document.querySelector("#save-recipe-button"));
+const cancelRecipeEditButton = /** @type {HTMLButtonElement | null} */ (document.querySelector("#cancel-recipe-edit"));
+const recipeState = /** @type {HTMLParagraphElement | null} */ (document.querySelector("#recipe-state"));
+const recipeListState = /** @type {HTMLParagraphElement | null} */ (document.querySelector("#recipe-list-state"));
+const recipeList = /** @type {HTMLUListElement | null} */ (document.querySelector("#recipe-list"));
+const recipeLineForm = /** @type {HTMLFormElement | null} */ (document.querySelector("#recipe-line-form"));
+const recipeLineRecipeSelect = /** @type {HTMLSelectElement | null} */ (document.querySelector("#recipe-line-recipe"));
+const recipeLineIngredientSelect = /** @type {HTMLSelectElement | null} */ (document.querySelector("#recipe-line-ingredient"));
+const recipeLineQuantityInput = /** @type {HTMLInputElement | null} */ (document.querySelector("#recipe-line-quantity"));
+const recipeLineUnitSelect = /** @type {HTMLSelectElement | null} */ (document.querySelector("#recipe-line-unit"));
+const recipeLinePositionInput = /** @type {HTMLInputElement | null} */ (document.querySelector("#recipe-line-position"));
+const recipeLineNoteInput = /** @type {HTMLInputElement | null} */ (document.querySelector("#recipe-line-note"));
+const saveRecipeLineButton = /** @type {HTMLButtonElement | null} */ (document.querySelector("#save-recipe-line-button"));
+const cancelRecipeLineEditButton = /** @type {HTMLButtonElement | null} */ (document.querySelector("#cancel-recipe-line-edit"));
+const recipeLineState = /** @type {HTMLParagraphElement | null} */ (document.querySelector("#recipe-line-state"));
+const recipeLineList = /** @type {HTMLUListElement | null} */ (document.querySelector("#recipe-line-list"));
+let editingRecipeId = null;
+let selectedRecipeId = "";
+let editingRecipeLineId = null;
+
+/** @param {HTMLSelectElement} select @param {{value:string,label:string}[]} options @param {string} placeholder @param {string} selected */
+function setSelectOptions(select, options, placeholder, selected) {
+  select.replaceChildren();
+  const first = document.createElement("option");
+  first.value = "";
+  first.textContent = placeholder;
+  select.append(first);
+  for (const option of options) {
+    const element = document.createElement("option");
+    element.value = option.value;
+    element.textContent = option.label;
+    select.append(element);
+  }
+  select.value = options.some((option) => option.value === selected) ? selected : "";
+}
+
+/** @param {string} message @param {boolean=} isError */
+function setRecipeState(message, isError = false) {
+  if (!recipeState) return;
+  recipeState.textContent = message;
+  recipeState.classList.toggle("is-error", isError);
+}
+
+/** @param {string} message @param {boolean=} isError */
+function setRecipeLineState(message, isError = false) {
+  if (!recipeLineState) return;
+  recipeLineState.textContent = message;
+  recipeLineState.classList.toggle("is-error", isError);
+}
+
+function resetRecipeForm() {
+  editingRecipeId = null;
+  recipeForm?.reset();
+  if (saveRecipeButton) saveRecipeButton.textContent = "Save recipe draft";
+  if (cancelRecipeEditButton) cancelRecipeEditButton.hidden = true;
+}
+
+function resetRecipeLineForm() {
+  editingRecipeLineId = null;
+  recipeLineForm?.reset();
+  if (recipeLinePositionInput) recipeLinePositionInput.value = "0";
+  if (saveRecipeLineButton) saveRecipeLineButton.textContent = "Add ingredient line";
+  if (cancelRecipeLineEditButton) cancelRecipeLineEditButton.hidden = true;
+}
+
+async function refreshRecipeLines(scope, recipes, ingredients) {
+  if (!recipeLineRecipeSelect || !recipeLineIngredientSelect || !recipeLineList || !recipeLineForm || !recipeLineQuantityInput || !recipeLinePositionInput || !recipeLineUnitSelect || !saveRecipeLineButton) return;
+  const availableRecipes = recipes;
+  setSelectOptions(recipeLineRecipeSelect, availableRecipes.map((recipe) => ({
+    value: recipe.id, label: recipe.name + (recipe.status === "active" ? " · Active" : recipe.status === "archived" ? " · Archived" : " · Draft"),
+  })), "Choose a recipe", selectedRecipeId);
+  if (!recipeLineRecipeSelect.value && availableRecipes.length) {
+    selectedRecipeId = (availableRecipes.find((recipe) => recipe.status !== "archived") ?? availableRecipes[0]).id;
+    recipeLineRecipeSelect.value = selectedRecipeId;
+  } else {
+    selectedRecipeId = recipeLineRecipeSelect.value;
+  }
+  setSelectOptions(recipeLineIngredientSelect, ingredients.filter((item) => item.status === "active").map((item) => ({
+    value: item.id, label: item.name,
+  })), "Choose an ingredient", recipeLineIngredientSelect.value);
+  const selectedRecipe = availableRecipes.find((recipe) => recipe.id === selectedRecipeId);
+  const editable = Boolean(scope && selectedRecipe && selectedRecipe.status !== "archived");
+  recipeLineRecipeSelect.disabled = !scope || availableRecipes.length === 0;
+  recipeLineIngredientSelect.disabled = !editable || ingredients.every((item) => item.status !== "active");
+  recipeLineQuantityInput.disabled = !editable;
+  recipeLineUnitSelect.disabled = !editable;
+  recipeLinePositionInput.disabled = !editable;
+  if (recipeLineNoteInput) recipeLineNoteInput.disabled = !editable;
+  saveRecipeLineButton.disabled = !editable || ingredients.every((item) => item.status !== "active");
+  recipeLineList.replaceChildren();
+  if (!scope || !selectedRecipe) {
+    setRecipeLineState(!scope ? "Save or load a Business Profile first." : "Save a menu item and recipe draft before adding ingredient lines.");
+    return;
+  }
+  try {
+    const lines = await listRecipeLines(scope, selectedRecipe.id);
+    recipeLinePositionInput.value = editingRecipeLineId ? recipeLinePositionInput.value : String(lines.length);
+    setRecipeLineState(lines.length ? lines.length + " ingredient line(s). Quantities and units are stored exactly as entered." : "No ingredient lines yet. Add at least one valid line before activating this recipe.");
+    for (const line of lines) {
+      const item = document.createElement("li");
+      item.className = "ingredient-list-item";
+      const copy = document.createElement("div");
+      copy.className = "ingredient-item-copy";
+      const name = document.createElement("strong");
+      name.textContent = (ingredients.find((ingredient) => ingredient.id === line.ingredientId)?.name ?? "Unknown ingredient") + " · " + line.quantity + " " + line.unit;
+      const detail = document.createElement("p");
+      detail.textContent = "Position " + line.position + (line.note ? " · " + line.note : "");
+      copy.append(name, detail);
+      const actions = document.createElement("div");
+      actions.className = "ingredient-item-actions";
+      const edit = document.createElement("button");
+      edit.type = "button";
+      edit.className = "button button-secondary";
+      edit.textContent = "Edit line";
+      edit.disabled = selectedRecipe.status === "archived";
+      edit.addEventListener("click", () => {
+        editingRecipeLineId = line.id;
+        recipeLineRecipeSelect.value = line.recipeId;
+        selectedRecipeId = line.recipeId;
+        recipeLineIngredientSelect.value = line.ingredientId;
+        recipeLineQuantityInput.value = String(line.quantity);
+        recipeLineUnitSelect.value = line.unit;
+        recipeLinePositionInput.value = String(line.position);
+        if (recipeLineNoteInput) recipeLineNoteInput.value = line.note ?? "";
+        saveRecipeLineButton.textContent = "Save line changes";
+        if (cancelRecipeLineEditButton) cancelRecipeLineEditButton.hidden = false;
+        setRecipeLineState("Editing ingredient line. Other lines are preserved.");
+        recipeLineQuantityInput.focus();
+      });
+      actions.append(edit);
+      item.append(copy, actions);
+      recipeLineList.append(item);
+    }
+  } catch (error) {
+    setRecipeLineState(error instanceof Error ? error.message : "Could not load recipe ingredients.", true);
+  }
+}
+
+async function refreshRecipeView() {
+  if (!recipeForm || !recipeMenuItemSelect || !recipeNameInput || !recipeDescriptionInput || !recipeInstructionsInput || !recipeYieldInput || !recipeStatusSelect || !saveRecipeButton || !recipeListState || !recipeList) return;
+  const scope = activeMenuScope();
+  const disabled = !scope;
+  recipeMenuItemSelect.disabled = disabled;
+  recipeNameInput.disabled = disabled;
+  recipeDescriptionInput.disabled = disabled;
+  recipeInstructionsInput.disabled = disabled;
+  recipeYieldInput.disabled = disabled;
+  recipeStatusSelect.disabled = disabled;
+  saveRecipeButton.disabled = disabled;
+  if (cancelRecipeEditButton) cancelRecipeEditButton.disabled = disabled;
+  recipeList.replaceChildren();
+  if (!scope) {
+    recipeListState.textContent = activeSession ? "Create or load this account's Business Profile first." : "Save a Business Profile first to manage recipes.";
+    setRecipeOptionsWithoutScope();
+    setRecipeState("Recipes are stored locally and are not synced to the cloud.");
+    await refreshRecipeLines(null, [], []);
+    return;
+  }
+  try {
+    const [menuItems, ingredients, recipes] = await Promise.all([
+      listMenuItems(scope), listIngredients(scope), listRecipes(scope),
+    ]);
+    setSelectOptions(recipeMenuItemSelect, menuItems.map((item) => ({
+      value: item.id, label: item.name + (item.status === "archived" ? " · Archived" : ""),
+    })), "Choose a menu item", recipeMenuItemSelect.value);
+    recipeListState.textContent = recipes.length ? recipes.length + (recipes.length === 1 ? " recipe in this business." : " recipes in this business.") : "No recipes yet. Create a draft for a menu item.";
+    if (!editingRecipeId && !recipeMenuItemSelect.value && menuItems.some((item) => item.status === "active")) {
+      recipeMenuItemSelect.value = menuItems.find((item) => item.status === "active").id;
+    }
+    for (const recipe of recipes) {
+      const item = document.createElement("li");
+      item.className = "ingredient-list-item";
+      const copy = document.createElement("div");
+      copy.className = "ingredient-item-copy";
+      const name = document.createElement("strong");
+      name.textContent = recipe.name;
+      const menuItem = menuItems.find((entry) => entry.id === recipe.menuItemId);
+      const detail = document.createElement("p");
+      detail.textContent = (menuItem?.name ?? "Unknown menu item") + (recipe.yieldPortions ? " · Yield " + recipe.yieldPortions + " portions" : "");
+      const status = document.createElement("span");
+      status.className = "ingredient-item-status" + (recipe.status === "archived" ? " is-archived" : "");
+      status.textContent = recipe.status === "active" ? "Active" : recipe.status === "archived" ? "Archived" : "Draft";
+      copy.append(name, detail, status);
+      const actions = document.createElement("div");
+      actions.className = "ingredient-item-actions";
+      const addAction = (label, action) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "button button-secondary";
+        button.textContent = label;
+        button.addEventListener("click", async () => {
+          try {
+            if (action === "edit") {
+              editingRecipeId = recipe.id;
+              selectedRecipeId = recipe.id;
+              recipeMenuItemSelect.value = recipe.menuItemId;
+              recipeNameInput.value = recipe.name;
+              recipeDescriptionInput.value = recipe.description ?? "";
+              recipeInstructionsInput.value = recipe.instructions ?? "";
+              recipeYieldInput.value = recipe.yieldPortions === undefined ? "" : String(recipe.yieldPortions);
+              recipeStatusSelect.value = recipe.status === "active" ? "active" : "draft";
+              saveRecipeButton.textContent = "Save recipe changes";
+              if (cancelRecipeEditButton) cancelRecipeEditButton.hidden = false;
+              await refreshRecipeView();
+              setRecipeState("Editing " + recipe.name + ". Existing ingredient lines are preserved.");
+              recipeNameInput.focus();
+              return;
+            }
+            const nextStatus = action === "archive" ? "archived" : action === "activate" ? "active" : "draft";
+            await setRecipeStatus(scope, recipe.id, nextStatus);
+            selectedRecipeId = recipe.id;
+            await refreshRecipeView();
+            setRecipeState(nextStatus === "archived" ? "Recipe archived. Its ingredient lines were preserved." : nextStatus === "active" ? "Recipe activated." : "Recipe returned to draft.");
+          } catch (error) {
+            setRecipeState(error instanceof Error ? error.message : "Could not update recipe.", true);
+          }
+        });
+        return button;
+      };
+      actions.append(addAction("Edit", "edit"));
+      if (recipe.status === "archived") actions.append(addAction("Restore as draft", "draft"));
+      else {
+        if (recipe.status === "draft") actions.append(addAction("Activate", "activate"));
+        else actions.append(addAction("Return to draft", "draft"));
+        actions.append(addAction("Archive", "archive"));
+      }
+      item.append(copy, actions);
+      recipeList.append(item);
+    }
+    await refreshRecipeLines(scope, recipes, ingredients);
+    if (!editingRecipeId) setRecipeState("Local-only recipe storage · cloud sync is not implemented yet.");
+  } catch (error) {
+    recipeListState.textContent = "Recipes could not be loaded.";
+    setRecipeState(error instanceof Error ? error.message : "Recipe storage is unavailable.", true);
+    await refreshRecipeLines(scope, [], []);
+  }
+}
+
+function setRecipeOptionsWithoutScope() {
+  if (recipeMenuItemSelect) setSelectOptions(recipeMenuItemSelect, [], "Choose a menu item", "");
+}
 
 /** A signed-in workspace never falls back to another local identity's catalog. */
 function activeIngredientScope() {
@@ -291,6 +543,7 @@ async function refreshIngredientView() {
             await setIngredientStatus(scope, record.id, action === "archive" ? "archived" : "active");
             if (editingIngredientId === record.id) resetIngredientForm();
             await refreshIngredientView();
+            await refreshRecipeView();
             setIngredientState(action === "archive" ? "Ingredient archived. It has not been deleted." : "Ingredient reactivated.");
           } catch (error) {
             setIngredientState(error instanceof Error ? error.message : "Could not update ingredient status.", true);
@@ -397,6 +650,7 @@ async function refreshOwnerView() {
   await showUnresolvedConflict(ownerId);
   await refreshIngredientView();
   await refreshMenuView();
+      await refreshRecipeView();
 }
 
 async function scheduleRetryForOwner(ownerId) {
@@ -504,6 +758,7 @@ async function loadLocalProfile() {
     if (adoptLocalButton) adoptLocalButton.hidden = true;
     await refreshIngredientView();
     await refreshMenuView();
+      await refreshRecipeView();
   } catch (error) {
     setProfileState(error instanceof Error
       ? "Local storage is unavailable: " + error.message
@@ -534,6 +789,7 @@ profileForm?.addEventListener("submit", async (event) => {
       setProfileState(stateLabel(saved.profile));
       await refreshIngredientView();
       await refreshMenuView();
+      await refreshRecipeView();
       await runSync();
     } else {
       const saved = await saveLocalProfile({ id: currentProfile?.id, name: businessNameInput.value });
@@ -542,6 +798,7 @@ profileForm?.addEventListener("submit", async (event) => {
       setProfileState("Saved on this device · not synced (local version " + saved.localRevision + ").");
       await refreshIngredientView();
       await refreshMenuView();
+      await refreshRecipeView();
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unexpected storage error.";
@@ -572,6 +829,7 @@ ingredientForm?.addEventListener("submit", async (event) => {
     });
     resetIngredientForm();
     await refreshIngredientView();
+    await refreshRecipeView();
     setIngredientState((saved.status === "archived" ? "Ingredient updated." : "Ingredient saved on this device.") + " Cloud sync is not implemented yet.");
   } catch (error) {
     setIngredientState(error instanceof Error ? error.message : "Could not save ingredient.", true);
@@ -604,6 +862,7 @@ menuItemForm?.addEventListener("submit", async (event) => {
     });
     resetMenuItemForm();
     await refreshMenuView();
+      await refreshRecipeView();
     setMenuItemState("Menu item saved on this device. Recipe association and cloud sync are not implemented yet.");
   } catch (error) {
     setMenuItemState(error instanceof Error ? error.message : "Could not save menu item.", true);
@@ -618,6 +877,86 @@ cancelMenuItemEditButton?.addEventListener("click", () => {
   setMenuItemState("Edit cancelled. No changes were made.");
 });
 
+
+recipeForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const scope = activeMenuScope();
+  if (!scope || !recipeMenuItemSelect || !recipeNameInput || !recipeDescriptionInput || !recipeInstructionsInput || !recipeYieldInput || !recipeStatusSelect || !saveRecipeButton) {
+    setRecipeState("Save or load a Business Profile and menu item first.", true);
+    return;
+  }
+  saveRecipeButton.disabled = true;
+  if (cancelRecipeEditButton) cancelRecipeEditButton.disabled = true;
+  try {
+    const yieldText = recipeYieldInput.value.trim();
+    const saved = await saveRecipe(scope, {
+      ...(editingRecipeId ? { id: editingRecipeId } : {}),
+      menuItemId: recipeMenuItemSelect.value,
+      name: recipeNameInput.value,
+      description: recipeDescriptionInput.value,
+      instructions: recipeInstructionsInput.value,
+      ...(yieldText ? { yieldPortions: Number(yieldText) } : {}),
+      status: recipeStatusSelect.value,
+    });
+    selectedRecipeId = saved.id;
+    resetRecipeForm();
+    await refreshRecipeView();
+    setRecipeState("Recipe saved on this device. Ingredient lines are preserved; cloud sync is not implemented yet.");
+  } catch (error) {
+    setRecipeState(error instanceof Error ? error.message : "Could not save recipe.", true);
+  } finally {
+    saveRecipeButton.disabled = !activeMenuScope();
+    if (cancelRecipeEditButton) cancelRecipeEditButton.disabled = false;
+  }
+});
+
+cancelRecipeEditButton?.addEventListener("click", () => {
+  resetRecipeForm();
+  setRecipeState("Recipe edit cancelled. No changes were made.");
+});
+
+recipeLineForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const scope = activeMenuScope();
+  if (!scope || !recipeLineRecipeSelect || !recipeLineIngredientSelect || !recipeLineQuantityInput || !recipeLineUnitSelect || !recipeLinePositionInput || !saveRecipeLineButton) {
+    setRecipeLineState("Save or load a Business Profile and recipe first.", true);
+    return;
+  }
+  saveRecipeLineButton.disabled = true;
+  if (cancelRecipeLineEditButton) cancelRecipeLineEditButton.disabled = true;
+  try {
+    const saved = await saveRecipeLine(scope, {
+      ...(editingRecipeLineId ? { id: editingRecipeLineId } : {}),
+      recipeId: recipeLineRecipeSelect.value,
+      ingredientId: recipeLineIngredientSelect.value,
+      quantity: Number(recipeLineQuantityInput.value),
+      unit: recipeLineUnitSelect.value,
+      position: Number(recipeLinePositionInput.value),
+      note: recipeLineNoteInput?.value ?? "",
+    });
+    selectedRecipeId = saved.recipeId;
+    resetRecipeLineForm();
+    await refreshRecipeView();
+    setRecipeLineState("Ingredient line saved on this device. Other lines remain unchanged.");
+  } catch (error) {
+    setRecipeLineState(error instanceof Error ? error.message : "Could not save ingredient line.", true);
+  } finally {
+    saveRecipeLineButton.disabled = !activeMenuScope() || !recipeLineRecipeSelect.value;
+    if (cancelRecipeLineEditButton) cancelRecipeLineEditButton.disabled = false;
+  }
+});
+
+cancelRecipeLineEditButton?.addEventListener("click", () => {
+  resetRecipeLineForm();
+  setRecipeLineState("Ingredient line edit cancelled. No changes were made.");
+});
+
+recipeLineRecipeSelect?.addEventListener("change", async () => {
+  selectedRecipeId = recipeLineRecipeSelect.value;
+  resetRecipeLineForm();
+  await refreshRecipeView();
+});
+
 adoptLocalButton?.addEventListener("click", async () => {
   if (!activeSession || !currentProfile) return;
   adoptLocalButton.disabled = true;
@@ -626,6 +965,7 @@ adoptLocalButton?.addEventListener("click", async () => {
     currentOwnerProfile = saved.profile;
     await refreshIngredientView();
     await refreshMenuView();
+      await refreshRecipeView();
     await runSync();
   } catch (error) {
     setProfileState("Could not copy the local draft into this account. The original draft remains unchanged. " + (error instanceof Error ? error.message : ""), true);

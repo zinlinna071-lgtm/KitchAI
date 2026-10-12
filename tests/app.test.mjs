@@ -5,12 +5,13 @@ import { spawnSync } from "node:child_process";
 import { readLocalProfile, saveLocalProfile, validateBusinessName } from "../src/local-store.js";
 import { validateIngredient } from "../src/ingredient-store.js";
 import { validateMenuItem } from "../src/menu-item-store.js";
+import { validateRecipe, validateRecipeLine } from "../src/recipe-store.js";
 const read=path=>readFile(new URL(path,import.meta.url),"utf8");
 test("document has accessible landmarks, viewport metadata, and clear scope",async()=>{
  const html=await read("../index.html");
  assert.match(html,/<html lang="en">/);assert.match(html,/name="viewport"/);assert.match(html,/class="skip-link" href="#main"/);assert.match(html,/<main id="main" class="page-shell" tabindex="-1">/);
  assert.match(html,/id="connection-status" class="connection-status" role="status"/);assert.match(html,/LOCAL BUSINESS PROFILE/);assert.match(html,/Implemented for local testing/);assert.match(html,/Hosted sync is not configured/);assert.match(html,/full operational pages arrive in later phases/i);
- assert.match(html,/id="profile-form"/);assert.match(html,/id="ingredient-form"/);assert.match(html,/id="menu-item-form"/);assert.match(html,/ingredient cloud sync is not implemented yet/i);
+ assert.match(html,/id="profile-form"/);assert.match(html,/id="ingredient-form"/);assert.match(html,/id="menu-item-form"/);assert.match(html,/id="recipe-form"/);assert.match(html,/id="recipe-line-form"/);assert.match(html,/Phase 2 entity cloud sync is not implemented yet/i);
 });
 test("manifest declares standalone app and local icon",async()=>{
  const manifest=JSON.parse(await read("../public/manifest.webmanifest"));
@@ -21,7 +22,7 @@ test("service worker caches shell assets and falls back for offline navigation",
  const assetsMatch=worker.match(/const APP_SHELL = \[([\s\S]*?)\]\.map/);
  assert.ok(assetsMatch,"service worker declares a shell asset list");
  const assets=JSON.parse(`[${assetsMatch[1].replace(/,\s*$/,"")}]`);
- for(const asset of ["","index.html","src/app.js","src/local-store.js","src/ingredient-store.js","src/menu-item-store.js","src/sync-store.js","src/sync-engine.js","src/supabase-api.js","runtime-config.js","src/styles.css","manifest.webmanifest","favicon.svg"])assert.ok(assets.includes(asset),"missing app-shell asset: "+asset);
+ for(const asset of ["","index.html","src/app.js","src/local-store.js","src/ingredient-store.js","src/menu-item-store.js","src/recipe-store.js","src/sync-store.js","src/sync-engine.js","src/supabase-api.js","runtime-config.js","src/styles.css","manifest.webmanifest","favicon.svg"])assert.ok(assets.includes(asset),"missing app-shell asset: "+asset);
  assert.match(worker,/new URL\(asset, self\.registration\.scope\)/);assert.match(worker,/new URL\("index\.html", self\.registration\.scope\)/);
  assert.match(worker,/request\.mode === "navigate"/);assert.match(worker,/caches\.match\(INDEX_URL\)/);assert.match(worker,/request\.method !== "GET"/);
 });
@@ -119,4 +120,49 @@ test("menu item store remains local-only and partitioned by owner and business",
   assert.match(store, /createIndex\("byScope", \["ownerId", "businessId"\]/);
   assert.match(store, /Recipe links and remote sync are future WPs/i);
   assert.match(store, /status !== "active" && status !== "archived"/);
+});
+
+test("recipe validation normalizes text and requires a positive yield for active recipes", () => {
+  assert.deepEqual(validateRecipe({ menuItemId: "menu-1", name: "  Noodle Soup ", description: " House broth ", instructions: " Simmer gently ", yieldPortions: 4, status: "active" }), {
+    menuItemId: "menu-1",
+    name: "Noodle Soup",
+    description: "House broth",
+    instructions: "Simmer gently",
+    yieldPortions: 4,
+    status: "active",
+  });
+  assert.equal(validateRecipe({ menuItemId: "menu-1", name: "🍜".repeat(120) }).name, "🍜".repeat(120));
+  assert.throws(() => validateRecipe({ menuItemId: "menu-1", name: "🍜".repeat(121) }), /120 characters or fewer/);
+  assert.throws(() => validateRecipe({ menuItemId: "menu-1", name: " " }), /Enter a recipe name/);
+  assert.throws(() => validateRecipe({ menuItemId: "menu-1", name: "Soup", yieldPortions: 0 }), /greater than zero/);
+  assert.throws(() => validateRecipe({ menuItemId: "menu-1", name: "Soup", status: "active" }), /positive yield/);
+  assert.throws(() => validateRecipe({ menuItemId: "menu-1", name: "Soup", instructions: "x".repeat(10001) }), /10000 characters or fewer/);
+});
+
+test("recipe ingredient lines enforce finite positive quantities, exact units, position, and note length", () => {
+  assert.deepEqual(validateRecipeLine({ recipeId: "recipe-1", ingredientId: "ingredient-1", quantity: 0.25, unit: "kg", position: 0, note: " sifted " }), {
+    recipeId: "recipe-1", ingredientId: "ingredient-1", quantity: 0.25, unit: "kg", position: 0, note: "sifted",
+  });
+  for (const quantity of [0, -1, Infinity, NaN, "2"]) {
+    assert.throws(() => validateRecipeLine({ recipeId: "r", ingredientId: "i", quantity, unit: "g", position: 0 }), /finite number greater than zero/);
+  }
+  for (const unit of ["G", "grams", "cup", "ml "]) {
+    assert.throws(() => validateRecipeLine({ recipeId: "r", ingredientId: "i", quantity: 1, unit, position: 0 }), /supported unit/);
+  }
+  assert.throws(() => validateRecipeLine({ recipeId: "r", ingredientId: "i", quantity: 1, unit: "g", position: -1 }), /whole number zero or greater/);
+  assert.throws(() => validateRecipeLine({ recipeId: "r", ingredientId: "i", quantity: 1, unit: "g", position: 1.5 }), /whole number zero or greater/);
+  assert.throws(() => validateRecipeLine({ recipeId: "r", ingredientId: "i", quantity: 1, unit: "g", position: 0, note: "x".repeat(501) }), /500 characters or fewer/);
+});
+
+test("recipe store uses owner/business partitioned versioned stores and explicit unit policy", async () => {
+  const store = await read("../src/recipe-store.js");
+  assert.match(store, /const DATABASE_NAME = "kitchai-recipes"/);
+  assert.match(store, /const DATABASE_VERSION = 1/);
+  assert.match(store, /keyPath: \["ownerId", "businessId", "id"\]/);
+  assert.match(store, /byScopeMenuItem/);
+  assert.match(store, /byRecipePosition/);
+  assert.match(store, /new Set\(\["g", "kg", "ml", "l", "each"\]\)/);
+  assert.match(store, /status === "archived"/);
+  assert.match(store, /createdAt: existing\?\.createdAt \?\? now/);
+  assert.match(store, /byScopeMenuItem/);
 });

@@ -36,3 +36,13 @@
 .menu-list-panel h3{min-width:0;margin:.2rem 0 .6rem;color:var(--green);overflow-wrap:anywhere}
 .menu-editor .profile-form .button{min-width:0;max-width:100%;white-space:normal;overflow-wrap:anywhere}
 @media(max-width:800px){.menu-workspace{grid-template-columns:1fr}}
+
+.recipe-workspace{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:1.4rem;min-width:0}
+.recipe-list-panel,.recipe-lines-panel{min-width:0;max-width:100%}
+.recipe-list-panel h3,.recipe-lines-panel h3{margin:.2rem 0 .6rem;color:var(--green);overflow-wrap:anywhere}
+.recipe-lines-panel{margin-top:1.5rem;padding-top:1.25rem;border-top:1px solid var(--border)}
+.recipe-line-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.55rem 1rem;align-items:end}
+.recipe-line-form label{margin-top:.25rem}
+.recipe-line-form .auth-actions,.recipe-line-form .profile-state{grid-column:1/-1}
+.recipe-editor .profile-form .button,.recipe-line-form .button{min-width:0;max-width:100%;white-space:normal;overflow-wrap:anywhere}
+@media(max-width:800px){.recipe-workspace{grid-template-columns:1fr}.recipe-line-form{grid-template-columns:1fr}}

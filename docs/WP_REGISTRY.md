@@ -117,15 +117,17 @@ Planning documents do not count as implementation completion. WP1.1 completion m
 - **Boundary:** Ingredient changes are local-only. No ingredient sync queue, remote table, or hosted schema was added; new-entity sync remains WP2.5.
 
 ### WP2.3 — Menu Item Workflow
-- **Status:** In progress (local-first implementation and regression evidence pending CI)
+- **Status:** Implementation merged; post-merge Phase 1 Local Supabase regression gate pending
 - **Dependencies:** WP2.1 and WP2.2
-- **Scope:** create/list/edit/archive/reactivate menu items scoped to the active owner/business, with validation and reload durability. Recipe association is intentionally deferred to WP2.4 so menu items exist before recipes reference them.
-- **Not allowed:** pricing, taxes, modifiers, sales availability, inventory consumption, destructive deletion, or cloud-sync claims.
+- **Implementation:** PR [#27](https://github.com/zinlinna071-lgtm/KitchAI/pull/27) merged to main as `19fe1a39dfb1b2c254aecd9faa69c041fa4c4760`. Separate `kitchai-menu` IndexedDB v1 store, owner/business partitioning, validation, create/list/edit/archive/reactivate, responsive UI, and offline precaching.
+- **Verification:** Main-branch baseline [run 38233845463](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38233845463) and application shell/browser [run 38233845452](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38233845452) passed. Post-merge Phase 1 Local Supabase regression [run 38233845498](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38233845498) was still running at this update; do not claim it passed until completed.
+- **Boundary:** Menu items are local-only. Recipe association belongs to WP2.4; new-entity sync remains WP2.5. No pricing, taxes, modifiers, sales availability, inventory consumption, destructive deletion, or cloud-sync claims.
 
 ### WP2.4 — Recipe & Ingredient Lines
-- **Status:** Not started
+- **Status:** Implementation in progress on `feat/wp2-4-recipe-domain`; CI/review pending
 - **Dependencies:** WP2.1, WP2.2, and WP2.3
-- **Scope:** recipe drafts and ingredient lines linked to existing menu items and ingredients; validated quantities/yield and explicit unit policy.
+- **Scope:** owner/business-partitioned local recipes and ingredient lines, recipe lifecycle (draft/active/archived), one current recipe per menu item, finite positive quantity/yield validation, exact `g`, `kg`, `ml`, `l`, `each` allowlist, same-business relationship validation, reload durability, and accessible UI.
+- **Boundary:** No unit conversion, ingredient deletion, line deletion, costing, inventory deduction, remote schema, or cloud-sync claims. Sync integration remains WP2.5.
 
 ### WP2.5 — Local-first Sync & Conflict Integration
 - **Status:** Not started; blocking for any newly synced entity
