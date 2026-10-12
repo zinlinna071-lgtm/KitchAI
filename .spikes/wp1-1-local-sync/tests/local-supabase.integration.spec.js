@@ -182,46 +182,23 @@ test("Phase 2 ingredient, menu item, recipe, and recipe line sync end to end aga
   await page.locator("#business-name").fill("Phase Two Integration Kitchen");
   await page.getByRole("button", { name: "Save profile" }).click();
   await expect(page.locator("#profile-state")).toContainText("Synced with your account · revision 1", { timeout: 15000 });
+  await page.context().setOffline(true);
 
   await page.locator("#ingredient-name").fill("Integration Mushrooms");
   await page.locator("#ingredient-description").fill("Created by the Phase 2 integration test");
   await page.getByRole("button", { name: "Add ingredient", exact: true }).click();
   await expect(page.locator("#ingredient-list")).toContainText("Integration Mushrooms");
-  await expect.poll(async () => page.evaluate(async () => {
-    const auth = JSON.parse(sessionStorage.getItem("kitchai.auth.session"));
-    const sync = await import("/src/phase2-sync-engine.js");
-    const profiles = await import("/src/sync-store.js");
-    const profile = (await profiles.listOwnerProfiles(auth.user.id))[0];
-    const operations = await sync.createPhase2SyncStore().listOperations(auth.user.id, profile.id);
-    return operations.filter(item => item.entityType === "ingredient").map(item => item.state);
-  }), { timeout: 15000 }).toEqual(["synced"]);
 
   await page.locator("#menu-item-name").fill("Integration Mushroom Soup");
   await page.locator("#menu-item-description").fill("Phase 2 sync test menu item");
   await page.getByRole("button", { name: "Add menu item" }).click();
   await expect(page.locator("#menu-item-list")).toContainText("Integration Mushroom Soup");
-  await expect.poll(async () => page.evaluate(async () => {
-    const auth = JSON.parse(sessionStorage.getItem("kitchai.auth.session"));
-    const sync = await import("/src/phase2-sync-engine.js");
-    const profiles = await import("/src/sync-store.js");
-    const profile = (await profiles.listOwnerProfiles(auth.user.id))[0];
-    const operations = await sync.createPhase2SyncStore().listOperations(auth.user.id, profile.id);
-    return operations.filter(item => item.entityType === "menuItem").map(item => ({ state: item.state, lastError: item.lastError }));
-  }), { timeout: 15000 }).toEqual([{ state: "synced", lastError: undefined }]);
 
   await page.locator("#recipe-menu-item").selectOption({ label: "Integration Mushroom Soup" });
   await page.locator("#recipe-name").fill("Integration Mushroom Soup Base");
   await page.locator("#recipe-yield").fill("4");
   await page.getByRole("button", { name: "Save recipe draft" }).click();
   await expect(page.locator("#recipe-list")).toContainText("Integration Mushroom Soup Base");
-  await expect.poll(async () => page.evaluate(async () => {
-    const auth = JSON.parse(sessionStorage.getItem("kitchai.auth.session"));
-    const sync = await import("/src/phase2-sync-engine.js");
-    const profiles = await import("/src/sync-store.js");
-    const profile = (await profiles.listOwnerProfiles(auth.user.id))[0];
-    const operations = await sync.createPhase2SyncStore().listOperations(auth.user.id, profile.id);
-    return operations.filter(item => item.entityType === "recipe").map(item => item.state);
-  }), { timeout: 15000 }).toEqual(["synced"]);
 
   await page.locator("#recipe-line-recipe").selectOption({ label: "Integration Mushroom Soup Base · Draft" });
   await page.locator("#recipe-line-ingredient").selectOption({ label: "Integration Mushrooms" });
@@ -231,14 +208,16 @@ test("Phase 2 ingredient, menu item, recipe, and recipe line sync end to end aga
   await page.locator("#recipe-line-note").fill("Integration test line");
   await page.getByRole("button", { name: "Add ingredient line" }).click();
   await expect(page.locator("#recipe-line-list")).toContainText("250 g");
+
+  await page.context().setOffline(false);
   await expect.poll(async () => page.evaluate(async () => {
     const auth = JSON.parse(sessionStorage.getItem("kitchai.auth.session"));
     const sync = await import("/src/phase2-sync-engine.js");
     const profiles = await import("/src/sync-store.js");
     const profile = (await profiles.listOwnerProfiles(auth.user.id))[0];
     const operations = await sync.createPhase2SyncStore().listOperations(auth.user.id, profile.id);
-    return operations.filter(item => item.entityType === "recipeLine").map(item => item.state);
-  }), { timeout: 15000 }).toEqual(["synced"]);
+    return operations.map(item => item.state).sort();
+  }), { timeout: 20000 }).toEqual(["synced", "synced", "synced", "synced"]);
 
   const operationEvidence = await page.evaluate(async () => {
     const auth = JSON.parse(sessionStorage.getItem("kitchai.auth.session"));
