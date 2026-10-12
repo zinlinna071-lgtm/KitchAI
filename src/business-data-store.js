@@ -230,6 +230,7 @@ async function migrateLegacyPhase2Data(db) {
               sourceSnapshot: row,
               targetKey,
               targetSnapshot: mapped,
+              needsOutbox: true,
             });
             counts.unchanged++;
           } else {
@@ -241,6 +242,7 @@ async function migrateLegacyPhase2Data(db) {
                 ...previous,
                 sourceSnapshot: sourceChanged ? row : previous.sourceSnapshot,
                 targetSnapshot: restored,
+                needsOutbox: true,
               });
               counts.restored++;
             } else if (!sourceChanged) {
@@ -249,7 +251,7 @@ async function migrateLegacyPhase2Data(db) {
               const targetChanged = !sameRecord(currentTarget, previous.targetSnapshot);
               if (!targetChanged || sameRecord(currentTarget, mapped)) {
                 if (!sameRecord(currentTarget, mapped)) targetStore.put(mapped);
-                ledger.put({ ...previous, sourceSnapshot: row, targetSnapshot: mapped });
+                ledger.put({ ...previous, sourceSnapshot: row, targetSnapshot: mapped, needsOutbox: true });
                 counts.reconciled++;
               } else {
                 fail(new Error("Both the legacy and shared Phase 2 record changed independently for " + entry.sourceStore + " record " + row.id + ". Both copies were preserved; manual conflict review is required."));
@@ -276,6 +278,7 @@ export function openBusinessDatabase() {
     db.onversionchange = () => { db.close(); databasePromise = undefined; };
     try {
       await migrateLegacyPhase2Data(db);
+      await queueLegacyMigrationOperations(db);
       return db;
     } catch (error) {
       db.close();
