@@ -45,6 +45,15 @@ test("Phase 2 entity sync is integrated with authenticated lifecycle and owner-s
  assert.match(engine,/lastResolutionError/);
 });
 
+test("Phase 2 entity lists do not claim cloud sync is unimplemented after sync integration", async () => {
+ const app = await read("../src/app.js");
+ assert.doesNotMatch(app, /cloud sync is not implemented yet/);
+ assert.doesNotMatch(app, /Local-only recipe storage · cloud sync is not implemented yet/);
+ assert.match(app, /Ingredients loaded\. Account sync status is shown above\./);
+ assert.match(app, /Menu items loaded\. Account sync status is shown above\./);
+ assert.match(app, /Recipes loaded\. Account sync status is shown above\./);
+});
+
 test("responsive stylesheet includes small viewport, focus, and reduced-motion support",async()=>{
  const css=await read("../src/styles.css");assert.match(css,/@media\(max-width:560px\)/);assert.match(css,/:focus-visible/);assert.match(css,/prefers-reduced-motion/);
 });
