@@ -690,3 +690,57 @@ test("WP2.5b migrates legacy entities to stable profile scope and preserves conc
   expect(preserved.target.name).toBe("New app edit v2");
   expect(preserved.operation.payload.name).toBe("New app edit v2");
 });
+
+
+test("WP2.5b blocks recipe and recipe-line outbox operations behind unsynced parent records", async ({ page }) => {
+  await page.goto("/favicon.svg");
+  const result = await page.evaluate(async () => {
+    const modulePaths = [
+      "kitchai-business-data", "kitchai-ingredients", "kitchai-menu",
+      "kitchai-recipes", "kitchai-local", "kitchai-sync",
+    ];
+    for (const name of modulePaths) {
+      await new Promise((resolve, reject) => {
+        const request = indexedDB.deleteDatabase(name);
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
+        request.onblocked = () => reject(new Error("Could not clear isolated test database " + name));
+      });
+    }
+    const scope = { ownerId: "local:dependency-profile", businessId: "dependency-profile" };
+    const menuStore = await import("/src/menu-item-store.js");
+    const ingredientStore = await import("/src/ingredient-store.js");
+    const recipeStore = await import("/src/recipe-store.js");
+    const menu = await menuStore.saveMenuItem(scope, { name: "Dependency Test Soup" });
+    const ingredient = await ingredientStore.saveIngredient(scope, { name: "Dependency Test Rice" });
+    const recipe = await recipeStore.saveRecipe(scope, { menuItemId: menu.id, name: "Dependency Test Recipe" });
+    const line = await recipeStore.saveRecipeLine(scope, {
+      recipeId: recipe.id, ingredientId: ingredient.id, quantity: 1, unit: "g", position: 0,
+    });
+    const db = await new Promise((resolve, reject) => {
+      const request = indexedDB.open("kitchai-business-data");
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    const operations = await new Promise((resolve, reject) => {
+      const tx = db.transaction("operations", "readonly");
+      const request = tx.objectStore("operations").index("byOwner").getAll(scope.ownerId);
+      request.onsuccess = () => resolve(request.result.filter((operation) => operation.businessId === scope.businessId));
+      request.onerror = () => reject(request.error);
+      tx.oncomplete = () => db.close();
+    });
+    return { menu, ingredient, recipe, line, operations };
+  });
+  const operationFor = (entityType, recordId) => result.operations.find((operation) => operation.entityType === entityType && operation.recordId === recordId);
+  const menuOperation = operationFor("menuItem", result.menu.id);
+  const ingredientOperation = operationFor("ingredient", result.ingredient.id);
+  const recipeOperation = operationFor("recipe", result.recipe.id);
+  const lineOperation = operationFor("recipeLine", result.line.id);
+  expect(menuOperation.state).toBe("pending");
+  expect(ingredientOperation.state).toBe("pending");
+  expect(recipeOperation.state).toBe("blocked_dependency");
+  expect(recipeOperation.dependsOnOperationIds).toContain(menuOperation.operationId);
+  expect(lineOperation.state).toBe("blocked_dependency");
+  expect(lineOperation.dependsOnOperationIds).toContain(recipeOperation.operationId);
+  expect(lineOperation.dependsOnOperationIds).toContain(ingredientOperation.operationId);
+});
