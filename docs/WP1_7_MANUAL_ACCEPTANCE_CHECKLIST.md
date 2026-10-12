@@ -58,7 +58,7 @@ Use only a disposable test account and sample profile, and only an environment e
 
 **Evidence source:** Owner's written report in ChatGPT. No screenshot, exact device/OS, browser/version, or deployed URL was provided.
 
-- [ ] **Android system font scaling: DEFERRED — owner-reported.** Increasing font size in Android phone Settings does not increase text size in the app. No fix is planned for the current milestone.
+- [x] **Android system font scaling: DEFERRED — owner-reported.** Increasing font size in Android phone Settings does not increase text size in the app. No fix is planned for the current milestone.
 - [x] Owner reports checks “2” and “3” passed. Their exact mapping to individual checklist items was not specified, so no specific items are inferred from that report.
 - [ ] Accessibility overall remains not fully verified. The system-font-scaling issue is deferred; all other checks remain pending unless separately evidenced.
 
