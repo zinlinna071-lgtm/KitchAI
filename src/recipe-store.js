@@ -41,7 +41,7 @@ export function validateRecipe(input) {
   const description = input.description == null ? "" : normalizeText(input.description, "Recipe description", 2000);
   const instructions = input.instructions == null ? "" : normalizeText(input.instructions, "Recipe instructions", 10000);
   const status = input.status ?? "draft";
-  if (!["draft", "active", "archived"].includes(status)) throw new TypeError("Unsupported recipe status.");
+  if (typeof status !== "string" || !["draft", "active", "archived"].includes(status)) throw new TypeError("Unsupported recipe status.");
   let yieldPortions;
   if (input.yieldPortions !== undefined && input.yieldPortions !== null && input.yieldPortions !== "") {
     if (typeof input.yieldPortions !== "number" || !Number.isFinite(input.yieldPortions) || input.yieldPortions <= 0) {
@@ -74,7 +74,7 @@ export function validateRecipeLine(input) {
   if (typeof input.unit !== "string" || !ALLOWED_UNITS.has(input.unit)) {
     throw new Error("Choose a supported unit: g, kg, ml, l, or each.");
   }
-  if (!Number.isInteger(input.position) || input.position < 0) {
+  if (typeof input.position !== "number" || !Number.isInteger(input.position) || input.position < 0) {
     throw new Error("Ingredient position must be a whole number zero or greater.");
   }
   const note = input.note == null ? "" : normalizeText(input.note, "Ingredient note", 500);
