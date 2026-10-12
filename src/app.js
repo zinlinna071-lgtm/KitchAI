@@ -10,7 +10,7 @@ import { getSession, isSupabaseConfigured, readRemoteProfile, sendProfileOperati
 import { listIngredients, saveIngredient, setIngredientStatus } from "./ingredient-store.js";
 import { listMenuItems, saveMenuItem, setMenuItemStatus } from "./menu-item-store.js";
 import { listRecipes, listRecipeLines, saveRecipe, saveRecipeLine, setRecipeStatus } from "./recipe-store.js";
-import { createPhase2SyncStore, syncPhase2Operations, sendPhase2EntityOperation } from "./phase2-sync-engine.js";
+import { createPhase2SyncStore, syncPhase2Operations, sendPhase2EntityOperation, readRemotePhase2Entity, normalizeRemoteEntity } from "./phase2-sync-engine.js";
 
 /** @typedef {Event & { prompt: () => Promise<void> }} BeforeInstallPromptEvent */
 const connectionStatus = /** @type {HTMLParagraphElement | null} */ (document.querySelector("#connection-status"));
@@ -687,9 +687,21 @@ async function refreshPhase2ConflictView() {
         keep.disabled = true;
         remoteChoice.disabled = true;
         try {
-          await phase2SyncStore.resolveUseRemote(conflict);
+          const latestRemote = await readRemotePhase2Entity(conflict.entityType, conflict.recordId, activeSession);
+          const latestSnapshot = normalizeRemoteEntity(conflict.entityType, latestRemote);
+          if (!latestSnapshot || latestSnapshot.revision !== conflict.remoteRevision) {
+            await phase2SyncStore.refreshConflictRemote(conflict, latestRemote);
+            await refreshPhase2ConflictView();
+            setPhase2SyncState("The remote record changed again. The latest snapshot was saved; review the conflict again before choosing.", true);
+            return;
+          }
+          await phase2SyncStore.resolveUseRemote({
+            ...conflict,
+            remoteSnapshot: { ...latestSnapshot, businessId: conflict.businessId },
+            remoteRevision: latestSnapshot.revision,
+          });
           await refreshOwnerView();
-          setPhase2SyncState("Remote version applied by your choice. Conflict history and superseded operations are retained.");
+          setPhase2SyncState("Latest remote version applied by your choice. Conflict history and superseded operations are retained.");
         } catch (error) {
           setPhase2SyncState("Remote version was not applied. Both versions remain preserved. " + (error instanceof Error ? error.message : ""), true);
           await refreshPhase2ConflictView();
