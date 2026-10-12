@@ -31,6 +31,15 @@
 - [ ] If installation is supported, test install and launch; otherwise record “not supported/not offered,” not “passed.”
 - [ ] Record browser/version, operating system, date, result, and any screenshot.
 
+### Owner-reported Android install/launch result — 2026-10-12
+
+The owner reports that the remaining non-accessibility checks they attempted were successful and that installing the PWA on their Android phone also worked. Accessibility has **not** been tested and remains pending. Exact device model, Android version, browser/version, deployed URL, and screenshots were not provided; do not infer or claim those details.
+
+- [x] Android PWA installation: PASS — owner-reported.
+- [x] Android PWA launch/use: PASS — owner reports the tests were successful; detailed individual outcomes were not supplied.
+- [ ] Accessibility: NOT TESTED — still pending.
+- [ ] Desktop install/launch: unverified unless separately tested and documented.
+
 ## B. Offline and reconnection
 
 Use only a disposable test account and sample profile, and only an environment explicitly configured for local Supabase testing.
