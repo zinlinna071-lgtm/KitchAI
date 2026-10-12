@@ -799,7 +799,8 @@ async function refreshOwnerView() {
   await showUnresolvedConflict(ownerId);
   await refreshIngredientView();
   await refreshMenuView();
-      await refreshRecipeView();
+  await refreshRecipeView();
+  await refreshPhase2ConflictView();
 }
 
 async function scheduleRetryForOwner(ownerId) {
@@ -807,9 +808,14 @@ async function scheduleRetryForOwner(ownerId) {
   const dueTimes = operations
     .filter(operation => operation.state === "retryable_error")
     .map(operation => operation.nextAttemptAt ?? Date.now());
+  if (currentOwnerProfile?.id) {
+    const scope = scopeForBusinessProfile({ ownerId, profileId: currentOwnerProfile.id });
+    const entityOperations = await phase2SyncStore.listOperations(scope.ownerId, scope.businessId);
+    dueTimes.push(...entityOperations.filter(operation => operation.state === "retryable_error").map(operation => operation.nextAttemptAt ?? Date.now()));
+  }
+  clearTimeout(retryTimer);
   if (!dueTimes.length) return;
   const delay = Math.max(250, Math.min(5 * 60 * 1000, Math.min(...dueTimes) - Date.now()));
-  clearTimeout(retryTimer);
   retryTimer = setTimeout(() => { void runSync(); }, delay);
 }
 
@@ -855,6 +861,7 @@ async function runSync() {
     } else if (summary.retried) {
       setAuthState("Connection failed temporarily. The queued operation will retry with the same operation ID.", true);
     }
+    await runPhase2EntitySync(session);
     await scheduleRetryForOwner(ownerId);
   } catch (error) {
     setProfileState("Could not sync. Local changes and queued operations are preserved. " + (error instanceof Error ? error.message : ""), true);
@@ -881,8 +888,11 @@ async function loadOwnerWorkspace(session) {
       profiles = await listOwnerProfiles(ownerId);
     }
     await refreshOwnerView();
-    if (operations.some(operation => ["pending", "retryable_error", "in_flight"].includes(operation.state))) {
+    if (currentOwnerProfile || operations.some(operation => ["pending", "retryable_error", "in_flight"].includes(operation.state))) {
       await runSync();
+    } else {
+      setPhase2SyncState("Create or load this account’s Business Profile before syncing Phase 2 records.");
+      await refreshPhase2ConflictView();
     }
   } catch (error) {
     setProfileState("Account workspace could not be loaded. Existing local data is preserved. " + (error instanceof Error ? error.message : ""), true);
@@ -1012,7 +1022,8 @@ menuItemForm?.addEventListener("submit", async (event) => {
     resetMenuItemForm();
     await refreshMenuView();
       await refreshRecipeView();
-    setMenuItemState("Menu item saved on this device. Recipe association and cloud sync are not implemented yet.");
+    setMenuItemState(entitySaveMessage());
+    if (activeSession) void runSync();
   } catch (error) {
     setMenuItemState(error instanceof Error ? error.message : "Could not save menu item.", true);
   } finally {
@@ -1050,7 +1061,8 @@ recipeForm?.addEventListener("submit", async (event) => {
     selectedRecipeId = saved.id;
     resetRecipeForm();
     await refreshRecipeView();
-    setRecipeState("Recipe saved on this device. Ingredient lines are preserved; cloud sync is not implemented yet.");
+    setRecipeState(entitySaveMessage());
+    if (activeSession) void runSync();
   } catch (error) {
     setRecipeState(error instanceof Error ? error.message : "Could not save recipe.", true);
   } finally {
@@ -1086,7 +1098,8 @@ recipeLineForm?.addEventListener("submit", async (event) => {
     selectedRecipeId = saved.recipeId;
     resetRecipeLineForm();
     await refreshRecipeView();
-    setRecipeLineState("Ingredient line saved on this device. Other lines remain unchanged.");
+    setRecipeLineState(entitySaveMessage());
+    if (activeSession) void runSync();
   } catch (error) {
     setRecipeLineState(error instanceof Error ? error.message : "Could not save ingredient line.", true);
   } finally {
@@ -1190,6 +1203,7 @@ async function resolveConflictChoice(choice) {
 keepLocalButton?.addEventListener("click", () => { void resolveConflictChoice("keep_local"); });
 useRemoteButton?.addEventListener("click", () => { void resolveConflictChoice("use_remote"); });
 window.addEventListener("online", () => { void runSync(); });
+phase2SyncButton?.addEventListener("click", () => { void runSync(); });
 
 updateAuthControls();
 void (async () => {
