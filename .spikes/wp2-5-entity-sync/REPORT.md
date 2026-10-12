@@ -1,6 +1,6 @@
 # WP2.5a — Entity Storage and Outbox Architecture Spike
 
-**Status:** Prototype and regression test implemented; CI evidence pending. This report is not a production migration and does not change application runtime behavior.
+**Status:** Prototype and browser regression passed on PR head. Baseline [run 38238622571](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38238622571) and app-shell/browser [run 38238622636](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38238622636) passed. This report is not a production migration and does not change application runtime behavior.
 
 ## Verified baseline
 
@@ -29,11 +29,11 @@ This is a recommendation for implementation review, not an already-applied migra
 
 `.spikes/wp2-5-entity-sync/migration-prototype.js` is deliberately outside the production app. It copies source records into a disposable target database named `kitchai-business-data-spike`, using the current source store names and compound keys. It never deletes source records.
 
-The browser regression test seeds disposable source databases, injects an interruption after two writes, asserts that the target transaction rolls back without a partial copy or checkpoint, reruns migration, checks all four entity stores and relationships, verifies source data remains, and calls migration a second time to confirm the completion marker makes it idempotent.
+The browser regression test seeds disposable source databases, injects an interruption after two writes, asserts that the target transaction rolls back without a partial copy or checkpoint, reruns migration, checks all four entity stores and relationships, verifies source data remains, and calls migration a second time to confirm the completion marker makes it idempotent. These assertions passed in the linked PR-head CI runs.
 
 ## Limitations / exit gate
 
 - The prototype uses disposable test data and does not migrate a user's real browser data.
 - The prototype does not implement the production outbox, dispatch, remote schema, RLS, retry, or conflict resolution.
 - No SQL migration, hosted project, credentials, billing, or deployment was changed.
-- WP2.5a is complete only after the browser regression passes and the architecture/migration constraints are reviewed. WP2.5b must then implement the selected migration and atomic outbox in bounded steps with explicit rollback evidence.
+- WP2.5a's disposable migration proof is complete. The recommended architecture should be carried into WP2.5b with a versioned additive migration and no source deletion; this spike does not authorize a production data migration or any hosted work. WP2.5b must then implement the selected migration and atomic outbox in bounded steps with explicit rollback evidence.
