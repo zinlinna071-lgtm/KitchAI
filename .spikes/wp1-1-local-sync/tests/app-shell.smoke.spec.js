@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { mkdir } from "node:fs/promises";
+import { resolve } from "node:path";
 
 test("shell is responsive and reports connection state at desktop and mobile widths", async ({ page }) => {
   await page.goto("/");
@@ -427,4 +428,113 @@ test("recipe workflow links menu items and ingredients, validates activation, an
     }
   });
   expect(foreignWrite).toContain("recipe in this business");
+});
+
+test("WP2.5a disposable migration preserves sources, rolls back interruption, and is idempotent", async ({ page }) => {
+  await page.goto("/");
+  await page.evaluate(async () => {
+    const seed = async (databaseName, stores) => new Promise((resolve, reject) => {
+      const request = indexedDB.open(databaseName, 1);
+      request.onupgradeneeded = () => {
+        for (const [storeName, rows] of Object.entries(stores)) {
+          const keyPath = ["ownerId", "businessId", "id"];
+          const store = request.result.createObjectStore(storeName, { keyPath });
+          if (storeName !== "recipeLines") store.createIndex("byScope", ["ownerId", "businessId"], { unique: false });
+          for (const row of rows) store.put(row);
+        }
+      };
+      request.onsuccess = () => {
+        const db = request.result;
+        const tx = db.transaction(Object.keys(stores), "readwrite");
+        for (const [storeName, rows] of Object.entries(stores)) {
+          for (const row of rows) tx.objectStore(storeName).put(row);
+        }
+        tx.oncomplete = () => { db.close(); resolve(); };
+        tx.onerror = () => { db.close(); reject(tx.error); };
+        tx.onabort = () => { db.close(); reject(tx.error); };
+      };
+      request.onerror = () => reject(request.error);
+    });
+    const stamp = "2026-10-12T00:00:00.000Z";
+    const scope = { ownerId: "owner-1", businessId: "business-1" };
+    await seed("kitchai-ingredients", { ingredients: [{ ...scope, id: "ingredient-1", name: "Rice noodles", status: "active", createdAt: stamp, updatedAt: stamp }] });
+    await seed("kitchai-menu", { menuItems: [{ ...scope, id: "menu-1", name: "Noodle soup", status: "active", createdAt: stamp, updatedAt: stamp }] });
+    await seed("kitchai-recipes", {
+      recipes: [{ ...scope, id: "recipe-1", menuItemId: "menu-1", name: "House recipe", status: "draft", yieldPortions: 2, createdAt: stamp, updatedAt: stamp }],
+      recipeLines: [{ ...scope, id: "line-1", recipeId: "recipe-1", ingredientId: "ingredient-1", quantity: 250, unit: "g", position: 0, createdAt: stamp, updatedAt: stamp }],
+    });
+  });
+  await page.addScriptTag({ path: resolve(process.cwd(), "../../.spikes/wp2-5-entity-sync/migration-prototype.js") });
+  const interrupted = await page.evaluate(async () => {
+    try {
+      await window.KitchAIEntityMigrationSpike.migratePhase2Entities({ targetName: "kitchai-business-data-spike", failAfterWrites: 2 });
+      return "unexpected success";
+    } catch (error) {
+      return error instanceof Error ? error.message : "rejected";
+    }
+  });
+  expect(interrupted).toContain("transaction rolled back");
+
+  const afterRollback = await page.evaluate(async () => {
+    const db = await new Promise((resolve, reject) => {
+      const request = indexedDB.open("kitchai-business-data-spike");
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    const counts = await new Promise((resolve, reject) => {
+      const tx = db.transaction(["ingredients", "menuItems", "recipes", "recipeLines", "metadata"], "readonly");
+      const result = {};
+      for (const name of ["ingredients", "menuItems", "recipes", "recipeLines", "metadata"]) {
+        const request = tx.objectStore(name).count();
+        request.onsuccess = () => { result[name] = request.result; };
+        request.onerror = () => reject(request.error);
+      }
+      tx.oncomplete = () => { db.close(); resolve(result); };
+      tx.onerror = () => reject(tx.error);
+    });
+    return counts;
+  });
+  expect(afterRollback).toEqual({ ingredients: 0, menuItems: 0, recipes: 0, recipeLines: 0, metadata: 0 });
+
+  const first = await page.evaluate(() => window.KitchAIEntityMigrationSpike.migratePhase2Entities({ targetName: "kitchai-business-data-spike" }));
+  expect(first.alreadyCompleted).toBe(false);
+  expect(first.imported).toBe(4);
+  expect(first.sourceCounts).toEqual({ ingredients: 1, menuItems: 1, recipes: 1, recipeLines: 1 });
+
+  const second = await page.evaluate(() => window.KitchAIEntityMigrationSpike.migratePhase2Entities({ targetName: "kitchai-business-data-spike" }));
+  expect(second.alreadyCompleted).toBe(true);
+  expect(second.imported).toBe(0);
+
+  const result = await page.evaluate(async () => {
+    const readAll = async (name, storeName) => {
+      const db = await new Promise((resolve, reject) => {
+        const request = indexedDB.open(name);
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+      const rows = await new Promise((resolve, reject) => {
+        const tx = db.transaction(storeName, "readonly");
+        const request = tx.objectStore(storeName).getAll();
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+      db.close();
+      return rows;
+    };
+    return {
+      ingredients: await readAll("kitchai-business-data-spike", "ingredients"),
+      menuItems: await readAll("kitchai-business-data-spike", "menuItems"),
+      recipes: await readAll("kitchai-business-data-spike", "recipes"),
+      recipeLines: await readAll("kitchai-business-data-spike", "recipeLines"),
+      sourceIngredients: await readAll("kitchai-ingredients", "ingredients"),
+      sourceMenuItems: await readAll("kitchai-menu", "menuItems"),
+      sourceRecipes: await readAll("kitchai-recipes", "recipes"),
+      sourceLines: await readAll("kitchai-recipes", "recipeLines"),
+    };
+  });
+  expect(result.ingredients[0].name).toBe("Rice noodles");
+  expect(result.menuItems[0].name).toBe("Noodle soup");
+  expect(result.recipes[0].menuItemId).toBe("menu-1");
+  expect(result.recipeLines[0]).toMatchObject({ recipeId: "recipe-1", ingredientId: "ingredient-1", quantity: 250, unit: "g" });
+  expect([result.sourceIngredients.length, result.sourceMenuItems.length, result.sourceRecipes.length, result.sourceLines.length]).toEqual([1, 1, 1, 1]);
 });

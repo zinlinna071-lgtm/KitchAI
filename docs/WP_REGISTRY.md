@@ -131,10 +131,12 @@ Planning documents do not count as implementation completion. WP1.1 completion m
 - **Boundary:** Recipes and ingredient lines are local-only. No remote schema, sync queue, unit conversion, line deletion, costing, inventory deduction, or cloud-sync claim; new-entity sync remains WP2.5.
 
 ### WP2.5 — Local-first Sync & Conflict Integration
-- **Status:** Planning breakdown added in PR #29; WP2.5a is next after the plan merges
+- **Status:** WP2.5a disposable migration proof complete; recommended architecture documented; WP2.5b may begin
 - **Dependencies:** WP2.2–WP2.4 and verified Phase 1 sync contracts
 - **Sub-WP sequence:** WP2.5a sync/storage architecture spike → WP2.5b atomic entity outbox and migration → WP2.5c remote schema/RLS/idempotency (local Supabase only) → WP2.5d client transport/retry/conflict integration.
-- **Design concern:** WP2.2, WP2.3, and WP2.4 currently use independent IndexedDB databases, while Phase 1's outbox is in `kitchai-sync`. A record and outbox operation cannot be committed atomically across those databases. WP2.5a must compare alternatives and test migration/recovery before any sync implementation.
+- **WP2.5a evidence:** `.spikes/wp2-5-entity-sync/REPORT.md` compares per-entity outboxes, a shared Phase 2 entity database/outbox, and unsafe best-effort writes across independent databases. `.spikes/wp2-5-entity-sync/migration-prototype.js` and the browser regression test exercise disposable migration rollback, source preservation, and idempotent restart. Baseline [run 38238622571](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38238622571) and app-shell/browser [run 38238622636](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38238622636) passed.
+- **Recommended direction (not production implementation):** a dedicated versioned `kitchai-business-data` database containing all Phase 2 entity stores and an entity outbox; leave Phase 1's `kitchai-sync` and profile-specific transport unchanged.
+- **Design concern:** WP2.2, WP2.3, and WP2.4 currently use independent IndexedDB databases, while Phase 1's outbox is in `kitchai-sync`. A record and outbox operation cannot be committed atomically across those databases. No production data migration or remote schema has been applied.
 - **Guardrails:** No hosted provisioning, production secrets, billing, or deployment; never claim cloud sync until remote-path tests and evidence pass.
 
 ### WP2.6 — Integration, Regression & Phase Exit
