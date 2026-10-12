@@ -420,7 +420,49 @@ test("legacy Phase 2 records migrate through the current runtime, queue once, an
       tx.onabort = () => reject(tx.error);
     });
     legacyDb.close();
-    return { profile, ingredient };
+
+    // Seed the existing shared v1 schema and a record to exercise the real v1 -> v2
+    // upgrade, including preservation of entity data and creation of the conflict store.
+    const sharedDb = await open("kitchai-business-data", 1, db => {
+      const definitions = [
+        ["ingredients", ["ownerId", "businessId", "id"], [["byScope", ["ownerId", "businessId"]]]],
+        ["menuItems", ["ownerId", "businessId", "id"], [["byScope", ["ownerId", "businessId"]]]],
+        ["recipes", ["ownerId", "businessId", "id"], [["byScope", ["ownerId", "businessId"]], ["byScopeMenuItem", ["ownerId", "businessId", "menuItemId"]]]],
+        ["recipeLines", ["ownerId", "businessId", "id"], [["byScope", ["ownerId", "businessId"]], ["byRecipe", ["ownerId", "businessId", "recipeId"]], ["byRecipePosition", ["ownerId", "businessId", "recipeId", "position"]]]],
+      ];
+      for (const [name, keyPath, indexes] of definitions) {
+        const store = db.createObjectStore(name, { keyPath });
+        for (const [indexName, path] of indexes) store.createIndex(indexName, path, { unique: false });
+      }
+      const operations = db.createObjectStore("operations", { keyPath: "operationId" });
+      operations.createIndex("byOwner", "ownerId", { unique: false });
+      operations.createIndex("byOwnerAndRecord", ["ownerId", "recordId"], { unique: false });
+      operations.createIndex("byOwnerBusinessEntityRecord", ["ownerId", "businessId", "entityType", "recordId"], { unique: false });
+      operations.createIndex("byOwnerAndState", ["ownerId", "state"], { unique: false });
+      const syncMetadata = db.createObjectStore("syncMetadata", { keyPath: ["ownerId", "businessId", "entityType", "recordId"] });
+      syncMetadata.createIndex("byOwner", "ownerId", { unique: false });
+      syncMetadata.createIndex("byScope", ["ownerId", "businessId"], { unique: false });
+      db.createObjectStore("metadata", { keyPath: "key" });
+      db.createObjectStore("migrationLedger", { keyPath: ["sourceDatabase", "sourceStore", "sourceOwnerId", "sourceBusinessId", "sourceRecordId"] });
+    });
+    const sharedRecord = {
+      ownerId: "local:existing-shared-profile",
+      businessId: "existing-shared-profile",
+      id: "existing-shared-ingredient",
+      name: "Existing Shared Record",
+      status: "active",
+      createdAt: "2026-01-02T00:00:00.000Z",
+      updatedAt: "2026-01-02T00:00:00.000Z",
+    };
+    await new Promise((resolve, reject) => {
+      const tx = sharedDb.transaction("ingredients", "readwrite");
+      tx.objectStore("ingredients").put(sharedRecord);
+      tx.oncomplete = resolve;
+      tx.onerror = () => reject(tx.error);
+      tx.onabort = () => reject(tx.error);
+    });
+    sharedDb.close();
+    return { profile, ingredient, sharedRecord };
   });
   await page.unrouteAll({ behavior: "wait" });
   await page.goto("/");
@@ -443,6 +485,14 @@ test("legacy Phase 2 records migrate through the current runtime, queue once, an
       const operationRows = await read("operations", store => store.index("byOwnerBusinessEntityRecord").getAll([
         "local:" + profileId, profileId, "ingredient", ingredientId,
       ]));
+      const existingSharedRecord = await read("ingredients", store => store.get([
+        "local:existing-shared-profile", "existing-shared-profile", "existing-shared-ingredient",
+      ]));
+      const upgradedSchema = {
+        version: db.version,
+        hasConflictStore: db.objectStoreNames.contains("conflicts"),
+        hasScopeIndex: db.transaction("ingredients", "readonly").objectStore("ingredients").indexNames.contains("byScope"),
+      };
       const ledgerRows = await read("migrationLedger", store => store.getAll());
       const sourceDbRequest = indexedDB.open("kitchai-ingredients");
       const sourceDb = await new Promise((resolve, reject) => {
@@ -459,6 +509,8 @@ test("legacy Phase 2 records migrate through the current runtime, queue once, an
       return {
         migrated,
         operationRows,
+        existingSharedRecord,
+        upgradedSchema,
         ledgerRows: ledgerRows.filter(row => row.sourceRecordId === ingredientId),
         sourceRows,
       };
@@ -476,6 +528,8 @@ test("legacy Phase 2 records migrate through the current runtime, queue once, an
   });
   expect(evidence.operationRows).toHaveLength(1);
   expect(evidence.operationRows[0]).toMatchObject({ operation: "create", state: "pending", recordId: seeded.ingredient.id });
+  expect(evidence.existingSharedRecord).toMatchObject(seeded.sharedRecord);
+  expect(evidence.upgradedSchema).toEqual({ version: 2, hasConflictStore: true, hasScopeIndex: true });
   expect(evidence.ledgerRows).toHaveLength(1);
   expect(evidence.ledgerRows[0].needsOutbox).toBe(false);
   expect(evidence.sourceRows).toEqual([seeded.ingredient]);
