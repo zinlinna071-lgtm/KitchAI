@@ -163,6 +163,7 @@ export async function saveRecipe(scope, input) {
         ...partition,
         entityType: "recipe",
         recordId: id,
+        dependencies: [{ entityType: "menuItem", recordId: saved.menuItemId }],
         payload: {
           menuItemId: saved.menuItemId,
           name: saved.name,
@@ -225,6 +226,10 @@ export async function saveRecipeLine(scope, input) {
         ...partition,
         entityType: "recipeLine",
         recordId: id,
+        dependencies: [
+          { entityType: "recipe", recordId: saved.recipeId },
+          { entityType: "ingredient", recordId: saved.ingredientId },
+        ],
         payload: {
           recipeId: saved.recipeId,
           ingredientId: saved.ingredientId,
