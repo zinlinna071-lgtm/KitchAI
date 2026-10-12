@@ -36,7 +36,7 @@ export function phase2RetryDelayMs(attemptCount, options = {}) {
  * preserveConflict:(operation:any,remoteRecord:any)=>Promise<void>,pauseForAuth:(operation:any)=>Promise<void>,
  * markPermanentFailure:(operation:any,message:string)=>Promise<void>,scheduleRetry:(operation:any,attemptCount:number,nextAttemptAt:number,message:string)=>Promise<void>,
  * dependenciesSynced:(operation:any)=>Promise<boolean>,releaseDependency:(operation:any)=>Promise<void>},
- * send:(operation:any,session:any)=>Promise<any>,now?:()=>number,random?:()=>number,baseDelayMs?:number,maxDelayMs?:number
+ * send:(operation:any,session:any)=>Promise<any>,now?:()=>number,random?:()=>number,baseDelayMs?:number,maxDelayMs?:number,_pass?:number
  * }} input
  */
 export async function syncPhase2Operations(input) {
@@ -105,6 +105,11 @@ export async function syncPhase2Operations(input) {
       await input.store.scheduleRetry(operation, attempts, now() + delay, message);
       summary.retried++;
     }
+  }
+  const pass = input._pass ?? 0;
+  if (summary.synced > 0 && pass < operations.length) {
+    const followUp = await syncPhase2Operations({ ...input, _pass: pass + 1 });
+    for (const key of Object.keys(summary)) summary[key] += followUp[key];
   }
   return summary;
 }
