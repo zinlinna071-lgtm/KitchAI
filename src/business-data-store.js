@@ -291,9 +291,10 @@ export function openBusinessDatabase() {
 /**
  * Queue an entity mutation in the same transaction as its record write.
  * Existing unsent creates/updates are coalesced without changing operationId.
+ * Child records wait for unresolved parent operations before transport may dispatch them.
  * @param {IDBObjectStore} operations
  * @param {IDBObjectStore} syncMetadata
- * @param {{ownerId:string,businessId:string,entityType:string,recordId:string,payload:any,localSnapshot:any,onError?:(error:Error)=>void}} input
+ * @param {{ownerId:string,businessId:string,entityType:string,recordId:string,payload:any,localSnapshot:any,dependencies?:{entityType:string,recordId:string}[],onError?:(error:Error)=>void}} input
  */
 export function enqueueEntityOperation(operations, syncMetadata, input) {
   const scope = {
@@ -313,38 +314,72 @@ export function enqueueEntityOperation(operations, syncMetadata, input) {
     const queued = request.result.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
     const latest = queued.at(-1);
     const coalescible = latest && ["pending", "retryable_error", "needs_auth", "blocked_dependency"].includes(latest.state);
-    if (coalescible) {
-      operations.put({
-        ...latest,
-        payload: structuredClone(input.payload),
-        localSnapshot: structuredClone(input.localSnapshot),
-        updatedAt: new Date().toISOString(),
-      });
-      return;
-    }
-    const metadataRequest = syncMetadata.get([scope.ownerId, scope.businessId, scope.entityType, scope.recordId]);
-    metadataRequest.onsuccess = () => {
-      const remote = metadataRequest.result;
-      const dependent = latest && latest.state !== "synced" ? latest : null;
-      const operation = remote && Number.isInteger(remote.revision) ? "update" : dependent?.operation === "create" ? "update" : "create";
-      const blocked = Boolean(dependent);
-      operations.add({
-        operationId: crypto.randomUUID(),
-        ...scope,
-        operation,
-        baseRevision: operation === "create" ? null : (remote?.revision ?? null),
-        baseSnapshot: operation === "create" ? null : (remote?.lastSyncedSnapshot ?? null),
-        localSnapshot: structuredClone(input.localSnapshot),
-        payload: structuredClone(input.payload),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        attemptCount: 0,
-        state: blocked ? "blocked_dependency" : "pending",
-        nextAttemptAt: 0,
-        ...(dependent ? { dependsOnOperationId: dependent.operationId } : {}),
-      });
+    const dependencies = Array.isArray(input.dependencies) ? input.dependencies : [];
+    const uniqueDependencies = [...new Map(dependencies.map((item) => [
+      item.entityType + "\\u0000" + item.recordId,
+      { entityType: requireScopePart(item.entityType, "Dependency entity type"), recordId: requireScopePart(item.recordId, "Dependency record ID") },
+    ])).values()].filter((item) => item.entityType !== scope.entityType || item.recordId !== scope.recordId);
+    const dependencyRequests = uniqueDependencies.map((dependency) => ({
+      dependency,
+      request: operations.index("byOwnerBusinessEntityRecord").getAll([
+        scope.ownerId, scope.businessId, dependency.entityType, dependency.recordId,
+      ]),
+    }));
+    let remaining = dependencyRequests.length;
+    const dependencyOperationIds = [];
+    const process = () => {
+      if (remaining !== 0) return;
+      const uniqueOperationIds = [...new Set(dependencyOperationIds)];
+      if (coalescible) {
+        operations.put({
+          ...latest,
+          payload: structuredClone(input.payload),
+          localSnapshot: structuredClone(input.localSnapshot),
+          dependsOnOperationIds: uniqueOperationIds,
+          ...(uniqueOperationIds.length === 1 ? { dependsOnOperationId: uniqueOperationIds[0] } : { dependsOnOperationId: undefined }),
+          state: uniqueOperationIds.length ? "blocked_dependency" : latest.state === "blocked_dependency" || latest.state === "retryable_error" ? "pending" : latest.state,
+          updatedAt: new Date().toISOString(),
+        });
+        return;
+      }
+      const metadataRequest = syncMetadata.get([scope.ownerId, scope.businessId, scope.entityType, scope.recordId]);
+      metadataRequest.onsuccess = () => {
+        const remote = metadataRequest.result;
+        const dependent = latest && latest.state !== "synced" ? latest : null;
+        const operation = remote && Number.isInteger(remote.revision) ? "update" : dependent?.operation === "create" ? "update" : "create";
+        if (dependent && !uniqueOperationIds.includes(dependent.operationId)) uniqueOperationIds.push(dependent.operationId);
+        operations.add({
+          operationId: crypto.randomUUID(),
+          ...scope,
+          operation,
+          baseRevision: operation === "create" ? null : (remote?.revision ?? null),
+          baseSnapshot: operation === "create" ? null : (remote?.lastSyncedSnapshot ?? null),
+          localSnapshot: structuredClone(input.localSnapshot),
+          payload: structuredClone(input.payload),
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          attemptCount: 0,
+          state: uniqueOperationIds.length ? "blocked_dependency" : "pending",
+          nextAttemptAt: 0,
+          dependsOnOperationIds: uniqueOperationIds,
+          ...(uniqueOperationIds.length === 1 ? { dependsOnOperationId: uniqueOperationIds[0] } : {}),
+        });
+      };
+      metadataRequest.onerror = () => fail(metadataRequest.error ?? new Error("Could not read entity sync metadata."));
     };
-    metadataRequest.onerror = () => fail(metadataRequest.error ?? new Error("Could not read entity sync metadata."));
+    for (const item of dependencyRequests) {
+      item.request.onsuccess = () => {
+        const pending = item.request.result
+          .filter((operation) => operation.state !== "synced")
+          .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+        const latestDependency = pending.at(-1);
+        if (latestDependency) dependencyOperationIds.push(latestDependency.operationId);
+        remaining--;
+        process();
+      };
+      item.request.onerror = () => fail(item.request.error ?? new Error("Could not inspect a parent entity operation."));
+    }
+    process();
   };
   request.onerror = () => fail(request.error ?? new Error("Could not inspect entity outbox."));
 }
