@@ -30,3 +30,9 @@
 .ingredient-editor .profile-form .button{min-width:0;max-width:100%;white-space:normal;overflow-wrap:anywhere}
 
 .ingredient-list-panel h3{min-width:0;overflow-wrap:anywhere}
+
+.menu-workspace{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:1.4rem;min-width:0}
+.menu-list-panel{min-width:0;max-width:100%}
+.menu-list-panel h3{min-width:0;margin:.2rem 0 .6rem;color:var(--green);overflow-wrap:anywhere}
+.menu-editor .profile-form .button{min-width:0;max-width:100%;white-space:normal;overflow-wrap:anywhere}
+@media(max-width:800px){.menu-workspace{grid-template-columns:1fr}}
