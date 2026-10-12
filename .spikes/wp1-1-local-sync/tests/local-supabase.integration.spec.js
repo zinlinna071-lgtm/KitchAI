@@ -316,6 +316,19 @@ test("Phase 2 ingredient conflicts preserve both candidates and support explicit
   await expect(page.locator("#ingredient-list")).toContainText("Remote Candidate Ingredient");
   await expect(conflicts).toBeHidden({ timeout: 10000 });
 
+  // Reload after the remote-choice transaction so the next offline edit starts
+  // from the durable, resolved local record and acknowledged queue state.
+  await page.reload();
+  await expect(page.locator("#ingredient-list")).toContainText("Remote Candidate Ingredient");
+  await expect.poll(async () => page.evaluate(async () => {
+    const auth = JSON.parse(sessionStorage.getItem("kitchai.auth.session"));
+    const sync = await import("/src/phase2-sync-engine.js");
+    const profiles = await import("/src/sync-store.js");
+    const profile = (await profiles.listOwnerProfiles(auth.user.id))[0];
+    const operations = await sync.createPhase2SyncStore().listOperations(auth.user.id, profile.id);
+    return operations.filter(item => item.entityType === "ingredient").map(item => item.state);
+  }), { timeout: 15000 }).toContain("synced");
+
   const secondLocal = await queueLocalEdit("Local Kept Candidate");
   await createRemoteWinner(secondLocal, "Remote Newer Candidate");
   await context.setOffline(false);
