@@ -131,10 +131,9 @@ select is(
 select throws_ok(
   $sql$select public.apply_phase2_entity_operation(
     '10000000-0000-4000-8000-000000000008','ingredient',
-    '10000000-0000-4000-8000-000000000101','update',2,'{"name":"bad unit","unit":"cup","status":"active"}'::jsonb
+    '10000000-0000-4000-8000-000000000101','update',2,'{"name":"   ","status":"active"}'::jsonb
   )$sql$,
-  '22023','Idempotency key reused with a different request',
-  'a used operation ID cannot be reused for another request'
+  '22023','Name must contain 1 to 120 characters','RPC rejects blank names'
 );
 
 select is(
@@ -180,7 +179,7 @@ select throws_ok(
 reset role;
 select is(
   (select count(*)::integer from public.phase2_entity_operations where owner_id='11111111-1111-4111-8111-111111111111'),
-  9,'accepted and conflict results are durably recorded once per operation'
+  8,'accepted and conflict results are durably recorded once per operation'
 );
 
 select * from finish();
