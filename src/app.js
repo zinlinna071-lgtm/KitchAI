@@ -184,6 +184,7 @@ async function refreshMenuView() {
             await setMenuItemStatus(scope, record.id, action === "archive" ? "archived" : "active");
             if (editingMenuItemId === record.id) resetMenuItemForm();
             await refreshMenuView();
+      await refreshRecipeView();
             setMenuItemState(action === "archive" ? "Menu item archived. It has not been deleted." : "Menu item reactivated.");
           } catch (error) {
             setMenuItemState(error instanceof Error ? error.message : "Could not update menu item status.", true);
@@ -648,6 +649,7 @@ async function refreshOwnerView() {
   await showUnresolvedConflict(ownerId);
   await refreshIngredientView();
   await refreshMenuView();
+      await refreshRecipeView();
 }
 
 async function scheduleRetryForOwner(ownerId) {
@@ -755,6 +757,7 @@ async function loadLocalProfile() {
     if (adoptLocalButton) adoptLocalButton.hidden = true;
     await refreshIngredientView();
     await refreshMenuView();
+      await refreshRecipeView();
   } catch (error) {
     setProfileState(error instanceof Error
       ? "Local storage is unavailable: " + error.message
@@ -785,6 +788,7 @@ profileForm?.addEventListener("submit", async (event) => {
       setProfileState(stateLabel(saved.profile));
       await refreshIngredientView();
       await refreshMenuView();
+      await refreshRecipeView();
       await runSync();
     } else {
       const saved = await saveLocalProfile({ id: currentProfile?.id, name: businessNameInput.value });
@@ -793,6 +797,7 @@ profileForm?.addEventListener("submit", async (event) => {
       setProfileState("Saved on this device · not synced (local version " + saved.localRevision + ").");
       await refreshIngredientView();
       await refreshMenuView();
+      await refreshRecipeView();
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unexpected storage error.";
@@ -855,6 +860,7 @@ menuItemForm?.addEventListener("submit", async (event) => {
     });
     resetMenuItemForm();
     await refreshMenuView();
+      await refreshRecipeView();
     setMenuItemState("Menu item saved on this device. Recipe association and cloud sync are not implemented yet.");
   } catch (error) {
     setMenuItemState(error instanceof Error ? error.message : "Could not save menu item.", true);
@@ -869,6 +875,86 @@ cancelMenuItemEditButton?.addEventListener("click", () => {
   setMenuItemState("Edit cancelled. No changes were made.");
 });
 
+
+recipeForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const scope = activeMenuScope();
+  if (!scope || !recipeMenuItemSelect || !recipeNameInput || !recipeDescriptionInput || !recipeInstructionsInput || !recipeYieldInput || !recipeStatusSelect || !saveRecipeButton) {
+    setRecipeState("Save or load a Business Profile and menu item first.", true);
+    return;
+  }
+  saveRecipeButton.disabled = true;
+  if (cancelRecipeEditButton) cancelRecipeEditButton.disabled = true;
+  try {
+    const yieldText = recipeYieldInput.value.trim();
+    const saved = await saveRecipe(scope, {
+      ...(editingRecipeId ? { id: editingRecipeId } : {}),
+      menuItemId: recipeMenuItemSelect.value,
+      name: recipeNameInput.value,
+      description: recipeDescriptionInput.value,
+      instructions: recipeInstructionsInput.value,
+      ...(yieldText ? { yieldPortions: Number(yieldText) } : {}),
+      status: recipeStatusSelect.value,
+    });
+    selectedRecipeId = saved.id;
+    resetRecipeForm();
+    await refreshRecipeView();
+    setRecipeState("Recipe saved on this device. Ingredient lines are preserved; cloud sync is not implemented yet.");
+  } catch (error) {
+    setRecipeState(error instanceof Error ? error.message : "Could not save recipe.", true);
+  } finally {
+    saveRecipeButton.disabled = !activeMenuScope();
+    if (cancelRecipeEditButton) cancelRecipeEditButton.disabled = false;
+  }
+});
+
+cancelRecipeEditButton?.addEventListener("click", () => {
+  resetRecipeForm();
+  setRecipeState("Recipe edit cancelled. No changes were made.");
+});
+
+recipeLineForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const scope = activeMenuScope();
+  if (!scope || !recipeLineRecipeSelect || !recipeLineIngredientSelect || !recipeLineQuantityInput || !recipeLineUnitSelect || !recipeLinePositionInput || !saveRecipeLineButton) {
+    setRecipeLineState("Save or load a Business Profile and recipe first.", true);
+    return;
+  }
+  saveRecipeLineButton.disabled = true;
+  if (cancelRecipeLineEditButton) cancelRecipeLineEditButton.disabled = true;
+  try {
+    const saved = await saveRecipeLine(scope, {
+      ...(editingRecipeLineId ? { id: editingRecipeLineId } : {}),
+      recipeId: recipeLineRecipeSelect.value,
+      ingredientId: recipeLineIngredientSelect.value,
+      quantity: Number(recipeLineQuantityInput.value),
+      unit: recipeLineUnitSelect.value,
+      position: Number(recipeLinePositionInput.value),
+      note: recipeLineNoteInput?.value ?? "",
+    });
+    selectedRecipeId = saved.recipeId;
+    resetRecipeLineForm();
+    await refreshRecipeView();
+    setRecipeLineState("Ingredient line saved on this device. Other lines remain unchanged.");
+  } catch (error) {
+    setRecipeLineState(error instanceof Error ? error.message : "Could not save ingredient line.", true);
+  } finally {
+    saveRecipeLineButton.disabled = !activeMenuScope() || !recipeLineRecipeSelect.value;
+    if (cancelRecipeLineEditButton) cancelRecipeLineEditButton.disabled = false;
+  }
+});
+
+cancelRecipeLineEditButton?.addEventListener("click", () => {
+  resetRecipeLineForm();
+  setRecipeLineState("Ingredient line edit cancelled. No changes were made.");
+});
+
+recipeLineRecipeSelect?.addEventListener("change", async () => {
+  selectedRecipeId = recipeLineRecipeSelect.value;
+  resetRecipeLineForm();
+  await refreshRecipeView();
+});
+
 adoptLocalButton?.addEventListener("click", async () => {
   if (!activeSession || !currentProfile) return;
   adoptLocalButton.disabled = true;
@@ -877,6 +963,7 @@ adoptLocalButton?.addEventListener("click", async () => {
     currentOwnerProfile = saved.profile;
     await refreshIngredientView();
     await refreshMenuView();
+      await refreshRecipeView();
     await runSync();
   } catch (error) {
     setProfileState("Could not copy the local draft into this account. The original draft remains unchanged. " + (error instanceof Error ? error.message : ""), true);
