@@ -1,11 +1,9 @@
+import { enqueueEntityOperation, openBusinessDatabase } from "./business-data-store.js";
 import { listIngredients } from "./ingredient-store.js";
 import { listMenuItems } from "./menu-item-store.js";
 
-const DATABASE_NAME = "kitchai-recipes";
-const DATABASE_VERSION = 1;
 const RECIPE_STORE = "recipes";
 const LINE_STORE = "recipeLines";
-let databasePromise;
 
 const ALLOWED_UNITS = new Set(["g", "kg", "ml", "l", "each"]);
 
@@ -89,32 +87,7 @@ export function validateRecipeLine(input) {
 }
 
 function openDatabase() {
-  if (databasePromise) return databasePromise;
-  databasePromise = new Promise((resolve, reject) => {
-    const request = indexedDB.open(DATABASE_NAME, DATABASE_VERSION);
-    request.onupgradeneeded = () => {
-      const db = request.result;
-      if (!db.objectStoreNames.contains(RECIPE_STORE)) {
-        const store = db.createObjectStore(RECIPE_STORE, { keyPath: ["ownerId", "businessId", "id"] });
-        store.createIndex("byScope", ["ownerId", "businessId"], { unique: false });
-        store.createIndex("byScopeMenuItem", ["ownerId", "businessId", "menuItemId"], { unique: false });
-      }
-      if (!db.objectStoreNames.contains(LINE_STORE)) {
-        const store = db.createObjectStore(LINE_STORE, { keyPath: ["ownerId", "businessId", "id"] });
-        store.createIndex("byScope", ["ownerId", "businessId"], { unique: false });
-        store.createIndex("byRecipe", ["ownerId", "businessId", "recipeId"], { unique: false });
-        store.createIndex("byRecipePosition", ["ownerId", "businessId", "recipeId", "position"], { unique: false });
-      }
-    };
-    request.onsuccess = () => {
-      const db = request.result;
-      db.onversionchange = () => { db.close(); databasePromise = undefined; };
-      resolve(db);
-    };
-    request.onerror = () => { databasePromise = undefined; reject(request.error ?? new Error("Could not open recipe storage.")); };
-    request.onblocked = () => reject(new Error("Recipe storage upgrade is blocked by another open KitchAI tab."));
-  });
-  return databasePromise;
+  return openBusinessDatabase();
 }
 
 /** @param {{ownerId:string,businessId:string}} scope */
@@ -164,7 +137,7 @@ export async function saveRecipe(scope, input) {
   }
   const db = await openDatabase();
   return new Promise((resolve, reject) => {
-    const tx = db.transaction(RECIPE_STORE, "readwrite");
+    const tx = db.transaction([RECIPE_STORE, "operations", "syncMetadata"], "readwrite");
     const store = tx.objectStore(RECIPE_STORE);
     const id = input.id ?? crypto.randomUUID();
     let saved;
@@ -186,6 +159,21 @@ export async function saveRecipe(scope, input) {
         updatedAt: now,
       };
       store.put(saved);
+      enqueueEntityOperation(tx.objectStore("operations"), tx.objectStore("syncMetadata"), {
+        ...partition,
+        entityType: "recipe",
+        recordId: id,
+        payload: {
+          menuItemId: saved.menuItemId,
+          name: saved.name,
+          ...(saved.description ? { description: saved.description } : {}),
+          ...(saved.instructions ? { instructions: saved.instructions } : {}),
+          ...(saved.yieldPortions !== undefined ? { yieldPortions: saved.yieldPortions } : {}),
+          status: saved.status,
+        },
+        localSnapshot: saved,
+        onError: fail,
+      });
     };
     tx.oncomplete = () => saved ? resolve(saved) : reject(new Error("Recipe save ended without a result."));
     tx.onerror = () => reject(tx.error ?? new Error("Could not save recipe."));
@@ -220,7 +208,7 @@ export async function saveRecipeLine(scope, input) {
   }
   const db = await openDatabase();
   return new Promise((resolve, reject) => {
-    const tx = db.transaction(LINE_STORE, "readwrite");
+    const tx = db.transaction([LINE_STORE, "operations", "syncMetadata"], "readwrite");
     const store = tx.objectStore(LINE_STORE);
     const id = input.id ?? crypto.randomUUID();
     let saved;
@@ -233,6 +221,21 @@ export async function saveRecipeLine(scope, input) {
       const now = new Date().toISOString();
       saved = { ...partition, id, ...draft, createdAt: existing?.createdAt ?? now, updatedAt: now };
       store.put(saved);
+      enqueueEntityOperation(tx.objectStore("operations"), tx.objectStore("syncMetadata"), {
+        ...partition,
+        entityType: "recipeLine",
+        recordId: id,
+        payload: {
+          recipeId: saved.recipeId,
+          ingredientId: saved.ingredientId,
+          quantity: saved.quantity,
+          unit: saved.unit,
+          position: saved.position,
+          ...(saved.note ? { note: saved.note } : {}),
+        },
+        localSnapshot: saved,
+        onError: fail,
+      });
     };
     tx.oncomplete = () => saved ? resolve(saved) : reject(new Error("Ingredient line save ended without a result."));
     tx.onerror = () => reject(tx.error ?? new Error("Could not save ingredient line."));
