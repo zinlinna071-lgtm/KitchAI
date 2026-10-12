@@ -122,25 +122,70 @@ Non-goals: deducting inventory, calculating food cost, nutrition estimates, or s
 
 ### WP2.5 — Local-first sync and conflict integration
 
-**Priority:** Blocking for synced data; depends on WP2.2–WP2.4 and verified Phase 1 mechanisms.  
-**Deliverables:** Integrate new entities into existing outbox/transport contracts without weakening the Phase 1 guarantees.
+**Priority:** Blocking for newly synced Phase 2 data  
+**Dependencies:** WP2.2–WP2.4 implementation and verified Phase 1 mechanisms  
+**Execution rule:** WP2.5 is a substantial cross-cutting change and must be delivered through the ordered sub-work packages below. This is a planning breakdown, not authorization to provision hosted services or deploy migrations.
+
+#### WP2.5a — Sync contract and local-storage architecture spike
+
+**Deliverables:** Compare and record how Phase 2 entities can be committed atomically with a durable outbox, how entity relationships and ordering are preserved, and how migration from the current local stores can be recovered.
+
+Options to evaluate:
+- Keep separate entity databases and place a dedicated outbox in each database. This permits per-entity atomic writes but duplicates queue lifecycle code and complicates cross-entity ordering.
+- Move Phase 2 entity stores and their outbox into a shared, versioned business-data database. This supports entity/outbox atomicity and relationship-aware transactions, but requires a safe, idempotent migration from the already-shipped ingredient, menu, and recipe databases.
+- Keep entity data and the existing `kitchai-sync` outbox in independent databases and attempt best-effort dual writes. Reject this as the default because a crash between writes can leave a saved entity without a durable operation or an operation without its entity.
 
 Acceptance:
-- All operations are partitioned by the active owner/business; sign-out or identity change cannot process another owner's queue.
-- Stable operation IDs and idempotent retry behavior prevent duplicate logical writes.
-- Remote revision conflicts preserve base/local/remote snapshots and require explicit resolution using the existing contract.
-- Pending operations and conflict details survive reload.
-- Offline edits are clearly marked pending; failures are visible and recoverable.
-- Schema/migration failures do not silently erase existing Phase 1 data.
-- If current transport cannot safely sync new entity types, keep the affected workflow local-only and explicitly label it; do not fake success or broaden Phase 1 claims.
-- Automated tests exercise create/update/retry/lost acknowledgement/conflict/reload/owner isolation for at least the supported synced entity paths.
+- Inspect actual WP2.2–WP2.4 code and tests plus Phase 1 outbox, retry, idempotency, conflict, and sign-out behavior.
+- Prototype or test migration mechanics using disposable data; demonstrate idempotent restart and preservation of every source record.
+- Document the recommended architecture, transaction boundaries, operation envelope, supported entity order, and rollback/recovery plan.
+- Do not delete or clear source databases during migration. If safe additive migration cannot be demonstrated, stop before data-moving implementation and report the unresolved choice.
 
-Non-goals: hosted provider project setup, billing, production credentials, deployment, or claiming cross-device sync from local/emulated tests.
+#### WP2.5b — Durable Phase 2 entity outbox and migration
+
+**Dependencies:** WP2.5a architecture gate accepted  
+**Deliverables:** Implement the selected local storage/outbox design and additive, versioned, restart-safe migration.
+
+Acceptance:
+- A valid entity mutation and its pending operation commit atomically in the selected database.
+- Existing Phase 1 profile/outbox/conflict data remain untouched and readable.
+- Re-running or interrupting migration cannot duplicate or silently drop ingredients, menu items, recipes, or recipe lines.
+- Operations carry stable operation IDs, owner/business scope, entity type, record ID, operation kind, base revision, validated payload, and the snapshots needed for conflict recovery.
+- Related entity changes are ordered safely; unsupported deletes remain out of scope.
+- Sign-out and account switching cannot dispatch another owner's operation.
+
+#### WP2.5c — Remote entity schema, authorization, and idempotency
+
+**Dependencies:** WP2.5a; may be implemented after local entity contracts are stable  
+**Deliverables:** Versioned PostgreSQL migrations for ingredients, menu items, recipes, and recipe lines, plus trusted write RPCs and local-Supabase tests.
+
+Acceptance:
+- The server derives the authenticated owner from `auth.uid()`; client-supplied owner IDs are never authority.
+- Business relationships and foreign keys cannot cross owner/business scope.
+- RLS policies, grants, validation, revision preconditions, and idempotency are tested for allowed and denied operations.
+- Replaying an identical operation ID returns the original result; reusing an ID with a different request is rejected.
+- Migration tests cover empty and existing local test databases.
+- Apply migrations only to the isolated local test stack. Hosted projects, credentials, billing, and deployment remain unauthorized.
+
+#### WP2.5d — Client transport, retry, conflict review, and recovery
+
+**Dependencies:** WP2.5b and WP2.5c  
+**Deliverables:** Entity-specific or safely generalized transport adapters, acknowledgement/retry behavior, conflict preservation and resolution, and truthful UI sync states.
+
+Acceptance:
+- Acknowledgement updates local revision/state and removes the operation only after durable success.
+- Network failure and lost acknowledgement reuse the same operation ID; authentication expiry pauses dispatch without deleting pending data.
+- Revision conflicts preserve base/local/remote snapshots and stop automatic retries until explicit resolution.
+- Conflict resolution is owner-scoped, rechecks the latest remote revision, and retains resolution history.
+- Tests cover reload, retry, duplicate delivery, permanent denial, cross-owner isolation, sign-out, storage failure, and conflict resolution for supported entity types.
+- UI never labels local-only or queued data as cloud-synced.
+
+WP2.5 exit is reached only when WP2.5a–WP2.5d evidence is reviewed. No hosted setup, billing, production credentials, or production deployment is part of these sub-work packages.
 
 ### WP2.6 — Integration, regression, and Phase 2 exit evidence
 
 **Priority:** Blocking for Phase exit  
-**Dependencies:** WP2.1–WP2.5  
+**Dependencies:** WP2.1–WP2.5d  
 **Deliverables:** End-to-end tests, known-limitations record, updated status/registry, and release/phase-exit recommendation.
 
 Acceptance:
@@ -176,7 +221,7 @@ These are planning defaults, not approval to add unrelated features. The Coding 
 
 ## 6. Suggested implementation order
 
-WP2.1 → WP2.2 → WP2.3 → WP2.4 → WP2.5 → WP2.6.
+WP2.1 → WP2.2 → WP2.3 → WP2.4 → WP2.5a → WP2.5b → WP2.5c → WP2.5d → WP2.6.
 
 WP2.5 may be split into smaller implementation WPs if the existing sync contract requires a substantial adapter or entity-specific migration; document the split before implementation rather than hiding a large change inside a feature WP.
 
@@ -190,4 +235,4 @@ Do not provision hosted services, enable billing, add production secrets, deploy
 
 ## 8. Phase 2 exit summary
 
-Phase 2 is complete only when WP2.1–WP2.6 have explicit evidence, required CI is green, critical data-integrity and authorization tests pass, known limitations and deferred checks are recorded, and no unresolved critical security/data-loss issue is known. Planning completion alone does not mean implementation completion.
+Phase 2 is complete only when WP2.1–WP2.4, WP2.5a–WP2.5d, and WP2.6 have explicit evidence, required CI is green, critical data-integrity and authorization tests pass, known limitations and deferred checks are recorded, and no unresolved critical security/data-loss issue is known. Planning completion alone does not mean implementation completion.
