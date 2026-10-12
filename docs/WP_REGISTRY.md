@@ -1,7 +1,7 @@
 # Work Package Registry
 
 **Status:** WP1.1–WP1.6 implementation gates passed on main. PR #21 merged as docs-only commit `d1341bd9586e5b77ebcaf992d1437e80771fd954`; PR #22 merged as docs-only commit `c16a8b83b5c5ee8a6d87442b6a6265683d249167`, with baseline CI passing on that merge commit [run 38230100063](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38230100063). Earlier baseline, app-shell, and local Supabase workflows passed on unchanged application-code commit `1b7169f7569fe012ffacfca44356bb144d86f86d`; the static preview workflow passed on PR #21's merge commit. Owner explicitly accepts deferring named non-critical manual-only checks until the app is more complete. Those checks are recorded as deferred, not passed. WP1.7 is closed for the local-only Phase 1 milestone with the owner's manual-only deferrals documented; hosted provider authorization remains separately gated on explicit environment/cost approval.  
-**Parent plan:** [PHASE_1_PLAN.md](./PHASE_1_PLAN.md)
+**Parent plans:** [PHASE_1_PLAN.md](./PHASE_1_PLAN.md); [PHASE_2_PLAN.md](./PHASE_2_PLAN.md); [PHASE_2_DOMAIN_CONTRACT.md](./PHASE_2_DOMAIN_CONTRACT.md)
 
 A work package (WP) is a bounded implementation unit with dependencies and evidence of completion. The workflow maintains this registry so the owner does not need to manually split tasks.
 
@@ -92,3 +92,41 @@ A work package (WP) is a bounded implementation unit with dependencies and evide
 - Complete
 
 Planning documents do not count as implementation completion. WP1.1 completion means its requirements/architecture and isolated local-sync evidence gate is met; it does not mean production sync or server authorization is implemented.
+
+
+## Phase 2 WPs — Menu & Recipes
+
+**Phase plan:** [PHASE_2_PLAN.md](./PHASE_2_PLAN.md)  
+**Domain contract:** [PHASE_2_DOMAIN_CONTRACT.md](./PHASE_2_DOMAIN_CONTRACT.md)
+
+### WP2.1 — Domain Rules & Data Contract
+- **Priority:** Blocking
+- **Status:** Complete (logical contract reconciled with current repository baseline; implementation remains unstarted)
+- **Dependencies:** Phase 1 local-only foundation; Phase 2 plan
+- **Scope:** define menu item, ingredient, recipe, and recipe-ingredient entities; ownership/business partitioning; lifecycle; validation; initial unit allowlist; migration compatibility; sync constraints; and unresolved decisions.
+- **Current artifact:** [PHASE_2_DOMAIN_CONTRACT.md](./PHASE_2_DOMAIN_CONTRACT.md).
+- **Reconciliation evidence:** reviewed `src/local-store.js` (kitchai-local v1), `src/sync-store.js` (kitchai-sync v2), `src/sync-engine.js`, `src/supabase-api.js`, both current Business Profile SQL migrations, and the current test/package baseline. Documented that Phase 2 entities do not yet exist, the two IndexedDB databases version independently, Phase 1 uses separate profile/outbox/conflict stores, and current remote SQL supports only Business Profile plus idempotency. Text length and migration compatibility notes now distinguish the existing Phase 1 behavior from the proposed Phase 2 contract.
+- **Completion boundary:** the domain contract and repository reconciliation are complete; no Phase 2 runtime code or schema migration is included. WP2.2 may begin as a bounded local-first ingredient catalog implementation. Syncing new entities remains gated on WP2.5 and must not be implied by local persistence.
+- **Not allowed:** silently choosing advanced conversions, permanent deletion/tombstones, costing/accounting, inventory deduction, hosted schema rollout, or production provisioning.
+
+### WP2.2 — Ingredient Catalog & Validation
+- **Status:** Not started
+- **Dependencies:** WP2.1 accepted
+
+### WP2.3 — Recipe & Ingredient Lines
+- **Status:** Not started
+- **Dependencies:** WP2.1 and WP2.2
+
+### WP2.4 — Menu Item Workflow
+- **Status:** Not started
+- **Dependencies:** WP2.2 and WP2.3
+
+### WP2.5 — Local-first Sync & Conflict Integration
+- **Status:** Not started; blocking for any newly synced entity
+- **Dependencies:** WP2.2–WP2.4 and verified Phase 1 sync contracts
+
+### WP2.6 — Integration, Regression & Phase Exit
+- **Status:** Not started; blocking for Phase 2 exit
+- **Dependencies:** WP2.1–WP2.5
+
+Planning artifacts do not count as implementation completion. Implement one bounded WP at a time and retain Phase 1 regression gates.
