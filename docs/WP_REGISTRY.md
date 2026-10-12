@@ -135,6 +135,6 @@ Planning documents do not count as implementation completion. WP1.1 completion m
 
 ### WP2.6 — Integration, Regression & Phase Exit
 - **Status:** Not started; blocking for Phase 2 exit
-- **Dependencies:** WP2.1–WP2.5
+- **Dependencies:** WP2.1–WP2.4 and WP2.5a–WP2.5d
 
 Planning artifacts do not count as implementation completion. Implement one bounded WP at a time and retain Phase 1 regression gates.
