@@ -25,3 +25,6 @@
 .ingredient-item-actions .button{padding:.4rem .55rem;font-size:.8rem}
 @media(max-width:800px){.ingredient-workspace{grid-template-columns:1fr}}
 @media(max-width:560px){.ingredient-list-item{flex-direction:column}.ingredient-item-actions{justify-content:flex-start}}
+
+.ingredient-workspace,.ingredient-list-panel,.ingredient-list,.ingredient-list-item{min-width:0;max-width:100%}
+.ingredient-editor .profile-form .button{min-width:0;max-width:100%;white-space:normal;overflow-wrap:anywhere}
