@@ -39,3 +39,12 @@
 4. Update this report with final current-head workflow evidence. Do not merge this PR until these gates pass or the owner explicitly changes the acceptance scope.
 
 This is a partial WP3.1 foundation, not a finished inventory workflow. It does not implement inventory UI, production posting, inventory sync, remote idempotency, or integrated conflict preservation.
+
+## Latest review pass — 2026-10-13
+
+- The domain ledger now models `sale` as a finished-stock outflow; sale pricing and revenue remain separate. Owner consumption, giveaway, and waste remain distinct non-sale dispositions.
+- Persisted `stockMovementLotAllocations` / `stock_movement_lot_allocations` now records explicit named-lot deductions. Deferred database checks require a finished-stock outflow to be allocated across lots with a total exactly equal to the movement quantity. Allocation rows must match the finished item and unit and are owner-scoped/read-only to clients.
+- The populated-v2 browser migration test now also asserts the new local lot-allocation store.
+- Current code-head [App Shell run 38424410503](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38424410503), [Baseline run 38424410559](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38424410559), and [Static preview run 38424410630](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38424410630) passed before the final lot-allocation unit-guard/test-only commits; the newest commit's checks are running separately.
+- The newest local Supabase runs [authorization 38424410602](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38424410602) and [vertical slice 38424410547](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38424410547) are running/pending on the earlier code head; a current-head run is required to establish SQL/pgTAP results after the final allocation changes.
+- WP3.1 remains incomplete. No UI, production-posting RPC, remote idempotency implementation, inventory sync, or integrated conflict-preservation flow is included.
