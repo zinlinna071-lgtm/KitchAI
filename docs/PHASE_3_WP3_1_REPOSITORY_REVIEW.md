@@ -121,7 +121,7 @@ Owner policy selections D3-01–D3-11 were recorded as Selected on 2026-10-13 af
 - **D3-04:** partial receipt/cancellation; gates purchase/receipt state transitions.
 - **D3-05:** theoretical recipe quantities vs actual use/output; gates required actual fields and variance behavior.
 - **D3-06:** carry-over/shelf-life confirmation; gates operator flow and any reviewed rule presentation, not automatic safety claims.
-- **D3-07:** Phase 3 minimal sale/discount capture; gates disposition fields and boundary with Phase 4.
+- **D3-07:** all sale/discount capture is deferred to Phase 4; Phase 3 must support non-sale dispositions without a temporary sales ledger or inferred revenue.
 - **D3-08:** reason requirements for owner consumption, giveaway, waste and adjustments; gates required validation fields.
 - **D3-09:** physical-count correction confirmation/permissions; gates posting workflow and authorization.
 - **D3-10:** supplier and purchase cost/tax/shipping/currency fields; gates purchase schema and cost input semantics.
