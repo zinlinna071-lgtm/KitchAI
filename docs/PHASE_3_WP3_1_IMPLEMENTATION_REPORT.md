@@ -36,10 +36,9 @@
 ## Required before WP3.1 can be considered complete
 
 1. Add populated-v2 IndexedDB migration tests covering all existing stores, indexes, outbox, sync metadata, conflicts, migration ledger, and legacy-source preservation; include failure/reopen/idempotency.
-2. Run the new Supabase migration and pgTAP tests locally; fix any SQL/test failures.
+2. Retry the new Supabase migration and pgTAP tests when the Docker image pull limit permits; fix any SQL/test failures.
 3. Add populated-v2 migration tests covering existing stores, indexes, outbox/sync/conflicts/ledger and legacy-source preservation, including failure/reopen/retry.
-4. Run the actual repository's complete test/typecheck/build/preview checks and the relevant local Supabase suite.
-5. Review migration failure behavior and quantity compatibility with all Phase 2 recipe-line fixtures before merge.
-6. Update this report with real check output. Do not merge this PR until these gates pass or the owner explicitly changes the acceptance scope.
+4. Review migration failure behavior and quantity compatibility with all Phase 2 recipe-line fixtures before merge.
+5. Update this report with real check output. Do not merge this PR until these gates pass or the owner explicitly changes the acceptance scope.
 
 This report intentionally records partial status rather than implying that the whole WP3.1 acceptance checklist is complete.
