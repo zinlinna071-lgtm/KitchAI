@@ -20,9 +20,9 @@
 - Posted movement quantities are positive, exact decimal strings with six fractional decimal places at most; no implicit unit conversion.
 - Preserve the exact unit allowlist `g`, `kg`, `ml`, `l`, `each`.
 - Finished-product `each` quantities are whole numbers; fractional `each` may be allowed for ingredient recipe quantities only if represented safely.
-- Lot reductions require explicit positive allocations whose exact sum equals the disposition quantity; no implicit FIFO or safety inference.
+- Every finished-stock reduction (including sale, owner consumption, giveaway, and waste) requires explicit positive named-lot allocations whose exact sum equals the movement quantity; no implicit FIFO or safety inference. Sale pricing/revenue is separate from the stock movement.
 - Owner/business scope is mandatory. Same stable event ID is an idempotent retry; different IDs remain distinct events.
-- Carry-over requires operator confirmation. Phase 3 does not record regular or discounted sales as revenue.
+- Carry-over requires operator confirmation and is not itself a stock movement. Regular/discounted sales are represented as sales records plus a `sale` stock outflow; this inventory ledger does not itself calculate or recognize revenue.
 - No hosted provisioning, production deployment, secret changes, or PR merge.
 
 ## Gate before data migration
