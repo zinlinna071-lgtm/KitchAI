@@ -154,4 +154,4 @@ create policy "Owners read their finished lots" on public.finished_lots
   for select to authenticated using ((select auth.uid()) = owner_id);
 
 revoke all on table public.inventory_commands, public.stock_movements, public.finished_lots from anon, authenticated;
-grant select on table public.inventory_commands, public.stock_movements, public.finished_lots to authenticated;
+grant select on table public.stock_movements, public.finished_lots to authenticated;
