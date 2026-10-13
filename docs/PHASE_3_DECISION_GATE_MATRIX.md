@@ -35,7 +35,7 @@ These technical gates apply regardless of which D3 options are selected:
 
 ## Readiness rule
 
-- Owner selections are recorded with rationale and date in `docs/DECISIONS.md`; D3-02's technical precision limits remain a pre-implementation gate.
+- Owner selections are recorded with rationale and date in `docs/DECISIONS.md`; D3-02 precision limits are selected under T3-05 and must be proven by compatibility and boundary tests before migration.
 - Any later deferral must name the interim behavior, disabled/limited features, and tests that enforce the boundary.
 - The [Technical Gate Reconciliation](./PHASE_3_WP3_1_TECHNICAL_GATE_RECONCILIATION.md) records source mapping and candidate acceptance tests; owner review of material technical recommendations and a testable quantity/time contract are still required.
 - WP3.1 may proceed only via the bounded implementation prompt after confirming repository mapping and test plan. WP3.2–WP3.7 remain separate later work packages.
