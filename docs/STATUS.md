@@ -97,5 +97,5 @@ Automated WP2.6 gates pass for the local/emulated milestone, with no known criti
 
 - Feature branch: `feat/wp3-1-inventory-domain-model` (based on `d008ea1`).
 - Added exact decimal quantity and stock-movement domain primitives, explicit lot-allocation/carry-over validation, and additive IndexedDB v2→v3 inventory stores. See [WP3.1 implementation report](./PHASE_3_WP3_1_IMPLEMENTATION_REPORT.md).
-- Focused isolated Node harness passed 6/6 checks. This is not evidence that the checked-in repository suite passed.
-- Full repository checks and populated-v2 migration tests are not yet run; Supabase schema/RLS/pgTAP foundation remains unimplemented. WP3.1 is **not complete** and must not be merged until the documented gates are addressed.
+- GitHub Actions [run 38416284642](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38416284642) passed syntax/typecheck/unit tests/build and Chromium smoke tests; [run 38416284761](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38416284761) passed static preview checks.
+- Supabase local test run [38416285182](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38416285182) failed before tests due to Docker Hub image-pull rate limiting; no SQL tests are claimed as passed. Populated-v2 migration tests remain outstanding. WP3.1 is **not complete** and must not be merged until the documented gates are addressed.
