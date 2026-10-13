@@ -421,7 +421,7 @@ test("legacy Phase 2 records migrate through the current runtime, queue once, an
     });
     legacyDb.close();
 
-    // Seed the existing shared v1 schema and a record to exercise the real v1 -> v2
+    // Seed the existing shared v1 schema and a record to exercise the real v1 -> v3
     // upgrade, including preservation of entity data and creation of the conflict store.
     const sharedDb = await open("kitchai-business-data", 1, db => {
       const definitions = [
@@ -529,7 +529,7 @@ test("legacy Phase 2 records migrate through the current runtime, queue once, an
   expect(evidence.operationRows).toHaveLength(1);
   expect(evidence.operationRows[0]).toMatchObject({ operation: "create", state: "pending", recordId: seeded.ingredient.id });
   expect(evidence.existingSharedRecord).toMatchObject(seeded.sharedRecord);
-  expect(evidence.upgradedSchema).toEqual({ version: 2, hasConflictStore: true, hasScopeIndex: true });
+  expect(evidence.upgradedSchema).toEqual({ version: 3, hasConflictStore: true, hasScopeIndex: true });
   expect(evidence.ledgerRows).toHaveLength(1);
   expect(evidence.ledgerRows[0].needsOutbox).toBe(false);
   expect(evidence.sourceRows).toEqual([seeded.ingredient]);
