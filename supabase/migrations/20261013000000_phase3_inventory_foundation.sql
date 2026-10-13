@@ -25,7 +25,7 @@ create table public.stock_movements (
   stock_item_id uuid not null,
   kind text not null check (kind in (
     'opening_balance', 'purchase_receipt', 'production_consumption', 'production_output',
-    'owner_consumption', 'giveaway', 'waste', 'count_adjustment', 'correction', 'reversal'
+    'sale', 'owner_consumption', 'giveaway', 'waste', 'count_adjustment', 'correction', 'reversal'
   )),
   direction text not null check (direction in ('in', 'out')),
   quantity numeric(24,6) not null check (quantity > 0 and quantity < 'Infinity'::numeric),
