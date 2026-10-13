@@ -27,9 +27,8 @@
 ## Verification evidence
 
 - Focused isolated Node harness previously passed 6/6 domain checks.
-- On the latest earlier commit, repository syntax/typecheck/unit tests/build passed in the baseline workflow and the static preview workflow passed. The app-shell browser workflow then exposed a bug in the newly added migration test (it read from a closed IndexedDB connection); the test was fixed and the new current-head workflows are pending.
-- Latest run links: [App shell run 38418960294](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38418960294), [baseline run 38418960451](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38418960451), [static preview run 38418960332](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38418960332), [local Supabase authorization run 38418960535](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38418960535), and [local Supabase vertical slice run 38418960364](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38418960364).
-- Earlier Supabase attempt failed before tests ran because Docker Hub returned `toomanyrequests: Data limit exceeded`. SQL/pgTAP results therefore remain unknown until a successful run.
+- Current code-head [app-shell run 38420258964](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38420258964) passed, including the populated-v2 migration/retry/reopen/idempotency test and the domain tests. [Baseline run 38420259073](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38420259073) and [static preview run 38420259044](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38420259044) also passed.
+- [Local Supabase authorization run 38420259349](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38420259349) and [local vertical-slice run 38420259000](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38420259000) failed while starting the isolated Supabase Docker stack; the database migration/pgTAP step did not run. Logs from prior attempts explicitly reported Docker Hub `toomanyrequests: Data limit exceeded`. SQL/pgTAP results remain unknown, not passed.
 - No local checkout was available in the model execution container because GitHub DNS resolution failed; CI is the repository-level verification source.
 
 ## Remaining gates before WP3.1 can be considered complete
