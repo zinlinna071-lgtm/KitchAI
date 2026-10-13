@@ -18,9 +18,9 @@ The current application files on the PR branch are unchanged from the PR's base 
 
 **Implementation direction for review, not an approved schema:** prefer extending the consolidated business-data store and existing owner-scoped outbox/sync patterns over creating independent stores or a second sync engine. The exact store/index additions, migration version, remote SQL/API mapping, and transaction boundary must be documented and tested before code is changed.
 
-## 0.1 Proposed clarifications from the WP3.1 repository review — PENDING OWNER REVIEW
+## 0.1 Proposed technical clarifications from the WP3.1 repository review — PENDING RECONCILIATION
 
-**Decision status:** These are explicit proposals to close implementation ambiguities, not owner-approved architecture or business policy. They do not authorize runtime code, schema, migration, SQL, hosted resources, or production changes. D3-01–D3-11 remain OPEN unless separately recorded as resolved in `docs/DECISIONS.md`.
+**Decision status:** The owner selected the recommended policy directions for D3-01–D3-11 on 2026-10-13; see `docs/DECISIONS.md`. The technical proposals in this section are still proposals that must be reconciled with the selected policies, source code, migration behavior, and test plan. They are not automatically approved architecture. They do not authorize runtime code, schema, migration, SQL, hosted resources, or production changes.
 
 ### PC-1 — Canonical stock truth and balance projections (proposed)
 - **Proposal:** Treat the append-only stock-movement ledger as the canonical explanation of stock changes. Any current on-hand balance is a derived projection/cache that can be rebuilt from valid posted movements and reconciled against the ledger.
