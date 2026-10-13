@@ -91,3 +91,11 @@ The Phase 2 entity sync, conflict, and migration/upgrade acceptance scenarios ar
 
 ### Exit decision
 Automated WP2.6 gates pass for the local/emulated milestone, with no known critical data-loss or authorization failure surfaced by these tests. This is not a guarantee beyond tested scenarios. PR #35 is ready for owner review but remains unmerged; Phase 3 remains blocked until the owner reviews the PR and accepts the exit record. No hosted provisioning, billing, production secrets, or deployment is authorized.
+
+
+## Phase 3 WP3.1 implementation in progress
+
+- Feature branch: `feat/wp3-1-inventory-domain-model` (based on `d008ea1`).
+- Added exact decimal quantity and stock-movement domain primitives, explicit lot-allocation/carry-over validation, and additive IndexedDB v2→v3 inventory stores. See [WP3.1 implementation report](./PHASE_3_WP3_1_IMPLEMENTATION_REPORT.md).
+- Focused isolated Node harness passed 6/6 checks. This is not evidence that the checked-in repository suite passed.
+- Full repository checks and populated-v2 migration tests are not yet run; Supabase schema/RLS/pgTAP foundation remains unimplemented. WP3.1 is **not complete** and must not be merged until the documented gates are addressed.
