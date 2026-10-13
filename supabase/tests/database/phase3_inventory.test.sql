@@ -88,6 +88,24 @@ select throws_ok(
   from public.business_profiles where owner_id='31111111-1111-4111-8111-111111111111'$sql$,
   '23514','new row for relation "stock_movements" violates check constraint "stock_movements_finished_each_integral"','finished each must be whole number'
 );
+select throws_ok(
+  $sql$insert into public.stock_movements (
+    owner_id,business_id,event_id,stock_class,stock_item_id,kind,direction,quantity,unit,source_type,source_id,recorded_at,effective_at
+  ) select owner_id,business_id,'a5000000-0000-4000-8000-000000000004','ingredient',
+    'a8000000-0000-4000-8000-000000000004','production_output','in',1,'each','production_batch',
+    'a7000000-0000-4000-8000-000000000004',now(),now()
+  from public.business_profiles where owner_id='31111111-1111-4111-8111-111111111111'$sql$,
+  '23514','new row for relation "stock_movements" violates check constraint "stock_movements_production_stock_class"','production output must reference finished stock'
+);
+select throws_ok(
+  $sql$insert into public.stock_movements (
+    owner_id,business_id,event_id,stock_class,stock_item_id,kind,direction,quantity,unit,source_type,source_id,recorded_at,effective_at
+  ) select owner_id,business_id,'a5000000-0000-4000-8000-000000000005','finished',
+    'a8000000-0000-4000-8000-000000000005','production_consumption','out',1,'kg','production_batch',
+    'a7000000-0000-4000-8000-000000000005',now(),now()
+  from public.business_profiles where owner_id='31111111-1111-4111-8111-111111111111'$sql$,
+  '23514','new row for relation "stock_movements" violates check constraint "stock_movements_production_stock_class"','production consumption must reference ingredient stock'
+);
 
 set local role authenticated;
 set local "request.jwt.claim.sub" = '31111111-1111-4111-8111-111111111111';
