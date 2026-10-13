@@ -8,6 +8,8 @@
 
 **WP3.1 review handoff:** [CODING_AI_PHASE3_WP3_1_REVIEW_PROMPT.md](../CODING_AI_PHASE3_WP3_1_REVIEW_PROMPT.md) is a read-only repository/domain-contract review prompt. It does not authorize implementation and requires the Coding AI to stop after reporting findings.
 
+**Technical gate reconciliation:** [PHASE_3_WP3_1_TECHNICAL_GATE_RECONCILIATION.md](../PHASE_3_WP3_1_TECHNICAL_GATE_RECONCILIATION.md) maps source files, recommended technical candidates, remaining owner-review gates, and minimum acceptance tests.
+
 **Repository review findings:** [PHASE_3_WP3_1_REPOSITORY_REVIEW.md](../PHASE_3_WP3_1_REPOSITORY_REVIEW.md) records the source-grounded review. The follow-up [technical-gate reconciliation](../PHASE_3_WP3_1_TECHNICAL_GATE_RECONCILIATION.md) maps existing source files, candidate technical designs, and acceptance tests. Both are documentation-only; no tests were run for these reviews and WP3.1 is not complete.
 
 **Contract clarification draft:** The domain contract now includes §0.1 proposed clarifications PC-1–PC-8 for ledger authority, local/remote atomic posting, movement/correction semantics, lot allocation, v2 migration safety, event retry/conflict handling, scope/time validation, and cost-input boundaries. These proposals have now been reconciled with the owner-selected D3-01–D3-11 policy directions recorded in [DECISIONS.md](../DECISIONS.md). Independent technical gates remain unresolved; implementation remains blocked.
