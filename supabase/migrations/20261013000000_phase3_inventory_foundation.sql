@@ -90,6 +90,99 @@ create table public.finished_lots (
 create index finished_lots_by_menu_item_idx on public.finished_lots(owner_id, business_id, menu_item_id);
 create index finished_lots_by_batch_idx on public.finished_lots(owner_id, business_id, batch_id);
 
+-- Every finished-stock reduction must name the lot(s) it consumes. Sale pricing
+-- and revenue remain in the sales domain; this table only records quantity allocation.
+create table public.stock_movement_lot_allocations (
+  owner_id uuid not null,
+  business_id uuid not null,
+  event_id uuid not null,
+  lot_id uuid not null,
+  quantity numeric(24,6) not null check (quantity > 0 and quantity < 'Infinity'::numeric),
+  unit text not null check (unit in ('g', 'kg', 'ml', 'l', 'each')),
+  primary key (owner_id, business_id, event_id, lot_id),
+  constraint stock_movement_lot_allocations_event_fk foreign key (owner_id, business_id, event_id)
+    references public.stock_movements(owner_id, business_id, event_id),
+  constraint stock_movement_lot_allocations_lot_fk foreign key (owner_id, business_id, lot_id)
+    references public.finished_lots(owner_id, business_id, lot_id)
+);
+
+create or replace function public.validate_stock_movement_lot_allocation()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+declare
+  movement public.stock_movements%rowtype;
+  lot public.finished_lots%rowtype;
+begin
+  if tg_op <> 'INSERT' then
+    raise exception 'Lot allocations are immutable; record a linked stock movement'
+      using errcode = '55000';
+  end if;
+  select * into movement from public.stock_movements
+   where owner_id = new.owner_id and business_id = new.business_id and event_id = new.event_id;
+  select * into lot from public.finished_lots
+   where owner_id = new.owner_id and business_id = new.business_id and lot_id = new.lot_id;
+  if not found or lot.menu_item_id <> movement.stock_item_id
+     or lot.unit <> new.unit
+     or movement.stock_class <> 'finished'
+     or movement.direction <> 'out' then
+    raise exception 'Lot allocation must match a finished-stock reduction and its lot'
+      using errcode = '23514';
+  end if;
+  return new;
+end;
+$$;
+revoke all on function public.validate_stock_movement_lot_allocation() from public, anon, authenticated;
+create trigger stock_movement_lot_allocations_immutable
+before update or delete on public.stock_movement_lot_allocations
+for each row execute function public.validate_stock_movement_lot_allocation();
+create trigger stock_movement_lot_allocations_validate
+before insert on public.stock_movement_lot_allocations
+for each row execute function public.validate_stock_movement_lot_allocation();
+
+create or replace function public.assert_finished_reduction_allocations()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+declare
+  movement public.stock_movements%rowtype;
+  allocated numeric(24,6);
+  allocation_count bigint;
+  target_event uuid;
+begin
+  target_event := new.event_id;
+  select * into movement from public.stock_movements
+   where owner_id = new.owner_id and business_id = new.business_id and event_id = target_event;
+  if not found then
+    return null;
+  end if;
+  select coalesce(sum(quantity), 0), count(*) into allocated, allocation_count
+    from public.stock_movement_lot_allocations
+   where owner_id = movement.owner_id and business_id = movement.business_id and event_id = movement.event_id;
+  if movement.stock_class = 'finished' and movement.direction = 'out' then
+    if allocation_count = 0 or allocated <> movement.quantity then
+      raise exception 'Finished-stock reduction must be allocated exactly across lots'
+        using errcode = '23514';
+    end if;
+  elsif allocation_count <> 0 then
+    raise exception 'Lot allocations are only valid for finished-stock reductions'
+      using errcode = '23514';
+  end if;
+  return null;
+end;
+$$;
+revoke all on function public.assert_finished_reduction_allocations() from public, anon, authenticated;
+create constraint trigger stock_movements_require_lot_allocations
+after insert on public.stock_movements
+deferrable initially deferred
+for each row execute function public.assert_finished_reduction_allocations();
+create constraint trigger lot_allocations_sum_to_movement
+after insert on public.stock_movement_lot_allocations
+deferrable initially deferred
+for each row execute function public.assert_finished_reduction_allocations();
+
 create or replace function public.validate_finished_lot_output()
 returns trigger
 language plpgsql
