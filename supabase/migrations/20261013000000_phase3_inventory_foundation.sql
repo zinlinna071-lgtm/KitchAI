@@ -43,7 +43,7 @@ create table public.stock_movements (
     references public.stock_movements(owner_id, business_id, event_id),
   constraint stock_movements_kind_direction check (
     (kind in ('opening_balance', 'purchase_receipt', 'production_output') and direction = 'in')
-    or (kind in ('production_consumption', 'owner_consumption', 'giveaway', 'waste') and direction = 'out')
+    or (kind in ('production_consumption', 'sale', 'owner_consumption', 'giveaway', 'waste') and direction = 'out')
     or kind in ('count_adjustment', 'correction', 'reversal')
   ),
   constraint stock_movements_production_stock_class check (
