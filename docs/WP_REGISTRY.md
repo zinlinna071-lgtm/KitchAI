@@ -153,13 +153,14 @@ Planning documents do not count as implementation completion. WP1.1 completion m
 - **Guardrails:** No hosted provider testing, provisioning, billing, production secrets, or production deployment.
 ## Phase 3 WPs — PROPOSED / NOT APPROVED
 
-Plan: [docs/phases/PHASE_3_PLAN.md](./phases/PHASE_3_PLAN.md). All items below are planning-only; no implementation is authorized by this registry entry.
+Plan: [docs/phases/PHASE_3_PLAN.md](./phases/PHASE_3_PLAN.md); logical contract: [docs/phases/PHASE_3_DOMAIN_CONTRACT.md](./phases/PHASE_3_DOMAIN_CONTRACT.md). All items below are planning-only; no implementation is authorized by this registry entry.
 
 ### WP3.1 — Inventory Domain Rules & Data Model
-- **Status:** Proposed; owner review required
+- **Status:** Logical contract drafted; repository mapping and owner review still required; no code authorized
 - **Dependencies:** Phase 2 entity and recipe foundation
-- **Scope:** define stock boundaries, movement types, units, precision, validation, audit fields, and invariants.
-- **Done when:** data dictionary, state transitions, and validation tests are specified and reviewed.
+- **Scope:** define stock boundaries, movement types, units, precision, validation, audit fields, and invariants; reconcile logical contract with actual code, DB ownership, migrations, sync engine, and tests.
+- **Current artifact:** [PHASE_3_DOMAIN_CONTRACT.md](./phases/PHASE_3_DOMAIN_CONTRACT.md).
+- **Done when:** actual repository mapping and migration/test approach are documented, material decisions are resolved or safely deferred, and owner review is recorded before runtime implementation.
 
 ### WP3.2 — Suppliers, Purchasing & Receiving
 - **Status:** Proposed; owner review required
