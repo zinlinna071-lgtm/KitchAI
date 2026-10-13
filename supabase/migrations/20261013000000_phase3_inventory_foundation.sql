@@ -1,9 +1,6 @@
 -- WP3.1 inventory data foundation. Write access is intentionally reserved for a
 -- future trusted aggregate RPC; clients must not upsert stock events directly.
--- The Phase 1 profile has separately-unique owner_id/business_id columns; add the
--- composite candidate key required by owner-and-business-scoped foreign keys.
-alter table public.business_profiles
-  add constraint business_profiles_owner_business_unique unique (owner_id, business_id);
+-- Phase 2 already provides the composite owner/business candidate key used below.
 create table public.inventory_commands (
   owner_id uuid not null references auth.users(id) on delete cascade,
   business_id uuid not null,
