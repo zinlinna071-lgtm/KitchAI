@@ -7,12 +7,12 @@
 
 ## Implemented in this draft
 
-- `src/inventory-domain.js` — exact six-decimal decimal-string/BigInt quantity primitives, stock movement validation, explicit lot allocation validation, and operator-confirmed carry-over.
+- `src/inventory-domain.js` — exact six-decimal decimal-string/BigInt quantity primitives, stock movement validation, explicit lot allocation validation, operator-confirmed carry-over, and `sale` as a finished-stock outflow separate from sale pricing/revenue.
 - `tests/inventory-domain.test.mjs` — six focused Node tests.
-- `src/business-data-store.js` — additive IndexedDB v2→v3 schema upgrade with `stockMovements`, `finishedLots`, and `inventoryCommands`; Phase 2 stores and indexes are retained.
+- `src/business-data-store.js` — additive IndexedDB v2→v3 schema upgrade with `stockMovements`, `finishedLots`, `inventoryCommands`, and `stockMovementLotAllocations`; Phase 2 stores and indexes are retained.
 - `.spikes/wp1-1-local-sync/tests/app-shell.smoke.spec.js` — populated v2 database test covering existing catalog records, recipe-line number compatibility, outbox, sync metadata, migration ledger, conflicts, additive stores/indexes, legacy-source preservation, failed mapping then retry, and reload idempotency. First CI attempt exposed a test harness closed-connection bug; a fix is committed and the rerun is pending.
-- `supabase/migrations/20261013000000_phase3_inventory_foundation.sql` — owner-scoped inventory tables reusing the existing Phase 2 composite owner/business key, RLS, read-only stock/lot access, no direct client access to the idempotency command table, append-only stock movements, immutable finished-lot/output consistency validation, production movement stock-class checks, and corrected PL/pgSQL dollar quoting for the finished-lot trigger.
-- `supabase/tests/database/phase3_inventory.test.sql` — pgTAP checks for RLS/grants, output/lot linkage, lot/output quantity integrity, immutable movements/lots, zero-quantity rejection, finished-unit integrality, and cross-owner reads.
+- `supabase/migrations/20261013000000_phase3_inventory_foundation.sql` — owner-scoped inventory tables reusing the existing Phase 2 composite owner/business key, RLS, read-only stock/lot access, no direct client access to the idempotency command table, append-only stock movements, immutable finished-lot/output consistency validation, production movement stock-class checks, and corrected PL/pgSQL dollar quoting for the finished-lot trigger, and persisted finished-lot allocations with deferred exact-sum checks.
+- `supabase/tests/database/phase3_inventory.test.sql` — pgTAP checks for RLS/grants, output/lot linkage, lot/output quantity integrity, immutable movements/lots, zero-quantity rejection, production stock-class rules, sale-to-lot allocation and exact-sum enforcement, finished-unit integrality, and cross-owner reads.
 - `package.json`, `docs/PHASE_3_WP3_1_IMPLEMENTATION_PLAN.md`, `docs/STATUS.md`, and `docs/WP_REGISTRY.md` track scope, checks, and remaining gates.
 
 ## Domain invariants
