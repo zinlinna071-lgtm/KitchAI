@@ -105,6 +105,26 @@ Run database, unit, browser, accessibility/regression, migration, and production
 | D3-10 | Supplier data required fields and purchase-cost handling | Keep supplier optional for ad hoc purchases; define required price/tax/shipping fields after review | OPEN |
 | D3-11 | Phase 3 sync/conflict UX for stock movement conflicts | Preserve both versions and require explicit review; never auto-add conflicting movements | OPEN |
 
+## 6.1 Recommended defaults for owner review (not approvals)
+
+To avoid repeatedly reopening routine choices while protecting material business decisions, the following defaults are recommended. They remain recommendations until the owner decision log explicitly changes their status.
+
+| ID | Recommended default | Why |
+|---|---|---|
+| D3-01 | Defer official inventory valuation/COGS and profit calculations to Phase 5; preserve actual purchase-cost inputs and batch consumption references now | Avoids presenting an unreviewed costing method as accounting truth |
+| D3-02 | Preserve numeric precision, prohibit silent rounding/conversion, and define unit-specific limits in tests before UI release | Prevents hidden quantity drift |
+| D3-03 | Block production completion when recorded local stock is insufficient; do not add negative stock or an override path in the first release | Safest, auditable behavior until a deliberate override workflow is specified |
+| D3-04 | Allow partial receipts; only actually received quantities affect stock; cancelled/unreceived quantities do not | Matches real deliveries and prevents false stock |
+| D3-05 | Record actual ingredient use and actual output; compare with recipe baseline and show variance | Real production can differ from the recipe |
+| D3-06 | Require operator confirmation for carry-over suitability; configure any shelf-life prompts only after a separate reviewed rule | App cannot infer food safety from age alone |
+| D3-07 | In Phase 3, record a minimal finished-stock disposition for regular/discounted sale and actual amount received; keep customer/order/payment lifecycle in Phase 4 | Allows stock to reconcile without duplicating the full sales system |
+| D3-08 | Always distinguish owner consumption, giveaway, and waste; require a reason for waste/adjustment, allow optional notes for owner consumption/giveaway | Keeps reporting useful without making routine entries cumbersome |
+| D3-09 | Show count variance, require reason, and append a correction movement; require explicit confirmation before posting | Protects audit history |
+| D3-10 | Supplier is optional; capture received quantity, unit, unit price, currency, and receipt date; decide taxes/shipping before including them in valuation | Supports informal purchases while preserving usable cost inputs |
+| D3-11 | Preserve conflicting movement snapshots and require explicit manual review; never automatically add/merge conflicting stock changes | Prevents silent quantity corruption |
+
+If these defaults are accepted or explicitly deferred, update `docs/DECISIONS.md` before the corresponding implementation WP. Do not treat this table as owner approval.
+
 ## 7. Phase 2 boundary and owner smoke-test note
 
 The owner reported manually trying online/offline behavior, data entry, value correctness, and persistence, and said the observed behavior was good. This is useful owner smoke-test feedback only. It does not replace documented evidence for hosted sync, real two-device behavior, backup/export/restore, food-safety validation, or production readiness. Phase 3 must retain all Phase 2 known limitations and deferred checks in the exit review.
