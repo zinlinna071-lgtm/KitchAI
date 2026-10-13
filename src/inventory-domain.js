@@ -4,7 +4,7 @@ const MAX_SCALED = 10n ** 24n - 1n;
 export const INVENTORY_UNITS = Object.freeze(["g", "kg", "ml", "l", "each"]);
 export const STOCK_MOVEMENT_KINDS = Object.freeze([
   "opening_balance", "purchase_receipt", "production_consumption", "production_output",
-  "owner_consumption", "giveaway", "waste", "count_adjustment", "correction", "reversal",
+  "sale", "owner_consumption", "giveaway", "waste", "count_adjustment", "correction", "reversal",
 ]);
 const UNIT_SET = new Set(INVENTORY_UNITS);
 const KIND_SET = new Set(STOCK_MOVEMENT_KINDS);
