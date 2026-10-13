@@ -159,10 +159,11 @@ Planning documents do not count as implementation completion. WP1.1 completion m
 Plan: [docs/phases/PHASE_3_PLAN.md](./phases/PHASE_3_PLAN.md); logical contract: [docs/phases/PHASE_3_DOMAIN_CONTRACT.md](./phases/PHASE_3_DOMAIN_CONTRACT.md). All items below are planning-only; no implementation is authorized by this registry entry.
 
 ### WP3.1 — Inventory Domain Rules & Data Model
-- **Status:** Logical contract drafted; repository mapping and owner review still required; no code authorized
+- **Status:** Review required — contract clarification draft added; owner review and repository mapping still required; no code authorized
 - **Dependencies:** Phase 2 entity and recipe foundation
 - **Scope:** define stock boundaries, movement types, units, precision, validation, audit fields, and invariants; reconcile logical contract with actual code, DB ownership, migrations, sync engine, and tests.
 - **Current artifact:** [PHASE_3_DOMAIN_CONTRACT.md](./phases/PHASE_3_DOMAIN_CONTRACT.md), including a repository-grounded baseline of the current consolidated Phase 2 store and sync engine.
+- **Clarification gate:** Contract §0.1 records proposed PC-1–PC-8 (ledger source of truth, local/remote atomicity, movement/correction semantics, lot allocation, v2 migration, event identity/conflicts, scope/time semantics, and cost-input boundaries). These are pending owner review, not approved decisions; D3-01–D3-11 remain OPEN. See [repository review report](./PHASE_3_WP3_1_REPOSITORY_REVIEW.md).
 - **Recommendation artifact:** [PHASE_3_PLAN.md](./phases/PHASE_3_PLAN.md) §6.1 lists proposed safe defaults for D3-01–D3-11; these are not approvals.
 - **Done when:** actual repository mapping and migration/test approach are documented, material decisions are resolved or explicitly deferred in the decision log, and owner review is recorded before runtime implementation.
 
