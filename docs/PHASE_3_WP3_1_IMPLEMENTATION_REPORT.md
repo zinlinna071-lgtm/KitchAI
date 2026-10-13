@@ -11,7 +11,7 @@
 - `tests/inventory-domain.test.mjs` — six focused Node tests.
 - `src/business-data-store.js` — additive IndexedDB v2→v3 schema upgrade with `stockMovements`, `finishedLots`, and `inventoryCommands`; Phase 2 stores and indexes are retained.
 - `.spikes/wp1-1-local-sync/tests/app-shell.smoke.spec.js` — populated v2 database test covering existing catalog records, recipe-line number compatibility, outbox, sync metadata, migration ledger, conflicts, additive stores/indexes, legacy-source preservation, failed mapping then retry, and reload idempotency. First CI attempt exposed a test harness closed-connection bug; a fix is committed and the rerun is pending.
-- `supabase/migrations/20261013000000_phase3_inventory_foundation.sql` — owner-scoped inventory tables reusing the existing Phase 2 composite owner/business key, RLS, read-only stock/lot access, no direct client access to the idempotency command table, append-only stock movements, and immutable finished-lot/output consistency validation.
+- `supabase/migrations/20261013000000_phase3_inventory_foundation.sql` — owner-scoped inventory tables reusing the existing Phase 2 composite owner/business key, RLS, read-only stock/lot access, no direct client access to the idempotency command table, append-only stock movements, immutable finished-lot/output consistency validation, production movement stock-class checks, and corrected PL/pgSQL dollar quoting for the finished-lot trigger.
 - `supabase/tests/database/phase3_inventory.test.sql` — pgTAP checks for RLS/grants, output/lot linkage, lot/output quantity integrity, immutable movements/lots, zero-quantity rejection, finished-unit integrality, and cross-owner reads.
 - `package.json`, `docs/PHASE_3_WP3_1_IMPLEMENTATION_PLAN.md`, `docs/STATUS.md`, and `docs/WP_REGISTRY.md` track scope, checks, and remaining gates.
 
@@ -34,7 +34,7 @@
 ## Remaining gates before WP3.1 can be considered complete
 
 1. Confirm the new populated-v2 migration/retry/reopen Playwright test passes on current-head CI and fix any real migration regressions it reveals.
-2. Run the Supabase migration and pgTAP suite successfully; review and fix any SQL or test failures.
+2. Run the Supabase migration and pgTAP suite successfully; review and fix any SQL or test failures. Latest hardening runs are [authorization run 38422447921](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38422447921) and [vertical-slice run 38422447974](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38422447974); at the last check both were still starting the isolated Supabase stack.
 3. Review Phase 2 recipe-line quantity compatibility and the full diff.
 4. Update this report with final current-head workflow evidence. Do not merge this PR until these gates pass or the owner explicitly changes the acceptance scope.
 
