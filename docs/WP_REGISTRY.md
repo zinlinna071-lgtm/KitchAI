@@ -9,6 +9,7 @@ A work package (WP) is a bounded implementation unit with dependencies and evide
 
 **Phase 3 planning handoff:** [CODING_AI_PHASE3_WP3_1_REVIEW_PROMPT.md](./CODING_AI_PHASE3_WP3_1_REVIEW_PROMPT.md) is review-only. Phase 3 remains proposed/not approved for implementation; D3-01–D3-11 remain OPEN. Do not start WP3.1 runtime work based on this prompt.
 **WP3.1 repository review:** [PHASE_3_WP3_1_REPOSITORY_REVIEW.md](./PHASE_3_WP3_1_REPOSITORY_REVIEW.md) found critical contract clarifications needed for stock source-of-truth and atomic production posting. WP3.1 remains Review required; this is not implementation or test-pass evidence.
+**Phase 3 owner decision brief:** [PHASE_3_OWNER_DECISION_BRIEF.md](./PHASE_3_OWNER_DECISION_BRIEF.md) compares options and recommended discussion defaults for D3-01–D3-11. Recommendations are not approvals; all decisions remain OPEN until explicitly selected or deferred by the owner.
 
 ## Phase 1 WPs
 
