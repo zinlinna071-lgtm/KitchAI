@@ -18,6 +18,9 @@ export function recipeQuantityToInventoryQuantity(value, { unit, stockClass = "i
   if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) {
     throw new TypeError("Recipe quantity must be a finite positive number.");
   }
+  if (value > Number.MAX_SAFE_INTEGER) {
+    throw new RangeError("Recipe quantity exceeds JavaScript safe-integer precision; re-enter it as an exact decimal string.");
+  }
   const decimal = String(value);
   if (!/^(?:0|[1-9]\d*)(?:\.\d{1,6})?$/.test(decimal)) {
     throw new RangeError("Recipe quantity cannot be represented safely at six decimal places; edit it to a supported precision.");
