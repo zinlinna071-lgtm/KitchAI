@@ -37,6 +37,7 @@ test("movement contract requires scope, stable IDs, direction, source, and UTC t
   });
   assert.equal(movement.quantity, "2.25");
   assert.equal(validateStockMovement({ ...movement, kind: "sale", direction: "out", stockClass: "finished" }).kind, "sale");
+  assert.throws(() => validateStockMovement({ ...movement, kind: "sale", direction: "out", stockClass: "ingredient" }));
   assert.ok(Object.isFrozen(movement));
   assert.throws(() => validateStockMovement({ ...movement, direction: "out" }));
   assert.throws(() => validateStockMovement({ ...movement, kind: "correction", direction: "in" }));
