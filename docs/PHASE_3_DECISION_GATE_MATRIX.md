@@ -1,6 +1,6 @@
 # Phase 3 Decision-Gate Matrix — D3-01 to D3-11
 
-**Status: Planning and verification aid; owner selections recorded 2026-10-13.** D3-01–D3-11 are marked Selected in `docs/DECISIONS.md` according to the owner's instruction to use the recommended/default choices. This matrix maps those directions to affected work packages and required evidence; it does not authorize implementation or waive independent technical gates.
+**Status: Planning and verification aid; owner selections recorded 2026-10-13.** D3-01–D3-11 and T3-01–T3-08 are marked Selected in `docs/DECISIONS.md`. This matrix maps business policy and technical directions to affected work packages and required evidence; it does not waive test gates or authorize hosted provisioning, billing, secrets, or deployment.
 
 Related documents: [Owner Decision Brief](./PHASE_3_OWNER_DECISION_BRIEF.md), [Decision Log](./DECISIONS.md), [Phase 3 Plan](./phases/PHASE_3_PLAN.md), [Domain Contract](./phases/PHASE_3_DOMAIN_CONTRACT.md), [WP3.1 Repository Review](./PHASE_3_WP3_1_REPOSITORY_REVIEW.md), [Technical Gate Reconciliation](./PHASE_3_WP3_1_TECHNICAL_GATE_RECONCILIATION.md), and [Technical Decision Brief](./PHASE_3_TECHNICAL_DECISION_BRIEF.md).
 
@@ -38,5 +38,5 @@ These technical gates apply regardless of which D3 options are selected:
 - Owner selections are recorded with rationale and date in `docs/DECISIONS.md`; D3-02's technical precision limits remain a pre-implementation gate.
 - Any later deferral must name the interim behavior, disabled/limited features, and tests that enforce the boundary.
 - The [Technical Gate Reconciliation](./PHASE_3_WP3_1_TECHNICAL_GATE_RECONCILIATION.md) records source mapping and candidate acceptance tests; owner review of material technical recommendations and a testable quantity/time contract are still required.
-- WP3.1 remains **blocked from implementation** until the owner-reviewed technical directions, domain contract, repository mapping, and test plan are reconciled.
+- WP3.1 may proceed only via the bounded implementation prompt after confirming repository mapping and test plan. WP3.2–WP3.7 remain separate later work packages.
 - This matrix is documentation only. It does not change application behavior or count as a test result.
