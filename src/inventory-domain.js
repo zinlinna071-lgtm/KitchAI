@@ -30,6 +30,7 @@ export function formatQuantity(scaled) {
   return fractional ? whole.toString() + "." + fractional : whole.toString();
 }
 
+/** @param {unknown} value @param {{unit?:string, stockClass?:"ingredient"|"finished", positive?:boolean}} options */
 export function normalizeQuantity(value, { unit, stockClass = "ingredient", positive = true } = {}) {
   if (!UNIT_SET.has(unit)) throw new TypeError("Choose a supported unit: g, kg, ml, l, or each.");
   const scaled = parseQuantity(value);
@@ -103,6 +104,7 @@ export function validateStockMovement(input) {
 }
 
 /** Each finished-stock reduction must allocate explicitly to one or more named lots. */
+/** @param {unknown} allocations @param {{quantity?:string, unit?:string}} options */
 export function validateLotAllocations(allocations, { quantity, unit } = {}) {
   if (!Array.isArray(allocations) || allocations.length === 0) throw new TypeError("At least one explicit lot allocation is required.");
   const seen = new Set();
