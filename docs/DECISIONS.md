@@ -38,6 +38,8 @@ The owner instructed the team to proceed with the recommended defaults on 2026-1
 
 Before provider-specific authorization/security tests against a hosted project, the owner must explicitly approve the test environment and any cost/billing boundary. Until then, use local/emulator-only tests and do not provision hosted infrastructure. Required evidence: (1) provider/plan/region and cost approval or a no-billing local emulator boundary; (2) isolated non-production environment with synthetic data and secret handling; (3) reviewed schema and server-side ownership policies, including privileged server SDK paths; (4) separate test owners/business scopes and documented unauthenticated, allowed-owner, cross-owner read/write, and delete-denial cases; (5) reproducible test instructions and reviewable results. The fake-owner spike test is simulation only, not provider authorization evidence.
 
+Owner decision aid: [PHASE_3_OWNER_DECISION_BRIEF.md](./PHASE_3_OWNER_DECISION_BRIEF.md) compares options and suggested defaults for D3-01–D3-11. It is guidance only; every decision remains OPEN until explicitly selected or deferred by the owner.
+
 ## Proposed Phase 3 decisions — all OPEN
 
 The candidate decisions below are recorded for owner review only. Suggestions are not approvals; do not implement assumptions for unresolved material decisions.
