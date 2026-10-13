@@ -12,6 +12,8 @@
 
 **Contract clarification draft:** The domain contract now includes §0.1 proposed clarifications PC-1–PC-8 for ledger authority, local/remote atomic posting, movement/correction semantics, lot allocation, v2 migration safety, event retry/conflict handling, scope/time validation, and cost-input boundaries. These proposals are **pending owner review**, not approvals. D3-01–D3-11 remain OPEN; implementation remains blocked.
 
+**Owner decision aid:** [PHASE_3_OWNER_DECISION_BRIEF.md](../PHASE_3_OWNER_DECISION_BRIEF.md) lays out options, trade-offs, and suggested discussion defaults for D3-01–D3-11. It does not resolve or approve any decision.
+
 ## 1. Goal
 
 Build an auditable inventory workflow for a small food business that buys ingredients, produces food either after a customer request or ahead in batches, sells finished items over time, and handles leftovers according to whether they remain safe and suitable to keep.
