@@ -88,6 +88,13 @@ function createSchema(db) {
     store.createIndex("byOwnerBusiness", ["ownerId", "businessId"], { unique: false });
     store.createIndex("byOwnerBusinessState", ["ownerId", "businessId", "state"], { unique: false });
   }
+  if (!db.objectStoreNames.contains("stockMovementLotAllocations")) {
+    const store = db.createObjectStore("stockMovementLotAllocations", {
+      keyPath: ["ownerId", "businessId", "eventId", "lotId"],
+    });
+    store.createIndex("byEvent", ["ownerId", "businessId", "eventId"], { unique: false });
+    store.createIndex("byLot", ["ownerId", "businessId", "lotId"], { unique: false });
+  }
 }
 
 function openRawDatabase(name, version, initialize) {
