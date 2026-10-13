@@ -37,5 +37,6 @@ These technical gates apply regardless of which D3 options are selected:
 
 - Owner selections are recorded with rationale and date in `docs/DECISIONS.md`; D3-02's technical precision limits remain a pre-implementation gate.
 - Any later deferral must name the interim behavior, disabled/limited features, and tests that enforce the boundary.
-- WP3.1 remains **blocked from implementation** until the domain contract, repository mapping, and test plan are reconciled against the selections and all cross-cutting technical gates are resolved.
+- The [Technical Gate Reconciliation](./PHASE_3_WP3_1_TECHNICAL_GATE_RECONCILIATION.md) records source mapping and candidate acceptance tests; owner review of material technical recommendations and a testable quantity/time contract are still required.
+- WP3.1 remains **blocked from implementation** until the owner-reviewed technical directions, domain contract, repository mapping, and test plan are reconciled.
 - This matrix is documentation only. It does not change application behavior or count as a test result.
