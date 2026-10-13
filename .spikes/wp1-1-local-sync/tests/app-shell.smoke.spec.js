@@ -61,7 +61,6 @@ test("populated IndexedDB v2 upgrades additively, failed legacy mapping retries,
     const legacyTx = legacy.transaction("ingredients", "readwrite");
     legacyTx.objectStore("ingredients").add(legacyRow);
     await new Promise((resolve, reject) => { legacyTx.oncomplete = resolve; legacyTx.onerror = () => reject(legacyTx.error); });
-    legacy.close();
 
     const module = await import("/src/business-data-store.js");
     let firstError = "";
