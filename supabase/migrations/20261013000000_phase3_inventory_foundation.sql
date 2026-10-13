@@ -125,6 +125,7 @@ begin
    where owner_id = new.owner_id and business_id = new.business_id and lot_id = new.lot_id;
   if not found or lot.menu_item_id <> movement.stock_item_id
      or lot.unit <> new.unit
+     or movement.unit <> new.unit
      or movement.stock_class <> 'finished'
      or movement.direction <> 'out' then
     raise exception 'Lot allocation must match a finished-stock reduction and its lot'
