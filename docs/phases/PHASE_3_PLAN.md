@@ -10,9 +10,9 @@
 
 **Repository review findings:** [PHASE_3_WP3_1_REPOSITORY_REVIEW.md](../PHASE_3_WP3_1_REPOSITORY_REVIEW.md) records a source-grounded read-only review. Verdict: contract clarifications are required before a runtime implementation prompt; no tests were run and WP3.1 is not complete.
 
-**Contract clarification draft:** The domain contract now includes §0.1 proposed clarifications PC-1–PC-8 for ledger authority, local/remote atomic posting, movement/correction semantics, lot allocation, v2 migration safety, event retry/conflict handling, scope/time validation, and cost-input boundaries. These proposals are **pending owner review**, not approvals. D3-01–D3-11 remain OPEN; implementation remains blocked.
+**Contract clarification draft:** The domain contract now includes §0.1 proposed clarifications PC-1–PC-8 for ledger authority, local/remote atomic posting, movement/correction semantics, lot allocation, v2 migration safety, event retry/conflict handling, scope/time validation, and cost-input boundaries. These proposals have now been reconciled with the owner-selected D3-01–D3-11 policy directions recorded in [DECISIONS.md](../DECISIONS.md). Independent technical gates remain unresolved; implementation remains blocked.
 
-**Owner decision aid:** [PHASE_3_OWNER_DECISION_BRIEF.md](../PHASE_3_OWNER_DECISION_BRIEF.md) lays out options, trade-offs, and suggested discussion defaults for D3-01–D3-11. The [decision-gate matrix](../PHASE_3_DECISION_GATE_MATRIX.md) maps each choice to affected WPs, acceptance/test evidence, and safe deferral boundaries. Neither document resolves or approves any decision.
+**Owner decision aid:** [PHASE_3_OWNER_DECISION_BRIEF.md](../PHASE_3_OWNER_DECISION_BRIEF.md) lays out options, trade-offs, and suggested discussion defaults for D3-01–D3-11. The [decision-gate matrix](../PHASE_3_DECISION_GATE_MATRIX.md) maps each choice to affected WPs, acceptance/test evidence, and safe deferral boundaries. The owner has selected the recommended/default directions; see [DECISIONS.md](../DECISIONS.md). These documents remain planning aids and do not authorize implementation.
 
 ## 1. Goal
 
