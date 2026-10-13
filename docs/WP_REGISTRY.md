@@ -8,7 +8,7 @@ A work package (WP) is a bounded implementation unit with dependencies and evide
 **Coding-agent handoff:** [CODING_AI_PHASE1_EXECUTION_PROMPT.md](./CODING_AI_PHASE1_EXECUTION_PROMPT.md) contains the repository-first execution prompt and mandatory decision/security gates. Owner-approved planning defaults are recorded in [DECISIONS.md](./DECISIONS.md); approval does not authorize provisioning or billing.
 
 **Phase 3 planning handoff:** [CODING_AI_PHASE3_WP3_1_REVIEW_PROMPT.md](./CODING_AI_PHASE3_WP3_1_REVIEW_PROMPT.md) is review-only. Phase 3 remains proposed/not approved for implementation; owner selections D3-01–D3-11 are recorded in `DECISIONS.md`. Do not start WP3.1 runtime work based on this prompt.
-**WP3.1 repository review:** [PHASE_3_WP3_1_REPOSITORY_REVIEW.md](./PHASE_3_WP3_1_REPOSITORY_REVIEW.md) found critical contract clarifications needed for stock source-of-truth and atomic production posting. WP3.1 remains Review required; this is not implementation or test-pass evidence.
+**WP3.1 repository review:** [PHASE_3_WP3_1_REPOSITORY_REVIEW.md](./PHASE_3_WP3_1_REPOSITORY_REVIEW.md) found critical contract clarifications needed for stock source-of-truth and atomic production posting. The follow-up [Technical Gate Reconciliation](./PHASE_3_WP3_1_TECHNICAL_GATE_RECONCILIATION.md) now maps current source files to candidate designs and acceptance tests. WP3.1 remains Review required; no tests were run for these documentation reviews.
 **Phase 3 owner decision brief:** [PHASE_3_OWNER_DECISION_BRIEF.md](./PHASE_3_OWNER_DECISION_BRIEF.md) compares options and recommended discussion defaults for D3-01–D3-11. The owner selected the recommended/default directions on 2026-10-13; see `DECISIONS.md` for the authoritative selections and boundaries.
 
 ## Phase 1 WPs
@@ -164,10 +164,10 @@ Plan: [docs/phases/PHASE_3_PLAN.md](./phases/PHASE_3_PLAN.md); logical contract:
 - **Dependencies:** Phase 2 entity and recipe foundation
 - **Scope:** define stock boundaries, movement types, units, precision, validation, audit fields, and invariants; reconcile logical contract with actual code, DB ownership, migrations, sync engine, and tests.
 - **Current artifact:** [PHASE_3_DOMAIN_CONTRACT.md](./phases/PHASE_3_DOMAIN_CONTRACT.md), including a repository-grounded baseline of the current consolidated Phase 2 store and sync engine.
-- **Clarification gate:** Contract §0.1 records proposed PC-1–PC-8 (ledger source of truth, local/remote atomicity, movement/correction semantics, lot allocation, v2 migration, event identity/conflicts, scope/time semantics, and cost-input boundaries). These technical clarifications remain to be reconciled against the owner's selected D3 policy directions; they are not automatically approved by those selections. See [repository review report](./PHASE_3_WP3_1_REPOSITORY_REVIEW.md).
+- **Clarification gate:** Contract §0.1 records proposed PC-1–PC-8. The [Technical Gate Reconciliation](./PHASE_3_WP3_1_TECHNICAL_GATE_RECONCILIATION.md) now adds a source-to-contract map, candidate technical baseline, and acceptance matrix. Recommendations are not owner-approved architecture; quantity representation/precision and business-time semantics still need a testable specification.
 - **Recommendation artifact:** [PHASE_3_PLAN.md](./phases/PHASE_3_PLAN.md) §6.1 lists proposed safe defaults for D3-01–D3-11; the owner selected the recommended/default directions; see `DECISIONS.md`.
 - **Decision gate matrix:** [PHASE_3_DECISION_GATE_MATRIX.md](./PHASE_3_DECISION_GATE_MATRIX.md) maps each D3 decision to impacted WPs, acceptance/test evidence, and safe deferral boundaries; it maps the selected owner directions to acceptance evidence and remaining gates.
-- **Done when:** actual repository mapping and migration/test approach are documented, material decisions are resolved or explicitly deferred in the decision log, and owner review is recorded before runtime implementation.
+- **Done when:** owner policy selections remain aligned; technical design gates are reviewed; quantity/time rules are testable; repository mapping and migration/test approach are documented; and the owner explicitly authorizes a bounded runtime implementation prompt.
 
 ### WP3.2 — Suppliers, Purchasing & Receiving
 - **Status:** Proposed; owner review required
