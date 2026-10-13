@@ -159,8 +159,9 @@ Plan: [docs/phases/PHASE_3_PLAN.md](./phases/PHASE_3_PLAN.md); logical contract:
 - **Status:** Logical contract drafted; repository mapping and owner review still required; no code authorized
 - **Dependencies:** Phase 2 entity and recipe foundation
 - **Scope:** define stock boundaries, movement types, units, precision, validation, audit fields, and invariants; reconcile logical contract with actual code, DB ownership, migrations, sync engine, and tests.
-- **Current artifact:** [PHASE_3_DOMAIN_CONTRACT.md](./phases/PHASE_3_DOMAIN_CONTRACT.md).
-- **Done when:** actual repository mapping and migration/test approach are documented, material decisions are resolved or safely deferred, and owner review is recorded before runtime implementation.
+- **Current artifact:** [PHASE_3_DOMAIN_CONTRACT.md](./phases/PHASE_3_DOMAIN_CONTRACT.md), including a repository-grounded baseline of the current consolidated Phase 2 store and sync engine.
+- **Recommendation artifact:** [PHASE_3_PLAN.md](./phases/PHASE_3_PLAN.md) §6.1 lists proposed safe defaults for D3-01–D3-11; these are not approvals.
+- **Done when:** actual repository mapping and migration/test approach are documented, material decisions are resolved or explicitly deferred in the decision log, and owner review is recorded before runtime implementation.
 
 ### WP3.2 — Suppliers, Purchasing & Receiving
 - **Status:** Proposed; owner review required
