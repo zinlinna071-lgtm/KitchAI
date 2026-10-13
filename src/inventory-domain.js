@@ -81,7 +81,7 @@ export function validateStockMovement(input) {
   if (!["in", "out"].includes(input.direction)) throw new TypeError("Movement direction must be in or out.");
   const fixedDirection = {
     opening_balance: "in", purchase_receipt: "in", production_consumption: "out",
-    production_output: "in", owner_consumption: "out", giveaway: "out", waste: "out",
+    production_output: "in", sale: "out", owner_consumption: "out", giveaway: "out", waste: "out",
   }[input.kind];
   if (fixedDirection && input.direction !== fixedDirection) throw new TypeError("Movement direction does not match movement kind.");
   if (["correction", "reversal"].includes(input.kind) && !input.relatedEventId) {
