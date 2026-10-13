@@ -10,6 +10,8 @@
 
 **Owner smoke-test feedback (2026-10-13):** owner reported that their observed online/offline usage, data entry, values, and persistence worked as expected. Treat this as limited manual smoke-test feedback only; it does not prove hosted cloud sync, real two-device behavior, backup/export/restore readiness, food-safety rules, or production readiness. Preserve Phase 2 known limitations and deferred checks.
 
+**Phase 3 owner decision preparation:** Added [PHASE_3_OWNER_DECISION_BRIEF.md](./PHASE_3_OWNER_DECISION_BRIEF.md) with options, trade-offs, and suggested defaults for D3-01–D3-11. All remain OPEN; this is not owner approval. WP3.1 remains blocked from implementation. No application tests were run for this documentation-only addition.
+
 ## Repository audit
 
 - Repository: zinlinna071-lgtm/KitchAI
