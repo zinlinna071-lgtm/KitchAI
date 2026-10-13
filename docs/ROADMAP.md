@@ -49,11 +49,11 @@ Not in Phase 1:
 
 Potential scope includes recipe versioning, yield/portion calculations, ingredient quantities, and validation. Inventory consumption integration must be coordinated with Phase 3.
 
-### Phase 3 — Purchasing & Inventory
+### Phase 3 — Purchasing, Inventory & Production
 
-**Goal:** manage suppliers, purchasing, receiving, stock levels, stock movements, units, and inventory adjustments with auditable changes.
+**Goal:** manage ingredient purchasing and stock, production batches (make-to-order and make-ahead), finished-product stock, auditable stock movements, and end-of-day leftover disposition.
 
-Potential scope includes stock movement history, low-stock indicators, and links between ingredients, purchases, and inventory. Define costing rules before relying on inventory values in financial reports.
+The proposed plan is [docs/phases/PHASE_3_PLAN.md](./phases/PHASE_3_PLAN.md). It covers suppliers and receiving, actual ingredient consumption and production yield, finished-product stock, carry-over where food is confirmed safe to keep, discounted-sale capture at a minimal inventory-disposition boundary, owner consumption, giveaways, waste/spoilage, physical-count reconciliation, and offline/sync conflict safety. Full order/payment lifecycle and sales-triggered automatic stock deduction remain Phase 4. Costing rules must be decided before inventory values are used in financial reports. This plan is proposed and does not authorize implementation until material decisions and scope are reviewed.
 
 ### Phase 4 — Sales & Orders
 
@@ -117,4 +117,4 @@ Potential scope includes stronger tenant isolation, business onboarding and acco
 
 ## Immediate next step
 
-Create the Phase 1 plan and WP registry. Compare architecture options for local persistence, cloud data storage, authentication, and synchronization before locking in vendors or adding application dependencies.
+Review the proposed Phase 3 plan and its open owner decisions in [docs/phases/PHASE_3_PLAN.md](./phases/PHASE_3_PLAN.md). Keep the work documentation-only until the owner has reviewed the scope and material decisions; then approve one bounded implementation WP at a time. Preserve all Phase 2 known limitations and do not authorize hosted provisioning, billing, secrets, or production deployment by implication.
