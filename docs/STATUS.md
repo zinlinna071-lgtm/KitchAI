@@ -10,7 +10,7 @@
 
 **Owner smoke-test feedback (2026-10-13):** owner reported that their observed online/offline usage, data entry, values, and persistence worked as expected. Treat this as limited manual smoke-test feedback only; it does not prove hosted cloud sync, real two-device behavior, backup/export/restore readiness, food-safety rules, or production readiness. Preserve Phase 2 known limitations and deferred checks.
 
-**Phase 3 owner decision preparation:** Added [PHASE_3_OWNER_DECISION_BRIEF.md](./PHASE_3_OWNER_DECISION_BRIEF.md) with options, trade-offs, and suggested defaults for D3-01–D3-11. All remain OPEN; this is not owner approval. WP3.1 remains blocked from implementation. No application tests were run for this documentation-only addition.
+**Phase 3 owner decision preparation:** [PHASE_3_OWNER_DECISION_BRIEF.md](./PHASE_3_OWNER_DECISION_BRIEF.md) compares options and suggested defaults for D3-01–D3-11. The [PHASE_3_DECISION_GATE_MATRIX.md](./PHASE_3_DECISION_GATE_MATRIX.md) now maps each decision to affected WPs, acceptance/test evidence, and safe deferral boundaries. All D3 decisions remain OPEN; neither document is owner approval. WP3.1 remains blocked from implementation. This matrix is documentation-only; no application tests were run.
 
 ## Repository audit
 
