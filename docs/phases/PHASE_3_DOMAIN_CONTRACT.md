@@ -160,21 +160,23 @@ Record purchase price/cost inputs and references accurately, including currency 
 - Tests against local/emulated services do not prove hosted auth/RLS, real cross-device sync, backup/restore readiness, or production readiness.
 - IndexedDB is not a backup. Do not add hosted resources, production secrets, billing, or deployment without separate explicit approval.
 
-## 8. Decisions still open
+## 8. Owner-selected policy directions and remaining technical gates
 
-| ID | Topic | Contract treatment until resolved |
+The owner selected the recommended defaults for D3-01–D3-11 on 2026-10-13. The decision log is authoritative. This section records the policy direction; it does not replace the technical contract clarifications required before implementation.
+
+| ID | Topic | Selected policy direction / remaining gate |
 |---|---|---|
-| D3-01 | Costing method and cost allocation | Store traceable cost inputs; do not present official inventory valuation/profit |
-| D3-02 | Precision, rounding, fractional count | Preserve values; no silent rounding or conversion |
-| D3-03 | Insufficient ingredients / negative stock | Do not silently permit negative stock; stop and report the unresolved rule |
-| D3-04 | Partial receipt and cancellation | Only actual receipt may affect stock; edge behavior must be defined before coding |
-| D3-05 | Recipe baseline vs actual use | Preserve actual use and variance; do not overwrite with theoretical quantity |
-| D3-06 | Shelf life / carry-over eligibility | Operator confirmation; no automatic food-safety claim |
-| D3-07 | Minimal sale/discount capture in Phase 3 | No full order/payment system; define smallest auditable disposition boundary |
-| D3-08 | Required reasons for consumption/giveaway/waste | Keep categories distinct; reason requirements still need review |
-| D3-09 | Physical-count confirmation and correction permissions | Show variance and require reason; final permission/confirmation flow open |
-| D3-10 | Supplier fields, currency, tax/shipping cost | Supplier optional; exact required fields open |
-| D3-11 | Sync conflict resolution UX | Preserve snapshots and require explicit review; no silent merge |
+| D3-01 | Costing method and cost allocation | Selected: store traceable cost inputs; official valuation, COGS, and profit are Phase 5 scope |
+| D3-02 | Precision, rounding, fractional count | Selected: preserve precision; reject invalid quantities; no silent rounding/conversion. Numeric representation, limits, and fractional `each` policy remain a technical gate |
+| D3-03 | Insufficient ingredients / negative stock | Selected: block production completion when stock is insufficient; no negative stock or override in first release |
+| D3-04 | Partial receipt and cancellation | Selected: allow partial receipts; only actual received quantities post; unreceived remainder stays explicit until received/cancelled |
+| D3-05 | Recipe baseline vs actual use | Selected: record actual use/output and compare with recipe baseline; label unknown/theoretical values honestly |
+| D3-06 | Shelf life / carry-over eligibility | Selected: operator confirms lot suitability; age alone never proves safety. Configured expiry warnings remain separately reviewed |
+| D3-07 | Sale/discount capture in Phase 3 | Selected: defer all sale capture to Phase 4; Phase 3 must not infer revenue or build a temporary sales ledger |
+| D3-08 | Consumption/giveaway/waste categories | Selected: distinct categories; require reason for waste and stock corrections; owner consumption/giveaway are not revenue |
+| D3-09 | Physical-count confirmation and correction permissions | Selected: show expected/count/variance, require reason and confirmation, append a linked correction event |
+| D3-10 | Supplier fields, currency, tax/shipping cost | Selected: supplier optional; capture received qty/unit, unit price/currency, receipt timestamp; defer tax/shipping allocation |
+| D3-11 | Sync conflict resolution UX | Selected: stable event IDs, same-ID idempotency, preserve distinct conflicting events for review; never auto-merge stock changes |
 
 ## 9. Acceptance gate for this contract
 
