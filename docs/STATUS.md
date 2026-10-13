@@ -108,3 +108,12 @@ Automated WP2.6 gates pass for the local/emulated milestone, with no known criti
 - The proposals cover canonical movement-ledger truth and rebuildable balance projections; separate local and remote atomicity requirements for production posting; movement identity/correction and conflict behavior; explicit finished-lot allocation; populated IndexedDB v2 migration safety; owner/business scope validation and time semantics; and the boundary between cost inputs and official valuation.
 - **Status remains proposed; owner policy selections are recorded.** The selections do not authorize implementation. WP3.1 remains Review required / blocked from implementation until the domain contract, repository-to-code/test mapping, and independent technical gates are reconciled.
 - No application code, SQL/schema migration, hosted resource, or production setting was changed. No tests were run for this documentation-only update.
+
+
+## 2026-10-13 — Phase 3 technical gates accepted; WP3.1 handoff prepared
+
+The owner accepted T3-01–T3-08 as recommended. The selected directions are now recorded in [DECISIONS.md](./DECISIONS.md), reconciled into [PHASE_3_DOMAIN_CONTRACT.md](./phases/PHASE_3_DOMAIN_CONTRACT.md), and reflected in the [Technical Decision Brief](./PHASE_3_TECHNICAL_DECISION_BRIEF.md) and [Technical Gate Reconciliation](./PHASE_3_WP3_1_TECHNICAL_GATE_RECONCILIATION.md).
+
+Created [CODING_AI_PHASE3_WP3_1_IMPLEMENTATION_PROMPT.md](./CODING_AI_PHASE3_WP3_1_IMPLEMENTATION_PROMPT.md), a bounded handoff for WP3.1 only. It requires the Coding AI to inspect the latest main branch, work on a separate feature branch, implement the selected domain/data-model foundation, prove exact quantity behavior and populated IndexedDB v2→v3 migration safety, run relevant repository/local database tests, and open a Draft PR without merging. WP3.2–WP3.7 remain separate. If Phase 2 recipe values cannot safely satisfy six-decimal precision or another selected invariant cannot be implemented without data loss, the agent must stop for owner review.
+
+This remains documentation-only work on the Phase 3 planning branch. No application source, runtime schema, SQL migration, hosted resource, billing, secret, or production setting was changed. No application tests were run for these documentation edits; no test or workflow success is claimed. PR #36 remains a Draft documentation PR and has not been merged.
