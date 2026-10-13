@@ -77,7 +77,7 @@ test("populated IndexedDB v2 upgrades additively, failed legacy mapping retries,
     const opened = await module.openBusinessDatabase();
     const storeNames = [...opened.objectStoreNames].sort();
     const counts = {};
-    for (const name of ["ingredients", "menuItems", "recipes", "recipeLines", "operations", "syncMetadata", "metadata", "migrationLedger", "conflicts", "stockMovements", "finishedLots", "inventoryCommands"]) {
+    for (const name of ["ingredients", "menuItems", "recipes", "recipeLines", "operations", "syncMetadata", "metadata", "migrationLedger", "conflicts", "stockMovements", "finishedLots", "inventoryCommands", "stockMovementLotAllocations"]) {
       counts[name] = (await readAll(opened, name)).length;
     }
     const existingIngredient = (await readAll(opened, "ingredients")).find((row) => row.id === "existing-ingredient");
@@ -97,6 +97,7 @@ test("populated IndexedDB v2 upgrades additively, failed legacy mapping retries,
   expect(first.firstError).toContain("Could not safely map a local Phase 2 record");
   expect(first.upgradedNames).toContain("stockMovements");
   expect(first.storeNames).toContain("inventoryCommands");
+  expect(first.storeNames).toContain("stockMovementLotAllocations");
   expect(first.counts.ingredients).toBe(2);
   expect(first.counts.menuItems).toBe(1);
   expect(first.counts.recipes).toBe(1);
@@ -107,6 +108,7 @@ test("populated IndexedDB v2 upgrades additively, failed legacy mapping retries,
   expect(first.counts.stockMovements).toBe(0);
   expect(first.counts.finishedLots).toBe(0);
   expect(first.counts.inventoryCommands).toBe(0);
+  expect(first.counts.stockMovementLotAllocations).toBe(0);
   expect(first.existingIngredient.name).toBe("Existing rice");
   expect(first.importedLegacy.ownerId).toBe("local:profile-1");
   expect(first.importedLegacy.businessId).toBe("profile-1");
