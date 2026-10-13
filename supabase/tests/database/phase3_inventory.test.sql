@@ -69,6 +69,28 @@ from public.business_profiles where owner_id='31111111-1111-4111-8111-1111111111
 set constraints all immediate;
 set constraints all deferred;
 select is((select count(*)::integer from public.stock_movement_lot_allocations where event_id='a5000000-0000-4000-8000-000000000010'),1,'sale stock reduction is allocated to a finished lot');
+
+-- A finished-stock reduction cannot commit when its named-lot allocations do not sum exactly.
+insert into public.stock_movements (
+  owner_id,business_id,event_id,stock_class,stock_item_id,kind,direction,quantity,unit,
+  source_type,source_id,recorded_at,effective_at
+)
+select owner_id,business_id,'a5000000-0000-4000-8000-000000000011','finished',
+  'a4000000-0000-4000-8000-000000000001','sale','out',3,'each',
+  'sale','a7000000-0000-4000-8000-000000000011',now(),now()
+from public.business_profiles where owner_id='31111111-1111-4111-8111-111111111111';
+insert into public.stock_movement_lot_allocations (
+  owner_id,business_id,event_id,lot_id,quantity,unit
+)
+select owner_id,business_id,'a5000000-0000-4000-8000-000000000011',
+  'a6000000-0000-4000-8000-000000000001',2,'each'
+from public.business_profiles where owner_id='31111111-1111-4111-8111-111111111111';
+select throws_ok(
+  'set constraints all immediate',
+  '23514','Finished-stock reduction must be allocated exactly across lots',
+  'allocation totals must exactly match the finished-stock reduction'
+);
+set constraints all deferred;
 select throws_ok(
   $sql$insert into public.stock_movement_lot_allocations (owner_id,business_id,event_id,lot_id,quantity,unit)
   select owner_id,business_id,'a5000000-0000-4000-8000-000000000010',
