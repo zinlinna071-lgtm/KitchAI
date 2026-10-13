@@ -37,61 +37,61 @@ The owner chose the recommended/default options in the decision checklist on 202
 - **Option A:** Preserve precision, define a documented numeric representation and per-unit validation; reject invalid values and never silently round/convert.
 - **Option B:** Define explicit per-unit decimal limits and rounding rules now.
 - **Suggested:** A as the no-hidden-loss principle, while leaving actual precision limits to a tested technical proposal. This does not settle fractional `each`, maximum precision, or numeric storage type.
-- **Owner choice needed:** Confirm the product policy for precision/rounding; implementation review must propose safe technical limits before coding.
+- **Recorded selection:** Option A. Before coding, implementation review must still propose and test numeric representation, per-unit limits, and fractional `each` behavior.
 
 ### D3-03 — Insufficient stock during production
 - **Option A:** Block production completion if ingredient stock is insufficient; no negative stock.
 - **Option B:** Permit an explicit, reasoned override with audit trail.
 - **Suggested:** A for the first release, unless real operating practice requires emergency overrides.
-- **Owner choice needed:** A or B; if B, define permission, reason, and audit requirements.
+- **Recorded selection:** Option A; block completion on insufficient stock. No override in the first release.
 
 ### D3-04 — Partial receiving/cancellation
 - **Option A:** Allow multiple partial receipts; each idempotent receipt posts only the actual quantity received; unreceived quantity stays open until received or cancelled.
 - **Option B:** Require one complete receipt or cancellation.
 - **Suggested:** A, because real purchases can arrive in separate quantities.
-- **Owner choice needed:** A or B, including whether received portions can coexist with a cancelled remainder.
+- **Recorded selection:** Option A; partial receipts are allowed, and cancellation of the remainder must not reverse quantities already received.
 
 ### D3-05 — Actual production consumption
 - **Option A:** Record actual ingredient consumption and actual output, compare to recipe baseline, preserve variance.
 - **Option B:** Deduct only theoretical recipe quantities.
 - **Suggested:** A. If actual use is unknown, the UI must make that limitation explicit rather than represent theoretical quantity as measured fact.
-- **Owner choice needed:** Confirm whether actual quantities are required at completion or whether a clearly labeled estimated/theoretical mode is also needed.
+- **Recorded selection:** Option A; record actual use/output and variance. Any unknown/theoretical quantity must be labeled as such, not as measured actual.
 
 ### D3-06 — Carry-over and shelf-life
 - **Option A:** Operator confirms whether the specific finished lot is suitable to carry over, using separately reviewed business rules; the app does not infer food safety from age alone.
 - **Option B:** App enforces product-specific shelf-life rules after those rules are reviewed and explicitly configured.
 - **Suggested:** A as the minimum safe behavior; B can be a later, reviewed enhancement and still must not claim to replace food-safety judgment.
-- **Owner choice needed:** Confirm the operator-confirmation workflow and whether any configured expiry warnings are in Phase 3.
+- **Recorded selection:** Option A; operator confirmation is required. Configured expiry warnings remain a separate reviewed enhancement.
 
 ### D3-07 — Discounted sale boundary
 - **Option A:** Phase 3 records only a finished-stock disposition with quantity, actual amount received/currency, timestamp, and lot allocation; full order/payment/customer workflow remains Phase 4.
 - **Option B:** Defer all sale capture to Phase 4, allowing only non-sale stock dispositions in Phase 3.
 - **Suggested:** A only if recording actual discounted sales is needed to correctly explain finished-stock reductions before Phase 4; otherwise B avoids a temporary sales interface.
-- **Owner choice needed:** A or B. This choice must not create a parallel full sales ledger.
+- **Recorded selection:** Option B; defer all sale capture, including discounted sales, to Phase 4. Phase 3 must not create a temporary sales ledger.
 
 ### D3-08 — Consumption, giveaway, waste
 - **Option A:** Separate owner consumption, giveaway, waste/spoilage, and other corrections; require a reason for waste and corrections.
 - **Option B:** Use a generic “other adjustment” with free-text reason.
 - **Suggested:** A so reporting can distinguish personal use, giving food away, and actual waste.
-- **Owner choice needed:** Confirm categories and whether reasons are required for all or only waste/corrections.
+- **Recorded selection:** Option A; keep disposition categories distinct and require reasons for waste and stock corrections.
 
 ### D3-09 — Physical counts
 - **Option A:** Display expected quantity, counted quantity, and variance; require reason and explicit confirmation; append a correction linked to the count.
 - **Option B:** Let a count directly overwrite the current balance.
 - **Suggested:** A. Direct overwrite is inconsistent with auditable stock history.
-- **Owner choice needed:** Confirm whether counts can be saved as drafts and whether approval by a second person is out of scope for the single-owner first release.
+- **Recorded selection:** Option A; append-only correction with reason and explicit confirmation. Draft/second-person approval is not included unless separately revisited.
 
 ### D3-10 — Supplier and cost capture
 - **Option A:** Supplier optional; record actual received quantity/unit, unit price/currency and receipt timestamp; defer tax/shipping allocation.
 - **Option B:** Require supplier and fully allocated landed cost fields.
 - **Suggested:** A for small-business flexibility and to avoid making supplier data a blocker for ad hoc purchases.
-- **Owner choice needed:** Confirm optional supplier and whether tax/shipping must be captured as notes only or deferred entirely.
+- **Recorded selection:** Option A; supplier optional and tax/shipping allocation deferred.
 
 ### D3-11 — Movement sync conflicts
 - **Option A:** Stable event/operation IDs; duplicate ID is idempotent; distinct conflicting events preserve snapshots and require explicit review. Never silently add or merge quantities.
 - **Option B:** Automatically merge distinct stock events using a deterministic rule.
 - **Suggested:** A. Stock events are consequential and automatic merging can double-count or conceal incompatible intent.
-- **Owner choice needed:** Confirm manual review. The exact resolution operation, remote atomic command, and server-side enforcement remain technical gates.
+- **Recorded selection:** Option A; conflicting stock events must be preserved for explicit review, never auto-merged. The exact resolution operation and remote atomic command remain technical gates.
 
 ## Technical gates independent of the business choices
 
