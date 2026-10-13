@@ -28,13 +28,7 @@ Phase 3 must make the quantities and movement history understandable without cla
 2. **Track ingredient stock:** show on-hand quantity and an auditable movement history. Support opening stock, receipts, production consumption, waste, and reasoned adjustments.
 3. **Produce food:** create a production batch for either `make-to-order` (prepared for a customer request) or `make-ahead` (prepared before a confirmed sale). Link the batch to a Phase 2 menu item/recipe where applicable. Record planned and actual output, actual ingredient consumption, time/date, and operator/source where supported. Recipe quantities are a planning baseline, not proof of actual consumption.
 4. **Create finished-product stock:** completed production transfers value/quantity from ingredient stock into finished-product stock. Do not deduct the same ingredients again when a finished item is sold or disposed of.
-5. **Handle unsold finished food:** at the end of a selling period, explicitly classify each quantity as:
-   - carry over for later sale, only when the food is confirmed safe and suitable to keep;
-   - discounted sale, recording the actual price received for the quantity;
-   - owner/personal consumption;
-   - giveaway / provided free to another person;
-   - waste/spoilage/discard.
-   Each outcome must reduce finished-product stock exactly once. Carry-over is not waste; personal consumption and giveaways are not sales revenue; discarded items are losses; discounted sales use actual revenue rather than list price.
+5. **Handle unsold finished food:** explicitly record carry-over only after operator confirmation of suitability, owner/personal consumption, giveaway, and waste/spoilage/discard. All sale capture—including regular and discounted sales—is deferred to Phase 4 under selected D3-07. Carry-over does not change stock quantity; each non-sale disposition reduces finished-product stock exactly once. Owner consumption and giveaways are not sales revenue.
 6. **Reconcile stock:** compare recorded stock with a physical count, show the variance, require a reason for the adjustment, and preserve the original movement history.
 7. **Work offline safely:** queue local operations, retry idempotently, preserve conflicts for review, and never silently overwrite or double-apply stock changes.
 
@@ -53,14 +47,14 @@ Define supplier records as needed, purchase drafts, purchase lines, receiving, p
 ### WP3.3 — Production Batches & Ingredient Consumption
 Support both make-to-order and make-ahead batches. Link a batch to a menu item/recipe when available; record planned yield and actual output/consumption; create traceable ingredient-out and finished-product-in movements. Record variance rather than assuming recipe theoretical quantities always equal actual use. Sales-triggered automatic deduction remains deferred to Phase 4.
 
-**Acceptance evidence:** batch examples, quantity-conservation tests, validation for insufficient stock (policy decision still open), duplicate-submit/idempotency tests, and regression tests for Phase 2 recipes.
+**Acceptance evidence:** batch examples, quantity-conservation tests, block-on-insufficient-stock behavior, duplicate-submit/idempotency tests, and regression tests for Phase 2 recipes.
 
 ### WP3.4 — Finished Goods, Leftovers & Disposition
-Track on-hand quantities of produced items separately from ingredients. Record batch/date and quantities carried over, discounted, consumed by owner, given away, or discarded. Record actual price for any discounted-sale entry supported in Phase 3, without attempting to implement a complete customer/order/payment system. Carry-over must preserve the existing batch identity and must not create a second production cost.
+Track on-hand quantities of produced items separately from ingredients. Record batch/date and quantities carried over, consumed by owner, given away, or discarded. Sale/discount capture is deferred to Phase 4. Carry-over must preserve the existing batch identity and must not create a second production event or duplicate stock.
 
 Food-safety/shelf-life suitability must be entered or confirmed by the operator under an explicitly configured rule; the app must not automatically declare food safe based only on age.
 
-**Acceptance evidence:** end-of-day reconciliation examples; all disposition categories are distinct; carry-over is not counted as new production or waste; owner consumption/giveaways have no sales revenue; discarded and discounted quantities use correct stock and revenue treatment.
+**Acceptance evidence:** stock reconciliation examples; non-sale disposition categories are distinct; carry-over is not counted as new production or waste; owner consumption/giveaways have no sales revenue; sale capture does not reduce stock in Phase 3 and remains deferred to Phase 4.
 
 ### WP3.5 — Stock History, Physical Counts & Corrections
 Provide an auditable movement ledger and physical-count reconciliation. Corrections append a reasoned movement instead of silently rewriting historical quantities. Define whether a correction requires confirmation and how concurrent corrections are handled.
@@ -101,33 +95,33 @@ Run database, unit, browser, accessibility/regression, migration, and production
 
 ## 6. Open owner decisions (do not infer approval)
 
-| ID | Decision needed | Suggested default for review | Status |
+| ID | Selected owner policy direction | Remaining technical boundary | Status |
 |---|---|---|---|
-| D3-01 | Costing method for ingredient/finished stock | Start with a transparent documented method; compare weighted average vs FIFO before choosing | OPEN |
-| D3-02 | Stock quantity precision and rounding | Keep unit-specific precision and never round silently | OPEN |
-| D3-03 | What to do when production needs more ingredients than on hand | Block completion or require an explicit, audited override; choose after UX/risk review | OPEN |
-| D3-04 | Partial receiving and purchase cancellation behavior | Allow partial receipt; never change stock for unreceived quantity | OPEN |
-| D3-05 | Planned recipe quantity vs actual ingredient usage | Record actual usage and variance; recipe remains a baseline | OPEN |
-| D3-06 | Finished-food carry-over and shelf-life rules | Operator confirms suitability; configurable rules only after review | OPEN |
-| D3-07 | Phase 3 discounted-sale capture boundary | Capture minimal disposition quantity and actual price only; full sales/order workflow remains Phase 4 | OPEN |
-| D3-08 | Owner consumption, giveaway, and waste reasons | Separate required disposition types; define reason fields and reports | OPEN |
-| D3-09 | Physical count adjustments and correction permissions | Append-only adjustment history with reason and explicit confirmation | OPEN |
-| D3-10 | Supplier data required fields and purchase-cost handling | Keep supplier optional for ad hoc purchases; define required price/tax/shipping fields after review | OPEN |
-| D3-11 | Phase 3 sync/conflict UX for stock movement conflicts | Preserve both versions and require explicit review; never auto-add conflicting movements | OPEN |
+| D3-01 | Defer official valuation/COGS/profit to Phase 5; preserve traceable purchase-cost inputs | Costing method and allocation rules belong to Phase 5 | Selected |
+| D3-02 | Preserve precision; reject invalid quantities; no silent rounding/conversion | Numeric representation, limits, and fractional `each` need a testable proposal | Selected — technical gate |
+| D3-03 | Block production completion on insufficient stock; no negative stock/override in first release | Local and remote checks must be atomic and concurrency-safe | Selected |
+| D3-04 | Allow partial receipts; only actual received quantities affect stock | Cancellation of unreceived remainder must preserve earlier receipts | Selected |
+| D3-05 | Record actual use/output and compare with recipe baseline | Unknown quantities must be labeled estimated/theoretical | Selected |
+| D3-06 | Require operator confirmation for carry-over suitability; no age-only safety inference | Configured expiry warnings/rules require separate review | Selected |
+| D3-07 | Defer all sale capture to Phase 4 | No Phase 3 sale ledger/UI or inferred revenue | Selected |
+| D3-08 | Distinguish owner consumption, giveaway, waste, and correction | Reasons required for waste and stock corrections | Selected |
+| D3-09 | Show count variance; require reason/confirmation; append linked correction event | Draft/second-person approval remains out of first-release scope unless revisited | Selected |
+| D3-10 | Supplier optional; record actual receipt quantity/unit, unit price/currency/time; defer tax/shipping allocation | Do not claim landed cost/official valuation | Selected |
+| D3-11 | Stable event IDs; idempotent retry; preserve distinct conflicts for explicit review | Exact resolution UX and remote aggregate command remain technical gates | Selected |
 
-## 6.1 Recommended defaults for owner review (not approvals)
+## 6.1 Selected owner policy directions (recorded 2026-10-13)
 
-To avoid repeatedly reopening routine choices while protecting material business decisions, the following defaults are recommended. They remain recommendations until the owner decision log explicitly changes their status.
+The owner selected the recommended/default directions for D3-01–D3-11. The table below is a readable summary; `docs/DECISIONS.md` is authoritative. Technical design recommendations remain separate and are not approved merely by these policy selections.
 
 | ID | Recommended default | Why |
 |---|---|---|
 | D3-01 | Defer official inventory valuation/COGS and profit calculations to Phase 5; preserve actual purchase-cost inputs and batch consumption references now | Avoids presenting an unreviewed costing method as accounting truth |
-| D3-02 | Preserve numeric precision, prohibit silent rounding/conversion, and define unit-specific limits in tests before UI release | Prevents hidden quantity drift |
+| D3-02 | Preserve numeric precision, prohibit silent rounding/conversion, and define unit-specific limits in tests before implementation | Prevents hidden quantity drift |
 | D3-03 | Block production completion when recorded local stock is insufficient; do not add negative stock or an override path in the first release | Safest, auditable behavior until a deliberate override workflow is specified |
 | D3-04 | Allow partial receipts; only actually received quantities affect stock; cancelled/unreceived quantities do not | Matches real deliveries and prevents false stock |
 | D3-05 | Record actual ingredient use and actual output; compare with recipe baseline and show variance | Real production can differ from the recipe |
 | D3-06 | Require operator confirmation for carry-over suitability; configure any shelf-life prompts only after a separate reviewed rule | App cannot infer food safety from age alone |
-| D3-07 | In Phase 3, record a minimal finished-stock disposition for regular/discounted sale and actual amount received; keep customer/order/payment lifecycle in Phase 4 | Allows stock to reconcile without duplicating the full sales system |
+| D3-07 | Defer all sale capture, including discounted sales, to Phase 4; Phase 3 handles only non-sale dispositions | Avoids a temporary sales ledger and ambiguous revenue capture |
 | D3-08 | Always distinguish owner consumption, giveaway, and waste; require a reason for waste/adjustment, allow optional notes for owner consumption/giveaway | Keeps reporting useful without making routine entries cumbersome |
 | D3-09 | Show count variance, require reason, and append a correction movement; require explicit confirmation before posting | Protects audit history |
 | D3-10 | Supplier is optional; capture received quantity, unit, unit price, currency, and receipt date; decide taxes/shipping before including them in valuation | Supports informal purchases while preserving usable cost inputs |
