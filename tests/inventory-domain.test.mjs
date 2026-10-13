@@ -39,6 +39,9 @@ test("movement contract requires scope, stable IDs, direction, source, and UTC t
   assert.ok(Object.isFrozen(movement));
   assert.throws(() => validateStockMovement({ ...movement, direction: "out" }));
   assert.throws(() => validateStockMovement({ ...movement, kind: "correction", direction: "in" }));
+  assert.throws(() => validateStockMovement({ ...movement, kind: "waste", direction: "out", reason: undefined }));
+  assert.throws(() => validateStockMovement({ ...movement, kind: "count_adjustment", reason: "  " }));
+  assert.equal(validateStockMovement({ ...movement, kind: "waste", direction: "out", reason: "spoiled" }).reason, "spoiled");
   assert.throws(() => validateStockMovement({ ...movement, recordedAt: "2026-10-13T10:00:00+07:00" }));
 });
 test("lot allocations require unique explicit lots and exact total", () => {
