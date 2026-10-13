@@ -11,7 +11,7 @@
 - `tests/inventory-domain.test.mjs` — six focused Node tests.
 - `src/business-data-store.js` — additive IndexedDB v2→v3 schema upgrade with `stockMovements`, `finishedLots`, and `inventoryCommands`; Phase 2 stores and indexes are retained.
 - `.spikes/wp1-1-local-sync/tests/app-shell.smoke.spec.js` — populated v2 database test covering existing catalog records, recipe-line number compatibility, outbox, sync metadata, migration ledger, conflicts, additive stores/indexes, legacy-source preservation, failed mapping then retry, and reload idempotency. First CI attempt exposed a test harness closed-connection bug; a fix is committed and the rerun is pending.
-- `supabase/migrations/20261013000000_phase3_inventory_foundation.sql` — owner-scoped inventory tables, composite owner/business candidate key for foreign keys, RLS, read-only stock/lot access, no direct client access to the idempotency command table, append-only stock movements, and immutable finished-lot/output consistency validation.
+- `supabase/migrations/20261013000000_phase3_inventory_foundation.sql` — owner-scoped inventory tables reusing the existing Phase 2 composite owner/business key, RLS, read-only stock/lot access, no direct client access to the idempotency command table, append-only stock movements, and immutable finished-lot/output consistency validation.
 - `supabase/tests/database/phase3_inventory.test.sql` — pgTAP checks for RLS/grants, output/lot linkage, lot/output quantity integrity, immutable movements/lots, zero-quantity rejection, finished-unit integrality, and cross-owner reads.
 - `package.json`, `docs/PHASE_3_WP3_1_IMPLEMENTATION_PLAN.md`, `docs/STATUS.md`, and `docs/WP_REGISTRY.md` track scope, checks, and remaining gates.
 
