@@ -171,3 +171,6 @@ Planning artifacts do not count as implementation completion. Implement one boun
 
 
 - **WP3.1 current-head verification (2026-10-13):** Code commit `ae07e57827601e6929f1a28abdda9a40f1f79cf9` passed Baseline, Application Shell, Static Preview, Local Supabase Authorization, and Local Supabase Vertical Slice. pgTAP groups passed (40, 37, 26 tests); all 8 Playwright integration tests passed. Added explicit negative coverage for allocation sums that do not equal finished-stock reduction quantity. WP3.1 remains partial; PR #38 is Draft/unmerged.
+
+
+- **WP3.1 follow-up — strict recipe quantity adapter:** Added `src/recipe-quantity-adapter.js` plus focused tests to reject unsupported precision, scientific notation, floating-point artifacts, invalid units, finished-`each` fractions, and numeric range overflow. Included the module in the explicit syntax-check command. This is not production posting and does not complete WP3.1; await CI on the follow-up branch before relying on the test results.
