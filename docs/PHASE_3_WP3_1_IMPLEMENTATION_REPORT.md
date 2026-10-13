@@ -12,6 +12,8 @@
 - `tests/inventory-domain.test.mjs` — six focused Node tests.
 - `src/business-data-store.js` — additive IndexedDB v2→v3 schema upgrade with `stockMovements`, `finishedLots`, and `inventoryCommands` stores/indexes; existing store definitions are retained.
 - `package.json` — include inventory module in explicit syntax checks.
+- `supabase/migrations/20261013000000_phase3_inventory_foundation.sql` — owner-scoped inventory command, stock movement, and finished-lot tables; RLS, client read-only grants, and append-only stock-movement trigger.
+- `supabase/tests/database/phase3_inventory.test.sql` — pgTAP coverage for RLS/grants, valid output/lot linkage, append-only behavior, zero-quantity rejection, finished-unit integrality, and cross-owner reads.
 - `docs/PHASE_3_WP3_1_IMPLEMENTATION_REPORT.md` — this report.
 
 ## Domain contract implemented
@@ -34,9 +36,10 @@
 ## Required before WP3.1 can be considered complete
 
 1. Add populated-v2 IndexedDB migration tests covering all existing stores, indexes, outbox, sync metadata, conflicts, migration ledger, and legacy-source preservation; include failure/reopen/idempotency.
-2. Add and locally test the minimum Supabase schema, RLS, append-only constraints, and idempotency contract; keep remote stock changes behind a future trusted atomic RPC.
-3. Run the actual repository's complete test/typecheck/build/preview checks and the relevant local Supabase suite.
-4. Review migration failure behavior and quantity compatibility with all Phase 2 recipe-line fixtures before merge.
-5. Update this report with real check output. Do not merge this PR until these gates pass or the owner explicitly changes the acceptance scope.
+2. Run the new Supabase migration and pgTAP tests locally; fix any SQL/test failures.
+3. Add populated-v2 migration tests covering existing stores, indexes, outbox/sync/conflicts/ledger and legacy-source preservation, including failure/reopen/retry.
+4. Run the actual repository's complete test/typecheck/build/preview checks and the relevant local Supabase suite.
+5. Review migration failure behavior and quantity compatibility with all Phase 2 recipe-line fixtures before merge.
+6. Update this report with real check output. Do not merge this PR until these gates pass or the owner explicitly changes the acceptance scope.
 
 This report intentionally records partial status rather than implying that the whole WP3.1 acceptance checklist is complete.
