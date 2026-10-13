@@ -3,7 +3,7 @@
 **Status: For owner review only. No decisions are approved by this document.**  
 **Scope:** Decision preparation for Phase 3 (Purchasing, Inventory & Production). This brief does not authorize application code, database/schema changes, hosted resources, billing, or deployment. All D3-01–D3-11 remain OPEN until the owner explicitly selects a direction and the decision log is updated.
 
-Related documents: [Phase 3 plan](./phases/PHASE_3_PLAN.md), [domain contract](./phases/PHASE_3_DOMAIN_CONTRACT.md), [WP3.1 repository review](./PHASE_3_WP3_1_REPOSITORY_REVIEW.md), [decision log](./DECISIONS.md).
+Related documents: [Phase 3 plan](./phases/PHASE_3_PLAN.md), [domain contract](./phases/PHASE_3_DOMAIN_CONTRACT.md), [WP3.1 repository review](./PHASE_3_WP3_1_REPOSITORY_REVIEW.md), [decision log](./DECISIONS.md), [decision-gate matrix](./PHASE_3_DECISION_GATE_MATRIX.md).
 
 ## Decision summary
 
