@@ -8,7 +8,7 @@
 
 **WP3.1 review handoff:** [CODING_AI_PHASE3_WP3_1_REVIEW_PROMPT.md](../CODING_AI_PHASE3_WP3_1_REVIEW_PROMPT.md) is a read-only repository/domain-contract review prompt. It does not authorize implementation and requires the Coding AI to stop after reporting findings.
 
-**Repository review findings:** [PHASE_3_WP3_1_REPOSITORY_REVIEW.md](../PHASE_3_WP3_1_REPOSITORY_REVIEW.md) records a source-grounded read-only review. Verdict: contract clarifications are required before a runtime implementation prompt; no tests were run and WP3.1 is not complete.
+**Repository review findings:** [PHASE_3_WP3_1_REPOSITORY_REVIEW.md](../PHASE_3_WP3_1_REPOSITORY_REVIEW.md) records the source-grounded review. The follow-up [technical-gate reconciliation](../PHASE_3_WP3_1_TECHNICAL_GATE_RECONCILIATION.md) maps existing source files, candidate technical designs, and acceptance tests. Both are documentation-only; no tests were run for these reviews and WP3.1 is not complete.
 
 **Contract clarification draft:** The domain contract now includes §0.1 proposed clarifications PC-1–PC-8 for ledger authority, local/remote atomic posting, movement/correction semantics, lot allocation, v2 migration safety, event retry/conflict handling, scope/time validation, and cost-input boundaries. These proposals have now been reconciled with the owner-selected D3-01–D3-11 policy directions recorded in [DECISIONS.md](../DECISIONS.md). Independent technical gates remain unresolved; implementation remains blocked.
 
@@ -131,7 +131,7 @@ To avoid repeatedly reopening routine choices while protecting material business
 | D3-10 | Supplier is optional; capture received quantity, unit, unit price, currency, and receipt date; decide taxes/shipping before including them in valuation | Supports informal purchases while preserving usable cost inputs |
 | D3-11 | Preserve conflicting movement snapshots and require explicit manual review; never automatically add/merge conflicting stock changes | Prevents silent quantity corruption |
 
-If these defaults are accepted or explicitly deferred, update `docs/DECISIONS.md` before the corresponding implementation WP. Do not treat this table as owner approval.
+The owner selected the recommended/default directions for D3-01–D3-11 on 2026-10-13; the authoritative record is `docs/DECISIONS.md`. These business-policy selections do not approve the independent technical proposals. Review [PHASE_3_WP3_1_TECHNICAL_GATE_RECONCILIATION.md](../PHASE_3_WP3_1_TECHNICAL_GATE_RECONCILIATION.md) before preparing a runtime implementation prompt.
 
 ## 7. Phase 2 boundary and owner smoke-test note
 
@@ -140,7 +140,8 @@ The owner reported manually trying online/offline behavior, data entry, value co
 ## 8. Implementation gate
 
 This document is a proposed plan, not authorization to start implementation. Before the first coding WP:
-1. Review this scope and resolve or explicitly defer material decisions.
-2. Confirm the Phase 2 exit record and known limitations are understood.
-3. Update the decision log and WP registry with owner-reviewed status.
-4. Only then prepare a bounded coding prompt for the first approved WP.
+1. Preserve the recorded owner selections and confirm Phase 2 exit/known limitations are understood.
+2. Review or amend the independent technical recommendations in the WP3.1 technical-gate reconciliation.
+3. Specify quantity precision/range/fractional `each` and relevant time semantics with testable rules.
+4. Reconcile the domain contract, repository mapping, WP acceptance criteria, and test matrix.
+5. Only then prepare a bounded implementation prompt for an explicitly approved WP. No coding or PR merge is authorized by this planning document.
