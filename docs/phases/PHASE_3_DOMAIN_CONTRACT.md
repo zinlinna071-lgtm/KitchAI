@@ -80,14 +80,14 @@ A reusable raw-material record that refers to the existing Phase 2 ingredient en
 Optional business-scoped source of a purchase. Ad hoc purchases must remain possible without a supplier record. Supplier archival must not erase purchase history.
 
 ### 2.3 Purchase and purchase line
-A purchase records intent to acquire ingredients. Each line identifies ingredient, ordered quantity/unit, recorded unit price and currency where supported. A draft or cancelled purchase does not change on-hand stock. A receipt records the actual received quantity and any discrepancy. Repeating the same receipt operation must not add stock twice. Partial receipt and cancellation rules remain subject to D3-04.
+A purchase records intent to acquire ingredients. Each line identifies ingredient, ordered quantity/unit, recorded unit price and currency where supported. A draft or cancelled purchase does not change on-hand stock. A receipt records the actual received quantity and any discrepancy. Repeating the same receipt operation must not add stock twice. Partial receipts are allowed; cancelling an unreceived remainder must not reverse already received quantities.
 
 ### 2.4 Stock movement
 An immutable, business-scoped event explaining a quantity change. Each posted movement needs a stable ID, movement type, item ID/type, signed quantity or explicitly defined direction, unit, effective timestamp, creation timestamp, source/reference ID, and reason/metadata appropriate to its type. Posted movements are not edited or hard-deleted; corrections are new linked movements.
 
 Proposed movement types:
 - Ingredient: opening balance, purchase receipt, production consumption, waste, adjustment/correction.
-- Finished product: production output, regular sale, discounted sale, owner consumption, giveaway, waste/spoilage, adjustment/correction.
+- Finished product: production output, owner consumption, giveaway, waste/spoilage, adjustment/correction. Sale/discount movements are deferred to Phase 4 under selected D3-07.
 - Carry-over: a traceable day/batch disposition record but **not** a stock-in/stock-out movement if the same finished quantity remains on hand.
 
 The chosen physical representation (signed quantity vs direction plus positive quantity) must be consistent across all movement types and tested. Do not encode the same business action as two independent stock effects.
@@ -102,14 +102,14 @@ Finished items must be traceable to the production batch and production date/tim
 
 ### 2.7 Disposition record
 A record that explains what happened to finished items after production. Types:
-- `sold_regular`: stock decreases; actual amount received is recorded if captured in this Phase 3 boundary.
-- `sold_discounted`: stock decreases; actual discounted price/amount received is recorded, not inferred from list price.
 - `owner_consumption`: stock decreases; no sales revenue.
 - `giveaway`: stock decreases; no sales revenue.
-- `waste_spoilage`: stock decreases; record reason where known.
-- `carry_over`: the quantity remains on hand and is linked to the relevant batch/day; do not count as new production or waste.
+- `waste_spoilage`: stock decreases; a reason is required.
+- `correction`: stock changes through an append-only linked event; a reason is required.
+- `carry_over`: the quantity remains on hand and is linked to the existing lot/batch; do not count as new production or waste.
+- Regular/discounted sale: **not captured in Phase 3**; sale-related stock reduction and revenue capture belong to Phase 4.
 
-Full customer, order, payment, refund, and sales-reporting behavior remains Phase 4. Phase 3 must not create a second sale workflow; the exact minimal capture boundary is D3-07 and remains open.
+All sale capture, including discounted sales, is deferred to Phase 4 under selected D3-07. Phase 3 must not create a temporary sale ledger, sale UI, or inferred revenue.
 
 ### 2.8 Physical count and adjustment
 A physical count captures observed quantity at a time and the relevant item/batch/unit. A variance must be visible before posting a correction. A posted correction is an auditable movement linked to the count and includes a reason. It must not silently rewrite historical movements or hide the prior balance.
@@ -141,12 +141,12 @@ A physical count captures observed quantity at a time and the relevant item/batc
 5. Posted disposition: finished stock changes once. Repeated client submission/retry cannot repeat the effect.
 6. Carry-over: stock quantity remains unchanged; no new batch or duplicate production cost.
 7. Owner consumption/giveaway: no sales revenue.
-8. Discounted sale: actual received amount is distinct from list price.
+8. Sale/discount capture: deferred to Phase 4; Phase 3 must not infer revenue.
 9. Waste/spoilage: stock decreases and is distinguishable from sale, consumption, giveaway, and carry-over.
 10. Reconciliation: corrections are additive, reasoned events; historical movements remain reviewable.
 11. Offline sync: each logical operation has a stable idempotency key; a lost acknowledgement/retry cannot double-apply a movement.
 12. Conflict: preserve competing state for review. Never silently auto-merge conflicting quantity changes or invent a resolution.
-13. Insufficient stock: behavior is unresolved under D3-03. Do not silently permit negative stock or introduce an override policy without an explicit reviewed rule.
+13. Insufficient stock: production completion is blocked when stock is insufficient; the first release has no negative-stock or override path. Local checks do not replace server-side concurrency checks.
 14. Food safety: KitchAI must not assume that food is safe to carry over based only on elapsed time. Carry-over requires an operator confirmation under the applicable business procedure/rule.
 
 ## 6. Cost data vs costing/accounting
