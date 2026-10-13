@@ -4,6 +4,12 @@
 **Current branch:** main  
 **Overall state:** WP1.1–WP1.6 implementation gates passed and are merged to main. PR #21 merged as documentation-only commit `d1341bd9586e5b77ebcaf992d1437e80771fd954`; PR #22 merged as documentation-only commit `c16a8b83b5c5ee8a6d87442b6a6265683d249167`. Baseline [38230100063](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38230100063) passed on the PR #22 merge commit. Baseline [38224312266](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38224312266), app shell [38224312431](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38224312431), and local Supabase [38224312312](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38224312312) passed on unchanged application-code parent `1b7169f7569fe012ffacfca44356bb144d86f86d`; static preview [38228933877](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38228933877) passed on PR #21 merge commit. Owner has accepted deferring named non-critical manual-only checks until the app is more complete; these are documented as deferred, not passed. WP1.7 local-only acceptance closure is recorded with the owner's explicit manual-only deferrals. No hosted resources are provisioned.
 
+## Current planning focus
+
+**Phase 3:** proposed documentation plan created on branch `docs/phase-3-production-inventory-plan`; no Phase 3 application implementation has started. The proposed scope covers purchasing/receiving, ingredient and finished-product stock, make-to-order and make-ahead production batches, leftover disposition (carry-over, discounted sale, owner consumption, giveaway, waste), reconciliation, and offline/sync safety. Owner decisions D3-01–D3-11 remain OPEN; see [docs/phases/PHASE_3_PLAN.md](./phases/PHASE_3_PLAN.md). Do not start coding until the owner reviews the plan and material decisions.
+
+**Owner smoke-test feedback (2026-10-13):** owner reported that their observed online/offline usage, data entry, values, and persistence worked as expected. Treat this as limited manual smoke-test feedback only; it does not prove hosted cloud sync, real two-device behavior, backup/export/restore readiness, food-safety rules, or production readiness. Preserve Phase 2 known limitations and deferred checks.
+
 ## Repository audit
 
 - Repository: zinlinna071-lgtm/KitchAI
