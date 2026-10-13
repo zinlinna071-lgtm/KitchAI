@@ -152,3 +152,14 @@ Planning documents do not count as implementation completion. WP1.1 completion m
 - **Acceptance boundary:** Automated local-only WP2.6 gates pass, and the known-limitations/deferred-check/exit decision record is in [STATUS.md — WP2.6 Phase 2 exit review](./STATUS.md). PR #35 is unmerged and ready for owner review; Phase 2 must not be declared complete until the owner reviews the PR and accepts the exit record. Local/emulated Supabase does not prove hosted-provider authorization, real cross-device behavior, backup/recovery readiness, or production readiness.
 - **Guardrails:** No hosted provider testing, provisioning, billing, production secrets, or production deployment.
 Planning artifacts do not count as implementation completion. Implement one bounded WP at a time and retain Phase 1 regression gates.
+
+
+## Phase 3 WPs
+
+### WP3.1 — Inventory Domain Rules & Data Model
+- **Status:** In progress — partial implementation; acceptance gates open.
+- **Dependencies:** Phase 2 local business store, recipe/catalog data, sync identity/scope foundation, owner-selected D3-01–D3-11 and T3-01–T3-08.
+- **Implemented on feature branch:** exact six-decimal string/BigInt quantity primitives; movement validation; explicit lot allocation and carry-over confirmation; additive IndexedDB v2→v3 stores for stock movements, finished lots, and inventory commands.
+- **Evidence:** [WP3.1 implementation report](./PHASE_3_WP3_1_IMPLEMENTATION_REPORT.md). A focused isolated Node harness passed 6/6 tests; repository-wide checks have not run in this environment.
+- **Blocking gaps:** populated-v2 migration preservation/failure/reopen tests; remote Supabase schema/RLS/idempotency and pgTAP tests; full repository test/typecheck/build/preview checks; explicit diff review for migration and existing recipe quantity compatibility.
+- **Not allowed / not claimed:** no merge, hosted provisioning, billing, production deployment, inventory UI, production posting workflow, or inventory sync support. Do not mark WP3.1 complete until evidence is added and reviewed.
