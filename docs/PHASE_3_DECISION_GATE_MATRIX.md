@@ -2,7 +2,7 @@
 
 **Status: Planning and verification aid; owner selections recorded 2026-10-13.** D3-01–D3-11 are marked Selected in `docs/DECISIONS.md` according to the owner's instruction to use the recommended/default choices. This matrix maps those directions to affected work packages and required evidence; it does not authorize implementation or waive independent technical gates.
 
-Related documents: [Owner Decision Brief](./PHASE_3_OWNER_DECISION_BRIEF.md), [Decision Log](./DECISIONS.md), [Phase 3 Plan](./phases/PHASE_3_PLAN.md), [Domain Contract](./phases/PHASE_3_DOMAIN_CONTRACT.md), [WP3.1 Repository Review](./PHASE_3_WP3_1_REPOSITORY_REVIEW.md).
+Related documents: [Owner Decision Brief](./PHASE_3_OWNER_DECISION_BRIEF.md), [Decision Log](./DECISIONS.md), [Phase 3 Plan](./phases/PHASE_3_PLAN.md), [Domain Contract](./phases/PHASE_3_DOMAIN_CONTRACT.md), [WP3.1 Repository Review](./PHASE_3_WP3_1_REPOSITORY_REVIEW.md), [Technical Gate Reconciliation](./PHASE_3_WP3_1_TECHNICAL_GATE_RECONCILIATION.md), and [Technical Decision Brief](./PHASE_3_TECHNICAL_DECISION_BRIEF.md).
 
 ## Decision gates
 
