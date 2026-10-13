@@ -113,7 +113,7 @@ These are contract clarification proposals. C1/C2 and H1–H4 should be reconcil
 
 ## 6. Owner decisions still open
 
-D3-01–D3-11 remain OPEN. The contract review must not answer these on the owner's behalf:
+Owner policy selections D3-01–D3-11 were recorded as Selected on 2026-10-13 after the owner chose the recommended checklist defaults. The contract review must preserve those selections; it must not silently expand them into technical architecture approval.
 
 - **D3-01:** costing method/allocation; gates official inventory valuation, COGS, profit and how cost inputs are interpreted.
 - **D3-02:** quantity precision, rounding and fractional `each`; gates quantity storage/comparison and exact allocation equality.
@@ -129,15 +129,16 @@ D3-01–D3-11 remain OPEN. The contract review must not answer these on the owne
 
 ## 7. Implementation gate checklist
 
-- [ ] Domain contract states canonical stock truth (ledger vs projection) and its rebuild/reconciliation rule.
+- [ ] Owner accepts or amends the canonical stock-ledger proposal and its rebuild/reconciliation rule.
 - [ ] Local and remote production-posting atomicity are designed separately and end-to-end idempotency is specified.
 - [ ] Movement quantity/sign and correction/reversal semantics are unambiguous.
 - [ ] Finished lot allocation and partial disposition behavior are specified.
 - [ ] IndexedDB version upgrade and legacy migration preservation plan is documented and testable.
 - [ ] New sync operation types, dependency ordering, server SQL/API/RLS, and conflict handling are mapped to the actual repository.
-- [ ] D3-01–D3-11 are owner-resolved or explicitly deferred with safe implementation consequences recorded.
+- [x] D3-01–D3-11 owner policy directions are recorded in `docs/DECISIONS.md`.
+- [ ] Independent technical recommendations and precision/time rules are reviewed and testable.
 - [ ] Test fixtures cover populated v2 migration and existing regression behavior.
 - [ ] The owner separately authorizes a bounded runtime implementation prompt.
 - [ ] No hosted resources, billing, production secrets, or deployment are assumed.
 
-**Conclusion:** WP3.1 is not ready for a runtime coding prompt yet. First reconcile the critical domain/atomicity/source-of-truth clarifications, then review the unresolved decision gates. This report is not evidence that tests were executed and does not mark WP3.1 complete.
+**Conclusion:** WP3.1 is not yet ready for a runtime coding prompt. The follow-up [Technical Gate Reconciliation](./PHASE_3_WP3_1_TECHNICAL_GATE_RECONCILIATION.md) now maps source files to candidate designs and acceptance evidence. Owner policy selections are recorded, but technical architecture review and a test-backed quantity/time specification remain outstanding. This report is not evidence that tests were executed and does not mark WP3.1 complete.
