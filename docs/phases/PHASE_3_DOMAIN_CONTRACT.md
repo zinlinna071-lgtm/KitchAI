@@ -165,12 +165,12 @@ Record purchase price/cost inputs and references accurately, including currency 
 
 ## 8. Owner-selected policy directions and remaining technical gates
 
-The owner selected the recommended defaults for D3-01–D3-11 on 2026-10-13. The decision log is authoritative. This section records the policy direction; it does not replace the technical contract clarifications required before implementation.
+The owner selected D3-01–D3-11 and accepted T3-01–T3-08 on 2026-10-13. The decision log is authoritative. The selected technical contract is in §0.1; compatibility and test evidence are required before later WPs depend on it.
 
 | ID | Topic | Selected policy direction / remaining gate |
 |---|---|---|
 | D3-01 | Costing method and cost allocation | Selected: store traceable cost inputs; official valuation, COGS, and profit are Phase 5 scope |
-| D3-02 | Precision, rounding, fractional count | Selected: preserve precision; reject invalid quantities; no silent rounding/conversion. Numeric representation, limits, and fractional `each` policy remain a technical gate |
+| D3-02 | Precision, rounding, fractional count | Selected: preserve precision; reject invalid quantities; no silent rounding/conversion. T3-05 selects exact decimal strings/scaled-integer arithmetic at six fractional places; fractional ingredient `each`, integral finished-stock `each`; test compatibility before migration |
 | D3-03 | Insufficient ingredients / negative stock | Selected: block production completion when stock is insufficient; no negative stock or override in first release |
 | D3-04 | Partial receipt and cancellation | Selected: allow partial receipts; only actual received quantities post; unreceived remainder stays explicit until received/cancelled |
 | D3-05 | Recipe baseline vs actual use | Selected: record actual use/output and compare with recipe baseline; label unknown/theoretical values honestly |
