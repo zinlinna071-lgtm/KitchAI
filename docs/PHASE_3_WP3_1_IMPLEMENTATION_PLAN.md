@@ -31,4 +31,4 @@ Review confirmed that `src/recipe-store.js` validates and stores recipe-line qua
 
 ## Verification status
 
-The implementation is partial. The populated-v2 migration test and local Supabase database/authorization suites have run on the implementation code commit; the current post-test-fix workflow evidence is recorded in the implementation report. A documentation-only follow-up will trigger CI again. This plan is not evidence that WP3.1 is complete.
+The implementation is partial. Current-head CI on code commit `ae07e57827601e6929f1a28abdda9a40f1f79cf9` passed all five gates, including the new negative test that rejects incomplete finished-lot allocations. The implementation report links the exact runs. WP3.1 is not complete; inventory UI, production posting, inventory sync, trusted remote idempotency, and integrated conflict preservation remain out of scope for this foundation.

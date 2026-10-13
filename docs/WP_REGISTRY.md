@@ -168,3 +168,6 @@ Planning artifacts do not count as implementation completion. Implement one boun
 
 
 - **WP3.1 verification refresh (2026-10-13):** The v1-seeded legacy migration integration test now expects current IndexedDB schema v3. On implementation commit `a868a04f452951d444bc403d8f3b561e6bfd2b0b`, app-shell, baseline, static preview, Supabase authorization, and vertical-slice workflows passed; the database suite passed 102 tests and all 8 local Supabase browser integration tests passed. Phase 2 recipe-line quantities remain JavaScript numbers locally and PostgreSQL `numeric` remotely, and are preserved without conversion. A future production-consumption workflow must introduce an explicit tested precision/range adapter. WP3.1 remains partial; PR #38 is Draft and unmerged.
+
+
+- **WP3.1 current-head verification (2026-10-13):** Code commit `ae07e57827601e6929f1a28abdda9a40f1f79cf9` passed Baseline, Application Shell, Static Preview, Local Supabase Authorization, and Local Supabase Vertical Slice. pgTAP groups passed (40, 37, 26 tests); all 8 Playwright integration tests passed. Added explicit negative coverage for allocation sums that do not equal finished-stock reduction quantity. WP3.1 remains partial; PR #38 is Draft/unmerged.

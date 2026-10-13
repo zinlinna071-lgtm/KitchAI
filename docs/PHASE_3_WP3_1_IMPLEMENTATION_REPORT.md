@@ -57,3 +57,17 @@ This is a partial WP3.1 foundation, not a finished inventory workflow. It does n
 - [Local Supabase Authorization run 38426418362](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38426418362) passed. [Local Vertical Slice run 38426418224](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38426418224) passed, including database migration/pgTAP and all 8 browser integration tests. The database test step reported **102 tests passing**.
 - Recipe-line compatibility review: existing Phase 2 recipe quantities remain JavaScript numbers in the local store and PostgreSQL `numeric` remotely. The v2→v3 upgrade preserves them unchanged. There is intentionally no recipe-to-inventory conversion or production-consumption posting in WP3.1; a strict adapter and precision/range tests are required before those future workflows.
 - This is still a partial WP3.1 foundation. Inventory UI, production posting, inventory sync, trusted remote idempotency, and integrated inventory conflict preservation are not implemented. PR #38 remains Draft and must not be merged.
+
+
+## Current-head verification — 2026-10-13
+
+The exact-sum guard now has a negative pgTAP case: a finished-stock sale of 3 each allocated to only 2 each must fail when deferred constraints are forced immediate. The fixture is accounted for in the owner-scope RLS count; the entire test transaction rolls back.
+
+All five CI workflows passed on code commit `ae07e57827601e6929f1a28abdda9a40f1f79cf9`:
+- [Baseline checks](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38434123234)
+- [Application Shell](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38434122835)
+- [Static Preview](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38434122588)
+- [Local Supabase Authorization](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38434122639): all pgTAP groups passed (40, 37, and 26 tests).
+- [Local Supabase Vertical Slice](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38434122993): database suites passed and all 8 Playwright browser integration tests passed.
+
+This confirms the current test suite, not full WP3.1 completion. Inventory UI, production posting workflow, inventory sync, trusted remote idempotency RPC, and integrated inventory conflict preservation are still not implemented. PR #38 remains Draft/unmerged.
