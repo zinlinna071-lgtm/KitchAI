@@ -5,7 +5,7 @@
 **Status:** Candidate technical design; not owner-approved architecture and not implementation authorization  
 **Branch:** `docs/phase-3-production-inventory-plan`
 
-Related documents: [Phase 3 plan](./phases/PHASE_3_PLAN.md), [Domain Contract](./phases/PHASE_3_DOMAIN_CONTRACT.md), [Repository Review](./PHASE_3_WP3_1_REPOSITORY_REVIEW.md), [Decision Gate Matrix](./PHASE_3_DECISION_GATE_MATRIX.md), [Decision Log](./DECISIONS.md).
+Related documents: [Phase 3 plan](./phases/PHASE_3_PLAN.md), [Domain Contract](./phases/PHASE_3_DOMAIN_CONTRACT.md), [Repository Review](./PHASE_3_WP3_1_REPOSITORY_REVIEW.md), [Decision Gate Matrix](./PHASE_3_DECISION_GATE_MATRIX.md), [Technical Decision Brief](./PHASE_3_TECHNICAL_DECISION_BRIEF.md), [Decision Log](./DECISIONS.md).
 
 ## 1. Purpose and result
 
