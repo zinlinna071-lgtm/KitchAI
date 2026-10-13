@@ -20,11 +20,13 @@ reset role;
 select ok((select relrowsecurity from pg_class where oid='public.inventory_commands'::regclass), 'inventory command idempotency table has RLS enabled');
 select ok((select relrowsecurity from pg_class where oid='public.stock_movements'::regclass), 'stock movement ledger has RLS enabled');
 select ok((select relrowsecurity from pg_class where oid='public.finished_lots'::regclass), 'finished lots have RLS enabled');
+select ok((select relrowsecurity from pg_class where oid='public.stock_movement_lot_allocations'::regclass), 'lot allocations have RLS enabled');
 select ok(not has_table_privilege('anon','public.stock_movements','select'), 'anonymous users cannot read stock movements');
 select ok(not has_table_privilege('authenticated','public.stock_movements','insert'), 'clients cannot directly insert stock movements');
 select ok(not has_table_privilege('authenticated','public.stock_movements','update'), 'clients cannot update stock movements');
 select ok(not has_table_privilege('authenticated','public.stock_movements','delete'), 'clients cannot delete stock movements');
 select ok(not has_table_privilege('authenticated','public.inventory_commands','select'), 'clients cannot read the trusted idempotency ledger');
+select ok(not has_table_privilege('authenticated','public.stock_movement_lot_allocations','insert'), 'clients cannot directly insert lot allocations');
 
 insert into public.menu_items (id, owner_id, business_id, name, status)
 select 'a4000000-0000-4000-8000-000000000001', owner_id, business_id, 'Kimbap', 'active'
@@ -49,6 +51,39 @@ from public.business_profiles where owner_id='31111111-1111-4111-8111-1111111111
 
 select is((select count(*)::integer from public.stock_movements where event_id='a5000000-0000-4000-8000-000000000001'),1,'valid finished output is stored once');
 select is((select count(*)::integer from public.finished_lots where lot_id='a6000000-0000-4000-8000-000000000001'),1,'finished lot links to its output event');
+
+insert into public.stock_movements (
+  owner_id,business_id,event_id,stock_class,stock_item_id,kind,direction,quantity,unit,
+  source_type,source_id,recorded_at,effective_at
+)
+select owner_id,business_id,'a5000000-0000-4000-8000-000000000010','finished',
+  'a4000000-0000-4000-8000-000000000001','sale','out',2,'each',
+  'sale','a7000000-0000-4000-8000-000000000010',now(),now()
+from public.business_profiles where owner_id='31111111-1111-4111-8111-111111111111';
+insert into public.stock_movement_lot_allocations (
+  owner_id,business_id,event_id,lot_id,quantity,unit
+)
+select owner_id,business_id,'a5000000-0000-4000-8000-000000000010',
+  'a6000000-0000-4000-8000-000000000001',2,'each'
+from public.business_profiles where owner_id='31111111-1111-4111-8111-111111111111';
+set constraints all immediate;
+set constraints all deferred;
+select is((select count(*)::integer from public.stock_movement_lot_allocations where event_id='a5000000-0000-4000-8000-000000000010'),1,'sale stock reduction is allocated to a finished lot');
+select throws_ok(
+  $sql$insert into public.stock_movements (
+    owner_id,business_id,event_id,stock_class,stock_item_id,kind,direction,quantity,unit,source_type,source_id,recorded_at,effective_at
+  ) select owner_id,business_id,'a5000000-0000-4000-8000-000000000011','finished',
+    'a4000000-0000-4000-8000-000000000001','sale','out',3,'each','sale',
+    'a7000000-0000-4000-8000-000000000011',now(),now()
+  from public.business_profiles where owner_id='31111111-1111-4111-8111-111111111111';
+  insert into public.stock_movement_lot_allocations (owner_id,business_id,event_id,lot_id,quantity,unit)
+  select owner_id,business_id,'a5000000-0000-4000-8000-000000000011',
+    'a6000000-0000-4000-8000-000000000001',2,'each'
+  from public.business_profiles where owner_id='31111111-1111-4111-8111-111111111111';
+  set constraints all immediate;$sql$,
+  '23514','Finished-stock reduction must be allocated exactly across lots','lot allocation sum must equal the stock movement quantity'
+);
+set constraints all deferred;
 select throws_ok(
   $sql$insert into public.finished_lots (
     owner_id,business_id,lot_id,menu_item_id,batch_id,output_event_id,produced_quantity,unit,produced_at
@@ -109,7 +144,7 @@ select throws_ok(
 
 set local role authenticated;
 set local "request.jwt.claim.sub" = '31111111-1111-4111-8111-111111111111';
-select is((select count(*)::integer from public.stock_movements),1,'owner can read their own stock movement');
+select is((select count(*)::integer from public.stock_movements),2,'owner can read their own stock movements');
 set local "request.jwt.claim.sub" = '32222222-2222-4222-8222-222222222222';
 select is((select count(*)::integer from public.stock_movements),0,'another owner cannot read the first owner stock movement');
 reset role;
