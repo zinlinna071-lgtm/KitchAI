@@ -20,6 +20,8 @@ The current application files on the PR branch are unchanged from the PR's base 
 
 ## 0.1 Proposed technical clarifications from the WP3.1 repository review — PENDING RECONCILIATION
 
+The source-to-contract mapping, candidate technical designs, test matrix, and implementation gate checklist are consolidated in [PHASE_3_WP3_1_TECHNICAL_GATE_RECONCILIATION.md](../PHASE_3_WP3_1_TECHNICAL_GATE_RECONCILIATION.md). That document is a planning artifact and does not itself approve the proposals.
+
 **Decision status:** The owner selected the recommended policy directions for D3-01–D3-11 on 2026-10-13; see `docs/DECISIONS.md`. The technical proposals in this section are still proposals that must be reconciled with the selected policies, source code, migration behavior, and test plan. They are not automatically approved architecture. They do not authorize runtime code, schema, migration, SQL, hosted resources, or production changes.
 
 ### PC-1 — Canonical stock truth and balance projections (proposed)
@@ -182,5 +184,5 @@ The owner selected the recommended defaults for D3-01–D3-11 on 2026-10-13. The
 
 - This contract is reconciled with the current implementation and Phase 2 domain contract.
 - The implementation agent documents the actual repository architecture, database/store owners, migration approach, test scripts, and proposed mapping from logical concepts to code before changing runtime files.
-- All open decisions remain visible and are either resolved by the owner or explicitly deferred with a safe, bounded implementation consequence.
+- Selected owner policy directions and independent technical gates remain visible. No implementation begins while required technical choices are ambiguous or the owner-review gates are unresolved.
 - No schema migration, application code, hosted resource, or production rollout is implied by this document.
