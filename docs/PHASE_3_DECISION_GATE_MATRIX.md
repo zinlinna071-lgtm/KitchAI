@@ -1,6 +1,6 @@
 # Phase 3 Decision-Gate Matrix — D3-01 to D3-11
 
-**Status: Planning aid only. No owner decision is approved by this matrix.** All D3-01–D3-11 remain OPEN in `docs/DECISIONS.md`. This matrix connects each owner choice to affected work packages, the evidence needed before implementation/exit, and the safest scope boundary if the owner explicitly defers a choice.
+**Status: Planning and verification aid; owner selections recorded 2026-10-13.** D3-01–D3-11 are marked Selected in `docs/DECISIONS.md` according to the owner's instruction to use the recommended/default choices. This matrix maps those directions to affected work packages and required evidence; it does not authorize implementation or waive independent technical gates.
 
 Related documents: [Owner Decision Brief](./PHASE_3_OWNER_DECISION_BRIEF.md), [Decision Log](./DECISIONS.md), [Phase 3 Plan](./phases/PHASE_3_PLAN.md), [Domain Contract](./phases/PHASE_3_DOMAIN_CONTRACT.md), [WP3.1 Repository Review](./PHASE_3_WP3_1_REPOSITORY_REVIEW.md).
 
@@ -35,7 +35,7 @@ These technical gates apply regardless of which D3 options are selected:
 
 ## Readiness rule
 
-- A decision is ready for implementation only when the owner records **Selected**, **Deferred**, or **Rejected** with rationale and date in `docs/DECISIONS.md`.
-- A deferral must name the interim behavior, disabled/limited features, and the tests that enforce the boundary.
-- WP3.1 remains **blocked from implementation** until owner decisions are recorded and the domain contract/repository mapping/test plan are reconciled.
-- This matrix is documentation only. It does not approve a recommendation, change application behavior, or count as a test result.
+- Owner selections are recorded with rationale and date in `docs/DECISIONS.md`; D3-02's technical precision limits remain a pre-implementation gate.
+- Any later deferral must name the interim behavior, disabled/limited features, and tests that enforce the boundary.
+- WP3.1 remains **blocked from implementation** until the domain contract, repository mapping, and test plan are reconciled against the selections and all cross-cutting technical gates are resolved.
+- This matrix is documentation only. It does not change application behavior or count as a test result.
