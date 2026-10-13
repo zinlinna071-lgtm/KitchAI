@@ -7,9 +7,9 @@ A work package (WP) is a bounded implementation unit with dependencies and evide
 
 **Coding-agent handoff:** [CODING_AI_PHASE1_EXECUTION_PROMPT.md](./CODING_AI_PHASE1_EXECUTION_PROMPT.md) contains the repository-first execution prompt and mandatory decision/security gates. Owner-approved planning defaults are recorded in [DECISIONS.md](./DECISIONS.md); approval does not authorize provisioning or billing.
 
-**Phase 3 planning handoff:** [CODING_AI_PHASE3_WP3_1_REVIEW_PROMPT.md](./CODING_AI_PHASE3_WP3_1_REVIEW_PROMPT.md) is review-only. Phase 3 remains proposed/not approved for implementation; D3-01–D3-11 remain OPEN. Do not start WP3.1 runtime work based on this prompt.
+**Phase 3 planning handoff:** [CODING_AI_PHASE3_WP3_1_REVIEW_PROMPT.md](./CODING_AI_PHASE3_WP3_1_REVIEW_PROMPT.md) is review-only. Phase 3 remains proposed/not approved for implementation; owner selections D3-01–D3-11 are recorded in `DECISIONS.md`. Do not start WP3.1 runtime work based on this prompt.
 **WP3.1 repository review:** [PHASE_3_WP3_1_REPOSITORY_REVIEW.md](./PHASE_3_WP3_1_REPOSITORY_REVIEW.md) found critical contract clarifications needed for stock source-of-truth and atomic production posting. WP3.1 remains Review required; this is not implementation or test-pass evidence.
-**Phase 3 owner decision brief:** [PHASE_3_OWNER_DECISION_BRIEF.md](./PHASE_3_OWNER_DECISION_BRIEF.md) compares options and recommended discussion defaults for D3-01–D3-11. Recommendations are not approvals; all decisions remain OPEN until explicitly selected or deferred by the owner.
+**Phase 3 owner decision brief:** [PHASE_3_OWNER_DECISION_BRIEF.md](./PHASE_3_OWNER_DECISION_BRIEF.md) compares options and recommended discussion defaults for D3-01–D3-11. The owner selected the recommended/default directions on 2026-10-13; see `DECISIONS.md` for the authoritative selections and boundaries.
 
 ## Phase 1 WPs
 
@@ -164,9 +164,9 @@ Plan: [docs/phases/PHASE_3_PLAN.md](./phases/PHASE_3_PLAN.md); logical contract:
 - **Dependencies:** Phase 2 entity and recipe foundation
 - **Scope:** define stock boundaries, movement types, units, precision, validation, audit fields, and invariants; reconcile logical contract with actual code, DB ownership, migrations, sync engine, and tests.
 - **Current artifact:** [PHASE_3_DOMAIN_CONTRACT.md](./phases/PHASE_3_DOMAIN_CONTRACT.md), including a repository-grounded baseline of the current consolidated Phase 2 store and sync engine.
-- **Clarification gate:** Contract §0.1 records proposed PC-1–PC-8 (ledger source of truth, local/remote atomicity, movement/correction semantics, lot allocation, v2 migration, event identity/conflicts, scope/time semantics, and cost-input boundaries). These are pending owner review, not approved decisions; D3-01–D3-11 remain OPEN. See [repository review report](./PHASE_3_WP3_1_REPOSITORY_REVIEW.md).
-- **Recommendation artifact:** [PHASE_3_PLAN.md](./phases/PHASE_3_PLAN.md) §6.1 lists proposed safe defaults for D3-01–D3-11; these are not approvals.
-- **Decision gate matrix:** [PHASE_3_DECISION_GATE_MATRIX.md](./PHASE_3_DECISION_GATE_MATRIX.md) maps each D3 decision to impacted WPs, acceptance/test evidence, and safe deferral boundaries; it does not resolve any owner decision.
+- **Clarification gate:** Contract §0.1 records proposed PC-1–PC-8 (ledger source of truth, local/remote atomicity, movement/correction semantics, lot allocation, v2 migration, event identity/conflicts, scope/time semantics, and cost-input boundaries). These technical clarifications remain to be reconciled against the owner's selected D3 policy directions; they are not automatically approved by those selections. See [repository review report](./PHASE_3_WP3_1_REPOSITORY_REVIEW.md).
+- **Recommendation artifact:** [PHASE_3_PLAN.md](./phases/PHASE_3_PLAN.md) §6.1 lists proposed safe defaults for D3-01–D3-11; the owner selected the recommended/default directions; see `DECISIONS.md`.
+- **Decision gate matrix:** [PHASE_3_DECISION_GATE_MATRIX.md](./PHASE_3_DECISION_GATE_MATRIX.md) maps each D3 decision to impacted WPs, acceptance/test evidence, and safe deferral boundaries; it maps the selected owner directions to acceptance evidence and remaining gates.
 - **Done when:** actual repository mapping and migration/test approach are documented, material decisions are resolved or explicitly deferred in the decision log, and owner review is recorded before runtime implementation.
 
 ### WP3.2 — Suppliers, Purchasing & Receiving
@@ -204,6 +204,6 @@ Plan: [docs/phases/PHASE_3_PLAN.md](./phases/PHASE_3_PLAN.md); logical contract:
 - **Scope:** regression, database/browser/build checks, migration evidence, documented manual/deferred checks, known limitations, and exit review.
 - **Done when:** reproducible evidence and an explicit owner-reviewed Phase 3 exit record exist.
 
-**Open decision IDs:** D3-01–D3-11. See [DECISIONS.md](./DECISIONS.md) and the Phase 3 plan. Sales-triggered automatic stock deduction is intentionally deferred to Phase 4. No hosted provisioning, billing, secrets, or production deployment is authorized.
+**Selected Phase 3 policy IDs:** D3-01–D3-11 (see `DECISIONS.md`). Independent technical gates remain open. See [DECISIONS.md](./DECISIONS.md) and the Phase 3 plan. Sales-triggered automatic stock deduction is intentionally deferred to Phase 4. No hosted provisioning, billing, secrets, or production deployment is authorized.
 
 Planning artifacts do not count as implementation completion. Implement one bounded WP at a time and retain Phase 1 regression gates.
