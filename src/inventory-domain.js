@@ -60,7 +60,7 @@ function requireText(value, label) {
   return value.trim();
 }
 function requireUtcInstant(value, label) {
-  if (typeof value !== "string" || !/^\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d(?:\\.\\d{3})?Z$/.test(value) || !Number.isFinite(Date.parse(value))) {
+  if (typeof value !== "string" || !/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d{3})?Z$/.test(value) || !Number.isFinite(Date.parse(value))) {
     throw new TypeError(label + " must be an ISO 8601 UTC timestamp ending in Z.");
   }
   const canonical = new Date(value).toISOString();
