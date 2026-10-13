@@ -46,17 +46,17 @@ The candidate decisions below are recorded for owner review only. Suggestions ar
 
 | ID | Decision needed | Suggested direction for review | Status |
 |---|---|---|---|
-| D3-01 | Inventory costing method | Compare weighted average and FIFO before choosing; do not rely on inventory valuation in financial reports until selected | OPEN |
-| D3-02 | Quantity precision and rounding | Unit-specific precision; never silently round | OPEN |
-| D3-03 | Insufficient stock during production | Block or require an explicit audited override; owner decision required | OPEN |
-| D3-04 | Partial receiving/cancellation | Consider partial receiving; unreceived quantity never affects stock | OPEN |
+| D3-01 | Inventory costing method | Recommended discussion default: defer official valuation/COGS/profit to Phase 5; preserve traceable cost inputs. If Phase 3 valuation is required, compare methods first | OPEN |
+| D3-02 | Quantity precision and rounding | Preserve precision under a documented numeric representation; reject invalid quantities; never silently round/convert. Exact limits remain open | OPEN |
+| D3-03 | Insufficient stock during production | Recommended first-release default: block completion; no negative stock/override unless explicitly selected | OPEN |
+| D3-04 | Partial receiving/cancellation | Recommended: allow partial receipts; only received quantities affect stock; keep unreceived remainder explicit | OPEN |
 | D3-05 | Recipe theoretical use vs actual consumption | Record actual usage and variance | OPEN |
 | D3-06 | Carry-over/shelf-life suitability | Operator confirms suitability under reviewed rules; app must not assume food is safe from age alone | OPEN |
-| D3-07 | Discounted-sale capture in Phase 3 | Consider minimal quantity/actual-price disposition only; full sales/order/payment workflow remains Phase 4 | OPEN |
-| D3-08 | Owner consumption, giveaway, and waste | Separate disposition types and reason capture | OPEN |
-| D3-09 | Physical count corrections | Append-only adjustment with reason and explicit confirmation | OPEN |
-| D3-10 | Supplier fields and purchase costs | Supplier optional for ad hoc purchases; decide required cost/tax/shipping fields | OPEN |
-| D3-11 | Stock-movement sync conflicts | Preserve competing snapshots and require explicit review; never silently combine duplicate/conflicting movements | OPEN |
+| D3-07 | Discounted-sale capture in Phase 3 | Choose between minimal stock disposition with actual amount received or deferring all sale capture to Phase 4; full order/payment remains Phase 4 | OPEN |
+| D3-08 | Owner consumption, giveaway, and waste | Recommended: separate types; require reason for waste and stock corrections; decide whether other reasons are mandatory | OPEN |
+| D3-09 | Physical count corrections | Recommended: expected/count/variance, reason, explicit confirmation, and append-only linked correction | OPEN |
+| D3-10 | Supplier fields and purchase costs | Recommended: supplier optional; capture received qty/unit, unit price/currency, receipt timestamp; tax/shipping treatment remains open | OPEN |
+| D3-11 | Stock-movement sync conflicts | Recommended: same event ID is idempotent retry; preserve distinct conflicting events for explicit review; never auto-merge quantities | OPEN |
 
 Full scope and acceptance criteria: [PHASE_3_PLAN.md](./phases/PHASE_3_PLAN.md). These are planning proposals and do not authorize implementation, hosted resources, billing, secrets, or deployment.
 
