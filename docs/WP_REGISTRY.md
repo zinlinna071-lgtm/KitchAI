@@ -1,7 +1,7 @@
 # Work Package Registry
 
 **Status:** WP1.1–WP1.6 implementation gates passed on main. PR #21 merged as docs-only commit `d1341bd9586e5b77ebcaf992d1437e80771fd954`; PR #22 merged as docs-only commit `c16a8b83b5c5ee8a6d87442b6a6265683d249167`, with baseline CI passing on that merge commit [run 38230100063](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38230100063). Earlier baseline, app-shell, and local Supabase workflows passed on unchanged application-code commit `1b7169f7569fe012ffacfca44356bb144d86f86d`; the static preview workflow passed on PR #21's merge commit. Owner explicitly accepts deferring named non-critical manual-only checks until the app is more complete. Those checks are recorded as deferred, not passed. WP1.7 is closed for the local-only Phase 1 milestone with the owner's manual-only deferrals documented; hosted provider authorization remains separately gated on explicit environment/cost approval.  
-**Parent plans:** [PHASE_1_PLAN.md](./PHASE_1_PLAN.md); [PHASE_2_PLAN.md](./PHASE_2_PLAN.md); [PHASE_2_DOMAIN_CONTRACT.md](./PHASE_2_DOMAIN_CONTRACT.md)
+**Parent plans:** [PHASE_1_PLAN.md](./PHASE_1_PLAN.md); [PHASE_2_PLAN.md](./PHASE_2_PLAN.md); [PHASE_2_DOMAIN_CONTRACT.md](./PHASE_2_DOMAIN_CONTRACT.md); [phases/PHASE_3_PLAN.md](./phases/PHASE_3_PLAN.md)
 
 A work package (WP) is a bounded implementation unit with dependencies and evidence of completion. The workflow maintains this registry so the owner does not need to manually split tasks.
 
@@ -151,4 +151,51 @@ Planning documents do not count as implementation completion. WP1.1 completion m
 - **Other current-head gates:** Baseline/browser/dependency checks [run 38280998663](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38280998663) passed 14/14 browser tests and dependency audit (0 vulnerabilities); app-shell/build [run 38280999005](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38280999005) passed 39/39 sync-engine unit tests, production build, and 16/16 app-shell browser tests; static preview [run 38280998867](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38280998867) passed. Database assertions cover RLS/owner isolation, server-derived ownership, cross-owner mutation rejection, revision conflicts, and idempotency.
 - **Acceptance boundary:** Automated local-only WP2.6 gates pass, and the known-limitations/deferred-check/exit decision record is in [STATUS.md — WP2.6 Phase 2 exit review](./STATUS.md). PR #35 is unmerged and ready for owner review; Phase 2 must not be declared complete until the owner reviews the PR and accepts the exit record. Local/emulated Supabase does not prove hosted-provider authorization, real cross-device behavior, backup/recovery readiness, or production readiness.
 - **Guardrails:** No hosted provider testing, provisioning, billing, production secrets, or production deployment.
+## Phase 3 WPs — PROPOSED / NOT APPROVED
+
+Plan: [docs/phases/PHASE_3_PLAN.md](./phases/PHASE_3_PLAN.md). All items below are planning-only; no implementation is authorized by this registry entry.
+
+### WP3.1 — Inventory Domain Rules & Data Model
+- **Status:** Proposed; owner review required
+- **Dependencies:** Phase 2 entity and recipe foundation
+- **Scope:** define stock boundaries, movement types, units, precision, validation, audit fields, and invariants.
+- **Done when:** data dictionary, state transitions, and validation tests are specified and reviewed.
+
+### WP3.2 — Suppliers, Purchasing & Receiving
+- **Status:** Proposed; owner review required
+- **Dependencies:** WP3.1
+- **Scope:** supplier data, purchase drafts/lines, receiving, partial receipt policy, cancellation, and idempotent stock receipt.
+- **Done when:** draft/cancel/receive/duplicate-retry stock effects are specified and testable.
+
+### WP3.3 — Production Batches & Ingredient Consumption
+- **Status:** Proposed; owner review required
+- **Dependencies:** WP3.1; Phase 2 recipes
+- **Scope:** make-to-order and make-ahead production, planned/actual yield and consumption, traceable ingredient-out and finished-product-in movements.
+- **Done when:** quantity conservation, variance, insufficient-stock policy, and duplicate-submit behavior are specified and tested.
+
+### WP3.4 — Finished Goods, Leftovers & Disposition
+- **Status:** Proposed; owner review required
+- **Dependencies:** WP3.1, WP3.3
+- **Scope:** finished stock; carry-over when confirmed safe; discounted-sale quantity/actual price at a limited inventory-disposition boundary; owner consumption, giveaway, and waste/spoilage.
+- **Done when:** each disposition is distinct, reduces stock once, and applies correct revenue/loss treatment. Full sales/order/payment lifecycle remains Phase 4.
+
+### WP3.5 — Stock History, Physical Counts & Corrections
+- **Status:** Proposed; owner review required
+- **Dependencies:** WP3.1–WP3.4
+- **Scope:** auditable movement ledger, physical-count reconciliation, reasoned append-only corrections, and concurrent-correction handling.
+- **Done when:** current balances are explainable from movements and adjustments preserve history.
+
+### WP3.6 — Offline, Sync, Conflict & Recovery Safety
+- **Status:** Proposed; owner review required
+- **Dependencies:** WP3.1–WP3.5; existing sync foundation
+- **Scope:** owner-scoped local operations, idempotency, dependency-aware sync, interrupted-operation recovery, and explicit stock conflict review.
+- **Done when:** local/emulated retry, reconnect, duplicate operation, stale revision, owner isolation, and conflict tests pass.
+
+### WP3.7 — Integration, Regression & Phase Exit
+- **Status:** Proposed; blocked on WP3.1–WP3.6 and owner-reviewed decisions
+- **Scope:** regression, database/browser/build checks, migration evidence, documented manual/deferred checks, known limitations, and exit review.
+- **Done when:** reproducible evidence and an explicit owner-reviewed Phase 3 exit record exist.
+
+**Open decision IDs:** D3-01–D3-11. See [DECISIONS.md](./DECISIONS.md) and the Phase 3 plan. Sales-triggered automatic stock deduction is intentionally deferred to Phase 4. No hosted provisioning, billing, secrets, or production deployment is authorized.
+
 Planning artifacts do not count as implementation completion. Implement one bounded WP at a time and retain Phase 1 regression gates.
