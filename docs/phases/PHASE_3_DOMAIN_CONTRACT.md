@@ -4,6 +4,20 @@
 **Parent plan:** [PHASE_3_PLAN.md](./PHASE_3_PLAN.md)  
 **Compatibility:** Preserve Phase 1 owner partitioning, local-first persistence, outbox/idempotency, explicit conflict review, and Phase 2 ingredient/menu/recipe behavior.
 
+## 0. Repository-grounded implementation baseline (reviewed 2026-10-13)
+
+The current application files on the PR branch are unchanged from the PR's base application-code commit; the branch changes documentation only. The following current implementation facts were checked to ground the logical contract:
+
+- `src/business-data-store.js` uses IndexedDB database `kitchai-business-data`, schema version 2. It owns the consolidated Phase 2 entity stores `ingredients`, `menuItems`, `recipes`, and `recipeLines`, plus `operations`, `syncMetadata`, `metadata`, `migrationLedger`, and `conflicts`. Entity records use compound `ownerId/businessId/id` keys and scope indexes.
+- The consolidated business-data store includes a migration ledger for moving records from legacy Phase 2 databases. Phase 3 must preserve the migration ledger and legacy-data migration behavior; do not create another unrelated inventory database by default.
+- `src/phase2-sync-engine.js` currently maps only Phase 2 entity types: `ingredient`, `menuItem`, `recipe`, and `recipeLine`. New purchasing/stock/production types are not automatically synced by this engine; extending entity mappings, dependency ordering, conflict handling, and transport/server schema must be a bounded implementation task with tests.
+- `src/recipe-store.js` uses the exact unit allowlist `g`, `kg`, `ml`, `l`, and `each`, with no conversion. Phase 3 must reuse this policy rather than invent a parallel unit vocabulary.
+- `src/sync-store.js` separately owns the Phase 1 profile sync database `kitchai-sync` v2, while `src/local-store.js` owns `kitchai-local` v1. Database versions are independent. Do not bump or repurpose those databases unless the existing code owner and migration rationale specifically require it.
+- `package.json` provides `npm test`, `npm run check` (syntax/type/tests/build), `npm run build`, and `npm run check:pages-preview`. Implementation must use the current scripts and add focused tests using repository conventions.
+- The local sync architecture is transport-injected and currently tested without hosted credentials. Phase 3 local/emulated tests must not be described as proof of hosted authorization or real cross-device sync.
+
+**Implementation direction for review, not an approved schema:** prefer extending the consolidated business-data store and existing owner-scoped outbox/sync patterns over creating independent stores or a second sync engine. The exact store/index additions, migration version, remote SQL/API mapping, and transaction boundary must be documented and tested before code is changed.
+
 ## 1. Purpose and boundary
 
 Define the minimum domain rules needed to buy ingredients, record stock, produce food, hold finished products, and account for the final disposition of unsold items. The contract is technology-neutral. Implementation must inspect the actual repository, IndexedDB schema versions, migrations, sync engine, and tests before proposing storage changes.
