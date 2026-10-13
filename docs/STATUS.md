@@ -97,3 +97,11 @@ The Phase 2 entity sync, conflict, and migration/upgrade acceptance scenarios ar
 
 ### Exit decision
 Automated WP2.6 gates pass for the local/emulated milestone, with no known critical data-loss or authorization failure surfaced by these tests. This is not a guarantee beyond tested scenarios. PR #35 is ready for owner review but remains unmerged; Phase 3 remains blocked until the owner reviews the PR and accepts the exit record. No hosted provisioning, billing, production secrets, or deployment is authorized.
+
+
+## 2026-10-13 — Phase 3 WP3.1 contract clarification draft
+
+- Added `§0.1` to [PHASE_3_DOMAIN_CONTRACT.md](./phases/PHASE_3_DOMAIN_CONTRACT.md) with proposed clarifications PC-1–PC-8 based on the repository-grounded review.
+- The proposals cover canonical movement-ledger truth and rebuildable balance projections; separate local and remote atomicity requirements for production posting; movement identity/correction and conflict behavior; explicit finished-lot allocation; populated IndexedDB v2 migration safety; owner/business scope validation and time semantics; and the boundary between cost inputs and official valuation.
+- **Status remains proposed/pending owner review.** This documentation does not authorize implementation. D3-01–D3-11 remain OPEN and unapproved. WP3.1 remains Review required / blocked from implementation until the owner reviews material proposals and the repository-to-code/test mapping is complete.
+- No application code, SQL/schema migration, hosted resource, or production setting was changed. No tests were run for this documentation-only update.
