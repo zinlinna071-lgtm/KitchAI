@@ -16,7 +16,7 @@ Read these first:
 4. `docs/WP_REGISTRY.md`
 5. `docs/STATUS.md`
 6. `docs/PHASE_3_WP3_1_TECHNICAL_GATE_RECONCILIATION.md`
-6. `docs/PHASE_2_DOMAIN_CONTRACT.md` and the Phase 2 plan if present under the repository's actual paths.
+7. `docs/PHASE_2_DOMAIN_CONTRACT.md` and the Phase 2 plan if present under the repository's actual paths.
 
 Then inspect relevant source, migrations, and tests to verify—not assume—the current behavior. At minimum, check:
 - `src/business-data-store.js` and its IndexedDB schema, indexes, upgrade path, migration ledger, and conflict/operation stores.
@@ -46,7 +46,7 @@ Then inspect relevant source, migrations, and tests to verify—not assume—the
 3. Are opening balances, purchase receipts, production consumption/output, sales/disposition, waste, and corrections represented without double-counting?
 4. Does the contract define the atomic boundary for posting production so ingredient consumption and finished output either both apply or neither applies?
 5. Are operation IDs/idempotency, duplicate submissions, reversals, correction links, and retry-after-lost-acknowledgement sufficiently specified?
-6. Are quantity validation, unit compatibility, precision, rounding, and insufficient-stock behavior correctly marked as unresolved where they depend on D3 decisions?
+6. Are quantity validation, unit compatibility, precision, rounding, and insufficient-stock behavior consistent with the selected D3 policy directions, and are the remaining technical details explicitly gated?
 7. Are ownership/business scoping, archival, historical references, and immutable posted movements coherent?
 8. Are carry-over, discounted sale, owner consumption, giveaway, and waste distinct, with no duplicate production or revenue?
 9. Does the design preserve actual ingredient usage/output and variance from recipe estimates?
@@ -85,7 +85,7 @@ Return a review report in your response only, with these sections:
 3. **Critical gaps or contradictions:** rank by severity and explain the failure mode.
 4. **Suggested contract-only clarifications:** precise wording or rule proposals, without editing files.
 5. **Test matrix:** invariant, positive case, negative/edge case, expected result, test layer, dependency/decision.
-6. **Owner decisions still open:** list D3-01–D3-11 and explain which implementation choices each decision gates. Do not answer those decisions on the owner's behalf.
+6. **Owner selections and technical gates:** summarize the selected D3-01–D3-11 policy directions from `docs/DECISIONS.md`, then separately identify technical proposals that still require owner review or a test-backed specification. Do not re-open selected business policy without explaining a concrete contradiction.
 7. **Implementation gate checklist:** what must be true before a separate implementation prompt can be authorized.
 
 Be specific and repository-grounded. If a file or behavior cannot be verified, say so. Do not mark WP3.1 complete merely because the documents exist. Stop after delivering the review report; wait for a separate instruction before changing files or implementing anything.
