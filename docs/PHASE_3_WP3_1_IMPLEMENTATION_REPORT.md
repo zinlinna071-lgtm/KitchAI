@@ -76,3 +76,11 @@ This confirms the current test suite, not full WP3.1 completion. Inventory UI, p
 ## Recipe quantity adapter follow-up
 
 Added `src/recipe-quantity-adapter.js` and `tests/recipe-quantity-adapter.test.mjs`. The adapter refuses unsupported precision/range and common floating-point artifacts rather than silently rounding Phase 2 recipe quantities. Added its syntax check to `npm run check`. Automated verification for this follow-up is pending CI; do not claim these new tests passed until the workflow reports success. The adapter is a guarded boundary only and is not yet connected to production posting.
+
+
+## Adapter verification refresh — 2026-10-13
+
+- CI first exposed a JSDoc/TypeScript error because the adapter's destructured options parameter made the required `unit` appear optional. The adapter signature now requires the options object and unit.
+- Added a guard rejecting legacy JavaScript-number quantities above `Number.MAX_SAFE_INTEGER` and a regression case for `9007199254740992`; unsupported precision continues to fail rather than round.
+- On head `8f4db941e91115fe4ea20b10f4bad3fe6546ef6d`, [Application Shell run 38455305594](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38455305594) completed successfully, including syntax/type/unit-test/build and browser smoke tests. [Local Supabase Vertical Slice run 38455305557](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38455305557) was still running at the time of this update; SQL/pgTAP results for this head are not yet confirmed here.
+- This adapter only guards the future recipe-to-inventory boundary. It does not implement production posting, atomic inventory commands, inventory sync, UI, or integrated conflict preservation. WP3.1 remains partial until current-head checks finish and the complete diff is reviewed.
