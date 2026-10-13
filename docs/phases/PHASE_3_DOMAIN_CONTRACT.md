@@ -57,7 +57,7 @@ The current application files on the PR branch are unchanged from the PR's base 
 - Define effective business date/time, creation timestamp, timezone handling, and ordering of concurrent events before relying on daily summaries or lot selection. Do not infer a business-day boundary from the device's current timezone without an explicit rule.
 
 ### PC-8 — Cost inputs are not valuation (reinforcement)
-- Purchase prices and other approved cost inputs may be retained with their currency and source references. They must not be presented as official inventory valuation, COGS, or profit until D3-01 and the Phase 5 costing/accounting contract are resolved.
+- Purchase prices and other approved cost inputs may be retained with their currency and source references. Under selected D3-01, Phase 3 must not present official inventory valuation, COGS, or profit; those require the separate Phase 5 costing/accounting contract.
 
 **Exit gate for these clarifications:** Record the owner’s decisions or explicitly deferred safe behaviors in `docs/DECISIONS.md`; update this contract and the test matrix accordingly. WP3.1 remains **Review required / blocked from implementation** until that review and the repository-to-code mapping are complete.
 
