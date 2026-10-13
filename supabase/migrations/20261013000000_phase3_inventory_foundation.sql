@@ -49,6 +49,7 @@ create table public.stock_movements (
   constraint stock_movements_production_stock_class check (
     (kind <> 'production_consumption' or stock_class = 'ingredient')
     and (kind <> 'production_output' or stock_class = 'finished')
+    and (kind <> 'sale' or stock_class = 'finished')
   ),
   constraint stock_movements_linked_correction check (
     (kind not in ('correction', 'reversal') or related_event_id is not null)
