@@ -1,9 +1,13 @@
 # Phase 3 Owner Decision Brief — D3-01 to D3-11
 
-**Status: For owner review only. No decisions are approved by this document.**  
-**Scope:** Decision preparation for Phase 3 (Purchasing, Inventory & Production). This brief does not authorize application code, database/schema changes, hosted resources, billing, or deployment. All D3-01–D3-11 remain OPEN until the owner explicitly selects a direction and the decision log is updated.
+**Status: Owner selections recorded on 2026-10-13.**  
+**Scope:** This brief retains the option comparisons for Phase 3 (Purchasing, Inventory & Production). The owner selected the recommended checklist defaults for D3-01–D3-11; see [DECISIONS.md](./DECISIONS.md) for the authoritative decision log. These selections do not authorize application code, database/schema changes, hosted resources, billing, or deployment.
 
 Related documents: [Phase 3 plan](./phases/PHASE_3_PLAN.md), [domain contract](./phases/PHASE_3_DOMAIN_CONTRACT.md), [WP3.1 repository review](./PHASE_3_WP3_1_REPOSITORY_REVIEW.md), [decision log](./DECISIONS.md), [decision-gate matrix](./PHASE_3_DECISION_GATE_MATRIX.md).
+
+## Recorded owner selections
+
+The owner chose the recommended/default options in the decision checklist on 2026-10-13. The authoritative status, rationale, and boundaries for all eleven selections are recorded in [DECISIONS.md](./DECISIONS.md). In short: defer official costing to Phase 5; preserve precision/no silent rounding; block insufficient-stock completion; allow partial receiving; capture actual production use/output; require operator carry-over suitability confirmation; defer all sale capture to Phase 4; distinguish consumption/giveaway/waste; use append-only physical-count corrections; keep suppliers optional and defer tax/shipping allocation; and preserve conflicting stock events for explicit review.
 
 ## Decision summary
 
@@ -27,7 +31,7 @@ Related documents: [Phase 3 plan](./phases/PHASE_3_PLAN.md), [domain contract](.
 - **Option A:** Defer official valuation, COGS, and profit to Phase 5; preserve purchase-cost inputs with currency/source references.
 - **Option B:** Choose a costing method in Phase 3 after comparing weighted average and FIFO, including corrections, returns, and lot behavior.
 - **Suggested:** A. It protects the Phase 3 inventory scope from prematurely presenting financial figures as authoritative.
-- **Owner choice needed:** A or B. If B, select method and define correction/return treatment before implementation.
+- **Recorded owner selection (2026-10-13):** A or B. If B, select method and define correction/return treatment before implementation.
 
 ### D3-02 — Quantity precision
 - **Option A:** Preserve precision, define a documented numeric representation and per-unit validation; reject invalid values and never silently round/convert.
@@ -106,4 +110,4 @@ For each ID, record one of: **Selected**, **Deferred**, or **Rejected**, plus a 
 
 ## Current gate
 
-WP3.1 remains **Review required / blocked from implementation**. The next step is owner selections or explicit deferrals, followed by updating the decision log and reconciling the domain contract/test matrix. No application code or database schema is changed by this brief.
+WP3.1 remains **Review required / blocked from implementation**. Owner selections are recorded in the decision log; the next step is to reconcile the domain contract, repository mapping, and test matrix against those selections and the independent technical gates. No application code or database schema is changed by this brief.
