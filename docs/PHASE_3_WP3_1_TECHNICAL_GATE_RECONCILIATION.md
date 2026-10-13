@@ -2,7 +2,7 @@
 
 **Review date:** 2026-10-13  
 **Mode:** Documentation-only, source-grounded planning  
-**Status:** Candidate technical design; not owner-approved architecture and not implementation authorization  
+**Status:** T3-01–T3-08 owner-selected on 2026-10-13; WP3.1 implementation is bounded by the linked prompt and acceptance gates  
 **Branch:** `docs/phase-3-production-inventory-plan`
 
 Related documents: [Phase 3 plan](./phases/PHASE_3_PLAN.md), [Domain Contract](./phases/PHASE_3_DOMAIN_CONTRACT.md), [Repository Review](./PHASE_3_WP3_1_REPOSITORY_REVIEW.md), [Decision Gate Matrix](./PHASE_3_DECISION_GATE_MATRIX.md), [Technical Decision Brief](./PHASE_3_TECHNICAL_DECISION_BRIEF.md), [Decision Log](./DECISIONS.md).
@@ -30,7 +30,7 @@ This document turns the WP3.1 repository review into a concrete source-to-contra
 
 The source inspection above is a static repository review. No test command was executed for this reconciliation, and no application files were edited. Prior Phase 2 test results are historical evidence for Phase 2 behavior only; they are not Phase 3 test evidence.
 
-## 3. Recommended technical candidate — requires owner review before implementation
+## 3. Owner-selected technical baseline — implementation must verify compatibility
 
 These recommendations are a coherent candidate for the owner to accept or amend. They are not silently approved by the business-policy selections D3-01–D3-11.
 
@@ -178,3 +178,8 @@ The implementation AI must first discover the exact current paths and convention
 ## 8. Change and evidence boundary
 
 This document adds no application code, UI, IndexedDB schema, SQL, test files, hosted configuration, or production resources. No tests were executed as part of this review. Historical Phase 2 CI evidence remains Phase 2 evidence only.
+
+
+## 7. Owner acceptance and execution boundary
+
+The owner accepted T3-01–T3-08 on 2026-10-13. The selected contract is recorded in [DECISIONS.md](./DECISIONS.md) and [PHASE_3_DOMAIN_CONTRACT.md](./phases/PHASE_3_DOMAIN_CONTRACT.md). The next bounded step is [CODING_AI_PHASE3_WP3_1_IMPLEMENTATION_PROMPT.md](./CODING_AI_PHASE3_WP3_1_IMPLEMENTATION_PROMPT.md). If the current repository or existing Phase 2 values cannot satisfy a selected direction without data loss or a material behavior change, the Coding AI must stop, document the incompatibility and options, and request owner review. No hosted provisioning, billing, production secrets, or deployment is authorized.
