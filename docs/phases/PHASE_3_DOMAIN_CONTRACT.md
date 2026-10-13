@@ -1,6 +1,6 @@
 # Phase 3 Domain Contract — Purchasing, Inventory & Production
 
-**Status:** Proposed logical contract for owner review; not an application schema or implementation authorization.  
+**Status:** Logical contract reconciled with owner-selected D3-01–D3-11 and T3-01–T3-08 directions; implementation still requires bounded WP3.1 review and passing tests. This is not authorization for hosted provisioning or production deployment.  
 **Parent plan:** [PHASE_3_PLAN.md](./PHASE_3_PLAN.md)  
 **Compatibility:** Preserve Phase 1 owner partitioning, local-first persistence, outbox/idempotency, explicit conflict review, and Phase 2 ingredient/menu/recipe behavior.
 
@@ -18,50 +18,51 @@ The current application files on the PR branch are unchanged from the PR's base 
 
 **Implementation direction for review, not an approved schema:** prefer extending the consolidated business-data store and existing owner-scoped outbox/sync patterns over creating independent stores or a second sync engine. The exact store/index additions, migration version, remote SQL/API mapping, and transaction boundary must be documented and tested before code is changed.
 
-## 0.1 Proposed technical clarifications from the WP3.1 repository review — PENDING RECONCILIATION
+## 0.1 Owner-selected technical contract — 2026-10-13
 
-The source-to-contract mapping, candidate technical designs, test matrix, and implementation gate checklist are consolidated in [PHASE_3_WP3_1_TECHNICAL_GATE_RECONCILIATION.md](../PHASE_3_WP3_1_TECHNICAL_GATE_RECONCILIATION.md). That document is a planning artifact and does not itself approve the proposals.
+The owner accepted T3-01–T3-08 in [DECISIONS.md](../DECISIONS.md). The technical baseline below is selected for WP3.1 implementation planning. It remains subject to repository compatibility checks and tests; any material deviation must stop for owner review. See the [Technical Gate Reconciliation](../PHASE_3_WP3_1_TECHNICAL_GATE_RECONCILIATION.md) for source mapping and the [WP3.1 implementation prompt](../CODING_AI_PHASE3_WP3_1_IMPLEMENTATION_PROMPT.md) for bounded execution instructions.
 
-**Decision status:** The owner selected the recommended policy directions for D3-01–D3-11 on 2026-10-13; see `docs/DECISIONS.md`. The technical proposals in this section are still proposals that must be reconciled with the selected policies, source code, migration behavior, and test plan. They are not automatically approved architecture. They do not authorize runtime code, schema, migration, SQL, hosted resources, or production changes.
+### PC-1 — Canonical stock truth
+- The append-only stock-movement ledger is the canonical explanation of stock changes. On-hand balances are derived/rebuildable projections, not a competing source of truth.
+- Define opening-stock events, event ordering, linked reversals/corrections, and a visible reconciliation failure state. Do not erase or rewrite posted history.
 
-### PC-1 — Canonical stock truth and balance projections (proposed)
-- **Proposal:** Treat the append-only stock-movement ledger as the canonical explanation of stock changes. Any current on-hand balance is a derived projection/cache that can be rebuilt from valid posted movements and reconciled against the ledger.
-- **Why:** Prevent a cached quantity and movement history from becoming competing sources of truth.
-- **Gate:** Owner/architecture review must accept or replace this proposal before schema design. Define how opening balances, reversals, corrections, and legacy/migrated records enter the ledger.
+### PC-2 — Atomic production posting
+- Local completion must commit the production batch, ingredient-consumption movements, finished-lot/output movement, lot allocations, and durable outbox operation(s) together in one IndexedDB transaction, or commit none.
+- Remote application of the same business action must use one trusted server-side transaction/RPC or equivalent atomic aggregate command. Ordered independent upserts are not atomic posting.
+- The stable aggregate operation ID must make retries idempotent, including lost acknowledgements. Insufficient stock, scope violations, or any validation error must leave the aggregate unapplied.
 
-### PC-2 — Production posting atomicity at each boundary (required invariant; implementation design pending)
-- **Local boundary:** A single production-completion command must commit its completed batch state, ingredient-consumption movements, finished-output movement/lot, and durable outbox operation(s) together in one IndexedDB transaction, or commit none of them. A partially written local batch must be recoverable and must not appear completed.
-- **Remote boundary:** If those records sync as one business action, the server must apply the aggregate idempotently in one server-side transaction/RPC or equivalent atomic command. Dependency ordering across separate upserts alone is not remote atomicity.
-- **Gate:** The exact aggregate payload, RPC/API boundary, retries, acknowledgements, and rollback/recovery semantics must be designed and tested before production sync implementation. This proposal does not authorize a hosted migration.
+### PC-3 — Movement representation and correction
+- A posted movement has a defined kind/direction and a strictly positive exact quantity in an allowed unit. Reject zero, negative, malformed, overflow, and incompatible-unit values.
+- Corrections/reversals are new stable-ID events linked to the original event where applicable. Never edit/delete posted movements to conceal history.
+- Preserve the existing unit allowlist `g`, `kg`, `ml`, `l`, `each`; do not introduce conversions.
 
-### PC-3 — Movement quantity and correction representation (unresolved)
-- Choose one consistent representation: signed quantity, or explicit direction plus positive quantity. Reject zero-effect posted movements; retain the established unit allowlist and do not introduce conversions.
-- Corrections/reversals must be new, stable-ID, auditable events linked to the original event where applicable; never edit or delete a posted movement to conceal history.
-- Precision, rounding, fractional `each`, and safe comparison rules remain D3-02 and are not decided by this clarification.
+### PC-4 — Finished-lot allocation
+- Every finished-stock reduction identifies its lot or explicit lot allocations. Every allocation is positive and compatible; allocation quantities must sum exactly to the disposition quantity.
+- Do not silently select FIFO/oldest lot. Carry-over references the same lot and creates no new stock or production event.
+- Carry-over requires operator confirmation of suitability. The app must not infer food safety from age/timestamps; any expiry rule requires a separately reviewed policy.
 
-### PC-4 — Finished-lot allocation for disposition (policy pending)
-- Every disposition that reduces finished stock must identify the finished lot(s) it consumes. If a disposition spans multiple lots, explicit allocations must sum exactly to the disposition quantity; each allocation must be positive and in a compatible unit.
-- Until an allocation policy is reviewed, the UI/command must require explicit lot selection rather than silently infer a lot from age, FIFO, or safety.
-- Carry-over records reference the existing lot and do not create stock or a duplicate production event. Age alone must never produce a food-safety determination; operator confirmation and separately reviewed business rules remain necessary.
+### PC-5 — Exact quantity arithmetic
+- Domain/API quantity values use exact decimal strings; internal calculations use exact scaled-integer arithmetic with six fractional decimal places. Reject more than six fractional places; never silently round. Proposed remote numeric storage is PostgreSQL `numeric(24,6)`.
+- Fractional `each` is allowed for ingredient quantities; finished-product stock measured in `each` must be whole-number.
+- Before migration, verify compatibility with existing Phase 2 recipe-line values and all relevant validation paths. Test bounds, overflow, arithmetic, exact allocation sums, and round-trip persistence. Do not silently reinterpret or round legacy recipe data.
 
-### PC-5 — Versioned IndexedDB migration safety (required gate)
-- Before adding Phase 3 stores/indexes or changing records, map each proposed change to the existing `kitchai-business-data` schema version 2 and its existing stores, outbox, sync metadata, conflicts, metadata, and migration ledger.
-- Use a versioned upgrade path with tests seeded from a populated v2 database, including existing entities, queued operations, sync acknowledgements/metadata, conflict snapshots, migration-ledger entries, and representative legacy-source data.
-- Upgrade failure must not silently delete or overwrite source data. Verify upgrade, rollback/failure behavior where supported, and idempotent restart. Do not create a second inventory database or bump unrelated databases by default.
+### PC-6 — UTC timestamps and deferred business-day rules
+- `createdAt`/`recordedAt` and `effectiveAt` use ISO 8601 UTC timestamps.
+- Authoritative business-day/timezone summaries and automatic expiry rules are deferred until a business timezone/rule is explicitly reviewed. Display formatting must not change stored instants.
 
-### PC-6 — Event identity, retries, and conflicts (required invariant)
-- Replaying the same stable operation/event ID is a retry and must not apply a movement twice. A different event ID representing a competing quantity change is not a retry and must not be merged silently.
-- Preserve base/local/remote or equivalent conflicting event snapshots for explicit review. Any resolution must be a new auditable action with clear effect on the ledger and outbox.
-- Dependency ordering is useful for delivery but is not a substitute for aggregate atomicity, idempotency, or conflict handling.
+### PC-7 — Additive migration and event identity
+- Extend the existing `kitchai-business-data` database through a versioned additive v2→v3 upgrade; do not create a parallel inventory database or bump unrelated Phase 1 databases.
+- Preserve every v2 store, record, index, operation/outbox entry, sync metadata, conflict snapshot, metadata record, migration-ledger entry, and legacy source record.
+- Test from a populated v2 fixture, including success, upgrade failure, reopen/restart, and idempotent retry. Migration failure must not silently delete/overwrite source data.
+- Same stable event/operation ID means retry and applies once. Distinct IDs are distinct events; competing stock changes must remain durably preserved for explicit review and never be silently auto-merged.
 
-### PC-7 — Scope and time semantics (implementation gate)
-- Validate every referenced ingredient, menu item, supplier, purchase, production batch, finished lot, movement, disposition, and count against the same owner/business scope before committing locally and again at the server authorization boundary.
-- Define effective business date/time, creation timestamp, timezone handling, and ordering of concurrent events before relying on daily summaries or lot selection. Do not infer a business-day boundary from the device's current timezone without an explicit rule.
+### PC-8 — Scope, remote trust, and costing boundary
+- Validate every referenced record against the same owner/business scope locally and again at the trusted server boundary. The server derives owner scope from authenticated identity; never trust a client-supplied owner ID as authority.
+- Remote aggregate commands enforce stock preconditions and idempotency in one transaction. Local/emulated test results do not prove hosted authorization or real cross-device behavior.
+- Preserve traceable purchase-cost inputs, but Phase 3 must not present official inventory valuation, COGS, or profit; those remain Phase 5.
+- No hosted provisioning, billing activation, production secrets, or deployment is authorized by these directions.
 
-### PC-8 — Cost inputs are not valuation (reinforcement)
-- Purchase prices and other approved cost inputs may be retained with their currency and source references. Under selected D3-01, Phase 3 must not present official inventory valuation, COGS, or profit; those require the separate Phase 5 costing/accounting contract.
-
-**Exit gate for these clarifications:** Record the owner’s decisions or explicitly deferred safe behaviors in `docs/DECISIONS.md`; update this contract and the test matrix accordingly. WP3.1 remains **Review required / blocked from implementation** until that review and the repository-to-code mapping are complete.
+**WP3.1 exit gate:** implement only after mapping the selected contract to current source/schema/tests. Required evidence includes populated-v2 migration preservation; exact-quantity boundary tests; local aggregate atomicity; remote aggregate transaction/idempotency and owner-isolation tests; conflict preservation; and full repository checks. Do not proceed to WP3.2–WP3.7 in the same implementation task.
 
 ## 1. Purpose and boundary
 
