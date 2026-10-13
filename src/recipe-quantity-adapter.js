@@ -14,7 +14,7 @@ import { normalizeQuantity } from "./inventory-domain.js";
  * @param {{unit:string,stockClass?:"ingredient"|"finished"}} options
  * @returns {{quantity:string,unit:string,scaled:bigint}}
  */
-export function recipeQuantityToInventoryQuantity(value, { unit, stockClass = "ingredient" } = {}) {
+export function recipeQuantityToInventoryQuantity(value, { unit, stockClass = "ingredient" }) {
   if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) {
     throw new TypeError("Recipe quantity must be a finite positive number.");
   }
