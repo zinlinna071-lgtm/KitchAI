@@ -149,7 +149,7 @@ A physical count captures observed quantity at a time and the relevant item/batc
 
 ## 6. Cost data vs costing/accounting
 
-Record purchase price/cost inputs and references accurately, including currency and actual received quantity where available. Do not claim that a complete inventory valuation, cost of goods sold, profit, tax, or accounting ledger exists in Phase 3. The costing method (FIFO vs weighted average, treatment of yield variance and waste, and allocation of packaging/energy/labor) requires a separate reviewed decision before financial reporting relies on it. D3-01 remains open; Phase 5 owns full financial reporting.
+Record purchase price/cost inputs and references accurately, including currency and actual received quantity where available. Do not claim that a complete inventory valuation, cost of goods sold, profit, tax, or accounting ledger exists in Phase 3. Under the selected D3-01 direction, official inventory valuation, COGS, and profit are deferred to Phase 5; costing method, yield-variance/waste treatment, and packaging/energy/labor allocation must be reviewed there before financial reporting relies on them.
 
 ## 7. Offline, sync, and recovery
 
