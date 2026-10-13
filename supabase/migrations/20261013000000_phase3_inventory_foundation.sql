@@ -94,7 +94,7 @@ create or replace function public.validate_finished_lot_output()
 returns trigger
 language plpgsql
 set search_path = ''
-as $
+as $$
 declare
   output public.stock_movements%rowtype;
 begin
@@ -121,7 +121,7 @@ begin
   end if;
   return new;
 end;
-$;
+$$;
 revoke all on function public.validate_finished_lot_output() from public, anon, authenticated;
 create trigger finished_lots_validate_output
 before insert or update or delete on public.finished_lots
