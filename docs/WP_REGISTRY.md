@@ -166,6 +166,7 @@ Plan: [docs/phases/PHASE_3_PLAN.md](./phases/PHASE_3_PLAN.md); logical contract:
 - **Current artifact:** [PHASE_3_DOMAIN_CONTRACT.md](./phases/PHASE_3_DOMAIN_CONTRACT.md), including a repository-grounded baseline of the current consolidated Phase 2 store and sync engine.
 - **Clarification gate:** Contract §0.1 records proposed PC-1–PC-8 (ledger source of truth, local/remote atomicity, movement/correction semantics, lot allocation, v2 migration, event identity/conflicts, scope/time semantics, and cost-input boundaries). These are pending owner review, not approved decisions; D3-01–D3-11 remain OPEN. See [repository review report](./PHASE_3_WP3_1_REPOSITORY_REVIEW.md).
 - **Recommendation artifact:** [PHASE_3_PLAN.md](./phases/PHASE_3_PLAN.md) §6.1 lists proposed safe defaults for D3-01–D3-11; these are not approvals.
+- **Decision gate matrix:** [PHASE_3_DECISION_GATE_MATRIX.md](./PHASE_3_DECISION_GATE_MATRIX.md) maps each D3 decision to impacted WPs, acceptance/test evidence, and safe deferral boundaries; it does not resolve any owner decision.
 - **Done when:** actual repository mapping and migration/test approach are documented, material decisions are resolved or explicitly deferred in the decision log, and owner review is recorded before runtime implementation.
 
 ### WP3.2 — Suppliers, Purchasing & Receiving
