@@ -71,3 +71,8 @@ All five CI workflows passed on code commit `ae07e57827601e6929f1a28abdda9a40f1f
 - [Local Supabase Vertical Slice](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38434122993): database suites passed and all 8 Playwright browser integration tests passed.
 
 This confirms the current test suite, not full WP3.1 completion. Inventory UI, production posting workflow, inventory sync, trusted remote idempotency RPC, and integrated inventory conflict preservation are still not implemented. PR #38 remains Draft/unmerged.
+
+
+## Recipe quantity adapter follow-up
+
+Added `src/recipe-quantity-adapter.js` and `tests/recipe-quantity-adapter.test.mjs`. The adapter refuses unsupported precision/range and common floating-point artifacts rather than silently rounding Phase 2 recipe quantities. Added its syntax check to `npm run check`. Automated verification for this follow-up is pending CI; do not claim these new tests passed until the workflow reports success. The adapter is a guarded boundary only and is not yet connected to production posting.
