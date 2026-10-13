@@ -8,6 +8,8 @@
 
 **WP3.1 review handoff:** [CODING_AI_PHASE3_WP3_1_REVIEW_PROMPT.md](../CODING_AI_PHASE3_WP3_1_REVIEW_PROMPT.md) is a read-only repository/domain-contract review prompt. It does not authorize implementation and requires the Coding AI to stop after reporting findings.
 
+**Repository review findings:** [PHASE_3_WP3_1_REPOSITORY_REVIEW.md](../PHASE_3_WP3_1_REPOSITORY_REVIEW.md) records a source-grounded read-only review. Verdict: contract clarifications are required before a runtime implementation prompt; no tests were run and WP3.1 is not complete.
+
 ## 1. Goal
 
 Build an auditable inventory workflow for a small food business that buys ingredients, produces food either after a customer request or ahead in batches, sells finished items over time, and handles leftovers according to whether they remain safe and suitable to keep.
