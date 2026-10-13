@@ -91,6 +91,10 @@ export function validateStockMovement(input) {
   const quantity = normalizeQuantity(input.quantity, { unit: input.unit, stockClass: input.stockClass });
   if (input.kind === "production_consumption" && input.stockClass !== "ingredient") throw new TypeError("Production consumption must reference ingredient stock.");
   if (input.kind === "production_output" && input.stockClass !== "finished") throw new TypeError("Production output must reference finished stock.");
+  const reason = input.reason == null ? undefined : requireText(input.reason, "Reason");
+  if (["waste", "count_adjustment", "correction"].includes(input.kind) && !reason) {
+    throw new TypeError("Waste, count adjustments, and corrections require a reason.");
+  }
   return Object.freeze({
     ownerId, businessId, eventId, stockItemId, stockClass: input.stockClass,
     kind: input.kind, direction: input.direction, quantity: quantity.quantity, unit: quantity.unit,
@@ -99,7 +103,7 @@ export function validateStockMovement(input) {
     recordedAt: requireUtcInstant(input.recordedAt, "recordedAt"),
     effectiveAt: requireUtcInstant(input.effectiveAt, "effectiveAt"),
     ...(input.relatedEventId ? { relatedEventId: requireText(input.relatedEventId, "Related event ID") } : {}),
-    ...(input.reason ? { reason: requireText(input.reason, "Reason") } : {}),
+    ...(reason ? { reason } : {}),
   });
 }
 
