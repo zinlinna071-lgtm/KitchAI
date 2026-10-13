@@ -184,8 +184,8 @@ Plan: [docs/phases/PHASE_3_PLAN.md](./phases/PHASE_3_PLAN.md); logical contract:
 ### WP3.4 — Finished Goods, Leftovers & Disposition
 - **Status:** Proposed; owner review required
 - **Dependencies:** WP3.1, WP3.3
-- **Scope:** finished stock; carry-over when confirmed safe; discounted-sale quantity/actual price at a limited inventory-disposition boundary; owner consumption, giveaway, and waste/spoilage.
-- **Done when:** each disposition is distinct, reduces stock once, and applies correct revenue/loss treatment. Full sales/order/payment lifecycle remains Phase 4.
+- **Scope:** finished stock; carry-over after operator suitability confirmation; owner consumption, giveaway, waste/spoilage, and auditable corrections. All sale/discount capture is deferred to Phase 4 under selected D3-07.
+- **Done when:** each non-sale disposition is distinct and reduces stock once; carry-over does not create stock; no sale/revenue capture occurs in Phase 3. Full sales/order/payment lifecycle remains Phase 4.
 
 ### WP3.5 — Stock History, Physical Counts & Corrections
 - **Status:** Proposed; owner review required
