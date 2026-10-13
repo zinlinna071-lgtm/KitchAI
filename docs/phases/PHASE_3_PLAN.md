@@ -98,7 +98,7 @@ Run database, unit, browser, accessibility/regression, migration, and production
 | ID | Selected owner policy direction | Remaining technical boundary | Status |
 |---|---|---|---|
 | D3-01 | Defer official valuation/COGS/profit to Phase 5; preserve traceable purchase-cost inputs | Costing method and allocation rules belong to Phase 5 | Selected |
-| D3-02 | Preserve precision; reject invalid quantities; no silent rounding/conversion | Numeric representation, limits, and fractional `each` need a testable proposal | Selected — technical gate |
+| D3-02 | Preserve precision; reject invalid quantities; no silent rounding/conversion | Exact decimal-string/scaled-integer representation at six fractional places is selected under T3-05; fractional ingredient `each` is allowed and finished-stock `each` must be integral | Selected — technical gate |
 | D3-03 | Block production completion on insufficient stock; no negative stock/override in first release | Local and remote checks must be atomic and concurrency-safe | Selected |
 | D3-04 | Allow partial receipts; only actual received quantities affect stock | Cancellation of unreceived remainder must preserve earlier receipts | Selected |
 | D3-05 | Record actual use/output and compare with recipe baseline | Unknown quantities must be labeled estimated/theoretical | Selected |
