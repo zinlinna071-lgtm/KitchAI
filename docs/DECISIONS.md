@@ -38,27 +38,27 @@ The owner instructed the team to proceed with the recommended defaults on 2026-1
 
 Before provider-specific authorization/security tests against a hosted project, the owner must explicitly approve the test environment and any cost/billing boundary. Until then, use local/emulator-only tests and do not provision hosted infrastructure. Required evidence: (1) provider/plan/region and cost approval or a no-billing local emulator boundary; (2) isolated non-production environment with synthetic data and secret handling; (3) reviewed schema and server-side ownership policies, including privileged server SDK paths; (4) separate test owners/business scopes and documented unauthenticated, allowed-owner, cross-owner read/write, and delete-denial cases; (5) reproducible test instructions and reviewable results. The fake-owner spike test is simulation only, not provider authorization evidence.
 
-Owner decision aid: [PHASE_3_OWNER_DECISION_BRIEF.md](./PHASE_3_OWNER_DECISION_BRIEF.md) compares options and suggested defaults for D3-01–D3-11. The [Phase 3 decision-gate matrix](./PHASE_3_DECISION_GATE_MATRIX.md) maps each decision to affected WPs, acceptance evidence, and safe deferral boundaries. Both are guidance only; every decision remains OPEN until explicitly selected or deferred by the owner.
+## Phase 3 owner selections — 2026-10-13
 
-## Proposed Phase 3 decisions — all OPEN
+The owner explicitly instructed us to use the recommended/default choices presented in the decision checklist. The following directions are therefore recorded as **Selected**. This resolves the business-policy direction only; it does not authorize implementation by itself. Cross-cutting technical gates in the repository review remain mandatory.
 
-The candidate decisions below are recorded for owner review only. Suggestions are not approvals; do not implement assumptions for unresolved material decisions.
-
-| ID | Decision needed | Suggested direction for review | Status |
+| ID | Owner-selected direction | Rationale / boundary | Status |
 |---|---|---|---|
-| D3-01 | Inventory costing method | Recommended discussion default: defer official valuation/COGS/profit to Phase 5; preserve traceable cost inputs. If Phase 3 valuation is required, compare methods first | OPEN |
-| D3-02 | Quantity precision and rounding | Preserve precision under a documented numeric representation; reject invalid quantities; never silently round/convert. Exact limits remain open | OPEN |
-| D3-03 | Insufficient stock during production | Recommended first-release default: block completion; no negative stock/override unless explicitly selected | OPEN |
-| D3-04 | Partial receiving/cancellation | Recommended: allow partial receipts; only received quantities affect stock; keep unreceived remainder explicit | OPEN |
-| D3-05 | Recipe theoretical use vs actual consumption | Record actual usage and variance | OPEN |
-| D3-06 | Carry-over/shelf-life suitability | Operator confirms suitability under reviewed rules; app must not assume food is safe from age alone | OPEN |
-| D3-07 | Discounted-sale capture in Phase 3 | Choose between minimal stock disposition with actual amount received or deferring all sale capture to Phase 4; full order/payment remains Phase 4 | OPEN |
-| D3-08 | Owner consumption, giveaway, and waste | Recommended: separate types; require reason for waste and stock corrections; decide whether other reasons are mandatory | OPEN |
-| D3-09 | Physical count corrections | Recommended: expected/count/variance, reason, explicit confirmation, and append-only linked correction | OPEN |
-| D3-10 | Supplier fields and purchase costs | Recommended: supplier optional; capture received qty/unit, unit price/currency, receipt timestamp; tax/shipping treatment remains open | OPEN |
-| D3-11 | Stock-movement sync conflicts | Recommended: same event ID is idempotent retry; preserve distinct conflicting events for explicit review; never auto-merge quantities | OPEN |
+| D3-01 | Defer official inventory valuation, COGS, and profit to Phase 5; retain traceable purchase-cost inputs in Phase 3. | Avoid presenting incomplete costing as authoritative financial reporting. | Selected |
+| D3-02 | Preserve quantity precision in a documented safe representation; reject invalid quantities; never silently round or convert. | Exact numeric type/ranges, per-unit precision, and fractional `each` behavior still require a tested technical proposal before implementation. | Selected — technical limits gated |
+| D3-03 | Block production completion when ingredient stock is insufficient; do not permit negative stock or override in the first release. | Correct stock or record a receipt/count correction before completing production. | Selected |
+| D3-04 | Allow partial receiving; only actually received quantities affect stock; keep the unreceived remainder explicit until received or cancelled. | A cancellation of the remainder must not reverse quantities already received. | Selected |
+| D3-05 | Record actual ingredient use and actual output, and compare them with the recipe baseline. | Unknown quantities must be labeled estimated/theoretical; never represent them as measured actuals. | Selected |
+| D3-06 | Require operator confirmation that a finished lot is suitable for carry-over; do not infer food safety from age alone. | Configurable expiry warnings/rules remain a separately reviewed enhancement. | Selected |
+| D3-07 | Defer all sale capture, including discounted sales, to Phase 4. | Phase 3 tracks non-sale stock dispositions only; it must not create a temporary sales ledger or infer revenue. | Selected |
+| D3-08 | Keep owner consumption, giveaway, waste/spoilage, and corrections as distinct categories; require reasons for waste and stock corrections. | Owner consumption and giveaway are not sales revenue. | Selected |
+| D3-09 | Physical counts show expected/count/variance, require reason and explicit confirmation, and post an append-only linked correction event. | Never overwrite posted stock balances or rewrite historical movements. | Selected |
+| D3-10 | Keep supplier optional; capture actual received quantity/unit, unit price/currency, and receipt timestamp; defer tax/shipping allocation. | Do not claim landed cost or official valuation when those inputs are absent. | Selected |
+| D3-11 | Use stable event IDs; retries of the same ID are idempotent; preserve distinct conflicting events for explicit review and never auto-merge stock changes. | Exact conflict-resolution UI and remote atomic command remain technical gates. | Selected |
 
-Full scope and acceptance criteria: [PHASE_3_PLAN.md](./phases/PHASE_3_PLAN.md). These are planning proposals and do not authorize implementation, hosted resources, billing, secrets, or deployment.
+**Still blocked independently of these selections:** canonical stock source-of-truth, movement direction/sign and reversal semantics, atomic local and remote production posting, explicit lot allocation, populated-v2 migration safety, owner/business-scope enforcement, timestamp/timezone semantics, and repository-to-code/test mapping must be reconciled before a WP3.1 implementation prompt. No hosted provisioning, billing, secrets, deployment, or application code is authorized by these selections alone.
+
+Full scope and acceptance criteria: [PHASE_3_PLAN.md](./phases/PHASE_3_PLAN.md).
 
 ## Decision process
 
