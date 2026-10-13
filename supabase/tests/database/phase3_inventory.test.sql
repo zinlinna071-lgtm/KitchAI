@@ -167,7 +167,7 @@ select throws_ok(
 
 set local role authenticated;
 set local "request.jwt.claim.sub" = '31111111-1111-4111-8111-111111111111';
-select is((select count(*)::integer from public.stock_movements),2,'owner can read their own stock movements');
+select is((select count(*)::integer from public.stock_movements),3,'owner can read their own stock movements, including the allocation-mismatch fixture');
 set local "request.jwt.claim.sub" = '32222222-2222-4222-8222-222222222222';
 select is((select count(*)::integer from public.stock_movements),0,'another owner cannot read the first owner stock movement');
 reset role;
