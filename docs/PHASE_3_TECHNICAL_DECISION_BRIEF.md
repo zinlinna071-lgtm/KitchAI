@@ -1,16 +1,16 @@
 # Phase 3 Technical Decision Brief — WP3.1 Gates
 
 **Date:** 2026-10-13  
-**Status:** For owner review; recommendations are not yet approved  
+**Status:** Owner accepted T3-01–T3-08 on 2026-10-13; implementation remains bounded by WP3.1 review and test gates  
 **Purpose:** Resolve the independent technical gates that remain after D3-01–D3-11 business-policy selections were recorded.
 
 Related: [Decision Log](./DECISIONS.md), [Technical Gate Reconciliation](./PHASE_3_WP3_1_TECHNICAL_GATE_RECONCILIATION.md), [Domain Contract](./phases/PHASE_3_DOMAIN_CONTRACT.md), [Phase 3 Plan](./phases/PHASE_3_PLAN.md).
 
 ## What this brief does not do
 
-This is not a schema, code, or deployment approval. No application code, IndexedDB migration, SQL migration, hosted resource, billing, secret, or production change is authorized by the recommendations below. The owner may accept the whole recommended baseline, amend individual items, or defer an item with a safe boundary.
+This is not a schema, code, or deployment approval. No application code, IndexedDB migration, SQL migration, hosted resource, billing, secret, or production change is authorized by the recommendations below. The owner accepted the recommended baseline on 2026-10-13. If implementation discovers a material incompatibility or requires changing one of these directions, stop and record the issue for owner review before changing the contract.
 
-## Recommended baseline for owner review
+## Owner-selected baseline
 
 | ID | Recommended technical direction | Why this is recommended | Safe boundary / required evidence |
 |---|---|---|---|
@@ -46,3 +46,8 @@ The owner can reply in one message using any of these forms:
 - **Defer:** identify the T3 item and the safe behavior that must remain disabled or restricted.
 
 If accepted, the next step is to reconcile the selected technical directions into the domain contract, decision log, WP acceptance criteria, and test matrix. Only after that reconciliation should a separate bounded WP3.1 implementation prompt be prepared. Acceptance of this brief alone does not authorize implementation or PR merge.
+
+
+## Owner decision recorded
+
+**Accepted:** T3-01 through T3-08, as written in this brief, on 2026-10-13. The selected directions are reconciled into [DECISIONS.md](./DECISIONS.md) and [PHASE_3_DOMAIN_CONTRACT.md](./phases/PHASE_3_DOMAIN_CONTRACT.md). WP3.1 may proceed only through the bounded prompt after inspecting the current repository and preserving the required test gates. This does not authorize hosted provisioning, billing, production secrets, production deployment, or Phase 3 work packages beyond WP3.1.
