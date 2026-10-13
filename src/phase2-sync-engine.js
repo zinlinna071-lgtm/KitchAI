@@ -13,6 +13,12 @@ const REMOTE_TYPE_BY_LOCAL = {
   recipe: "recipe",
   recipeLine: "recipe_line",
 };
+const LOCAL_STORE_BY_TYPE = {
+  ingredient: "ingredients",
+  menuItem: "menuItems",
+  recipe: "recipes",
+  recipeLine: "recipeLines",
+};
 
 /** @param {number} attemptCount @param {{baseDelayMs?:number,maxDelayMs?:number,random?:()=>number}=} options */
 export function phase2RetryDelayMs(attemptCount, options = {}) {
@@ -232,7 +238,9 @@ export function createPhase2SyncStore() {
       if (!normalized || normalized.id !== operation.recordId || normalized.ownerId !== operation.ownerId) {
         throw new Error("Remote acknowledgement does not match the queued entity scope.");
       }
-      const stores = ["operations", "syncMetadata", table];
+      const localStore = LOCAL_STORE_BY_TYPE[entityType];
+      if (!localStore) throw new TypeError("Unsupported Phase 2 local entity store.");
+      const stores = ["operations", "syncMetadata", localStore];
       if (operation.resolvesConflictId) stores.push("conflicts");
       await transaction(stores, "readwrite", tx => {
         tx.objectStore("syncMetadata").put({
@@ -254,7 +262,7 @@ export function createPhase2SyncStore() {
             }
           };
         }
-        const recordStore = tx.objectStore(table === "menu_items" ? "menuItems" : table === "recipe_lines" ? "recipeLines" : table);
+        const recordStore = tx.objectStore(localStore);
         const key = [operation.ownerId, operation.businessId, operation.recordId];
         const request = recordStore.get(key);
         request.onsuccess = () => {

@@ -207,7 +207,7 @@ async function refreshMenuView() {
       item.append(copy, actions);
       menuItemList.append(item);
     }
-    if (!editingMenuItemId) setMenuItemState("Saved on this device only · menu item cloud sync is not implemented yet.");
+    if (!editingMenuItemId) setMenuItemState(activeSession?.user?.id ? "Menu items loaded. Account sync status is shown above." : "Saved on this device only. Sign in to sync menu items.");
   } catch (error) {
     menuListState.textContent = "Menu could not be loaded.";
     setMenuItemState(error instanceof Error ? "Local menu storage is unavailable: " + error.message : "Local menu storage is unavailable.", true);
@@ -453,7 +453,7 @@ async function refreshRecipeView() {
       recipeList.append(item);
     }
     await refreshRecipeLines(scope, recipes, ingredients);
-    if (!editingRecipeId) setRecipeState("Local-only recipe storage · cloud sync is not implemented yet.");
+    if (!editingRecipeId) setRecipeState(activeSession?.user?.id ? "Recipes loaded. Account sync status is shown above." : "Saved on this device only. Sign in to sync recipes.");
   } catch (error) {
     recipeListState.textContent = "Recipes could not be loaded.";
     setRecipeState(error instanceof Error ? error.message : "Recipe storage is unavailable.", true);
@@ -567,7 +567,7 @@ async function refreshIngredientView() {
       item.append(copy, actions);
       ingredientList.append(item);
     }
-    if (!editingIngredientId) setIngredientState("Saved on this device only · ingredient cloud sync is not implemented yet.");
+    if (!editingIngredientId) setIngredientState(activeSession?.user?.id ? "Ingredients loaded. Account sync status is shown above." : "Saved on this device only. Sign in to sync ingredients.");
   } catch (error) {
     ingredientListState.textContent = "Ingredient catalog could not be loaded.";
     setIngredientState(error instanceof Error ? "Local ingredient storage is unavailable: " + error.message : "Local ingredient storage is unavailable.", true);
