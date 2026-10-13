@@ -2,7 +2,7 @@
 
 **Branch:** `feat/wp3-1-inventory-domain-model`
 **Base:** `main` at `d008ea10f69cf3ff91f316dc5508f898ccec7bf3`
-**Status:** Initial source-to-change plan; implementation and tests not yet completed.
+**Status:** Implementation in progress; domain foundation and v2→v3 migration are implemented on the feature branch. WP3.1 remains incomplete until final-head CI evidence and full review are recorded.
 
 ## Source-to-change map
 
@@ -25,10 +25,10 @@
 - Carry-over requires operator confirmation and is not itself a stock movement. Regular/discounted sales are represented as sales records plus a `sale` stock outflow; this inventory ledger does not itself calculate or recognize revenue.
 - No hosted provisioning, production deployment, secret changes, or PR merge.
 
-## Gate before data migration
+## Phase 2 recipe-quantity compatibility review
 
-Phase 2 recipe lines currently use JavaScript numbers. Before any conversion or validation change, inspect all current data shapes and fixtures and prove that valid values can be represented exactly without rounding or semantic reinterpretation. If that cannot be proven, stop and report the incompatibility rather than converting existing rows silently.
+Review confirmed that `src/recipe-store.js` validates and stores recipe-line quantities as JavaScript numbers, while the existing Phase 2 SQL column is PostgreSQL `numeric`. The v2→v3 IndexedDB upgrade preserves existing recipe-line records and their numeric quantity values without rewriting them. WP3.1 does not convert recipe lines into the inventory domain's six-decimal string representation and does not implement production consumption/posting. Before those workflows are built, add an explicit, tested adapter that rejects unsupported precision/range rather than rounding or silently reinterpreting existing quantities. No implicit unit conversion is allowed.
 
 ## Verification status
 
-No tests have been run at the time of this plan. This file is not evidence of implementation completion or passing checks.
+The implementation is partial. The populated-v2 migration test and local Supabase database/authorization suites have run on the implementation code commit; the current post-test-fix workflow evidence is recorded in the implementation report. A documentation-only follow-up will trigger CI again. This plan is not evidence that WP3.1 is complete.
