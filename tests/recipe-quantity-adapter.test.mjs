@@ -9,7 +9,7 @@ test("adapts supported Phase 2 recipe quantities without changing their decimal 
 });
 
 test("rejects invalid values, scientific notation, and floating-point artifacts instead of rounding", () => {
-  for (const value of [0, -1, NaN, Infinity, -Infinity, "0.5", 1e-7, 0.1 + 0.2, 1.0000001]) {
+  for (const value of [0, -1, NaN, Infinity, -Infinity, "0.5", 1e-7, 0.1 + 0.2, 1.0000001, 9007199254740992]) {
     assert.throws(() => recipeQuantityToInventoryQuantity(value, { unit: "g" }));
   }
 });
