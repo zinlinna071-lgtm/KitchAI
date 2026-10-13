@@ -35,7 +35,7 @@ insert into public.stock_movements (
   source_type,source_id,recorded_at,effective_at
 )
 select owner_id,business_id,'a5000000-0000-4000-8000-000000000001','finished',
-  'a6000000-0000-4000-8000-000000000001','production_output','in',10,'each',
+  'a4000000-0000-4000-8000-000000000001','production_output','in',10,'each',
   'production_batch','a7000000-0000-4000-8000-000000000001',now(),now()
 from public.business_profiles where owner_id='31111111-1111-4111-8111-111111111111';
 
@@ -49,6 +49,19 @@ from public.business_profiles where owner_id='31111111-1111-4111-8111-1111111111
 
 select is((select count(*)::integer from public.stock_movements where event_id='a5000000-0000-4000-8000-000000000001'),1,'valid finished output is stored once');
 select is((select count(*)::integer from public.finished_lots where lot_id='a6000000-0000-4000-8000-000000000001'),1,'finished lot links to its output event');
+select throws_ok(
+  $sql$insert into public.finished_lots (
+    owner_id,business_id,lot_id,menu_item_id,batch_id,output_event_id,produced_quantity,unit,produced_at
+  ) select owner_id,business_id,'a6000000-0000-4000-8000-000000000002',
+    'a4000000-0000-4000-8000-000000000001','a7000000-0000-4000-8000-000000000001',
+    'a5000000-0000-4000-8000-000000000001',9,'each',now()
+  from public.business_profiles where owner_id='31111111-1111-4111-8111-111111111111'$sql$,
+  '23514','Finished lot must match its finished production output event','lot quantity must match output movement'
+);
+select throws_ok(
+  $sql$update public.finished_lots set produced_quantity=9 where lot_id='a6000000-0000-4000-8000-000000000001'$sql$,
+  '55000','Finished lots are immutable; record stock changes as movements','finished lot identity cannot be edited'
+);
 select throws_ok(
   $sql$update public.stock_movements set quantity=9 where event_id='a5000000-0000-4000-8000-000000000001'$sql$,
   '55000','Stock movements are append-only; record a linked correction or reversal','posted movement cannot be edited'
