@@ -2,7 +2,7 @@
 
 **Mode:** Review-only / documentation planning  
 **Work package:** WP3.1 — Inventory Domain Rules & Data Model  
-**Current status:** Phase 3 is PROPOSED and NOT APPROVED FOR IMPLEMENTATION.  
+**Current status:** Phase 3 remains PROPOSED and NOT APPROVED FOR IMPLEMENTATION. Owner policy selections D3-01–D3-11 are recorded in `docs/DECISIONS.md`; independent technical gates remain open.  
 **Target branch for the surrounding plan:** `docs/phase-3-production-inventory-plan`
 
 ## Mission
@@ -15,6 +15,7 @@ Read these first:
 3. `docs/DECISIONS.md`
 4. `docs/WP_REGISTRY.md`
 5. `docs/STATUS.md`
+6. `docs/PHASE_3_WP3_1_TECHNICAL_GATE_RECONCILIATION.md`
 6. `docs/PHASE_2_DOMAIN_CONTRACT.md` and the Phase 2 plan if present under the repository's actual paths.
 
 Then inspect relevant source, migrations, and tests to verify—not assume—the current behavior. At minimum, check:
@@ -30,7 +31,7 @@ Then inspect relevant source, migrations, and tests to verify—not assume—the
 - Do not implement application code, UI, IndexedDB changes, migrations, SQL, sync mappings, or tests.
 - Do not push to any branch, open/update a pull request, merge, or deploy.
 - Do not provision cloud resources, add credentials/secrets, activate billing, or contact a hosted production service.
-- Do not decide owner questions. D3-01 through D3-11 are OPEN. Suggested defaults in the plan are recommendations, not approvals.
+- Do not change owner decisions. D3-01–D3-11 are recorded as Selected in `docs/DECISIONS.md`; follow those selected policy boundaries. Do not treat them as approval of the independent technical recommendations in the technical-gate reconciliation.
 - Do not infer that a local/emulated test proves hosted authorization, actual cross-device sync, backup/restore readiness, or production readiness.
 - Do not create a second inventory database or sync engine as an assumed design decision. Evaluate the existing consolidated business-data store and sync architecture; report trade-offs if alternatives seem necessary.
 - Preserve the current allowed units (`g`, `kg`, `ml`, `l`, `each`) unless the owner explicitly approves a change. Do not invent implicit conversions.
