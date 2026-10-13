@@ -6,6 +6,8 @@
 **Prerequisites:** Phase 2 menu items, ingredients, recipes, recipe lines, and existing offline/sync foundation  
 **Implementation status:** Not started. No application code, schema, migrations, or hosted resources are changed by this plan.
 
+**WP3.1 review handoff:** [CODING_AI_PHASE3_WP3_1_REVIEW_PROMPT.md](../CODING_AI_PHASE3_WP3_1_REVIEW_PROMPT.md) is a read-only repository/domain-contract review prompt. It does not authorize implementation and requires the Coding AI to stop after reporting findings.
+
 ## 1. Goal
 
 Build an auditable inventory workflow for a small food business that buys ingredients, produces food either after a customer request or ahead in batches, sells finished items over time, and handles leftovers according to whether they remain safe and suitable to keep.
