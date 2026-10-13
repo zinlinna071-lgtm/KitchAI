@@ -90,7 +90,11 @@ export function validateStockMovement(input) {
   if (!["ingredient", "finished"].includes(input.stockClass)) throw new TypeError("Stock class must be ingredient or finished.");
   const quantity = normalizeQuantity(input.quantity, { unit: input.unit, stockClass: input.stockClass });
   if (input.kind === "production_consumption" && input.stockClass !== "ingredient") throw new TypeError("Production consumption must reference ingredient stock.");
-  if (input.kind === "production_output" && input.stockClass !== "finished") throw new TypeError("Production output must reference finished stock.");
+  if (["production_output", "sale"].includes(input.kind) && input.stockClass !== "finished") {
+    throw new TypeError("Production output and sale must reference finished stock.");
+  }
+  const sourceType = requireText(input.sourceType, "Source type");
+  if (sourceType.length > 80) throw new RangeError("Source type must not exceed 80 characters.");
   const reason = input.reason == null ? undefined : requireText(input.reason, "Reason");
   if (["waste", "count_adjustment", "correction"].includes(input.kind) && !reason) {
     throw new TypeError("Waste, count adjustments, and corrections require a reason.");
@@ -98,7 +102,7 @@ export function validateStockMovement(input) {
   return Object.freeze({
     ownerId, businessId, eventId, stockItemId, stockClass: input.stockClass,
     kind: input.kind, direction: input.direction, quantity: quantity.quantity, unit: quantity.unit,
-    sourceType: requireText(input.sourceType, "Source type"),
+    sourceType,
     sourceId: requireText(input.sourceId, "Source ID"),
     recordedAt: requireUtcInstant(input.recordedAt, "recordedAt"),
     effectiveAt: requireUtcInstant(input.effectiveAt, "effectiveAt"),
