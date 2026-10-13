@@ -8,6 +8,7 @@ A work package (WP) is a bounded implementation unit with dependencies and evide
 **Coding-agent handoff:** [CODING_AI_PHASE1_EXECUTION_PROMPT.md](./CODING_AI_PHASE1_EXECUTION_PROMPT.md) contains the repository-first execution prompt and mandatory decision/security gates. Owner-approved planning defaults are recorded in [DECISIONS.md](./DECISIONS.md); approval does not authorize provisioning or billing.
 
 **Phase 3 planning handoff:** [CODING_AI_PHASE3_WP3_1_REVIEW_PROMPT.md](./CODING_AI_PHASE3_WP3_1_REVIEW_PROMPT.md) is review-only. Phase 3 remains proposed/not approved for implementation; D3-01–D3-11 remain OPEN. Do not start WP3.1 runtime work based on this prompt.
+**WP3.1 repository review:** [PHASE_3_WP3_1_REPOSITORY_REVIEW.md](./PHASE_3_WP3_1_REPOSITORY_REVIEW.md) found critical contract clarifications needed for stock source-of-truth and atomic production posting. WP3.1 remains Review required; this is not implementation or test-pass evidence.
 
 ## Phase 1 WPs
 
