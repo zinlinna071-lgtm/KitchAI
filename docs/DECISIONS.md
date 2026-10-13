@@ -38,6 +38,26 @@ The owner instructed the team to proceed with the recommended defaults on 2026-1
 
 Before provider-specific authorization/security tests against a hosted project, the owner must explicitly approve the test environment and any cost/billing boundary. Until then, use local/emulator-only tests and do not provision hosted infrastructure. Required evidence: (1) provider/plan/region and cost approval or a no-billing local emulator boundary; (2) isolated non-production environment with synthetic data and secret handling; (3) reviewed schema and server-side ownership policies, including privileged server SDK paths; (4) separate test owners/business scopes and documented unauthenticated, allowed-owner, cross-owner read/write, and delete-denial cases; (5) reproducible test instructions and reviewable results. The fake-owner spike test is simulation only, not provider authorization evidence.
 
+## Proposed Phase 3 decisions — all OPEN
+
+The candidate decisions below are recorded for owner review only. Suggestions are not approvals; do not implement assumptions for unresolved material decisions.
+
+| ID | Decision needed | Suggested direction for review | Status |
+|---|---|---|---|
+| D3-01 | Inventory costing method | Compare weighted average and FIFO before choosing; do not rely on inventory valuation in financial reports until selected | OPEN |
+| D3-02 | Quantity precision and rounding | Unit-specific precision; never silently round | OPEN |
+| D3-03 | Insufficient stock during production | Block or require an explicit audited override; owner decision required | OPEN |
+| D3-04 | Partial receiving/cancellation | Consider partial receiving; unreceived quantity never affects stock | OPEN |
+| D3-05 | Recipe theoretical use vs actual consumption | Record actual usage and variance | OPEN |
+| D3-06 | Carry-over/shelf-life suitability | Operator confirms suitability under reviewed rules; app must not assume food is safe from age alone | OPEN |
+| D3-07 | Discounted-sale capture in Phase 3 | Consider minimal quantity/actual-price disposition only; full sales/order/payment workflow remains Phase 4 | OPEN |
+| D3-08 | Owner consumption, giveaway, and waste | Separate disposition types and reason capture | OPEN |
+| D3-09 | Physical count corrections | Append-only adjustment with reason and explicit confirmation | OPEN |
+| D3-10 | Supplier fields and purchase costs | Supplier optional for ad hoc purchases; decide required cost/tax/shipping fields | OPEN |
+| D3-11 | Stock-movement sync conflicts | Preserve competing snapshots and require explicit review; never silently combine duplicate/conflicting movements | OPEN |
+
+Full scope and acceptance criteria: [PHASE_3_PLAN.md](./phases/PHASE_3_PLAN.md). These are planning proposals and do not authorize implementation, hosted resources, billing, secrets, or deployment.
+
 ## Decision process
 
 1. Record constraints and compare realistic options using explicit criteria.
