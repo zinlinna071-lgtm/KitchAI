@@ -241,11 +241,14 @@ for each row execute function public.reject_stock_movement_mutation();
 alter table public.inventory_commands enable row level security;
 alter table public.stock_movements enable row level security;
 alter table public.finished_lots enable row level security;
+alter table public.stock_movement_lot_allocations enable row level security;
 
 create policy "Owners read their stock movements" on public.stock_movements
   for select to authenticated using ((select auth.uid()) = owner_id);
 create policy "Owners read their finished lots" on public.finished_lots
   for select to authenticated using ((select auth.uid()) = owner_id);
+create policy "Owners read their lot allocations" on public.stock_movement_lot_allocations
+  for select to authenticated using ((select auth.uid()) = owner_id);
 
-revoke all on table public.inventory_commands, public.stock_movements, public.finished_lots from anon, authenticated;
-grant select on table public.stock_movements, public.finished_lots to authenticated;
+revoke all on table public.inventory_commands, public.stock_movements, public.finished_lots, public.stock_movement_lot_allocations from anon, authenticated;
+grant select on table public.stock_movements, public.finished_lots, public.stock_movement_lot_allocations to authenticated;
