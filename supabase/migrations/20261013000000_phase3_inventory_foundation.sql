@@ -1,5 +1,9 @@
 -- WP3.1 inventory data foundation. Write access is intentionally reserved for a
 -- future trusted aggregate RPC; clients must not upsert stock events directly.
+-- The Phase 1 profile has separately-unique owner_id/business_id columns; add the
+-- composite candidate key required by owner-and-business-scoped foreign keys.
+alter table public.business_profiles
+  add constraint business_profiles_owner_business_unique unique (owner_id, business_id);
 create table public.inventory_commands (
   owner_id uuid not null references auth.users(id) on delete cascade,
   business_id uuid not null,
@@ -84,6 +88,44 @@ create table public.finished_lots (
 );
 create index finished_lots_by_menu_item_idx on public.finished_lots(owner_id, business_id, menu_item_id);
 create index finished_lots_by_batch_idx on public.finished_lots(owner_id, business_id, batch_id);
+
+create or replace function public.validate_finished_lot_output()
+returns trigger
+language plpgsql
+set search_path = ''
+as $
+declare
+  output public.stock_movements%rowtype;
+begin
+  if tg_op <> 'INSERT' then
+    raise exception 'Finished lots are immutable; record stock changes as movements'
+      using errcode = '55000';
+  end if;
+
+  select * into output
+  from public.stock_movements
+  where owner_id = new.owner_id
+    and business_id = new.business_id
+    and event_id = new.output_event_id;
+
+  if not found
+     or output.stock_class <> 'finished'
+     or output.kind <> 'production_output'
+     or output.direction <> 'in'
+     or output.stock_item_id <> new.menu_item_id
+     or output.quantity <> new.produced_quantity
+     or output.unit <> new.unit then
+    raise exception 'Finished lot must match its finished production output event'
+      using errcode = '23514';
+  end if;
+  return new;
+end;
+$;
+revoke all on function public.validate_finished_lot_output() from public, anon, authenticated;
+create trigger finished_lots_validate_output
+before insert or update or delete on public.finished_lots
+for each row execute function public.validate_finished_lot_output();
+
 comment on table public.finished_lots is
   'Immutable identity/traceability for finished output. Remaining quantity is derived from stock movements.';
 
@@ -106,8 +148,6 @@ alter table public.inventory_commands enable row level security;
 alter table public.stock_movements enable row level security;
 alter table public.finished_lots enable row level security;
 
-create policy "Owners read their inventory commands" on public.inventory_commands
-  for select to authenticated using ((select auth.uid()) = owner_id);
 create policy "Owners read their stock movements" on public.stock_movements
   for select to authenticated using ((select auth.uid()) = owner_id);
 create policy "Owners read their finished lots" on public.finished_lots
