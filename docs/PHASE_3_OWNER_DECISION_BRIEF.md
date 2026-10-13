@@ -19,7 +19,7 @@ The owner chose the recommended/default options in the decision checklist on 202
 | D3-04 | Partial receiving/cancellation | Allow partial receipt; only actually received quantities change stock; keep unreceived balance explicit | Requires partial/open/cancelled status rules |
 | D3-05 | Recipe baseline vs actual use/output | Record actual ingredient use and actual output; show variance from recipe baseline | More entry effort, better operational traceability |
 | D3-06 | Carry-over/shelf-life | Require operator to confirm suitability under separately reviewed rules; app never infers safety from age alone | Human confirmation remains necessary |
-| D3-07 | Discounted sale in Phase 3 | Minimal finished-stock disposition: quantity, actual amount received, currency, timestamp, lot allocation; full order/payment remains Phase 4 | Avoids duplicate sales systems; limited sales reporting only |
+| D3-07 | Sale capture boundary | Defer all sale capture, including discounted sales, to Phase 4; Phase 3 records non-sale dispositions only | Avoids a temporary sales ledger and ambiguous revenue capture |
 | D3-08 | Owner consumption, giveaway, waste | Separate disposition categories; require reason for waste and stock corrections | Slightly more recording, clearer loss tracking |
 | D3-09 | Physical count corrections | Show expected vs counted variance; require reason and explicit confirmation; append a correction event | Prevents silent overwrites; adds a confirmation step |
 | D3-10 | Supplier and purchase-cost fields | Supplier optional; record received quantity/unit, unit price/currency, receipt date/time; tax/shipping treatment explicitly deferred unless needed | Useful cost history without prematurely deciding accounting |
