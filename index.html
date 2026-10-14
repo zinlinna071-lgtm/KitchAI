@@ -129,6 +129,17 @@
 <div class="production-batch-panel"><h3>Production batches</h3><p id="production-list-state" class="profile-state" role="status" aria-live="polite">No business workspace selected.</p><ul id="production-batch-list" class="production-batch-list" aria-label="Production batches"></ul></div>
 </div>
 </section>
+<section id="stock-count-panel" class="profile-editor stock-count-panel" aria-labelledby="stock-count-title">
+<div class="profile-editor-heading"><p class="eyebrow">PHASE 3 · INVENTORY CONTROL</p><h2 id="stock-count-title">Review a physical stock count.</h2><p>Review local count sessions, record observed quantities, document variances, and post reviewed lines as an authenticated owner. Saving or reviewing a draft does not change inventory; only a server-confirmed posting does.</p></div>
+<div class="stock-count-toolbar">
+<div class="stock-count-session-picker"><label for="stock-count-session">Stock-count session</label><select id="stock-count-session"><option value="">Choose a stock-count session</option></select></div>
+<button id="stock-count-refresh" class="button button-secondary" type="button">Refresh sessions</button>
+</div>
+<p id="stock-count-state" class="profile-state" role="status" aria-live="polite">Save or load a business profile to review stock counts.</p>
+<ul id="stock-count-lines" class="stock-count-lines" aria-label="Stock-count lines"><li>Select a session to view count lines.</li></ul>
+<div class="stock-count-actions"><button id="stock-count-post-selected" class="button button-primary" type="button" disabled>Post selected reviewed lines</button><button id="stock-count-cancel" class="button button-secondary" type="button" disabled>Cancel session</button></div>
+</section>
+
 <section id="finished-stock-panel" class="profile-editor finished-stock-panel" aria-labelledby="finished-stock-title">
 <div class="profile-editor-heading"><p class="eyebrow">PHASE 3 · FINISHED STOCK</p><h2 id="finished-stock-title">Know what is still safe to sell.</h2><p>Finished quantities come from immutable production lots minus recorded allocations. Refresh while online; the latest snapshot stays on this device for offline review. Every stock reduction is revalidated by the server when synced.</p></div>
 <div class="finished-stock-toolbar"><p id="finished-stock-state" class="profile-state" role="status" aria-live="polite">Sign in and load a synced business workspace to view finished stock.</p><button id="finished-stock-refresh" class="button button-secondary" type="button">Refresh stock</button></div>
