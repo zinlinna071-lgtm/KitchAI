@@ -494,6 +494,7 @@ export async function postProductionBatch(scope, batchId, session) {
       // Never rebuild a command after an ambiguous network result: its idempotency key and payload stay fixed.
       batch.state = "posting";
       batch.posting.status = "pending";
+      batch.posting.attemptCount = (batch.posting.attemptCount ?? 0) + 1;
       batch.posting.lastAttemptAt = new Date().toISOString();
       batch.updatedAt = batch.posting.lastAttemptAt;
       return batch;
@@ -547,7 +548,7 @@ export async function postProductionBatch(scope, batchId, session) {
     const failedAt = new Date().toISOString();
     await mutateProductionBatch(partition, batchId, (batch) => {
       if (batch.state === "completed" || batch.posting?.command?.commandId !== command.commandId) return batch;
-      const attemptCount = (batch.posting?.attemptCount ?? 1) + 1;
+      const attemptCount = batch.posting?.attemptCount ?? 1;
       const message = error instanceof Error ? error.message : "Production posting failed.";
       batch.state = "failed_to_post";
       batch.updatedAt = failedAt;
