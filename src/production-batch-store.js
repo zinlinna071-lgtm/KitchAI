@@ -13,6 +13,13 @@ function requireText(value, label) {
   return value.trim();
 }
 
+/** Freeze nested snapshot metadata as well as the containing line and snapshot. */
+function deepFreeze(value) {
+  if (!value || typeof value !== "object" || Object.isFrozen(value)) return value;
+  for (const nested of Object.values(value)) deepFreeze(nested);
+  return Object.freeze(value);
+}
+
 /**
  * Build an immutable, content-bearing snapshot from a recipe and its lines.
  * Legacy lines without quantityMode are treated as exact quantities.
@@ -28,6 +35,9 @@ export function buildRecipeSnapshot(recipe, lines, options = {}) {
   const menuItemId = requireText(recipe.menuItemId, "Menu item ID");
   const recipeName = requireText(recipe.name, "Recipe name");
   if (recipe.status !== "active") throw new Error("Only an active recipe can start a production batch.");
+  if (typeof recipe.yieldPortions !== "number" || !Number.isFinite(recipe.yieldPortions) || recipe.yieldPortions <= 0) {
+    throw new Error("An active recipe must have a finite positive yield.");
+  }
   if (!Array.isArray(lines) || lines.length === 0) throw new Error("A recipe needs at least one ingredient line.");
   if (lines.length > 200) throw new RangeError("A production batch supports at most 200 recipe lines.");
 
@@ -62,7 +72,7 @@ export function buildRecipeSnapshot(recipe, lines, options = {}) {
     }
     const conversionProvenance = line.conversionProvenance == null
       ? null
-      : structuredClone(line.conversionProvenance);
+      : deepFreeze(structuredClone(line.conversionProvenance));
     return Object.freeze({
       lineId: id,
       ingredientId,
