@@ -194,8 +194,8 @@ begin
        or pg_catalog.jsonb_typeof(v_line -> 'countedQuantity') is distinct from 'string'
        or coalesce(v_line ->> 'countedQuantity', '') !~ '^(0|[1-9][0-9]*)([.][0-9]{1,6})?$'
        or coalesce(v_line ->> 'unit', '') not in ('g', 'kg', 'ml', 'l', 'each')
-       or coalesce(v_line ->> 'countedAt', '') !~ '^\\d{4}-\\d{2}-\\d{2}T'
-       or coalesce(v_line ->> 'reviewedAt', '') !~ '^\\d{4}-\\d{2}-\\d{2}T' then
+       or coalesce(v_line ->> 'countedAt', '') !~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}T'
+       or coalesce(v_line ->> 'reviewedAt', '') !~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}T' then
       raise exception 'Count line contains invalid IDs, version, quantity, unit, or timestamps' using errcode = '22023';
     end if;
     if coalesce(v_line ->> 'varianceEventId', '') <> ''
