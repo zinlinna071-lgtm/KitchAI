@@ -1265,7 +1265,7 @@ async function refreshProductionView() {
       }
       productionBatchList.append(item);
     }
-    if (productionState?.textContent?.includes("Save or load a business profile")) {
+    if (productionState?.textContent?.includes("Save or load a business profile") || productionState?.textContent?.includes("Activate a recipe with at least one ingredient line")) {
       setProductionState(activeRecipes.length ? "Starting a batch saves a recipe snapshot; stock changes only after server confirmation." : "Activate a recipe with at least one ingredient line before starting production.");
     }
   } catch (error) {
