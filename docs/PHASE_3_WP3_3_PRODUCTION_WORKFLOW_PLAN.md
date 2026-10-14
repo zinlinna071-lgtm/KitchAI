@@ -1,8 +1,8 @@
 # Phase 3 WP3.3 — Production Workflow Plan
 
 **Status:** Planning proposal; not implementation approval.
-**Base:** `main` at `723f73f774be4377b462cc1e68f0a269f489cfcf`.
-**Dependency:** WP3.2 trusted atomic inventory commands in [PR #41](https://github.com/zinlinna071-lgtm/KitchAI/pull/41) must be reviewed and merged before implementation branches from `main` can use its database contract. This plan does not merge or modify that PR.
+**Planning base originally inspected:** `main` at `723f73f774be4377b462cc1e68f0a269f489cfcf`.
+**Current dependency status (2026-10-14):** WP3.2 trusted atomic inventory commands were merged with owner authorization in [PR #41](https://github.com/zinlinna071-lgtm/KitchAI/pull/41), merge commit `81fafdd9ce69a72c909acb839177df95e2f83561`. Both PR-head database/authorization and vertical-slice workflows passed on final code commit `cbdf001278b4794dc1183ad4942a915425bc2c4f`; post-merge `main` workflows are running. Do not begin WP3.3 implementation until those post-merge checks pass.
 **Owner-confirmed rules:** recipe snapshot at batch start; reject negative stock; append-only ledger with linked reversal/correction. See PR #41's `docs/PHASE_3_WP3_2_OWNER_DECISIONS.md`.
 
 ## Goal
@@ -77,7 +77,7 @@ Deliver a small, auditable production workflow that converts a started recipe ba
 
 ## Required implementation sequence
 
-1. Verify WP3.2's final CI, security review, and SQL contract; merge PR #41 only with explicit owner approval.
+1. Confirm post-merge `main` CI for WP3.2 merge commit `81fafdd9ce69a72c909acb839177df95e2f83561` passes, and retain the SQL contract/security review notes. PR #41 is already merged with owner authorization.
 2. Confirm the exact recipe and menu data contract currently present in `main`; do not assume a recipe version field exists without inspection.
 3. Implement WP3.3.1 and its tests first.
 4. Implement WP3.3.2 lifecycle and local persistence.
@@ -100,7 +100,8 @@ The current Phase 2 implementation was inspected before planning implementation:
 
 - The current recipe model may not have a durable version identifier. If so, define a compatible immutable snapshot/version strategy before writing production code.
 - Actual usage for “to taste” ingredients is inherently uncertain until measured. The interface must preserve uncertainty rather than create false precision.
-- The current inventory RPC has a bounded command payload and a fixed unit allowlist. Confirm batch size limits and unit semantics before generating multi-ingredient commands.
+- The current inventory RPC bounds movement/lot/allocation array counts (200/200/500) and uses a fixed unit allowlist. Confirm batch size limits and unit semantics before generating multi-ingredient commands.
+- WP3.2 now explicitly preserves movement-array order and has a regression test proving a receipt can fund a later outflow within one atomic command.
 - Finished stock allocation is explicit; do not silently implement FIFO.
 - WP3.2 currently constrains correction/reversal to one exact, single linked reversal. Confirm whether this satisfies future correction workflows before extending it.
 - Any schema change requires additive migration and tests against existing Phase 1/2 data.
