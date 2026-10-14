@@ -45,7 +45,14 @@ export function initializeStockCountUI(context) {
 
   function lockControls() {
     const session = sessions.find(item => item.sessionId === selectedSessionId);
-    if (postButton) postButton.disabled = busy || !context.getSession() || !session || Boolean(session.pendingPost) || session.status !== "ready_for_review" || !lines.some(line => line.state === "reviewed");
+    if (postButton) {
+      const hasAuth = Boolean(context.getSession()?.access_token);
+      const pendingPost = Boolean(session?.pendingPost);
+      postButton.textContent = pendingPost ? "Retry pending posting" : "Post selected reviewed lines";
+      postButton.disabled = busy || !hasAuth || !session || (pendingPost
+        ? !navigator.onLine
+        : session.status !== "ready_for_review" || !lines.some(line => line.state === "reviewed"));
+    }
     if (cancelButton) cancelButton.disabled = busy || !session || Boolean(session.pendingPost) || !["open", "ready_for_review"].includes(session.status);
     if (refreshButton) refreshButton.disabled = busy;
     if (sessionSelect) sessionSelect.disabled = busy || sessions.length === 0;
@@ -160,6 +167,29 @@ export function initializeStockCountUI(context) {
     lockControls();
   }
 
+  async function submitPosting(lineIds, authSession) {
+    let result;
+    let actionError;
+    try {
+      result = await postReviewedStockCountSubset(context.getScope(), selectedSessionId, lineIds, authSession);
+    } catch (error) {
+      actionError = error;
+    }
+
+    // Always reload local state: a stale rejection clears the pending command and marks lines stale.
+    try {
+      sessions = await listStockCountSessions(context.getScope());
+      lines = await listStockCountLines(context.getScope(), selectedSessionId);
+      await renderLines();
+    } catch (refreshError) {
+      if (!actionError) actionError = refreshError;
+    }
+    if (actionError) throw actionError;
+    message(result?.session?.status === "posted"
+      ? "Server confirmed the stock-count posting."
+      : "Server confirmed the selected posting. Review any remaining lines before posting again.");
+  }
+
   async function runAction(action) {
     if (busy) return;
     busy = true; lockControls();
@@ -261,16 +291,23 @@ export function initializeStockCountUI(context) {
     });
   });
   postButton?.addEventListener("click", () => {
+    const session = sessions.find(item => item.sessionId === selectedSessionId);
+    const authSession = context.getSession();
+    if (!authSession?.access_token) { message("Sign in as the business owner before posting reviewed counts.", true); return; }
+    if (session?.pendingPost) {
+      const pendingIds = session.pendingPost.lineIds ?? session.pendingPost.command?.lines?.map(line => line.lineId) ?? [];
+      if (!pendingIds.length) { message("The saved posting command has no recoverable line IDs. Keep the session unchanged and request support.", true); return; }
+      void runAction(async () => {
+        message("Retrying the saved posting command to reconcile the server result. Do not edit this session until reconciliation finishes.");
+        await submitPosting(pendingIds, authSession);
+      });
+      return;
+    }
     const ids = [...(lineList?.querySelectorAll('input[type="checkbox"][data-line-id]:checked') ?? [])].map(input => input.dataset.lineId);
     if (!ids.length) { message("Select at least one reviewed line to post.", true); return; }
-    if (!context.getSession()) { message("Sign in as the business owner before posting reviewed counts.", true); return; }
     void runAction(async () => {
       message("Posting submitted. Do not edit this session until the server result is confirmed.");
-      const result = await postReviewedStockCountSubset(context.getScope(), selectedSessionId, ids, context.getSession());
-      sessions = await listStockCountSessions(context.getScope());
-      lines = await listStockCountLines(context.getScope(), selectedSessionId);
-      message(result?.session?.status === "posted" ? "Server confirmed the stock-count posting." : "Posting result received. Refresh to reconcile any pending command.");
-      await renderLines();
+      await submitPosting(ids, authSession);
     });
   });
   renderItemOptions();
