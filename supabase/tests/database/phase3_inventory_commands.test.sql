@@ -88,6 +88,21 @@ insert into public.menu_items (id,owner_id,business_id,name,status)
 select 'a9400000-0000-4000-8000-000000000001',owner_id,business_id,'WP3.2 Kimbap','active'
 from public.business_profiles where owner_id='41111111-1111-4111-8111-111111111111'
 on conflict (id) do nothing;
+select throws_ok(
+ $sql$select public.apply_inventory_command(
+ 'a9000000-0000-4000-8000-000000000022',
+ (select business_id from public.business_profiles where owner_id='41111111-1111-4111-8111-111111111111'),
+ 'stock_movement',
+ jsonb_build_object('movements',jsonb_build_array(jsonb_build_object(
+  'eventId','a9100000-0000-4000-8000-000000000022','stockClass','finished',
+  'stockItemId','a9400000-0000-4000-8000-000000000001','kind','production_output',
+  'direction','in','quantity','1','unit','each','sourceType','production_batch',
+  'sourceId','a9500000-0000-4000-8000-000000000022'))))$sql$,
+ '23514','Production output must include its finished lot in the same command',
+ 'output without a lot is rejected atomically');
+select is((select count(*)::integer from public.stock_movements
+ where event_id='a9100000-0000-4000-8000-000000000022'),0,'rejected output leaves no movement');
+
 select is(
  public.apply_inventory_command(
  'a9000000-0000-4000-8000-000000000020',
