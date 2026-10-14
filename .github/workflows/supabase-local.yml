@@ -8,8 +8,8 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: supabase-local-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  group: local-supabase-stack-${{ github.ref }}
+  cancel-in-progress: false
 jobs:
   local-authorization:
     name: Local schema and RLS tests
