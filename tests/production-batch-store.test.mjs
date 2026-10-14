@@ -46,6 +46,18 @@ test("a snapshot remains independent of later recipe and recipe-line edits", () 
   assert.equal(snapshot.lines.find((line) => line.lineId === "line-b").position, 1);
 });
 
+test("nested conversion provenance is immutable and active recipes require a valid yield", () => {
+  const provenance = { source: "kitchen-scale", details: { factor: 1000 } };
+  const snapshot = buildRecipeSnapshot(recipe, [{
+    id: "converted", recipeId: "recipe-1", ingredientId: "rice", quantity: 1, unit: "kg", position: 0,
+    conversionProvenance: provenance,
+  }], { snapshotId: "snapshot-provenance" });
+  assert.ok(Object.isFrozen(snapshot.lines[0].conversionProvenance));
+  assert.ok(Object.isFrozen(snapshot.lines[0].conversionProvenance.details));
+  assert.throws(() => { snapshot.lines[0].conversionProvenance.details.factor = 2; }, TypeError);
+  assert.throws(() => buildRecipeSnapshot({ ...recipe, yieldPortions: undefined }, lines));
+});
+
 test("legacy recipe lines default to exact; estimated and to-taste modes preserve uncertainty", () => {
   const snapshot = buildRecipeSnapshot(recipe, [
     { id: "exact", recipeId: "recipe-1", ingredientId: "salt", quantity: 0.01, unit: "kg", position: 0 },
