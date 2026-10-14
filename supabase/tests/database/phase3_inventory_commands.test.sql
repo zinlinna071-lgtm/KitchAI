@@ -45,6 +45,47 @@ select throws_ok(
  'direction','in','quantity','6.25','unit','g','sourceType','purchase_receipt',
  'sourceId','a9300000-0000-4000-8000-000000000001'))))$sql$,
  '22023','Idempotency key reused with a different request','payload mismatch rejected');
+-- A correction must exactly reverse its linked event, and an original event
+-- cannot be reversed twice.
+select throws_ok(
+ $sql$select public.apply_inventory_command(
+ 'a9000000-0000-4000-8000-000000000030',
+ (select business_id from public.business_profiles where owner_id='41111111-1111-4111-8111-111111111111'),
+ 'correction',
+ jsonb_build_object('movements',jsonb_build_array(jsonb_build_object(
+ 'eventId','a9100000-0000-4000-8000-000000000030','stockClass','ingredient',
+ 'stockItemId','a9200000-0000-4000-8000-000000000001','kind','correction',
+ 'direction','out','quantity','5.24','unit','g','sourceType','correction',
+ 'sourceId','a9300000-0000-4000-8000-000000000030','relatedEventId','a9100000-0000-4000-8000-000000000001',
+ 'reason','exact reversal required'))))$sql$,
+ '23514','Reversal or correction must exactly reverse one linked event for the same item and unit',
+ 'correction quantity must equal linked event quantity');
+select is(
+ public.apply_inventory_command(
+ 'a9000000-0000-4000-8000-000000000031',
+ (select business_id from public.business_profiles where owner_id='41111111-1111-4111-8111-111111111111'),
+ 'correction',
+ jsonb_build_object('movements',jsonb_build_array(jsonb_build_object(
+ 'eventId','a9100000-0000-4000-8000-000000000031','stockClass','ingredient',
+ 'stockItemId','a9200000-0000-4000-8000-000000000001','kind','reversal',
+ 'direction','out','quantity','5.25','unit','g','sourceType','reversal',
+ 'sourceId','a9300000-0000-4000-8000-000000000031','relatedEventId','a9100000-0000-4000-8000-000000000001',
+ 'reason','reverse receipt')))) ->> 'status',
+ 'accepted','one exact linked reversal is accepted');
+select throws_ok(
+ $sql$select public.apply_inventory_command(
+ 'a9000000-0000-4000-8000-000000000032',
+ (select business_id from public.business_profiles where owner_id='41111111-1111-4111-8111-111111111111'),
+ 'correction',
+ jsonb_build_object('movements',jsonb_build_array(jsonb_build_object(
+ 'eventId','a9100000-0000-4000-8000-000000000032','stockClass','ingredient',
+ 'stockItemId','a9200000-0000-4000-8000-000000000001','kind','reversal',
+ 'direction','out','quantity','5.25','unit','g','sourceType','reversal',
+ 'sourceId','a9300000-0000-4000-8000-000000000032','relatedEventId','a9100000-0000-4000-8000-000000000001',
+ 'reason','duplicate reversal'))))$sql$,
+ '23514','Reversal or correction must exactly reverse one linked event for the same item and unit',
+ 'duplicate linked reversal is rejected');
+
 select throws_ok(
  $sql$select public.apply_inventory_command(
  'a9000000-0000-4000-8000-000000000002',
