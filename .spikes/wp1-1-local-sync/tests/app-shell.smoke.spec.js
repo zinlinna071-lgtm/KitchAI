@@ -1406,17 +1406,14 @@ test("production batch UI captures actual usage and keeps offline posting state 
   await page.goto("/");
   await page.locator("#business-name").fill("Production UI Kitchen");
   await page.getByRole("button", { name: "Save profile" }).click();
-  console.log("production-ui: profile saved");
 
   await page.locator("#ingredient-name").fill("Rice");
   await page.getByRole("button", { name: "Add ingredient", exact: true }).click();
   await expect(page.locator("#ingredient-list")).toContainText("Rice");
-  console.log("production-ui: ingredient saved");
 
   await page.locator("#menu-item-name").fill("Rice Bowl");
   await page.getByRole("button", { name: "Add menu item" }).click();
   await expect(page.locator("#menu-item-list")).toContainText("Rice Bowl");
-  console.log("production-ui: menu item saved");
 
   await page.locator("#recipe-menu-item").selectOption({ label: "Rice Bowl" });
   await page.locator("#recipe-name").fill("Rice Bowl Recipe");
@@ -1424,7 +1421,6 @@ test("production batch UI captures actual usage and keeps offline posting state 
   await page.locator("#recipe-status").selectOption("draft");
   await page.getByRole("button", { name: "Save recipe draft" }).click();
   await expect(page.locator("#recipe-list")).toContainText("Rice Bowl Recipe");
-  console.log("production-ui: recipe saved");
 
   await page.locator("#recipe-line-recipe").selectOption({ label: "Rice Bowl Recipe · Draft" });
   await page.locator("#recipe-line-ingredient").selectOption({ label: "Rice" });
@@ -1432,16 +1428,13 @@ test("production batch UI captures actual usage and keeps offline posting state 
   await page.locator("#recipe-line-unit").selectOption("kg");
   await page.getByRole("button", { name: "Add ingredient line" }).click();
   await expect(page.locator("#recipe-line-list")).toContainText("2 kg");
-  console.log("production-ui: recipe line saved");
 
   await page.locator("#recipe-list").getByRole("button", { name: "Activate" }).click();
   await expect(page.locator("#recipe-list")).toContainText("Active");
-  console.log("production-ui: recipe activated");
   await page.locator("#production-recipe").selectOption({ label: "Rice Bowl Recipe" });
   await page.getByRole("button", { name: "Start production batch" }).click();
   const batch = page.locator(".production-batch-card").filter({ hasText: "Rice Bowl Recipe" });
   await expect(batch).toContainText("started");
-  console.log("production-ui: batch started");
   await batch.locator(".production-usage-line select").selectOption("measured");
   await batch.locator('.production-usage-line input[data-field="quantity"]').fill("2");
   await batch.locator('input[data-field="outputQuantity"]').fill("4");
@@ -1449,5 +1442,4 @@ test("production batch UI captures actual usage and keeps offline posting state 
   await expect(batch).toContainText("ready to post");
   await expect(batch.getByRole("button", { name: "Post batch" })).toBeDisabled();
   await expect(page.locator("#production-state")).toContainText("ready to post when you are online and signed in");
-  console.log("production-ui: batch prepared");
 });
