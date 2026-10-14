@@ -1292,16 +1292,16 @@ function appendFinishedHistoryItem(list, titleText, detailText, stateText, actio
 function renderFinishedStockLists() {
   if (!currentFinishedSnapshot) {
     finishedStockList?.replaceChildren();
-    setSelectOptions(finishedDispositionLot, [], "Load a stock snapshot first", "");
-    setSelectOptions(carryForwardLot, [], "Load a stock snapshot first", "");
+    if (finishedDispositionLot) setSelectOptions(finishedDispositionLot, [], "Load a stock snapshot first", "");
+    if (carryForwardLot) setSelectOptions(carryForwardLot, [], "Load a stock snapshot first", "");
     if (finishedDispositionSubmit) finishedDispositionSubmit.disabled = true;
     if (carryForwardSubmit) carryForwardSubmit.disabled = true;
     return;
   }
   const usable = currentFinishedBalances.filter(lot => Number(lot.remainingQuantity) > 0);
   const options = usable.map(lot => ({ value: lot.lotId, label: finishedLotLabel(lot, currentFinishedMenuNames) }));
-  setSelectOptions(finishedDispositionLot, options, options.length ? "Choose a finished lot" : "No remaining finished stock", finishedDispositionLot?.value);
-  setSelectOptions(carryForwardLot, options, options.length ? "Choose a lot to carry forward" : "No remaining finished stock", carryForwardLot?.value);
+  if (finishedDispositionLot) setSelectOptions(finishedDispositionLot, options, options.length ? "Choose a finished lot" : "No remaining finished stock", finishedDispositionLot.value);
+  if (carryForwardLot) setSelectOptions(carryForwardLot, options, options.length ? "Choose a lot to carry forward" : "No remaining finished stock", carryForwardLot.value);
   const canRecord = Boolean(activeSession?.user?.id && currentOwnerProfile?.syncState === "synced" && currentFinishedSnapshot.remoteBusinessId);
   if (finishedDispositionSubmit) finishedDispositionSubmit.disabled = !canRecord || !usable.length;
   if (carryForwardSubmit) carryForwardSubmit.disabled = !canRecord || !usable.length;
