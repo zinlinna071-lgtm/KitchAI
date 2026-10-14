@@ -145,6 +145,7 @@
 <h3>Add an item to count</h3>
 <label for="stock-count-item-class">Stock class</label><select id="stock-count-item-class" required><option value="ingredient">Ingredient</option><option value="finished">Finished product</option></select>
 <label for="stock-count-item">Stock item</label><select id="stock-count-item" required><option value="">Choose an item</option></select>
+<label for="stock-count-item-unit">Unit (only needed if the server item has no unit)</label><select id="stock-count-item-unit"><option value="">Use recorded server unit</option><option value="g">g · grams</option><option value="kg">kg · kilograms</option><option value="ml">ml · millilitres</option><option value="l">l · litres</option><option value="each">each · count</option></select>
 <p id="stock-count-add-line-help" class="field-help">Adding a line captures the current server quantity and version. Connect and sign in before adding items; counting can continue offline after capture.</p>
 <button id="stock-count-add-line" class="button button-secondary" type="submit">Add count line</button>
 </form>
