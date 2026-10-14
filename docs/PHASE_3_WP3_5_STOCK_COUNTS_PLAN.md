@@ -81,6 +81,7 @@ The detailed state, concurrency, quantity and test contract is in [PHASE_3_WP3_5
 - [ ] Authorization tests reject anonymous and cross-owner/business access.
 - [ ] Offline draft/reload, reconnect, retry, concurrent receipt/production movement, and server-rejection scenarios are covered.
 - [ ] Baseline, application-shell/browser, static preview, local Supabase database, and local integration gates pass on the final head.
+- [ ] Playwright browser smoke checks verify accessible session/line controls, posting remains disabled without a valid review state, the page has no uncaught runtime errors, and the stock-count panel fits a narrow mobile viewport. Workflow: `.github/workflows/wp3-5e-browser.yml`; test: `tests/stock-count-ui.browser.spec.js`.
 - [ ] Scope and remaining limitations are documented; hosted provider behavior is not claimed as tested.
 
 ## 7. Explicit non-goals
@@ -114,3 +115,8 @@ The additive migration `20261014003000_phase3_atomic_stock_count_posting.sql` in
 The local store persists the exact command ID and payload before network delivery. An acknowledged result finalizes local line states; a stale rejection preserves the rejected attempt, marks affected lines stale, and requires a fresh server snapshot and recount.
 
 **Verification status — 2026-10-15:** all five PR-triggered workflows passed on PR head `1938cdad903aa707d166cc09ab4c3f374b77ffd8` (Baseline, Static Preview, WP1.2 Application Shell, WP1.4 Local Supabase Authorization, and WP1.6 Local Supabase Vertical Slice). The separate-session concurrency regression confirmed the count waited on the shared owner advisory lock, the concurrent receipt committed, the stale count rejected with SQLSTATE `40001`, and no accepted count audit row was written. A browser regression also verifies that local count mutations are blocked while a posting result is uncertain. PR #55 is merged. WP3.5e remains local/offline-first and does not authorize hosted resources, billing, secrets, or deployment.
+
+
+## WP3.5e browser smoke test — 2026-10-15
+
+Added a separate Playwright/Chromium browser test suite and PR-triggered workflow. The tests exercise the built application served by the repository's own smoke server, rather than relying only on source-text assertions. They check accessible session and line controls, ensure session creation/add-line/post actions are disabled when no authenticated synced workspace is configured, detect uncaught page errors, and check for horizontal overflow at a 360px viewport. These tests still require a successful CI run on the latest PR head; they do not replace the existing Local Supabase database and authorization scenarios or prove hosted-provider behavior.
