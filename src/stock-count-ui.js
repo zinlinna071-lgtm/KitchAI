@@ -32,8 +32,9 @@ export function initializeStockCountUI(context) {
   let busy = false;
 
   function lockControls() {
-    if (postButton) postButton.disabled = busy || !context.getSession() || !lines.some(line => line.state === "reviewed");
-    if (cancelButton) { const session = sessions.find(item => item.sessionId === selectedSessionId); cancelButton.disabled = busy || !session || Boolean(session.pendingPost) || !["open", "ready_for_review"].includes(session.status); }
+    const session = sessions.find(item => item.sessionId === selectedSessionId);
+    if (postButton) postButton.disabled = busy || !context.getSession() || !session || Boolean(session.pendingPost) || session.status !== "ready_for_review" || !lines.some(line => line.state === "reviewed");
+    if (cancelButton) cancelButton.disabled = busy || !session || Boolean(session.pendingPost) || !["open", "ready_for_review"].includes(session.status);
     if (refreshButton) refreshButton.disabled = busy;
     if (sessionSelect) sessionSelect.disabled = busy || sessions.length === 0;
   }
