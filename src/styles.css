@@ -124,6 +124,7 @@
 
 /* WP3.5e accessible stock-count review */
 .stock-count-toolbar,.stock-count-actions{display:flex;align-items:end;gap:.75rem;flex-wrap:wrap;margin:1rem 0}
+.stock-count-create-form,.stock-count-add-line-form{display:grid;gap:.6rem;align-content:start;margin:1rem 0;padding:1rem;border:1px solid var(--line);border-radius:12px;background:#fbfcfa;min-width:0}.stock-count-create-form h3,.stock-count-add-line-form h3{margin:.1rem 0 .25rem;color:var(--green)}.stock-count-create-form label,.stock-count-add-line-form label{font-size:.9rem;font-weight:650}.stock-count-create-form input,.stock-count-add-line-form input,.stock-count-add-line-form select{width:100%;min-width:0;min-height:2.75rem;border:1px solid #cbd8d0;border-radius:10px;padding:.55rem .7rem;background:white;color:inherit;font:inherit}.stock-count-create-form button,.stock-count-add-line-form button{justify-self:start;white-space:normal;overflow-wrap:anywhere}
 .stock-count-session-picker{display:grid;gap:.4rem;flex:1;min-width:min(100%,16rem)}
 .stock-count-session-picker select,.stock-count-line-form input{width:100%;min-height:2.75rem;border:1px solid #cbd8d0;border-radius:10px;padding:.55rem .7rem;background:white;color:inherit;font:inherit}
 .stock-count-lines{list-style:none;padding:0;margin:1rem 0;display:grid;gap:1rem}
