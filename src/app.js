@@ -704,7 +704,6 @@ async function refreshPhase2ConflictView() {
             remoteRevision: latestSnapshot.revision,
           });
           await refreshOwnerView();
-    await refreshFinishedStockView(true);
           setPhase2SyncState("Latest remote version applied by your choice. Conflict history and superseded operations are retained.");
         } catch (error) {
           setPhase2SyncState("Remote version was not applied. Both versions remain preserved. " + (error instanceof Error ? error.message : ""), true);
@@ -910,6 +909,7 @@ async function loadOwnerWorkspace(session) {
       setPhase2SyncState("Create or load this account’s Business Profile before syncing Phase 2 records.");
       await refreshPhase2ConflictView();
     }
+    await refreshFinishedStockView(true);
   } catch (error) {
     setProfileState("Account workspace could not be loaded. Existing local data is preserved. " + (error instanceof Error ? error.message : ""), true);
   }
