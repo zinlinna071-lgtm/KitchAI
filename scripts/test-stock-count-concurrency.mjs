@@ -15,7 +15,7 @@ const writerSourceId = 'b5580000-0000-4000-8000-000000000001';
 
 const admin = new Client({ connectionString });
 const writer = new Client({ connectionString });
-const counter = new Client({ connectionString });
+const counter = new Client({ connectionString, application_name: 'kitchai_stock_count_race_counter' });
 const observer = new Client({ connectionString });
 const clients = [admin, writer, counter, observer];
 
@@ -33,7 +33,7 @@ async function waitForAdvisoryWait() {
          WHERE datname = current_database()
            AND wait_event_type = 'Lock'
            AND wait_event = 'advisory'
-           AND query ILIKE '%post_stock_count_subset%'
+           AND application_name = 'kitchai_stock_count_race_counter'
        ) AS waiting`
     );
     if (result.rows[0].waiting) return;
