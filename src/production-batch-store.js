@@ -385,7 +385,7 @@ function requireUuid(value, label) {
  * Build a stable server command from the frozen recipe snapshot and explicit actual-usage decisions.
  * Call once and persist the returned command before any network request; retries must reuse it verbatim.
  * @param {any} batch
- * @param {{commandId?:string,occurredAt?:string,outputEventId?:string,lotId?:string}} [options]
+ * @param {{commandId?:string,occurredAt?:string,outputEventId?:string,lotId?:string,movementEventIds?:Record<string,string>}} [options]
  */
 export function buildProductionInventoryCommand(batch, options = {}) {
   if (!batch || !["ready_to_post", "posting", "failed_to_post"].includes(batch.state)) {
@@ -414,7 +414,7 @@ export function buildProductionInventoryCommand(batch, options = {}) {
     const usage = usageByLine.get(line.lineId);
     if (!usage || usage.disposition === "not_used") continue;
     const ingredientId = requireUuid(line.ingredientId, "Ingredient stock ID");
-    const eventId = crypto.randomUUID();
+    const eventId = requireUuid(options.movementEventIds?.[line.lineId] ?? crypto.randomUUID(), "Ingredient consumption event ID");
     const reasons = [
       usage.disposition === "accepted_estimate" ? "Accepted estimate: " + usage.note : "",
       usage.varianceReason ? "Variance: " + usage.varianceReason : "",
