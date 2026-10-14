@@ -196,26 +196,10 @@ This dated section supersedes the older WP3.1 status paragraphs above where they
 
 Implementation history uses WP3.2 for the atomic inventory command foundation and WP3.2.1 for the purchasing/receiving UI workflow, while earlier planning material may use WP3.2 more broadly for purchasing/inventory. Preserve the existing IDs in history; new work must use the implementation registry IDs and avoid reusing an identifier.
 
-### Next proposed work package — WP3.5 Physical Stock Counts and Adjustments
-
-**Status:** Owner decisions accepted 2026-10-14; WP3.5a consistency/test contract drafted in [PHASE_3_WP3_5A_COUNT_CONSISTENCY_TEST_CONTRACT.md](./PHASE_3_WP3_5A_COUNT_CONSISTENCY_TEST_CONTRACT.md). Application implementation remains gated on the shared stock-item lock/version design review.
-
-**Purpose:** let the owner record a physical count, compare it with the ledger-derived on-hand balance, review a variance, and post a reasoned adjustment through the existing atomic inventory command path.
-
-**Initial scope to design before coding:**
-- owner/business-scoped count sessions with a stable count ID, start/cut-off metadata, and explicit open/reviewed/posted/cancelled states;
-- capture the system quantity observed at count start and the operator's counted quantity as exact supported decimal quantities;
-- show variance explicitly and require a reason before posting;
-- prevent duplicate posting through stable idempotent command IDs; use the existing server-side atomic inventory command and append-only ledger rather than editing balances or past movements;
-- define what happens to receipts, production, sales, and waste posted while a count is open; do not silently apply a stale count over newer movements;
-- support offline draft/review with owner/business partitioning, but require server acceptance before claiming the adjustment is posted;
-- test negative/invalid quantities, stale count snapshots, concurrent movement, duplicate retry, authorization, cancellation, reload/offline durability, and full regression.
-
-**Out of scope unless separately approved:** barcode/scanner support, multi-user count assignment, automatic stock valuation/COGS, supplier or sales accounting, hosted provisioning, billing, and deployment.
-
-**Required gate before implementation:** inspect current inventory movement/command APIs and the Phase 3 owner decisions; write the count consistency and concurrency contract plus acceptance tests first. If the business cannot safely handle movements during an open count, explicitly freeze/stop affected stock movements for that count or choose a reviewed cut-off/reconciliation method; never guess.
-
-
+### WP3.5 Physical Stock Counts and Adjustments
+- **WP3.5d — Atomic count posting:** merged via [PR #55](https://github.com/zinlinna071-lgtm/KitchAI/pull/55), merge commit `8cae7f31a828fe03f2819e8c159d1d4190b06f95`. Five PR-triggered workflows passed on head `1938cdad903aa707d166cc09ab4c3f374b77ffd8`.
+- **WP3.5e — Accessible stock-count review UI:** implementation on branch `feat/wp3-5e-stock-count-review-ui`. Includes session/line review, count entry, variance reasons, stale-line refresh, selected reviewed-line posting, cancellation, pending-post lockout, responsive styles, and static regression assertions. Final CI/regression validation is pending. Current UI intentionally reviews existing sessions; session creation and line discovery/adding are not yet exposed in the UI.
+- **Safety gate:** count drafts do not change stock. Only a server-accepted atomic post changes inventory. Do not merge WP3.5e until its CI is green and remaining UI limitations are reviewed.
 
 ### WP3.5a — Physical count consistency and test contract
 
