@@ -1204,7 +1204,7 @@ async function refreshProductionView() {
           event.preventDefault();
           submit.disabled = true;
           try {
-            const entries = [...form.querySelectorAll("fieldset[data-line-id]")].map(fieldset => {
+            const entries = /** @type {HTMLFieldSetElement[]} */ ([...form.querySelectorAll("fieldset[data-line-id]")]).map(fieldset => {
               const get = field => /** @type {HTMLInputElement | HTMLSelectElement} */ (fieldset.querySelector('[data-field="' + field + '"]'));
               const disposition = get("disposition").value;
               return {
