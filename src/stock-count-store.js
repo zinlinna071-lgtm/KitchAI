@@ -239,6 +239,9 @@ export async function cancelStockCountSession(scope, sessionId, cancelledAt = ne
   const partition = scopeKey(scope);
   const session = await readSession(partition, sessionId);
   if (!session) throw new Error("Stock-count session was not found in this business workspace.");
+  if (session.pendingPost) {
+    throw new Error("A stock-count posting outcome may be uncertain. Retry the saved command and reconcile its result before cancelling.");
+  }
   const lines = await readLines(partition, sessionId);
   const cancelled = cancelSession(session, lines, cancelledAt);
   const db = await openBusinessDatabase();
@@ -296,6 +299,12 @@ export async function postReviewedStockCountSubset(scope, sessionId, lineIds, au
         const selected = lineIds.map(id => allLines.find(line => line.lineId === id));
         if (selected.some(line => !line || line.state !== "reviewed" || line.countedQuantity === null || line.variance === null)) {
           throw new Error("Only reviewed, counted lines can be posted. Review the selected lines first.");
+        }
+        if (options.completeSession === true) {
+          const selectedIds = new Set(selected.map(line => line.lineId));
+          if (allLines.some(line => line.state !== "posted" && !selectedIds.has(line.lineId))) {
+            throw new Error("The session cannot be completed while unposted count lines remain. Submit every remaining reviewed line or leave the session open.");
+          }
         }
         const command = {
           commandId: crypto.randomUUID(),
