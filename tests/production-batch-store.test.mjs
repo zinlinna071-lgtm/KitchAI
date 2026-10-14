@@ -67,6 +67,7 @@ test("rejects inactive recipes, missing lines, cross-recipe lines, bad units, in
   assert.throws(() => buildRecipeSnapshot(recipe, [{ ...lines[0], recipeId: "other" }]));
   assert.throws(() => buildRecipeSnapshot(recipe, [{ ...lines[0], unit: "cup" }]));
   assert.throws(() => buildRecipeSnapshot(recipe, [{ ...lines[0], quantity: 0.1 + 0.2 }]));
+  assert.throws(() => buildRecipeSnapshot(recipe, [{ ...lines[0], quantity: 1e18 }]));
   assert.throws(() => buildRecipeSnapshot(recipe, [{ ...lines[0], quantityMode: "to_taste", note: "" }]));
   assert.throws(() => buildRecipeSnapshot(recipe, [{ ...lines[0], id: "line-b" }, { ...lines[1], id: "line-b" }]));
 });
