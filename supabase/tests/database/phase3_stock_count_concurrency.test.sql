@@ -39,11 +39,11 @@ exception when serialization_failure then
 end;
 $$;
 
-select extensions.dblink_connect(
+select extensions.dblink_connect_u(
  'wp35d_writer',
  'host=127.0.0.1 port=5432 dbname=postgres user=postgres password=postgres'
 );
-select extensions.dblink_connect(
+select extensions.dblink_connect_u(
  'wp35d_count',
  'host=127.0.0.1 port=5432 dbname=postgres user=postgres password=postgres'
 );
@@ -119,6 +119,7 @@ select is(
  '1.000000',
  'concurrent rejection preserves the ordinary receipt as the only stock effect'
 );
+reset role;
 select is(
  (select count(*)::integer from public.stock_count_line_postings
   where owner_id='55111111-1111-4111-8111-111111111111'
