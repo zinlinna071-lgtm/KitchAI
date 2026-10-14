@@ -923,6 +923,9 @@ async function loadOwnerWorkspace(session) {
     }
     await refreshFinishedStockView(true);
     await refreshProductionView();
+    // The stock-count module may have initialized before the account workspace loaded.
+    // Refresh it now so its scope and capture controls reflect the active owner profile.
+    await stockCountUI.refresh();
   } catch (error) {
     setProfileState("Account workspace could not be loaded. Existing local data is preserved. " + (error instanceof Error ? error.message : ""), true);
   }
@@ -982,6 +985,8 @@ profileForm?.addEventListener("submit", async (event) => {
       await refreshMenuView();
       await refreshRecipeView();
       await runSync();
+      // A newly created profile makes stock counting available after the first workspace refresh.
+      await stockCountUI.refresh();
     } else {
       const saved = await saveLocalProfile({ id: currentProfile?.id, name: businessNameInput.value });
       currentProfile = saved.profile;
