@@ -159,6 +159,7 @@ test("production inventory command uses measured decisions, stable IDs, and one 
     output: { productId: menuItemId, quantity: "4", unit: "each" },
   };
   const options = {
+    remoteBusinessId: "abababab-abab-4bab-8bab-abababababab",
     commandId: "88888888-8888-4888-8888-888888888888",
     occurredAt: "2026-10-14T10:00:00.000Z",
     outputEventId: "99999999-9999-4999-8999-999999999999",
@@ -170,7 +171,8 @@ test("production inventory command uses measured decisions, stable IDs, and one 
   };
   const command = buildProductionInventoryCommand(batch, options);
   assert.equal(command.commandId, options.commandId);
-  assert.equal(command.businessId, batch.businessId);
+  assert.equal(command.businessId, options.remoteBusinessId);
+  assert.notEqual(command.businessId, batch.businessId);
   assert.equal(command.commandType, "stock_movement");
   assert.equal(command.payload.movements.length, 3);
   assert.deepEqual(command.payload.movements.map((movement) => movement.kind), [
@@ -199,5 +201,5 @@ test("production inventory command rejects unprepared batches and non-UUID stock
     actualUsage: [{ lineId: "line", disposition: "measured", quantity: "1", unit: "kg" }],
     output: { productId: "11111111-1111-4111-8111-111111111111", quantity: "1", unit: "each" },
   };
-  assert.throws(() => buildProductionInventoryCommand(batch), /Production batch ID must be a UUID/);
+  assert.throws(() => buildProductionInventoryCommand(batch, { remoteBusinessId: "77777777-7777-4777-8777-777777777777" }), /Production batch ID must be a UUID/);
 });
