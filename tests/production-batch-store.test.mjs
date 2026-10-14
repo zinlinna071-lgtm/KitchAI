@@ -163,6 +163,10 @@ test("production inventory command uses measured decisions, stable IDs, and one 
     occurredAt: "2026-10-14T10:00:00.000Z",
     outputEventId: "99999999-9999-4999-8999-999999999999",
     lotId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+    movementEventIds: {
+      "line-a": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      "line-b": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+    },
   };
   const command = buildProductionInventoryCommand(batch, options);
   assert.equal(command.commandId, options.commandId);
