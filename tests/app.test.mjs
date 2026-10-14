@@ -208,3 +208,22 @@ test("entity scope stays stable when the server assigns a different remote busin
   });
   assert.throws(() => scopeForBusinessProfile({ ownerId: "owner-1", profileId: "" }), /Business Profile ID is required/);
 });
+
+
+test("stock-count review UI exposes accessible session, line, and explicit posting controls", async () => {
+ const html = await read("../index.html");
+ const app = await read("../src/app.js");
+ const ui = await read("../src/stock-count-ui.js");
+ const css = await read("../src/styles.css");
+ assert.match(html, /id="stock-count-panel"/);
+ assert.match(html, /id="stock-count-session"/);
+ assert.match(html, /id="stock-count-lines"[^>]*aria-label="Stock-count lines"/);
+ assert.match(html, /id="stock-count-state" class="profile-state" role="status" aria-live="polite"/);
+ assert.match(html, /id="stock-count-post-selected"[^>]*disabled/);
+ assert.match(app, /initializeStockCountUI/);
+ assert.match(ui, /postReviewedStockCountSubset/);
+ assert.match(ui, /reviewedBy: context\.getSession\(\)\?\.user\?\.id/);
+ assert.match(ui, /A posting outcome is uncertain/);
+ assert.match(ui, /server-confirmed posting/);
+ assert.match(css, /WP3\.5e accessible stock-count review/);
+});
