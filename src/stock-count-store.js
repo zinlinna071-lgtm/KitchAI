@@ -279,7 +279,8 @@ export async function postReviewedStockCountSubset(scope, sessionId, lineIds, au
   const linesRequest = lines.index("bySession").getAll([
     partition.ownerId, partition.businessId, requireText(sessionId, "Count session ID"),
   ]);
-  let pending;
+  /** @type {any} */
+  let pending = null;
   let failure;
   let session;
   let allLines;
