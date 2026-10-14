@@ -1,4 +1,4 @@
--- dblink runs inside the Postgres container; use its local socket and explicit test superuser credentials.
+-- dblink uses the Postgres container's TCP listener so password authentication is used instead of local socket trust.
 -- Two-session regression: hold the shared owner lock in an ordinary stock writer,
 -- start a count post using the captured version, then commit the writer first.
 -- The waiting count must see the advanced version and reject without any count audit.
@@ -42,11 +42,11 @@ $$;
 
 select extensions.dblink_connect(
  'wp35d_writer',
- 'dbname=postgres user=postgres password=postgres'
+ 'host=127.0.0.1 port=5432 dbname=postgres user=postgres password=postgres'
 );
 select extensions.dblink_connect(
  'wp35d_count',
- 'dbname=postgres user=postgres password=postgres'
+ 'host=127.0.0.1 port=5432 dbname=postgres user=postgres password=postgres'
 );
 select extensions.dblink_exec('wp35d_writer', 'begin');
 select extensions.dblink_exec('wp35d_writer', 'set role authenticated');
