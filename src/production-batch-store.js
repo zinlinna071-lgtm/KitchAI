@@ -385,14 +385,14 @@ function requireUuid(value, label) {
  * Build a stable server command from the frozen recipe snapshot and explicit actual-usage decisions.
  * Call once and persist the returned command before any network request; retries must reuse it verbatim.
  * @param {any} batch
- * @param {{commandId?:string,occurredAt?:string,outputEventId?:string,lotId?:string,movementEventIds?:Record<string,string>}} [options]
+ * @param {{remoteBusinessId:string,commandId?:string,occurredAt?:string,outputEventId?:string,lotId?:string,movementEventIds?:Record<string,string>}} options
  */
 export function buildProductionInventoryCommand(batch, options = {}) {
   if (!batch || !["ready_to_post", "posting", "failed_to_post"].includes(batch.state)) {
     throw new Error("Only a prepared production batch can be posted.");
   }
   const batchId = requireUuid(batch.batchId, "Production batch ID");
-  const businessId = requireUuid(batch.businessId, "Business ID");
+  const businessId = requireUuid(options.remoteBusinessId, "Server business ID");
   if (!batch.snapshot?.snapshotId || !Array.isArray(batch.snapshot.lines) || batch.snapshot.lines.length === 0) {
     throw new Error("A valid immutable recipe snapshot is required for posting.");
   }
@@ -478,10 +478,12 @@ export function buildProductionInventoryCommand(batch, options = {}) {
  * @param {{ownerId:string,businessId:string}} scope
  * @param {string} batchId
  * @param {any} session
+ * @param {string} remoteBusinessId Server-issued business_id from the synced remote profile; never the local partition ID.
  */
-export async function postProductionBatch(scope, batchId, session) {
+export async function postProductionBatch(scope, batchId, session, remoteBusinessId) {
   const partition = normalizeScope(scope);
   requireText(batchId, "Batch ID");
+  const serverBusinessId = requireUuid(remoteBusinessId, "Server business ID");
   if (!session?.access_token || !session?.user?.id || session.user.id !== partition.ownerId) {
     throw new Error("Sign in as the owner of this business before posting production.");
   }
@@ -500,7 +502,7 @@ export async function postProductionBatch(scope, batchId, session) {
       batch.updatedAt = batch.posting.lastAttemptAt;
       return batch;
     }
-    const command = buildProductionInventoryCommand(batch);
+    const command = buildProductionInventoryCommand(batch, { remoteBusinessId: serverBusinessId });
     const attemptedAt = new Date().toISOString();
     batch.posting = {
       status: "pending",
