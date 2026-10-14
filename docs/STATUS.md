@@ -126,3 +126,22 @@ PR [#39](https://github.com/zinlinna071-lgtm/KitchAI/pull/39) is a Draft stacked
 
 On implementation commit `4ebfca8a7d63955894b0e1f22c777ddfed7d0c87`, [Application Shell CI](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38455887104) passed the syntax/type/unit-test/build and browser smoke-test workflow. [Local Supabase Vertical Slice CI](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38455887046) passed the migration/database test stage with 103 pgTAP tests and passed all 8 local-Supabase Playwright integration tests. The adapter and full PR #39 diff were reviewed; Phase 2 recipe quantities are preserved unchanged by migration and conversion is only through the explicit guarded adapter. The adapter is not wired to production posting. WP3.1 remains partial; PRs #38 and #39 are Draft/unmerged. Fresh CI on this documentation refresh remains the final check.
 
+
+
+## Phase 3 current implementation status — 2026-10-14 (authoritative reconciliation)
+
+The older WP3.1 paragraphs above are historical notes and are superseded by this section where they conflict with current repository state.
+
+- WP3.1 inventory domain foundation and strict recipe quantity adapter are merged via PRs [#38](https://github.com/zinlinna071-lgtm/KitchAI/pull/38) and [#39](https://github.com/zinlinna071-lgtm/KitchAI/pull/39).
+- WP3.2 atomic inventory commands are merged via PR [#41](https://github.com/zinlinna071-lgtm/KitchAI/pull/41).
+- WP3.2.1 purchasing/receiving is merged via PR [#50](https://github.com/zinlinna071-lgtm/KitchAI/pull/50) at `337a5d8ac38c11f3a12191c23d5deded541f4f92`.
+- WP3.3 production batch snapshot/lifecycle/posting/operator UI is merged via PRs [#43](https://github.com/zinlinna071-lgtm/KitchAI/pull/43), [#45](https://github.com/zinlinna071-lgtm/KitchAI/pull/45), [#46](https://github.com/zinlinna071-lgtm/KitchAI/pull/46), and [#49](https://github.com/zinlinna071-lgtm/KitchAI/pull/49).
+- Finished stock traceability/disposition and offline UI are merged via PRs [#47](https://github.com/zinlinna071-lgtm/KitchAI/pull/47) and [#48](https://github.com/zinlinna071-lgtm/KitchAI/pull/48).
+- Post-merge main checks on `337a5d8`: baseline run [38559740653](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38559740653) and app-shell run [38559740650](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38559740650) passed. Local Supabase vertical-slice run [38559740670](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38559740670) subsequently completed successfully: the isolated Supabase stack started, database authorization/idempotency tests passed, the app built, and all local Supabase browser integration scenarios passed.
+- Hosted Supabase/provider authorization, production billing/secrets/deployment, real cross-device sync, full backup/recovery readiness, and deferred real-device accessibility/install checks remain unverified or separately gated.
+- Next proposed WP: **WP3.5 Physical Stock Counts and Adjustments**. It is a planning proposal, not approved implementation scope. First define count snapshot/cut-off semantics, treatment of movements during a count, stale-count conflict handling, and append-only/idempotent posting; then implement and test one bounded vertical slice.
+
+
+## WP3.5 planning handoff — 2026-10-14
+
+A detailed proposal for Physical Stock Counts and Adjustments is in [PHASE_3_WP3_5_STOCK_COUNTS_PLAN.md](./PHASE_3_WP3_5_STOCK_COUNTS_PLAN.md). It recommends optimistic concurrency: reject stale count lines when stock movements occur after the physical count, then require review/recount. Owner decisions D3.5-01 through D3.5-04 remain open. No WP3.5 application code or migration should be written until those decisions are confirmed.
