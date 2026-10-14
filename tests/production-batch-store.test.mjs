@@ -106,6 +106,10 @@ test("actual usage requires one explicit, valid decision per stable snapshot lin
     byId.estimate, byId.taste,
   ]), /variance reason/);
   assert.throws(() => validateActualUsage(snapshot, [
+    { lineId: "exact", disposition: "accepted_estimate", quantity: "0.9", unit: "kg", note: "Estimated" },
+    byId.estimate, byId.taste,
+  ]), /variance reason/);
+  assert.throws(() => validateActualUsage(snapshot, [
     byId.exact,
     { lineId: "estimate", disposition: "accepted_estimate", quantity: "0.2", unit: "l" },
     byId.taste,
