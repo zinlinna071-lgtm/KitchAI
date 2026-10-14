@@ -34,6 +34,30 @@ select is(
  'sourceId','a9300000-0000-4000-8000-000000000001')))
  ) ->> 'status','accepted','replay returns original result');
 select is((select count(*)::integer from public.stock_movements where event_id='a9100000-0000-4000-8000-000000000001'),1,'replay does not duplicate movement');
+-- Movement array order is part of the command contract: a receipt may fund
+-- a later outflow in the same atomic command, but not the reverse.
+select is(
+ public.apply_inventory_command(
+ 'a9000000-0000-4000-8000-000000000012',
+ (select business_id from public.business_profiles where owner_id='41111111-1111-4111-8111-111111111111'),
+ 'inventory_adjustment',
+ jsonb_build_object('movements',jsonb_build_array(
+  jsonb_build_object('eventId','a9100000-0000-4000-8000-000000000012','stockClass','ingredient',
+   'stockItemId','a9200000-0000-4000-8000-000000000002','kind','purchase_receipt',
+   'direction','in','quantity','3','unit','g','sourceType','purchase_receipt',
+   'sourceId','a9300000-0000-4000-8000-000000000012'),
+  jsonb_build_object('eventId','a9100000-0000-4000-8000-000000000013','stockClass','ingredient',
+   'stockItemId','a9200000-0000-4000-8000-000000000002','kind','waste',
+   'direction','out','quantity','2','unit','g','sourceType','waste',
+   'sourceId','a9300000-0000-4000-8000-000000000013','reason','ordered command test')
+  ))
+ ) ->> 'status','accepted','ordered receipt then outflow succeeds in one command');
+select is(
+ (select sum(case when direction='in' then quantity else -quantity end)
+  from public.stock_movements
+  where owner_id='41111111-1111-4111-8111-111111111111'
+   and stock_item_id='a9200000-0000-4000-8000-000000000002'),
+  1::numeric,'movement order leaves the expected non-negative balance');
 select throws_ok(
  $sql$select public.apply_inventory_command(
  'a9000000-0000-4000-8000-000000000001',
