@@ -406,6 +406,7 @@ export function buildProductionInventoryCommand(batch, options = {}) {
   const occurredAt = options.occurredAt ?? new Date().toISOString();
   if (!Number.isFinite(Date.parse(occurredAt))) throw new TypeError("Production posting timestamp must be valid.");
   const timestamp = new Date(occurredAt).toISOString();
+  /** @type {Map<string, any>} */
   const usageByLine = new Map(actualUsage.map((entry) => [entry.lineId, entry]));
   const movements = [];
 
