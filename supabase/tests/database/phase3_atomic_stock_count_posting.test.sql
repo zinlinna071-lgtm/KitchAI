@@ -151,7 +151,7 @@ select is(
   'b5430000-0000-4000-8000-000000000005',
   (select business_id from public.business_profiles where owner_id='54111111-1111-4111-8111-111111111111'),
   'b5440000-0000-4000-8000-000000000003',
-  '[{"lineId":"b5450000-0000-4000-8000-000000000006","stockClass":"ingredient","stockItemId":"b5422222-2222-4222-8222-222222222222","expectedVersion":"0","countedQuantity":"0","unit":"g","reason":"","countedAt":"2026-10-14T12:00:00Z","reviewedAt":"2026-10-14T12:01:00Z"}]'::jsonb,
+  '[{"lineId":"b5450000-0000-4000-8000-000000000006","stockClass":"ingredient","stockItemId":"b5421111-1111-4111-8111-111111111111","expectedVersion":"1","countedQuantity":"5","unit":"g","reason":"","countedAt":"2026-10-14T12:00:00Z","reviewedAt":"2026-10-14T12:01:00Z"}]'::jsonb,
   true
  ) ->> 'sessionStatus',
  'completed',
