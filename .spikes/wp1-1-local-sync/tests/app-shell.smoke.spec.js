@@ -1074,3 +1074,94 @@ test("WP2.5b rolls back a failed migration transaction and retries safely after 
   expect(recovered.marker).toBeTruthy();
   expect(recovered.ledger).toBeTruthy();
 });
+
+
+test("production batch usage, preparation, cancellation, and business scoping persist in IndexedDB", async ({ page }) => {
+  await page.goto("/");
+  const evidence = await page.evaluate(async () => {
+    const { openBusinessDatabase } = await import("/src/business-data-store.js");
+    const {
+      startProductionBatch,
+      getProductionBatch,
+      recordProductionBatchActualUsage,
+      prepareProductionBatchForPosting,
+      cancelProductionBatch,
+    } = await import("/src/production-batch-store.js");
+    const ownerId = "wp3-3-2-owner-" + crypto.randomUUID();
+    const businessId = "wp3-3-2-business-" + crypto.randomUUID();
+    const recipeId = "wp3-3-2-recipe-" + crypto.randomUUID();
+    const scope = { ownerId, businessId };
+    const db = await openBusinessDatabase();
+    const transaction = db.transaction(["recipes", "recipeLines"], "readwrite");
+    transaction.objectStore("recipes").put({
+      ownerId, businessId, id: recipeId, menuItemId: "menu-rice",
+      name: "Lifecycle test rice", instructions: "Cook", yieldPortions: 4, status: "active",
+    });
+    transaction.objectStore("recipeLines").put({
+      ownerId, businessId, id: "rice-line-" + recipeId, recipeId,
+      ingredientId: "rice", quantity: 1, quantityMode: "exact", unit: "kg", position: 0, note: "",
+    });
+    await new Promise((resolve, reject) => {
+      transaction.oncomplete = resolve;
+      transaction.onerror = () => reject(transaction.error);
+      transaction.onabort = () => reject(transaction.error ?? new Error("Seed transaction aborted"));
+    });
+
+    const batch = await startProductionBatch(scope, recipeId);
+    const lineId = batch.snapshot.lines[0].lineId;
+    const usage = [{ lineId, disposition: "measured", quantity: "1", unit: "kg" }];
+    await recordProductionBatchActualUsage(scope, batch.batchId, usage);
+    const afterUsage = await getProductionBatch(scope, batch.batchId);
+    const usageEvent = afterUsage.events.find((event) => event.type === "actual_usage_recorded");
+    const prepared = await prepareProductionBatchForPosting(scope, batch.batchId, {
+      productId: "menu-rice", quantity: "4", unit: "each",
+    });
+    let rejectsPostEdit = false;
+    try {
+      await recordProductionBatchActualUsage(scope, batch.batchId, usage);
+    } catch {
+      rejectsPostEdit = true;
+    }
+    const hiddenFromOtherBusiness = await getProductionBatch(
+      { ownerId, businessId: businessId + "-other" }, batch.batchId,
+    );
+
+    const cancelled = await startProductionBatch(scope, recipeId);
+    await cancelProductionBatch(scope, cancelled.batchId, "Kitchen closed early");
+    let rejectsCancelledPrepare = false;
+    try {
+      await prepareProductionBatchForPosting(scope, cancelled.batchId, {
+        productId: "menu-rice", quantity: "4", unit: "each",
+      });
+    } catch {
+      rejectsCancelledPrepare = true;
+    }
+    const cancelledStored = await getProductionBatch(scope, cancelled.batchId);
+    db.close();
+    return {
+      started: batch.state,
+      hasStartEvent: batch.events.some((event) => event.type === "started"),
+      actualUsagePersisted: afterUsage.actualUsage[0]?.quantity === "1",
+      usageRevisionPreserved: usageEvent?.actualUsage?.[0]?.quantity === "1",
+      preparedState: prepared.state,
+      outputPersisted: prepared.output?.quantity === "4",
+      rejectsPostEdit,
+      hiddenFromOtherBusiness: hiddenFromOtherBusiness === null,
+      cancelledState: cancelledStored.state,
+      rejectsCancelledPrepare,
+    };
+  });
+
+  expect(evidence).toEqual({
+    started: "started",
+    hasStartEvent: true,
+    actualUsagePersisted: true,
+    usageRevisionPreserved: true,
+    preparedState: "ready_to_post",
+    outputPersisted: true,
+    rejectsPostEdit: true,
+    hiddenFromOtherBusiness: true,
+    cancelledState: "cancelled",
+    rejectsCancelledPrepare: true,
+  });
+});
