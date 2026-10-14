@@ -198,7 +198,7 @@ Implementation history uses WP3.2 for the atomic inventory command foundation an
 
 ### Next proposed work package — WP3.5 Physical Stock Counts and Adjustments
 
-**Status:** Proposed; not yet implemented or owner-approved as a detailed scope.
+**Status:** Proposed; detailed plan: [PHASE_3_WP3_5_STOCK_COUNTS_PLAN.md](./PHASE_3_WP3_5_STOCK_COUNTS_PLAN.md). Not yet implemented or owner-approved as a detailed scope.
 
 **Purpose:** let the owner record a physical count, compare it with the ledger-derived on-hand balance, review a variance, and post a reasoned adjustment through the existing atomic inventory command path.
 
