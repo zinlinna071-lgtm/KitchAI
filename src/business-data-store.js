@@ -1,5 +1,5 @@
 const DATABASE_NAME = "kitchai-business-data";
-const DATABASE_VERSION = 5;
+const DATABASE_VERSION = 6;
 const ENTITY_STORES = ["ingredients", "menuItems", "recipes", "recipeLines"];
 const OPERATIONS = "operations";
 const SYNC_METADATA = "syncMetadata";
@@ -102,6 +102,18 @@ function createSchema(db) {
     store.createIndex("byScope", ["ownerId", "businessId"], { unique: false });
     store.createIndex("byLot", ["ownerId", "businessId", "lotId"], { unique: false });
     store.createIndex("bySyncState", ["ownerId", "businessId", "syncState"], { unique: false });
+  }
+  if (!db.objectStoreNames.contains("finishedStockSnapshots")) {
+    const store = db.createObjectStore("finishedStockSnapshots", { keyPath: ["ownerId", "businessId"] });
+    store.createIndex("byScope", ["ownerId", "businessId"], { unique: true });
+  }
+  if (!db.objectStoreNames.contains("finishedStockCommands")) {
+    const store = db.createObjectStore("finishedStockCommands", {
+      keyPath: ["ownerId", "businessId", "commandId"],
+    });
+    store.createIndex("byScope", ["ownerId", "businessId"], { unique: false });
+    store.createIndex("bySyncState", ["ownerId", "businessId", "state"], { unique: false });
+    store.createIndex("byCreatedAt", ["ownerId", "businessId", "createdAt"], { unique: false });
   }
   // Production batches are local-first workflow records; recipe snapshots are captured once at start.
   if (!db.objectStoreNames.contains("productionBatches")) {
