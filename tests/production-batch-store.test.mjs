@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { buildRecipeSnapshot } from "../src/production-batch-store.js";
+import { buildRecipeSnapshot, validateActualUsage, validateProductionOutput } from "../src/production-batch-store.js";
 
 const recipe = {
   id: "recipe-1",
@@ -82,4 +82,53 @@ test("rejects inactive recipes, missing lines, cross-recipe lines, bad units, in
   assert.throws(() => buildRecipeSnapshot(recipe, [{ ...lines[0], quantity: 1e18 }]));
   assert.throws(() => buildRecipeSnapshot(recipe, [{ ...lines[0], quantityMode: "to_taste", note: "" }]));
   assert.throws(() => buildRecipeSnapshot(recipe, [{ ...lines[0], id: "line-b" }, { ...lines[1], id: "line-b" }]));
+});
+
+
+test("actual usage requires one explicit, valid decision per stable snapshot line", () => {
+  const snapshot = buildRecipeSnapshot(recipe, [
+    { id: "exact", recipeId: "recipe-1", ingredientId: "rice", quantity: 1, unit: "kg", position: 0 },
+    { id: "estimate", recipeId: "recipe-1", ingredientId: "oil", quantity: 0.2, quantityMode: "estimated", unit: "l", position: 1 },
+    { id: "taste", recipeId: "recipe-1", ingredientId: "salt", quantityMode: "to_taste", unit: "g", position: 2, note: "Add to taste" },
+  ], { snapshotId: "usage-snapshot" });
+  const usage = validateActualUsage(snapshot, [
+    { lineId: "exact", disposition: "measured", quantity: "1", unit: "kg" },
+    { lineId: "estimate", disposition: "accepted_estimate", quantity: "0.2", unit: "l", note: "Operator accepted the kitchen estimate" },
+    { lineId: "taste", disposition: "measured", quantity: "0.004", unit: "g" },
+  ]);
+  assert.equal(usage.length, 3);
+  assert.equal(usage.find((line) => line.lineId === "taste").quantity, "0.004");
+  assert.throws(() => validateActualUsage(snapshot, usage.slice(0, 2)), /every recipe line/);
+  assert.throws(() => validateActualUsage(snapshot, [...usage, usage[0]]), /every recipe line/);
+  const byId = Object.fromEntries(usage.map((line) => [line.lineId, line]));
+  assert.throws(() => validateActualUsage(snapshot, [
+    { lineId: "exact", disposition: "measured", quantity: "0.9", unit: "kg" },
+    byId.estimate, byId.taste,
+  ]), /variance reason/);
+  assert.throws(() => validateActualUsage(snapshot, [
+    { lineId: "exact", disposition: "accepted_estimate", quantity: "0.9", unit: "kg", note: "Estimated" },
+    byId.estimate, byId.taste,
+  ]), /variance reason/);
+  assert.throws(() => validateActualUsage(snapshot, [
+    byId.exact,
+    { lineId: "estimate", disposition: "accepted_estimate", quantity: "0.2", unit: "l" },
+    byId.taste,
+  ]), /operator note/);
+  assert.throws(() => validateActualUsage(snapshot, [
+    byId.exact, byId.estimate,
+    { lineId: "taste", disposition: "not_used", note: "" },
+  ]), /reason/);
+  assert.throws(() => validateActualUsage(snapshot, [
+    byId.exact, byId.estimate,
+    { lineId: "taste", disposition: "measured", quantity: "0.004", unit: "kg" },
+  ]), /snapshot unit/);
+});
+
+test("production output must have a positive supported quantity and match finished-stock unit rules", () => {
+  assert.deepEqual(validateProductionOutput({
+    productId: "menu-1", quantity: "12", unit: "each", note: "Packed 12 portions",
+  }), { productId: "menu-1", quantity: "12", unit: "each", note: "Packed 12 portions" });
+  assert.throws(() => validateProductionOutput({ productId: "menu-1", quantity: "0", unit: "each" }));
+  assert.throws(() => validateProductionOutput({ productId: "menu-1", quantity: "1.5", unit: "each" }));
+  assert.throws(() => validateProductionOutput({ productId: "menu-1", quantity: "1", unit: "portion" }));
 });
