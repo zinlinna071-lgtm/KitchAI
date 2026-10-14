@@ -8,7 +8,7 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: local-supabase-stack-${{ github.ref }}
+  group: wp1-4-local-supabase-${{ github.ref }}
   cancel-in-progress: false
 jobs:
   local-authorization:
