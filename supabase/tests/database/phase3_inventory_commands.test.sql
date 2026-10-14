@@ -57,13 +57,15 @@ select throws_ok(
  'sourceId','a9300000-0000-4000-8000-000000000002','reason','test'))))$sql$,
  '23514','Insufficient stock; negative stock is not allowed','negative stock rejected');
 select is((select count(*)::integer from public.stock_movements where event_id='a9100000-0000-4000-8000-000000000002'),0,'failed command writes no movement');
+select set_config('test.inventory_business_id',
+ (select business_id::text from public.business_profiles where owner_id='41111111-1111-4111-8111-111111111111'), true);
 reset role;
 set local role authenticated;
 set local "request.jwt.claim.sub"='42222222-2222-4222-8222-222222222222';
 select throws_ok(
  $sql$select public.apply_inventory_command(
  'a9000000-0000-4000-8000-000000000003',
- (select business_id from public.business_profiles where owner_id='41111111-1111-4111-8111-111111111111'),
+ pg_catalog.current_setting('test.inventory_business_id')::uuid,
  'stock_receipt',
  jsonb_build_object('movements',jsonb_build_array(jsonb_build_object(
  'eventId','a9100000-0000-4000-8000-000000000003','stockClass','ingredient',
