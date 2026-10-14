@@ -1,8 +1,10 @@
 import { createPurchase, listPurchases, recordPurchaseReceipt, syncPurchaseReceipt, cancelPurchase } from "./purchase-store.js";
 import { listIngredients } from "./ingredient-store.js";
 
+/** @param {string} selector @param {ParentNode} [root] @returns {Element|null} */
 const $ = (selector, root = document) => root.querySelector(selector);
-const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
+/** @param {string} selector @param {ParentNode} [root] @returns {Element[]} */
+const $ = (selector, root = document) => [...root.querySelectorAll(selector)];
 
 function setMessage(target, message, isError = false) {
   if (!target) return;
