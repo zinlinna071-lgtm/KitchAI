@@ -55,7 +55,7 @@ export function buildRecipeSnapshot(recipe, lines, options = {}) {
       }
       // Validate decimal representability now; the original numeric value is preserved, never rounded.
       const decimal = String(line.quantity);
-      if (!/^(?:0|[1-9]\\d*)(?:\\.\\d{1,6})?$/.test(decimal)) {
+      if (!/^(?:0|[1-9]\d*)(?:\.\d{1,6})?$/.test(decimal)) {
         throw new RangeError("Recipe quantity cannot be represented safely at six decimal places.");
       }
       quantity = decimal;
