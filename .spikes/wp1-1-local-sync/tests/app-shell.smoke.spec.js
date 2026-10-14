@@ -1462,6 +1462,8 @@ test("purchase drafts persist locally and do not change stock before server rece
   await page.locator('#purchase-line-entry-list select[data-field="unit"]').selectOption("kg");
   await page.locator('#purchase-line-entry-list input[data-field="unitPrice"]').fill("35.50");
   await page.locator("#purchase-supplier").fill("Morning Market");
+  const formValidity = await page.locator("#purchase-create-form").evaluate(form => ({ valid: form.checkValidity(), invalid: [...form.querySelectorAll(":invalid")].map(element => ({ id: element.id || element.getAttribute("data-field"), value: element.value, message: element.validationMessage })) }));
+  expect(formValidity).toEqual({ valid: true, invalid: [] });
   await page.getByRole("button", { name: "Save purchase draft" }).click();
   await expect(page.locator("#purchase-state")).toContainText("Purchase draft saved locally");
   await expect(page.locator("#purchase-list")).toContainText("Morning Market");
