@@ -1378,7 +1378,7 @@ test("finished stock UI is accessible and disposition records persist in the loc
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "Know what is still safe to sell." })).toBeVisible();
   await expect(page.getByRole("button", { name: "Refresh stock" })).toBeVisible();
-  await expect(page.getByLabel("Disposition")).toBeVisible();
+  await expect(page.getByLabel("Disposition", { exact: true })).toBeVisible();
   const evidence = await page.evaluate(async () => {
     const { saveFinishedDisposition, listFinishedDispositions } = await import("/src/finished-stock-workflow-store.js");
     const scope = { ownerId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", businessId: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb" };
