@@ -15,7 +15,10 @@ export default defineConfig({
     viewport: { width: 1365, height: 900 },
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
-    video: "retain-on-failure",
+    // The isolated @sparticuz/chromium setup does not install Playwright's
+    // ffmpeg binary. Keep trace and screenshot diagnostics without enabling
+    // video, which otherwise prevents browser contexts from being created.
+    video: "off",
     launchOptions: { args: chromium.args.filter(argument => argument !== "--single-process"), executablePath },
   },
   webServer: {
