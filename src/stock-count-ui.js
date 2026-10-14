@@ -59,11 +59,11 @@ export function initializeStockCountUI(context) {
     for (const line of lines) {
       const item = make("li", undefined, "stock-count-line");
       const title = make("h4", line.stockItemName);
-      const meta = make("p", `${pretty(line.stockClass)} · ${line.unit} · expected ${quantity(line.expectedQuantity)} · counted ${quantity(line.countedQuantity)} · variance ${quantity(line.variance)} · ${pretty(line.state)}`);
+      const meta = make("p", `${pretty(line.stockClass)} · ${line.unit} · expected ${quantity(line.systemQuantity)} · counted ${quantity(line.countedQuantity)} · variance ${quantity(line.variance)} · ${pretty(line.state)}`);
       item.append(title, meta);
       if (line.note) item.append(make("p", "Note: " + line.note));
-      if (line.reviewReason) item.append(make("p", "Review reason: " + line.reviewReason));
-      if (line.state !== "posted" && line.state !== "stale" && !session.pendingPost && !["cancelled", "posted"].includes(session.status)) {
+      if (line.reason) item.append(make("p", "Review reason: " + line.reviewReason));
+      if (["open", "counted"].includes(line.state) && !session.pendingPost && !["cancelled", "posted"].includes(session.status)) {
         const form = make("form", undefined, "stock-count-line-form");
         const countLabel = make("label", "Counted quantity");
         const count = make("input");
@@ -99,7 +99,7 @@ export function initializeStockCountUI(context) {
         reviewForm.addEventListener("submit", async event => {
           event.preventDefault();
           await runAction(async () => {
-            await reviewStockCountLine(context.getScope(), selectedSessionId, line.lineId, { reason: reason.value });
+            await reviewStockCountLine(context.getScope(), selectedSessionId, line.lineId, { reviewedBy: context.getSession()?.user?.id, reason: reason.value });
             lines = await listStockCountLines(context.getScope(), selectedSessionId);
             sessions = await listStockCountSessions(context.getScope());
             message("Line reviewed locally. Posting is a separate action.");
