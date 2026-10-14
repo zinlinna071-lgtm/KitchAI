@@ -160,5 +160,6 @@ This section supersedes older WP3.5 status notes above where they conflict with 
 
 - WP3.5a consistency/test contract merged: [PR #52](https://github.com/zinlinna071-lgtm/KitchAI/pull/52).
 - WP3.5b server-authoritative item versions merged: [PR #53](https://github.com/zinlinna071-lgtm/KitchAI/pull/53), commit `105ade9062125dd1bb18522c3a72bd7b36c830e3`. Local Supabase authorization and vertical-slice checks passed on the PR head.
-- WP3.5c offline count drafts/review is in progress on [draft PR #54](https://github.com/zinlinna071-lgtm/KitchAI/pull/54); CI is still required before merge.
-- No physical count adjustment posting is available yet. WP3.5d must enforce expected-version comparison and stock movement insertion atomically on the server. Hosted resources, billing, secrets, and deployment remain unauthorized.
+- WP3.5c offline count drafts/review merged via [PR #54](https://github.com/zinlinna071-lgtm/KitchAI/pull/54), squash commit `4788cde4bedd3012f4e16d909041cfbc67b80fdb`. Baseline, app-shell, static preview, and Local Supabase Vertical Slice checks all passed on PR head `5a870402f091bc0588b2a3102feb9716698260e9`.
+- WP3.5d atomic count posting is in progress on `feat/wp3-5d-atomic-stock-count-posting`. It adds the expected-version RPC, server-side immutable count audit, zero-variance audit without stock movement, subset atomicity, and a stable local pending-command retry path. CI and concurrent race verification remain outstanding.
+- Hosted resources, billing, secrets, and deployment remain unauthorized.
