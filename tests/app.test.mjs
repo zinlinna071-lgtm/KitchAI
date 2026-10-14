@@ -227,6 +227,7 @@ test("stock-count review UI exposes accessible session, line, and explicit posti
  assert.match(ui, /server-confirmed stock change/);
  assert.match(ui, /noteInput\.maxLength = 500/);
  assert.match(ui, /checkbox\.checked = false/);
+ assert.match(ui, /`Select \$\{line\.stockItemName\} for posting`/);
  assert.match(ui, /!\["open", "ready_for_review"\]\.includes\(session\.status\)/);
  assert.match(css, /WP3\.5e accessible stock-count review/);
 });
