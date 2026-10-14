@@ -135,6 +135,19 @@
 <div class="stock-count-session-picker"><label for="stock-count-session">Stock-count session</label><select id="stock-count-session"><option value="">Choose a stock-count session</option></select></div>
 <button id="stock-count-refresh" class="button button-secondary" type="button">Refresh sessions</button>
 </div>
+<form id="stock-count-create-form" class="stock-count-create-form" aria-describedby="stock-count-create-help">
+<h3>Create a count session</h3>
+<label for="stock-count-session-note">Session note (optional)</label><input id="stock-count-session-note" type="text" maxlength="500" autocomplete="off">
+<p id="stock-count-create-help" class="field-help">Creating a draft does not change inventory. A synced business and authenticated owner are required.</p>
+<button id="stock-count-create" class="button button-secondary" type="submit">Create session</button>
+</form>
+<form id="stock-count-add-line-form" class="stock-count-add-line-form" aria-describedby="stock-count-add-line-help">
+<h3>Add an item to count</h3>
+<label for="stock-count-item-class">Stock class</label><select id="stock-count-item-class" required><option value="ingredient">Ingredient</option><option value="finished">Finished product</option></select>
+<label for="stock-count-item">Stock item</label><select id="stock-count-item" required><option value="">Choose an item</option></select>
+<p id="stock-count-add-line-help" class="field-help">Adding a line captures the current server quantity and version. Connect and sign in before adding items; counting can continue offline after capture.</p>
+<button id="stock-count-add-line" class="button button-secondary" type="submit">Add count line</button>
+</form>
 <p id="stock-count-state" class="profile-state" role="status" aria-live="polite">Save or load a business profile to review stock counts.</p>
 <ul id="stock-count-lines" class="stock-count-lines" aria-label="Stock-count lines"><li>Select a session to view count lines.</li></ul>
 <div class="stock-count-actions"><button id="stock-count-post-selected" class="button button-primary" type="button" disabled>Post selected reviewed lines</button><button id="stock-count-cancel" class="button button-secondary" type="button" disabled>Cancel session</button></div>
