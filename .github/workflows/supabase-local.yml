@@ -2,7 +2,7 @@ name: WP1.4 Local Supabase Authorization
 on:
   push:
     branches: [main]
-    paths: ["supabase/**", ".github/workflows/supabase-local.yml"]
+    paths: ["supabase/**", "scripts/test-stock-count-concurrency.mjs", ".github/workflows/supabase-local.yml"]
   pull_request:
     paths: ["supabase/**", ".github/workflows/supabase-local.yml"]
 permissions:
@@ -28,6 +28,11 @@ jobs:
       - name: Run database migration and pgTAP authorization tests
         timeout-minutes: 7
         run: npx --yes supabase@2.39.2 test db --debug
+      - name: Run two-session stock-count concurrency regression
+        run: |
+          npm install --no-save --no-package-lock pg@8.16.3
+          node scripts/test-stock-count-concurrency.mjs
+        timeout-minutes: 2
       - name: Stop local Supabase stack
         if: always()
         timeout-minutes: 3
