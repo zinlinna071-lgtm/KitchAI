@@ -1,4 +1,5 @@
 import { openBusinessDatabase } from "./business-data-store.js";
+import { recipeQuantityToInventoryQuantity } from "./recipe-quantity-adapter.js";
 
 const BATCH_STORE = "productionBatches";
 const RECIPE_STORE = "recipes";
@@ -53,12 +54,8 @@ export function buildRecipeSnapshot(recipe, lines, options = {}) {
       if (typeof line.quantity !== "number" || !Number.isFinite(line.quantity) || line.quantity <= 0) {
         throw new Error("Exact and estimated recipe quantities must be finite numbers greater than zero.");
       }
-      // Validate decimal representability now; the original numeric value is preserved, never rounded.
-      const decimal = String(line.quantity);
-      if (!/^(?:0|[1-9]\d*)(?:\.\d{1,6})?$/.test(decimal)) {
-        throw new RangeError("Recipe quantity cannot be represented safely at six decimal places.");
-      }
-      quantity = decimal;
+      // Reuse the inventory adapter so precision, unit, and numeric range rules stay aligned.
+      quantity = recipeQuantityToInventoryQuantity(line.quantity, { unit }).quantity;
     }
     if (typeof line.position !== "number" || !Number.isInteger(line.position) || line.position < 0) {
       throw new TypeError("Recipe line position must be a non-negative integer.");
