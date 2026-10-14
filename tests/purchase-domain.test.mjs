@@ -62,3 +62,13 @@ test("purchase projection separates confirmed from pending quantities", () => {
   assert.equal(projected.lines[0].reservedQuantity, "3");
   assert.equal(projected.lines[0].outstandingQuantity, "7");
 });
+
+test("explicitly abandoned rejected receipts release reservation without changing confirmed stock", () => {
+  const receipt = buildPurchaseReceiptCommand(purchase(), [{ lineId, quantity: "3" }], {
+    receiptId, commandId, remoteBusinessId: businessId,
+  });
+  const projected = projectPurchase({ ...purchase(), receipts: [{ ...receipt, state: "abandoned" }] });
+  assert.equal(projected.lines[0].receivedQuantity, "0");
+  assert.equal(projected.lines[0].reservedQuantity, "0");
+  assert.equal(projected.lines[0].outstandingQuantity, "10");
+});
