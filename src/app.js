@@ -14,6 +14,7 @@ import { createPhase2SyncStore, syncPhase2Operations, sendPhase2EntityOperation,
 import { buildCarryForwardDecision, buildFinishedDispositionCommand, projectFinishedLotBalances } from "./finished-stock-domain.js";
 import { listCarryForwardDecisions, saveCarryForwardDecision, syncCarryForwardDecision } from "./finished-stock-store.js";
 import { getFinishedStockSnapshot, listFinishedDispositions, refreshFinishedStock, saveFinishedDisposition, syncFinishedDisposition } from "./finished-stock-workflow-store.js";
+import { listProductionBatches, startProductionBatch, recordProductionBatchActualUsage, prepareProductionBatchForPosting, cancelProductionBatch, postProductionBatch } from "./production-batch-store.js";
 
 /** @typedef {Event & { prompt: () => Promise<void> }} BeforeInstallPromptEvent */
 const connectionStatus = /** @type {HTMLParagraphElement | null} */ (document.querySelector("#connection-status"));
@@ -245,6 +246,14 @@ const recipeLineList = /** @type {HTMLUListElement | null} */ (document.querySel
 let editingRecipeId = null;
 let selectedRecipeId = "";
 let editingRecipeLineId = null;
+
+const productionStartForm = /** @type {HTMLFormElement | null} */ (document.querySelector("#production-start-form"));
+const productionRecipeSelect = /** @type {HTMLSelectElement | null} */ (document.querySelector("#production-recipe"));
+const productionStartButton = /** @type {HTMLButtonElement | null} */ (document.querySelector("#production-start-button"));
+const productionState = /** @type {HTMLParagraphElement | null} */ (document.querySelector("#production-state"));
+const productionListState = /** @type {HTMLParagraphElement | null} */ (document.querySelector("#production-list-state"));
+const productionBatchList = /** @type {HTMLUListElement | null} */ (document.querySelector("#production-batch-list"));
+
 
 /** @param {HTMLSelectElement} select @param {{value:string,label:string}[]} options @param {string} placeholder @param {string} selected */
 function setSelectOptions(select, options, placeholder, selected) {
@@ -1056,6 +1065,227 @@ cancelMenuItemEditButton?.addEventListener("click", () => {
   setMenuItemState("Edit cancelled. No changes were made.");
 });
 
+
+
+/** @param {string} message @param {boolean=} isError */
+function setProductionState(message, isError = false) {
+  if (!productionState) return;
+  productionState.textContent = message;
+  productionState.classList.toggle("is-error", isError);
+}
+
+/** Render local production batches; only a server-confirmed post can complete a batch. */
+async function refreshProductionView() {
+  if (!productionStartForm || !productionRecipeSelect || !productionStartButton || !productionListState || !productionBatchList) return;
+  const scope = activeMenuScope();
+  productionBatchList.replaceChildren();
+  if (!scope) {
+    setSelectOptions(productionRecipeSelect, [], "Choose an active recipe", "");
+    productionRecipeSelect.disabled = true;
+    productionStartButton.disabled = true;
+    productionListState.textContent = activeSession ? "Create or load this account's Business Profile first." : "Save a Business Profile first to start production.";
+    setProductionState("Save or load a business profile and activate a recipe to start a batch.");
+    return;
+  }
+  try {
+    const [recipes, batches, ingredients, menuItems] = await Promise.all([
+      listRecipes(scope), listProductionBatches(scope), listIngredients(scope), listMenuItems(scope),
+    ]);
+    const activeRecipes = recipes.filter(recipe => recipe.status === "active");
+    setSelectOptions(productionRecipeSelect, activeRecipes.map(recipe => ({ value: recipe.id, label: recipe.name })), "Choose an active recipe", productionRecipeSelect.value);
+    productionRecipeSelect.disabled = activeRecipes.length === 0;
+    productionStartButton.disabled = activeRecipes.length === 0;
+    productionListState.textContent = batches.length
+      ? batches.length + (batches.length === 1 ? " batch in this business." : " batches in this business.")
+      : "No production batches yet. Start one from an active recipe.";
+    const ingredientNames = new Map(ingredients.map(item => [item.id, item.name]));
+    const menuNames = new Map(menuItems.map(item => [item.id, item.name]));
+    for (const batch of batches) {
+      const item = document.createElement("li");
+      item.className = "production-batch-card";
+      item.dataset.batchId = batch.batchId;
+      const heading = document.createElement("strong");
+      heading.textContent = batch.snapshot.recipeName + " · " + batch.state.replaceAll("_", " ");
+      const detail = document.createElement("p");
+      detail.textContent = "Started " + new Date(batch.startedAt).toLocaleString() + " · " + batch.snapshot.lines.length + " recipe line(s) · " + (batch.output ? "Output " + batch.output.quantity + " " + batch.output.unit : "Output not prepared");
+      item.append(heading, detail);
+      const note = document.createElement("p");
+      note.className = "field-help";
+      note.textContent = "Recipe snapshot " + batch.snapshot.snapshotId + " · edits to the recipe do not change this batch.";
+      item.append(note);
+      if (batch.state === "started") {
+        const form = document.createElement("form");
+        form.className = "production-usage-form";
+        const usageHeading = document.createElement("h4");
+        usageHeading.textContent = "Actual ingredient usage";
+        form.append(usageHeading);
+        for (const line of batch.snapshot.lines) {
+          const fieldset = document.createElement("fieldset");
+          fieldset.className = "production-usage-line";
+          fieldset.dataset.lineId = line.lineId;
+          const legend = document.createElement("legend");
+          legend.textContent = (ingredientNames.get(line.ingredientId) ?? "Ingredient") + " · " + (line.quantityMode === "to_taste" ? "to taste" : line.quantity + " " + line.unit + (line.quantityMode === "estimated" ? " · estimated target" : ""));
+          fieldset.append(legend);
+          const dispositionLabel = document.createElement("label");
+          dispositionLabel.textContent = "Usage decision";
+          const disposition = document.createElement("select");
+          disposition.dataset.field = "disposition";
+          disposition.required = true;
+          for (const [value, label] of [["", "Choose a decision"], ["measured", "Measured actual usage"], ["accepted_estimate", "Accept estimate"], ["not_used", "Not used in this batch"]]) {
+            const option = document.createElement("option"); option.value = value; option.textContent = label; disposition.append(option);
+          }
+          dispositionLabel.append(disposition);
+          const quantityLabel = document.createElement("label");
+          quantityLabel.textContent = "Actual quantity (" + line.unit + ")";
+          const quantity = document.createElement("input");
+          quantity.type = "number"; quantity.min = "0.000001"; quantity.step = "any"; quantity.inputMode = "decimal";
+          quantity.dataset.field = "quantity"; quantity.value = line.quantity ?? "";
+          quantity.required = true;
+          quantityLabel.append(quantity);
+          const noteLabel = document.createElement("label");
+          noteLabel.textContent = "Operator note / reason";
+          const noteInput = document.createElement("input");
+          noteInput.type = "text"; noteInput.maxLength = 1000; noteInput.dataset.field = "note";
+          noteInput.placeholder = "Required for estimates or unused ingredients";
+          noteLabel.append(noteInput);
+          const varianceLabel = document.createElement("label");
+          varianceLabel.textContent = "Variance reason (if actual differs from exact target)";
+          const variance = document.createElement("input");
+          variance.type = "text"; variance.maxLength = 1000; variance.dataset.field = "varianceReason";
+          varianceLabel.append(variance);
+          const updateFields = () => {
+            const unused = disposition.value === "not_used";
+            quantity.disabled = unused;
+            quantity.required = !unused;
+            quantityLabel.hidden = unused;
+            noteInput.required = disposition.value === "accepted_estimate" || unused;
+            if (disposition.value === "not_used") quantity.value = "";
+            else if (!quantity.value && line.quantity) quantity.value = line.quantity;
+          };
+          disposition.addEventListener("change", updateFields);
+          updateFields();
+          fieldset.append(dispositionLabel, quantityLabel, noteLabel, varianceLabel);
+          form.append(fieldset);
+        }
+        const outputHeading = document.createElement("h4");
+        outputHeading.textContent = "Finished output";
+        const outputQuantityLabel = document.createElement("label");
+        outputQuantityLabel.textContent = "Actual output quantity";
+        const outputQuantity = document.createElement("input");
+        outputQuantity.type = "number"; outputQuantity.min = "1"; outputQuantity.step = "1"; outputQuantity.required = true;
+        outputQuantity.dataset.field = "outputQuantity"; outputQuantity.value = String(batch.snapshot.yieldPortions ?? "");
+        outputQuantityLabel.append(outputQuantity);
+        const outputUnitLabel = document.createElement("label");
+        outputUnitLabel.textContent = "Output unit";
+        const outputUnit = document.createElement("select");
+        outputUnit.dataset.field = "outputUnit";
+        for (const unit of ["each", "g", "kg", "ml", "l"]) {
+          const option = document.createElement("option"); option.value = unit; option.textContent = unit; outputUnit.append(option);
+        }
+        outputUnit.value = "each";
+        outputUnitLabel.append(outputUnit);
+        form.append(outputHeading, outputQuantityLabel, outputUnitLabel);
+        const submit = document.createElement("button");
+        submit.type = "submit"; submit.className = "button button-primary"; submit.textContent = "Save usage and prepare batch";
+        const cancelReason = document.createElement("input");
+        cancelReason.type = "text"; cancelReason.maxLength = 1000; cancelReason.placeholder = "Cancellation reason (if cancelling)";
+        cancelReason.setAttribute("aria-label", "Cancellation reason");
+        const cancel = document.createElement("button");
+        cancel.type = "button"; cancel.className = "button button-secondary"; cancel.textContent = "Cancel batch";
+        cancel.addEventListener("click", async () => {
+          if (!cancelReason.value.trim()) { setProductionState("Enter a cancellation reason before cancelling a batch.", true); cancelReason.focus(); return; }
+          try { await cancelProductionBatch(scope, batch.batchId, cancelReason.value); await refreshProductionView(); setProductionState("Batch cancelled. Its recipe snapshot and event history are preserved."); }
+          catch (error) { setProductionState(error instanceof Error ? error.message : "Could not cancel batch.", true); }
+        });
+        form.append(submit, cancelReason, cancel);
+        form.addEventListener("submit", async event => {
+          event.preventDefault();
+          submit.disabled = true;
+          try {
+            const entries = [...form.querySelectorAll("fieldset[data-line-id]")].map(fieldset => {
+              const get = field => fieldset.querySelector('[data-field="' + field + '"]');
+              const disposition = get("disposition").value;
+              return {
+                lineId: fieldset.dataset.lineId,
+                disposition,
+                ...(disposition !== "not_used" ? { quantity: get("quantity").value, unit: batch.snapshot.lines.find(line => line.lineId === fieldset.dataset.lineId).unit } : {}),
+                ...(get("note").value.trim() ? { note: get("note").value.trim() } : {}),
+                ...(get("varianceReason").value.trim() ? { varianceReason: get("varianceReason").value.trim() } : {}),
+              };
+            });
+            await recordProductionBatchActualUsage(scope, batch.batchId, entries);
+            const prepared = await prepareProductionBatchForPosting(scope, batch.batchId, {
+              productId: batch.snapshot.menuItemId, quantity: outputQuantity.value, unit: outputUnit.value,
+            });
+            if (activeSession && navigator.onLine && currentOwnerProfile?.businessId) {
+              await postProductionBatch(scope, batch.batchId, activeSession, currentOwnerProfile.businessId);
+              setProductionState("Production batch posted. Refresh finished stock to review its new lot.");
+            } else {
+              setProductionState("Actual usage saved. Batch is ready to post when you are online and signed in; no inventory has changed yet.");
+            }
+            await refreshProductionView();
+            if (prepared && prepared.state === "ready_to_post") setFinishedStockMessage(finishedStockState, "Refresh stock after the production batch is posted.");
+          } catch (error) {
+            setProductionState(error instanceof Error ? error.message : "Could not prepare production batch.", true);
+            await refreshProductionView();
+          } finally { submit.disabled = false; }
+        });
+        item.append(form);
+      } else if (batch.state === "ready_to_post" || batch.state === "failed_to_post") {
+        const status = document.createElement("p");
+        status.className = "field-help";
+        status.textContent = batch.state === "failed_to_post" ? "Posting failed. Retry will reuse the same command ID and payload." : "Ready to post. Inventory remains unchanged until the server accepts the command.";
+        item.append(status);
+        const post = document.createElement("button");
+        post.type = "button"; post.className = "button button-primary";
+        post.textContent = batch.state === "failed_to_post" ? "Retry posting" : "Post batch";
+        post.disabled = !activeSession || !navigator.onLine || !currentOwnerProfile?.businessId;
+        post.addEventListener("click", async () => {
+          post.disabled = true;
+          try {
+            await postProductionBatch(scope, batch.batchId, activeSession, currentOwnerProfile.businessId);
+            setProductionState("Production batch posted. Refresh finished stock to review its new lot.");
+          } catch (error) {
+            setProductionState("Batch remains recoverable; posting can be retried. " + (error instanceof Error ? error.message : ""), true);
+          } finally { await refreshProductionView(); }
+        });
+        item.append(post);
+      } else if (batch.state === "completed") {
+        const status = document.createElement("p");
+        status.className = "field-help";
+        status.textContent = "Server confirmed posting. Finished stock is derived from the posted ledger.";
+        item.append(status);
+      } else if (batch.state === "cancelled") {
+        const status = document.createElement("p");
+        status.className = "field-help";
+        status.textContent = "Cancelled: " + (batch.cancellationReason ?? "No reason recorded.");
+        item.append(status);
+      }
+      productionBatchList.append(item);
+    }
+    setProductionState(activeRecipes.length ? "Started batches keep their captured recipe snapshot, even after recipe edits." : "Activate a recipe with at least one ingredient line before starting production.");
+  } catch (error) {
+    productionListState.textContent = "Production batches could not be loaded.";
+    setProductionState(error instanceof Error ? error.message : "Production workspace is unavailable.", true);
+  }
+}
+
+productionStartForm?.addEventListener("submit", async event => {
+  event.preventDefault();
+  const scope = activeMenuScope();
+  if (!scope || !productionRecipeSelect?.value) { setProductionState("Choose an active recipe first.", true); return; }
+  if (productionStartButton) productionStartButton.disabled = true;
+  try {
+    const batch = await startProductionBatch(scope, productionRecipeSelect.value);
+    await refreshProductionView();
+    setProductionState("Batch started with an immutable recipe snapshot. Record actual usage before preparing output.");
+    productionBatchList?.querySelector('[data-batch-id="' + batch.batchId + '"]')?.scrollIntoView({ block: "nearest" });
+  } catch (error) {
+    setProductionState(error instanceof Error ? error.message : "Could not start production batch.", true);
+  } finally {
+    if (productionStartButton) productionStartButton.disabled = false;
+  }
+});
 
 recipeForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
