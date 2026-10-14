@@ -163,3 +163,19 @@ This section supersedes older WP3.5 status notes above where they conflict with 
 - WP3.5c offline count drafts/review merged via [PR #54](https://github.com/zinlinna071-lgtm/KitchAI/pull/54), squash commit `4788cde4bedd3012f4e16d909041cfbc67b80fdb`. Baseline, app-shell, static preview, and Local Supabase Vertical Slice checks all passed on PR head `5a870402f091bc0588b2a3102feb9716698260e9`.
 - WP3.5d atomic count posting is implemented on [Draft PR #55](https://github.com/zinlinna071-lgtm/KitchAI/pull/55), head `e383a71b49c8fb72ad973c4bc8885f7ae03e6fd5`. All five PR-triggered workflows passed: Baseline, Static Preview, WP1.2 Application Shell, WP1.4 Local Supabase Authorization, and WP1.6 Local Supabase Vertical Slice. The separate-session concurrency regression rejected a stale count with SQLSTATE `40001` after a concurrent receipt committed, with no accepted count audit row; a browser regression verifies local mutations are blocked while posting outcome is uncertain. PR remains Draft pending owner review.
 - Hosted resources, billing, secrets, and deployment remain unauthorized.
+
+
+## Phase 3 WP3.6 integration review handoff — 2026-10-15 (current)
+
+Draft PR [#58](https://github.com/zinlinna071-lgtm/KitchAI/pull/58) contains the proposed WP3.6 plan, Coding AI execution prompt, and initial static test-gap matrix. The latest planning changes are documentation-only; no application code or migration was changed, no tests were run during static reconnaissance, and Phase 3 is not declared complete.
+
+- Plan: [PHASE_3_WP3_6_PLAN.md](./PHASE_3_WP3_6_PLAN.md)
+- Execution prompt: [CODING_AI_PHASE3_WP3_6_EXECUTION_PROMPT.md](./CODING_AI_PHASE3_WP3_6_EXECUTION_PROMPT.md)
+- Initial matrix: [PHASE_3_WP3_6_TEST_GAP_MATRIX.md](./PHASE_3_WP3_6_TEST_GAP_MATRIX.md)
+- Registry reconciliation: [WP_REGISTRY.md](./WP_REGISTRY.md)
+
+The main candidate gap is a single local-Supabase integration path covering purchase receipt → production posting → finished-stock disposition → physical stock count, with assertions against authoritative final balances and append-only history. This is a hypothesis from static inspection; the Coding AI must verify it against the latest checkout and existing test harness before adding tests.
+
+**Current CI evidence:** no workflow runs or combined statuses are visible for the latest documentation-only PR #58 head. Existing app and database workflows use path filters; this absence must not be described as a pass or failure of application tests. Implementation work must trigger the relevant workflows, record exact final-head evidence, and remain unmerged until required CI passes and the owner reviews the scope.
+
+**Safety boundary:** synthetic data and local Supabase/emulators only. Hosted provisioning, billing, production secrets, and deployment remain unauthorized.
