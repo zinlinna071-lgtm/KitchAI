@@ -573,6 +573,8 @@ test("authenticated stock-count UI creates a session, captures a server snapshot
   await page.locator("#business-name").fill("Stock Count E2E Kitchen");
   await page.getByRole("button", { name: "Save profile" }).click();
   await expect(page.locator("#profile-state")).toContainText("Synced with your account · revision 1", { timeout: 15000 });
+  // The inventory-control UI must refresh after the account profile becomes available.
+  await expect(page.getByRole("button", { name: "Create session" })).toBeEnabled({ timeout: 10000 });
 
   const ingredientName = "E2E Count Ingredient " + Date.now();
   await page.locator("#ingredient-name").fill(ingredientName);
