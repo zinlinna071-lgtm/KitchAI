@@ -116,8 +116,16 @@ begin
          or v_original.stock_class <> v_item ->> 'stockClass'
          or v_original.stock_item_id <> (v_item ->> 'stockItemId')::uuid
          or v_original.unit <> v_item ->> 'unit'
-         or v_original.direction = v_item ->> 'direction' then
-        raise exception 'Reversal or correction must reverse the linked event for the same item and unit'
+         or v_original.direction = v_item ->> 'direction'
+         or v_original.quantity <> v_quantity
+         or exists (
+           select 1 from public.stock_movements prior_link
+           where prior_link.owner_id = v_owner
+             and prior_link.business_id = p_business_id
+             and prior_link.related_event_id = v_original.event_id
+             and prior_link.kind in ('correction', 'reversal')
+         ) then
+        raise exception 'Reversal or correction must exactly reverse one linked event for the same item and unit'
           using errcode = '23514';
       end if;
     end if;
