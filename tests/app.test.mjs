@@ -224,6 +224,6 @@ test("stock-count review UI exposes accessible session, line, and explicit posti
  assert.match(ui, /postReviewedStockCountSubset/);
  assert.match(ui, /reviewedBy: context\.getSession\(\)\?\.user\?\.id/);
  assert.match(ui, /A posting outcome is uncertain/);
- assert.match(ui, /server-confirmed posting/);
+ assert.match(ui, /server-confirmed stock change/);
  assert.match(css, /WP3\.5e accessible stock-count review/);
 });
