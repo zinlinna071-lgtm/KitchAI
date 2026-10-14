@@ -102,6 +102,40 @@
 <ul id="recipe-line-list" class="ingredient-list" aria-label="Recipe ingredient lines"></ul>
 </div>
 </section>
+<section id="finished-stock-panel" class="profile-editor finished-stock-panel" aria-labelledby="finished-stock-title">
+<div class="profile-editor-heading"><p class="eyebrow">PHASE 3 · FINISHED STOCK</p><h2 id="finished-stock-title">Know what is still safe to sell.</h2><p>Finished quantities come from immutable production lots minus recorded allocations. Refresh while online; the latest snapshot stays on this device for offline review. Every stock reduction is revalidated by the server when synced.</p></div>
+<div class="finished-stock-toolbar"><p id="finished-stock-state" class="profile-state" role="status" aria-live="polite">Sign in and load a synced business workspace to view finished stock.</p><button id="finished-stock-refresh" class="button button-secondary" type="button">Refresh stock</button></div>
+<ul id="finished-stock-list" class="finished-stock-list" aria-label="Finished stock lots"></ul>
+<div class="finished-stock-workflows">
+<section class="finished-stock-subpanel" aria-labelledby="finished-disposition-title">
+<h3 id="finished-disposition-title">Record a stock disposition</h3>
+<p>Choose a lot and quantity. Sales and discounted sales below post the stock reduction only; sale price and revenue accounting belong to the separate sales workflow.</p>
+<form id="finished-disposition-form" class="profile-form">
+<label for="finished-disposition-type">Disposition</label>
+<select id="finished-disposition-type" required><option value="sale">Sale · stock reduction only</option><option value="discounted_sale">Discounted sale · stock reduction only</option><option value="owner_consumption">Owner consumption</option><option value="giveaway">Giveaway</option><option value="waste">Waste / discard</option></select>
+<label for="finished-disposition-lot">Finished lot</label><select id="finished-disposition-lot" required><option value="">Refresh stock first</option></select>
+<label for="finished-disposition-quantity">Quantity</label><input id="finished-disposition-quantity" type="number" min="0.000001" step="any" inputmode="decimal" required>
+<p id="finished-disposition-unit" class="field-help">Select a lot to see its unit.</p>
+<label for="finished-disposition-reason">Reason (required for discounted sale and waste)</label><textarea id="finished-disposition-reason" rows="2" maxlength="1000"></textarea>
+<button id="finished-disposition-submit" class="button button-primary" type="submit">Save stock disposition</button>
+<p id="finished-disposition-state" class="profile-state" role="status" aria-live="polite">A disposition is saved locally before any network attempt.</p>
+</form>
+</section>
+<section class="finished-stock-subpanel" aria-labelledby="carry-forward-title">
+<h3 id="carry-forward-title">Carry safe stock into another day</h3>
+<p>Carry-forward is a safety/suitability decision only. It does not create stock or change the remaining quantity.</p>
+<form id="carry-forward-form" class="profile-form">
+<label for="carry-forward-lot">Finished lot</label><select id="carry-forward-lot" required><option value="">Refresh stock first</option></select>
+<label for="carry-forward-date">Carry-forward date</label><input id="carry-forward-date" type="date" required>
+<label class="check-label" for="carry-forward-safe"><input id="carry-forward-safe" type="checkbox" required> I confirm this remaining food is safe and suitable to keep.</label>
+<label for="carry-forward-reason">Handling note (optional)</label><textarea id="carry-forward-reason" rows="2" maxlength="1000"></textarea>
+<button id="carry-forward-submit" class="button button-primary" type="submit">Record carry-forward decision</button>
+<p id="carry-forward-state" class="profile-state" role="status" aria-live="polite">The decision is queued locally before cloud delivery.</p>
+</form>
+</section>
+</div>
+<section class="finished-stock-history" aria-labelledby="finished-stock-history-title"><h3 id="finished-stock-history-title">Recent stock dispositions</h3><ul id="finished-disposition-list" class="finished-stock-list" aria-label="Recent stock dispositions"></ul><h3>Carry-forward decisions</h3><ul id="carry-forward-list" class="finished-stock-list" aria-label="Carry-forward decisions"></ul></section>
+</section>
 <footer class="page-footer"><span>KitchAI · Early foundation</span><span id="app-version">Phase 2 · WP2.4</span></footer>
 </main>
 </body></html>
