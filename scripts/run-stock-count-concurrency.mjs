@@ -103,7 +103,7 @@ try {
          'eventId', $3, 'stockClass', 'ingredient', 'stockItemId', $4,
          'kind', 'purchase_receipt', 'direction', 'in', 'quantity', '1',
          'unit', 'g', 'sourceType', 'purchase_receipt', 'sourceId', $5
-       ))) AS result`,
+       )))) AS result`,
     [writerCommandId, businessId, writerEventId, itemId, writerSourceId]
   );
   assert.equal(movementResult.rows[0].result.status, 'accepted');
