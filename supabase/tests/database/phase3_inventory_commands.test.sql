@@ -89,10 +89,15 @@ set local "request.jwt.claim.sub"='41111111-1111-4111-8111-111111111111';
 
 -- A finished output and its immutable lot are created atomically; sale allocation
 -- must identify that lot and match the reduction quantity exactly.
+-- Seed the menu fixture with the privileged test role; then return to the
+-- authenticated owner context for the actual RPC assertions.
+reset role;
 insert into public.menu_items (id,owner_id,business_id,name,status)
 select 'a9400000-0000-4000-8000-000000000001',owner_id,business_id,'WP3.2 Kimbap','active'
 from public.business_profiles where owner_id='41111111-1111-4111-8111-111111111111'
 on conflict (id) do nothing;
+set local role authenticated;
+set local "request.jwt.claim.sub"='41111111-1111-4111-8111-111111111111';
 select throws_ok(
  $sql$select public.apply_inventory_command(
  'a9000000-0000-4000-8000-000000000022',
