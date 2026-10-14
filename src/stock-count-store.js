@@ -339,7 +339,40 @@ export async function postReviewedStockCountSubset(scope, sessionId, lineIds, au
   }
   if (!pending?.command) throw new Error("Could not persist the stock-count command before delivery.");
 
-  const result = await postStockCountSubset(pending.command, authSession);
+  let result;
+  try {
+    result = await postStockCountSubset(pending.command, authSession);
+  } catch (error) {
+    if (String(error?.message || error).includes("stale because stock changed")) {
+      const latestSession = await readSession(partition, sessionId);
+      const latestLines = await readLines(partition, sessionId);
+      if (latestSession?.pendingPost?.command?.commandId === pending.command.commandId) {
+        const staleAt = new Date().toISOString();
+        const staleDb = await openBusinessDatabase();
+        const staleTx = staleDb.transaction([SESSION_STORE, LINE_STORE], "readwrite");
+        const staleSessions = staleTx.objectStore(SESSION_STORE);
+        const staleLinesStore = staleTx.objectStore(LINE_STORE);
+        staleSessions.put({
+          ...latestSession,
+          pendingPost: null,
+          lastRejectedPost: {
+            command: pending.command,
+            rejectedAt: staleAt,
+            reason: "stale_snapshot",
+          },
+          updatedAt: staleAt,
+        });
+        for (const lineId of pending.lineIds) {
+          const line = latestLines.find(candidate => candidate.lineId === lineId);
+          if (line && line.state === "reviewed") {
+            staleLinesStore.put({ ...line, state: "stale", staleAt });
+          }
+        }
+        await transactionResult(staleTx, resolve => resolve(true));
+      }
+    }
+    throw error;
+  }
   const acceptedIds = [...result.postedLineIds].sort();
   if (JSON.stringify(acceptedIds) !== JSON.stringify([...pending.lineIds].sort())) {
     throw new Error("The server accepted an unexpected set of stock-count lines. The saved command remains available for safe retry/review.");
