@@ -1240,9 +1240,9 @@ test("production posting retries the exact persisted command and only completes 
       firstFailed = true;
     }
     const afterFailure = await getProductionBatch(scope, batch.batchId);
-    const completed = await postProductionBatch(scope, batch.batchId, session);
+    const completed = await postProductionBatch(scope, batch.batchId, session, remoteBusinessId);
     const afterCompletedCallCount = submittedBodies.length;
-    const duplicate = await postProductionBatch(scope, batch.batchId, session);
+    const duplicate = await postProductionBatch(scope, batch.batchId, session, remoteBusinessId);
     globalThis.fetch = originalFetch;
     delete globalThis.KITCHAI_CONFIG;
     db.close();
