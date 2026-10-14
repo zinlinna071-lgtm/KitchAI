@@ -23,6 +23,8 @@ test("purchase draft is validated and never claims to change stock", () => {
   assert.equal(result.lines[0].orderedQuantity, "10");
   assert.deepEqual(result.receipts, []);
   assert.equal(result.currency, "THB");
+  const unknownPrice = buildPurchaseDraft({ lines: [{ ingredientId, ingredientName: "Beans", orderedQuantity: "1", unit: "kg" }] });
+  assert.equal(unknownPrice.lines[0].unitPrice, null, "an unentered cost remains unknown, not zero");
 });
 test("purchase rejects unsupported units, non-decimal quantity, duplicate lines and invalid money", () => {
   assert.throws(() => buildPurchaseDraft({ lines: [{ ingredientId, ingredientName: "Rice", orderedQuantity: "1e3", unit: "kg", unitPrice: "1" }] }), /plain decimal/);
