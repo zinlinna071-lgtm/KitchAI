@@ -465,6 +465,7 @@ export async function refreshStaleStockCountLine(scope, sessionId, lineId, authS
   const partition = scopeKey(scope);
   const session = await readSession(partition, sessionId);
   if (!session) throw new Error("Stock-count session was not found in this business workspace.");
+  if (session.pendingPost) throw new Error("A stock-count posting is awaiting reconciliation. Retry the saved command before refreshing count lines.");
   if (["cancelled", "posted"].includes(session.status)) throw new Error("This stock-count session is closed.");
   if (authSession?.user?.id !== partition.ownerId || !authSession?.access_token) {
     throw new Error("Sign in as this business owner before refreshing a stale stock count.");
