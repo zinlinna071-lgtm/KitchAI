@@ -81,6 +81,7 @@ export async function addStockCountLine(scope, sessionId, item, authSession, opt
   const partition = scopeKey(scope);
   const session = await readSession(partition, sessionId);
   if (!session) throw new Error("Stock-count session was not found in this business workspace.");
+  if (session.pendingPost) throw new Error("A stock-count posting is awaiting reconciliation. Retry the saved command before changing this session.");
   if (session.status === "cancelled" || session.status === "posted") throw new Error("This stock-count session is closed.");
   if (authSession?.user?.id !== partition.ownerId || !authSession?.access_token) {
     throw new Error("Sign in as this business owner before capturing the server stock snapshot.");
@@ -117,8 +118,8 @@ export async function addStockCountLine(scope, sessionId, item, authSession, opt
   let failure;
   existingSessionRequest.onsuccess = () => {
     const latestSession = existingSessionRequest.result;
-    if (!latestSession || latestSession.status === "cancelled" || latestSession.status === "posted") {
-      failure = new Error("Stock-count session was closed while the snapshot was being captured.");
+    if (!latestSession || latestSession.status === "cancelled" || latestSession.status === "posted" || latestSession.pendingPost) {
+      failure = new Error("Stock-count session was closed or has a pending posting while the snapshot was being captured.");
       try { tx.abort(); } catch {}
       return;
     }
@@ -183,6 +184,7 @@ export async function enterStockCount(scope, sessionId, lineId, countedQuantity,
     try {
       if (!session || !line) throw new Error("Stock-count session or line was not found in this business workspace.");
       if (["cancelled", "posted"].includes(session.status)) throw new Error("This stock-count session is closed.");
+      if (session.pendingPost) throw new Error("A stock-count posting is awaiting reconciliation. Retry the saved command before changing count lines.");
       updatedLine = recordStockCount(line, countedQuantity, note);
       lines.put({ ...updatedLine, ownerId: partition.ownerId, businessId: partition.businessId });
       sessions.put({ ...session, updatedAt: new Date().toISOString() });
@@ -215,6 +217,7 @@ export async function reviewStockCountLine(scope, sessionId, lineId, input) {
     try {
       if (!session || !line) throw new Error("Stock-count session or line was not found in this business workspace.");
       if (["cancelled", "posted"].includes(session.status)) throw new Error("This stock-count session is closed.");
+      if (session.pendingPost) throw new Error("A stock-count posting is awaiting reconciliation. Retry the saved command before changing count lines.");
       updatedLine = reviewLine(line, input);
       const allLinesRequest = lines.index("bySession").getAll([partition.ownerId, partition.businessId, sessionId]);
       allLinesRequest.onsuccess = () => {
