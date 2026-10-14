@@ -138,7 +138,7 @@ export async function addStockCountLine(scope, sessionId, item, authSession, opt
   };
   existingSessionRequest.onerror = () => { failure = existingSessionRequest.error; try { tx.abort(); } catch {} };
   try {
-    return await transactionResult(tx, resolve => { tx.oncomplete = () => resolve(line); });
+    return await transactionResult(tx, resolve => resolve(line));
   } catch (error) {
     throw failure ?? error;
   }
@@ -193,7 +193,7 @@ export async function enterStockCount(scope, sessionId, lineId, countedQuantity,
   sessionRequest.onerror = () => { failure = sessionRequest.error; try { tx.abort(); } catch {} };
   lineRequest.onerror = () => { failure = lineRequest.error; try { tx.abort(); } catch {} };
   try {
-    return await transactionResult(tx, resolve => { tx.oncomplete = () => resolve(updatedLine); });
+    return await transactionResult(tx, resolve => resolve(updatedLine));
   } catch (error) { throw failure ?? error; }
 }
 
