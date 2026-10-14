@@ -563,3 +563,52 @@ test("legacy Phase 2 records migrate through the current runtime, queue once, an
   expect(repeated).toHaveLength(1);
   await context.close();
 });
+
+
+test("authenticated stock-count UI creates a session, captures a server snapshot, reviews a variance, and posts atomically", async ({ page }) => {
+  const pageErrors = [];
+  page.on("pageerror", error => pageErrors.push(error.message));
+  await createAccount(page);
+
+  await page.locator("#business-name").fill("Stock Count E2E Kitchen");
+  await page.getByRole("button", { name: "Save profile" }).click();
+  await expect(page.locator("#profile-state")).toContainText("Synced with your account · revision 1", { timeout: 15000 });
+
+  const ingredientName = "E2E Count Ingredient " + Date.now();
+  await page.locator("#ingredient-name").fill(ingredientName);
+  await page.getByRole("button", { name: "Add ingredient" }).click();
+  await expect(page.locator("#ingredient-state")).toContainText("queued", { timeout: 10000 });
+  await page.getByRole("button", { name: "Sync now" }).click();
+  await expect(page.locator("#phase2-sync-state")).toContainText("acknowledged", { timeout: 15000 });
+  await expect(page.locator("#ingredient-list")).toContainText(ingredientName);
+
+  await page.locator("#stock-count-session-note").fill("Authenticated browser E2E");
+  await page.getByRole("button", { name: "Create session" }).click();
+  await expect(page.locator("#stock-count-session")).toBeEnabled({ timeout: 10000 });
+  await expect(page.locator("#stock-count-state")).toContainText("created", { timeout: 10000 });
+
+  await page.locator("#stock-count-item-class").selectOption("ingredient");
+  await page.locator("#stock-count-item").selectOption({ label: ingredientName });
+  await page.locator("#stock-count-item-unit").selectOption("each");
+  await page.getByRole("button", { name: "Add count line" }).click();
+  await expect(page.locator("#stock-count-lines")).toContainText(ingredientName, { timeout: 15000 });
+  await expect(page.locator("#stock-count-lines")).toContainText("expected 0");
+  await expect(page.locator("#stock-count-state")).toContainText("server snapshot", { timeout: 10000 });
+
+  const line = page.locator("#stock-count-lines li.stock-count-line").filter({ has: page.getByRole("heading", { name: ingredientName }) });
+  await line.getByLabel("Counted quantity").fill("1");
+  await line.getByRole("button", { name: "Save count" }).click();
+  await expect(line).toContainText("variance 1", { timeout: 10000 });
+  await line.getByLabel("Review reason (required for non-zero variance)").fill("E2E physical count adjustment");
+  await line.getByRole("button", { name: "Mark reviewed" }).click();
+  await expect(line).toContainText("reviewed", { timeout: 10000 });
+
+  const postingCheckbox = line.getByRole("checkbox", { name: "Select " + ingredientName + " for posting" });
+  await expect(postingCheckbox).not.toBeChecked();
+  await postingCheckbox.check();
+  await page.getByRole("button", { name: "Post selected reviewed lines" }).click();
+  await expect(page.locator("#stock-count-state")).toContainText("Server confirmed", { timeout: 20000 });
+  await expect(page.locator("#stock-count-lines")).toContainText("posted", { timeout: 10000 });
+  await expect(page.locator("#stock-count-state")).not.toContainText("uncertain");
+  expect(pageErrors).toEqual([]);
+});
