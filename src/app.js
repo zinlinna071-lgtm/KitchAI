@@ -919,6 +919,7 @@ async function loadOwnerWorkspace(session) {
       await refreshPhase2ConflictView();
     }
     await refreshFinishedStockView(true);
+    await refreshProductionView();
   } catch (error) {
     setProfileState("Account workspace could not be loaded. Existing local data is preserved. " + (error instanceof Error ? error.message : ""), true);
   }
@@ -944,6 +945,7 @@ async function loadLocalProfile() {
     await refreshMenuView();
     await refreshRecipeView();
     await refreshFinishedStockView(false);
+    await refreshProductionView();
     await runPhase2EntitySync();
   } catch (error) {
     setProfileState(error instanceof Error
@@ -1310,6 +1312,7 @@ recipeForm?.addEventListener("submit", async (event) => {
     selectedRecipeId = saved.id;
     resetRecipeForm();
     await refreshRecipeView();
+    await refreshProductionView();
     setRecipeState(entitySaveMessage());
     if (activeSession) void runSync();
   } catch (error) {
