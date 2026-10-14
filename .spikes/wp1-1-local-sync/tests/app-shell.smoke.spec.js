@@ -65,7 +65,7 @@ test("populated IndexedDB v2 upgrades additively, failed legacy mapping retries,
     const module = await import("/src/business-data-store.js");
     let firstError = "";
     try { await module.openBusinessDatabase(); } catch (error) { firstError = String(error.message || error); }
-    const upgraded = await openDb("kitchai-business-data", 6, () => {});
+    const upgraded = await openDb("kitchai-business-data", 7, () => {});
     const upgradedNames = [...upgraded.objectStoreNames].sort();
     upgraded.close();
     const local = await openDb("kitchai-local", 1, (database) => database.createObjectStore("profiles", { keyPath: "id" }));
@@ -77,7 +77,7 @@ test("populated IndexedDB v2 upgrades additively, failed legacy mapping retries,
     const opened = await module.openBusinessDatabase();
     const storeNames = [...opened.objectStoreNames].sort();
     const counts = {};
-    for (const name of ["ingredients", "menuItems", "recipes", "recipeLines", "operations", "syncMetadata", "metadata", "migrationLedger", "conflicts", "stockMovements", "finishedLots", "inventoryCommands", "stockMovementLotAllocations", "productionBatches", "finishedLotHandlingEvents", "finishedStockSnapshots", "finishedStockCommands"]) {
+    for (const name of ["ingredients", "menuItems", "recipes", "recipeLines", "operations", "syncMetadata", "metadata", "migrationLedger", "conflicts", "stockMovements", "finishedLots", "inventoryCommands", "stockMovementLotAllocations", "productionBatches", "finishedLotHandlingEvents", "finishedStockSnapshots", "finishedStockCommands", "purchases"]) {
       counts[name] = (await readAll(opened, name)).length;
     }
     const existingIngredient = (await readAll(opened, "ingredients")).find((row) => row.id === "existing-ingredient");
@@ -100,12 +100,14 @@ test("populated IndexedDB v2 upgrades additively, failed legacy mapping retries,
   expect(first.upgradedNames).toContain("finishedLotHandlingEvents");
   expect(first.upgradedNames).toContain("finishedStockSnapshots");
   expect(first.upgradedNames).toContain("finishedStockCommands");
+  expect(first.upgradedNames).toContain("purchases");
   expect(first.storeNames).toContain("inventoryCommands");
   expect(first.storeNames).toContain("stockMovementLotAllocations");
   expect(first.storeNames).toContain("productionBatches");
   expect(first.storeNames).toContain("finishedLotHandlingEvents");
   expect(first.storeNames).toContain("finishedStockSnapshots");
   expect(first.storeNames).toContain("finishedStockCommands");
+  expect(first.storeNames).toContain("purchases");
   expect(first.counts.ingredients).toBe(2);
   expect(first.counts.menuItems).toBe(1);
   expect(first.counts.recipes).toBe(1);
@@ -121,6 +123,7 @@ test("populated IndexedDB v2 upgrades additively, failed legacy mapping retries,
   expect(first.counts.finishedLotHandlingEvents).toBe(0);
   expect(first.counts.finishedStockSnapshots).toBe(0);
   expect(first.counts.finishedStockCommands).toBe(0);
+  expect(first.counts.purchases).toBe(0);
   expect(first.existingIngredient.name).toBe("Existing rice");
   expect(first.importedLegacy.ownerId).toBe("local:profile-1");
   expect(first.importedLegacy.businessId).toBe("profile-1");
@@ -1442,4 +1445,62 @@ test("production batch UI captures actual usage and keeps offline posting state 
   await expect(batch).toContainText("ready to post");
   await expect(batch.getByRole("button", { name: "Post batch" })).toBeDisabled();
   await expect(page.locator("#production-state")).toContainText("ready to post when you are online and signed in");
+});
+
+
+test("purchase drafts persist locally and do not change stock before server receipt acceptance", async ({ page }) => {
+  await page.goto("/");
+  await page.locator("#business-name").fill("Purchase Test Kitchen");
+  await page.getByRole("button", { name: "Save profile" }).click();
+  await expect(page.locator("#profile-state")).toContainText("Saved on this device");
+  await page.locator("#ingredient-name").fill("Rice");
+  await page.getByRole("button", { name: "Add ingredient", exact: true }).click();
+  await expect(page.locator("#ingredient-list")).toContainText("Rice");
+  await page.getByRole("button", { name: "Refresh purchases" }).click();
+  await page.locator('#purchase-line-entry-list select[data-field="ingredient"]').selectOption({ label: "Rice" });
+  await page.locator('#purchase-line-entry-list input[data-field="quantity"]').fill("10");
+  await page.locator('#purchase-line-entry-list select[data-field="unit"]').selectOption("kg");
+  await page.locator('#purchase-line-entry-list input[data-field="unitPrice"]').fill("35.50");
+  await page.locator("#purchase-supplier").fill("Morning Market");
+  const formValidity = await page.locator("#purchase-create-form").evaluate(form => ({ valid: form.checkValidity(), invalid: [...form.querySelectorAll(":invalid")].map(element => ({ id: element.id || element.getAttribute("data-field"), value: element.value, message: element.validationMessage })) }));
+  expect(formValidity).toEqual({ valid: true, invalid: [] });
+  await page.getByRole("button", { name: "Save purchase draft" }).click();
+  await expect(page.locator("#purchase-state")).toContainText("Purchase draft saved locally");
+  await expect(page.locator("#purchase-list")).toContainText("Morning Market");
+  await expect(page.locator("#purchase-list")).toContainText("ordered 10 kg");
+  await expect(page.locator("#purchase-list")).toContainText("confirmed 0 kg");
+  const queuedReceipt = await page.evaluate(async () => {
+    const { readLocalProfile } = await import("/src/local-store.js");
+    const { scopeForBusinessProfile } = await import("/src/business-data-store.js");
+    const { listPurchases, recordPurchaseReceipt } = await import("/src/purchase-store.js");
+    const profile = await readLocalProfile();
+    const scope = scopeForBusinessProfile({ profileId: profile.id, local: true });
+    const purchase = (await listPurchases(scope))[0];
+    const receipt = await recordPurchaseReceipt(scope, purchase.purchaseId, [
+      { lineId: purchase.lines[0].lineId, quantity: "3" },
+    ], "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa");
+    return { receiptId: receipt.receipt.receiptId, commandId: receipt.receipt.command.commandId };
+  });
+  expect(queuedReceipt.commandId).toMatch(/^[0-9a-f-]{36}$/i);
+  await page.getByRole("button", { name: "Refresh purchases" }).click();
+  await expect(page.locator("#purchase-list")).toContainText("pending");
+  await expect(page.locator("#purchase-list")).toContainText("pending/reserved 3 kg");
+  await expect(page.locator("#purchase-list")).toContainText("confirmed 0 kg");
+  await page.reload();
+  await page.getByRole("button", { name: "Refresh purchases" }).click();
+  await expect(page.locator("#purchase-list")).toContainText("Morning Market");
+  await expect(page.locator("#purchase-list")).toContainText("confirmed 0 kg");
+  await expect(page.locator("#purchase-list")).toContainText(queuedReceipt.receiptId);
+  const afterReload = await page.evaluate(async () => {
+    const { readLocalProfile } = await import("/src/local-store.js");
+    const { scopeForBusinessProfile } = await import("/src/business-data-store.js");
+    const { listPurchases } = await import("/src/purchase-store.js");
+    const profile = await readLocalProfile();
+    const scope = scopeForBusinessProfile({ profileId: profile.id, local: true });
+    const purchase = (await listPurchases(scope))[0];
+    return purchase.receipts[0].command.commandId;
+  });
+  expect(afterReload).toBe(queuedReceipt.commandId);
+  const mobile = await page.evaluate(() => ({ width: innerWidth, scrollWidth: document.documentElement.scrollWidth }));
+  expect(mobile.scrollWidth).toBeLessThanOrEqual(mobile.width);
 });

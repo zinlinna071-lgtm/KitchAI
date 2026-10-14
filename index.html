@@ -59,6 +59,22 @@
 <div class="ingredient-list-panel"><h3>Ingredients</h3><p id="ingredient-list-state" class="profile-state" role="status" aria-live="polite">No business workspace selected.</p><ul id="ingredient-list" class="ingredient-list" aria-label="Saved ingredients"></ul></div>
 </div>
 </section>
+<section id="purchase-panel" class="profile-editor purchase-panel" aria-labelledby="purchase-title">
+<div class="profile-editor-heading"><p class="eyebrow">PHASE 3 · PURCHASING</p><h2 id="purchase-title">Record what you buy.</h2><p>Save purchase drafts and supplier details offline. Only an authenticated, server-accepted receipt changes ingredient stock. Partial receipts are supported; prices are purchase inputs, not official valuation or profit.</p></div>
+<div class="purchase-workspace">
+<form id="purchase-create-form" class="profile-form">
+<label for="purchase-supplier">Supplier (optional)</label><input id="purchase-supplier" type="text" maxlength="200" autocomplete="organization">
+<label for="purchase-currency">Currency</label><input id="purchase-currency" type="text" value="THB" minlength="3" maxlength="3" pattern="[A-Za-z]{3}" required>
+<label for="purchase-note">Purchase note (optional)</label><textarea id="purchase-note" rows="2" maxlength="1000"></textarea>
+<h3>Purchase lines</h3><p class="field-help">Use the same unit consistently for each ingredient. No automatic unit conversion is performed.</p>
+<div id="purchase-line-entry-list" class="purchase-line-entry-list"></div>
+<button id="purchase-add-line" class="button button-secondary" type="button">Add another ingredient</button>
+<button id="purchase-create-button" class="button button-primary" type="submit">Save purchase draft</button>
+<p id="purchase-state" class="profile-state" role="status" aria-live="polite">Purchase drafts stay local. Stock changes only after receipt posting is accepted by the server.</p>
+</form>
+<div class="purchase-list-panel"><div class="purchase-list-toolbar"><h3>Purchases and receipts</h3><button id="purchase-refresh" class="button button-secondary" type="button">Refresh purchases</button></div><p id="purchase-list-state" class="profile-state" role="status" aria-live="polite">Save a Business Profile first to manage purchases.</p><ul id="purchase-list" class="purchase-list" aria-label="Purchases and receipts"></ul></div>
+</div>
+</section>
 <section id="menu-panel" class="profile-editor menu-editor" aria-labelledby="menu-title">
 <div class="profile-editor-heading"><p class="eyebrow">PHASE 2 · MENU ITEMS</p><h2 id="menu-title">Build your menu, one item at a time.</h2><p id="menu-help">Create and maintain menu items for the active business. Items are saved locally first and queued for account sync when signed in.</p></div>
 <div class="menu-workspace">

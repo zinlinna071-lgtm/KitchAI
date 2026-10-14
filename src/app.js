@@ -15,6 +15,7 @@ import { buildCarryForwardDecision, buildFinishedDispositionCommand, projectFini
 import { listCarryForwardDecisions, saveCarryForwardDecision, syncCarryForwardDecision } from "./finished-stock-store.js";
 import { getFinishedStockSnapshot, listFinishedDispositions, refreshFinishedStock, saveFinishedDisposition, syncFinishedDisposition } from "./finished-stock-workflow-store.js";
 import { listProductionBatches, startProductionBatch, recordProductionBatchActualUsage, prepareProductionBatchForPosting, cancelProductionBatch, postProductionBatch } from "./production-batch-store.js";
+import { initializePurchaseUI } from "./purchase-ui.js";
 
 /** @typedef {Event & { prompt: () => Promise<void> }} BeforeInstallPromptEvent */
 const connectionStatus = /** @type {HTMLParagraphElement | null} */ (document.querySelector("#connection-status"));
@@ -1802,6 +1803,12 @@ window.addEventListener("offline", () => {
   if (currentFinishedSnapshot) setFinishedStockMessage(finishedStockState, "Offline · using the last saved snapshot. New changes remain on this device until synced.");
 });
 if (carryForwardDate && !carryForwardDate.value) carryForwardDate.value = new Date().toISOString().slice(0, 10);
+
+const purchaseUI = initializePurchaseUI({
+  getScope: activeMenuScope,
+  getSession: () => activeSession,
+  getRemoteBusinessId: () => activeSession?.user?.id && currentOwnerProfile?.syncState === "synced" ? currentOwnerProfile.businessId : null,
+});
 
 updateAuthControls();
 void (async () => {
