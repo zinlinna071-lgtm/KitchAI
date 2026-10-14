@@ -71,3 +71,29 @@ All five CI workflows passed on code commit `ae07e57827601e6929f1a28abdda9a40f1f
 - [Local Supabase Vertical Slice](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38434122993): database suites passed and all 8 Playwright browser integration tests passed.
 
 This confirms the current test suite, not full WP3.1 completion. Inventory UI, production posting workflow, inventory sync, trusted remote idempotency RPC, and integrated inventory conflict preservation are still not implemented. PR #38 remains Draft/unmerged.
+
+
+## Recipe quantity adapter follow-up
+
+Added `src/recipe-quantity-adapter.js` and `tests/recipe-quantity-adapter.test.mjs`. The adapter refuses unsupported precision/range and common floating-point artifacts rather than silently rounding Phase 2 recipe quantities. Added its syntax check to `npm run check`. Automated verification for this follow-up is pending CI; do not claim these new tests passed until the workflow reports success. The adapter is a guarded boundary only and is not yet connected to production posting.
+
+
+## Adapter verification refresh — 2026-10-13
+
+- CI first exposed a JSDoc/TypeScript error because the adapter's destructured options parameter made the required `unit` appear optional. The adapter signature now requires the options object and unit.
+- Added a guard rejecting legacy JavaScript-number quantities above `Number.MAX_SAFE_INTEGER` and a regression case for `9007199254740992`; unsupported precision continues to fail rather than round.
+- On head `8f4db941e91115fe4ea20b10f4bad3fe6546ef6d`, [Application Shell run 38455305594](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38455305594) completed successfully, including syntax/type/unit-test/build and browser smoke tests. [Local Supabase Vertical Slice run 38455305557](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38455305557) was still running at the time of this update; SQL/pgTAP results for this head are not yet confirmed here.
+- This adapter only guards the future recipe-to-inventory boundary. It does not implement production posting, atomic inventory commands, inventory sync, UI, or integrated conflict preservation. WP3.1 remains partial until current-head checks finish and the complete diff is reviewed.
+
+## Final review and current-head verification refresh — 2026-10-14
+
+Reviewed the complete PR #39 diff (eight changed files) against the parent inventory-foundation PR #38. The recipe quantity adapter and its focused tests are internally consistent with the inventory domain contract; the adapter rejects unsupported precision and does not round or convert units. Existing Phase 2 recipe-line values remain unchanged in the v2→v3 migration. This adapter is deliberately not integrated into production posting.
+
+On commit `4ebfca8a7d63955894b0e1f22c777ddfed7d0c87`, current-head CI passed:
+- [Application Shell](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38455887104): syntax/type checks, Node tests, build, and 17 browser smoke tests passed.
+- [Local Supabase Vertical Slice](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38455887046): all 103 pgTAP tests passed across the three database files, production build passed, and all 8 Playwright local-Supabase integration tests passed.
+
+The docs-only review refresh that follows does not change application code; fresh CI on the final documentation commit is still required before treating these checks as final-head evidence.
+
+**Acceptance decision:** the four review gates on the current implementation commit are satisfied: current-head application CI passed; SQL migration/pgTAP and browser integration passed; the complete PR #39 diff and Phase 2 quantity compatibility were reviewed; and the implementation report/registry have been refreshed. **WP3.1 itself remains partial and is not marked complete** because the product acceptance scope still lacks inventory UI, production posting, trusted remote idempotency, inventory sync, and integrated inventory conflict preservation. PR #39 and parent PR #38 remain Draft and unmerged.
+

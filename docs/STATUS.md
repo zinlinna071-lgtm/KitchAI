@@ -116,3 +116,13 @@ The migration test's stale schema-version assertion was corrected from v2 to the
 ## WP3.1 current-head verification — 2026-10-13
 
 Current code commit `ae07e57827601e6929f1a28abdda9a40f1f79cf9` passed [Baseline](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38434123234), [Application Shell](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38434122835), [Static Preview](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38434122588), [Supabase Authorization](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38434122639), and [Supabase Vertical Slice](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38434122993). The database pgTAP groups passed (40, 37, 26 tests); all 8 browser integration tests passed. A negative test now verifies incomplete lot allocations are rejected. WP3.1 remains partial; PR #38 remains Draft and unmerged.
+
+
+## WP3.1 adapter follow-up — 2026-10-13
+
+PR [#39](https://github.com/zinlinna071-lgtm/KitchAI/pull/39) is a Draft stacked on PR #38. The strict recipe quantity adapter rejects unsupported precision/range instead of rounding; a CI-discovered JSDoc/TypeScript issue was fixed by requiring the options object/unit, and unsafe JavaScript integer precision is explicitly rejected. On code head `8f4db941e91115fe4ea20b10f4bad3fe6546ef6d`, [Application Shell CI](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38455305594) passed. [Local Supabase Vertical Slice CI](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38455305557) was still running at the time of the recorded update. Documentation commits have since been added to the branch, so final acceptance requires checking workflows on the newest PR head. WP3.1 remains incomplete; PRs #38 and #39 remain Draft/unmerged. No inventory UI, production posting, inventory sync, hosted provisioning, billing, or deployment has been performed.
+
+## WP3.1 final review refresh — 2026-10-14
+
+On implementation commit `4ebfca8a7d63955894b0e1f22c777ddfed7d0c87`, [Application Shell CI](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38455887104) passed the syntax/type/unit-test/build and browser smoke-test workflow. [Local Supabase Vertical Slice CI](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38455887046) passed the migration/database test stage with 103 pgTAP tests and passed all 8 local-Supabase Playwright integration tests. The adapter and full PR #39 diff were reviewed; Phase 2 recipe quantities are preserved unchanged by migration and conversion is only through the explicit guarded adapter. The adapter is not wired to production posting. WP3.1 remains partial; PRs #38 and #39 are Draft/unmerged. Fresh CI on this documentation refresh remains the final check.
+

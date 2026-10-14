@@ -32,3 +32,13 @@ Review confirmed that `src/recipe-store.js` validates and stores recipe-line qua
 ## Verification status
 
 The implementation is partial. Current-head CI on code commit `ae07e57827601e6929f1a28abdda9a40f1f79cf9` passed all five gates, including the new negative test that rejects incomplete finished-lot allocations. The implementation report links the exact runs. WP3.1 is not complete; inventory UI, production posting, inventory sync, trusted remote idempotency, and integrated conflict preservation remain out of scope for this foundation.
+
+
+## Recipe quantity adapter follow-up
+
+Added `src/recipe-quantity-adapter.js` as a strict boundary for future production posting. It accepts only finite positive legacy JavaScript numbers whose canonical decimal string is plain base-10 with at most six fractional digits, then delegates unit/range/finished-`each` validation to the inventory domain. Scientific notation, floating-point artifacts such as `0.1 + 0.2`, excess precision, invalid units, and numeric(24,6) overflow are rejected; there is no rounding or unit conversion. Focused tests cover supported values and rejection cases. This adapter is not yet wired into a production workflow and does not complete WP3.1.
+
+## Final review refresh — 2026-10-14
+
+The strict recipe quantity adapter and its focused tests are now present. Review confirms it refuses unsupported decimal representations rather than silently rounding and leaves existing Phase 2 recipe-line data unchanged. On implementation commit `4ebfca8a7d63955894b0e1f22c777ddfed7d0c87`, application-shell CI passed and the local Supabase vertical slice passed all 103 pgTAP tests and all 8 browser integration tests. WP3.1 remains incomplete because inventory UI, production posting, trusted remote idempotency, inventory sync, and integrated conflict preservation are not implemented. Fresh CI is required after this documentation refresh.
+
