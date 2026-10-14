@@ -169,3 +169,43 @@ export async function sendProfileOperation(operation, session) {
     throw error;
   }
 }
+
+
+/**
+ * Execute one idempotent inventory command through the owner-authorized database RPC.
+ * The server derives owner identity from the authenticated JWT; owner IDs are never client-supplied.
+ * @param {{commandId:string,businessId:string,commandType:string,payload:unknown}} command
+ * @param {any} session
+ */
+export async function applyInventoryCommand(command, session) {
+  if (!session?.access_token || !session?.user?.id) {
+    throw new Error("An authenticated owner session is required for inventory posting.");
+  }
+  if (!command?.commandId || !command?.businessId || !command?.commandType || !command?.payload) {
+    throw new TypeError("A complete inventory command is required.");
+  }
+  try {
+    const result = await request("/rest/v1/rpc/apply_inventory_command", {
+      method: "POST",
+      session,
+      body: {
+        p_command_id: command.commandId,
+        p_business_id: command.businessId,
+        p_command_type: command.commandType,
+        p_payload: command.payload,
+      },
+    });
+    if (result?.status !== "accepted" || result.commandId !== command.commandId) {
+      throw new Error("Supabase returned an unsupported inventory command result.");
+    }
+    return result;
+  } catch (error) {
+    const status = /** @type {any} */ (error).status;
+    const code = /** @type {any} */ (error).code;
+    if (status === 401) throw new Error("Your session expired. Sign in again before retrying production posting.");
+    if (status === 403 || code === "42501") {
+      throw new Error("The server rejected production posting because this account cannot access the business.");
+    }
+    throw error;
+  }
+}
