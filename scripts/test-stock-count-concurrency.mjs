@@ -148,9 +148,7 @@ try {
   try { await counter.query('RESET ROLE'); } catch {}
   try { await observer.query('RESET ROLE'); } catch {}
   try {
-    if (admin._connected) {
-      await admin.query('DELETE FROM auth.users WHERE id = $1', [ownerId]);
-    }
+    await admin.query('DELETE FROM auth.users WHERE id = $1', [ownerId]);
   } catch (cleanupError) {
     console.error('Cleanup warning:', cleanupError.message);
     process.exitCode = 1;
