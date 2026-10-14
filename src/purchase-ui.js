@@ -174,7 +174,8 @@ export function initializePurchaseUI(context) {
           receiptForm.append(receive, help);
           receiptForm.addEventListener("submit", async event => {
             event.preventDefault();
-            const entries = queryAll("input[data-line-id]", receiptForm).filter(input => input.value.trim() !== "")
+            const receiptInputs = /** @type {HTMLInputElement[]} */ (queryAll("input[data-line-id]", receiptForm));
+            const entries = receiptInputs.filter(input => input.value.trim() !== "")
               .map(input => ({ lineId: input.dataset.lineId, quantity: input.value.trim() }));
             if (!entries.length) { setMessage(state, "Enter at least one quantity received.", true); return; }
             receive.disabled = true;
