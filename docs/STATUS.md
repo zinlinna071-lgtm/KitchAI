@@ -145,3 +145,10 @@ The older WP3.1 paragraphs above are historical notes and are superseded by this
 ## WP3.5 planning handoff — 2026-10-14
 
 A detailed proposal for Physical Stock Counts and Adjustments is in [PHASE_3_WP3_5_STOCK_COUNTS_PLAN.md](./PHASE_3_WP3_5_STOCK_COUNTS_PLAN.md). It recommends optimistic concurrency: reject stale count lines when stock movements occur after the physical count, then require review/recount. Owner decisions D3.5-01 through D3.5-04 remain open. No WP3.5 application code or migration should be written until those decisions are confirmed.
+
+
+## WP3.5a accepted decisions and design gate — 2026-10-14
+
+Owner accepted D3.5-01 through D3.5-04: optimistic concurrency/recount on stale lines; partial count sessions; zero-variance audit without a zero-quantity movement; cancellation only before any accepted adjustment. Recorded in [DECISIONS.md](./DECISIONS.md).
+
+The documentation-only consistency/test contract is [PHASE_3_WP3_5A_COUNT_CONSISTENCY_TEST_CONTRACT.md](./PHASE_3_WP3_5A_COUNT_CONSISTENCY_TEST_CONTRACT.md). Code review of the current inventory RPC found no established shared per-item lock/version protocol for concurrent stock writers, so the next implementation gate is to design and test that protocol across every stock-changing path. Count posting must not ship until stale-count rejection is enforced in the same database transaction as movement posting. No application code or migration was added in WP3.5a.
