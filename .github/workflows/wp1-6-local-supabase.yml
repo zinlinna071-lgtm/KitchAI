@@ -78,6 +78,14 @@ jobs:
         run: npx playwright test --config local-supabase.playwright.config.js
         working-directory: .spikes/wp1-1-local-sync
         timeout-minutes: 8
+      - name: Upload Playwright failure artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wp16-playwright-failure-artifacts
+          path: .spikes/wp1-1-local-sync/test-results/
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Stop local Supabase stack
         if: always()
         run: npx --yes supabase@2.39.2 stop --no-backup
