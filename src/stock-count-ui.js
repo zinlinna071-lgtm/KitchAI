@@ -1,7 +1,9 @@
 import {
-  listStockCountSessions, listStockCountLines, enterStockCount, reviewStockCountLine,
-  postReviewedStockCountSubset, cancelStockCountSession, refreshStaleStockCountLine,
+  createStockCountSession, addStockCountLine, listStockCountSessions, listStockCountLines, enterStockCount,
+  reviewStockCountLine, postReviewedStockCountSubset, cancelStockCountSession, refreshStaleStockCountLine,
 } from "./stock-count-store.js";
+import { listIngredients } from "./ingredient-store.js";
+import { listMenuItems } from "./menu-item-store.js";
 
 const $ = (selector, root = document) => root.querySelector(selector);
 const make = (tag, text, className) => {
@@ -21,6 +23,13 @@ export function initializeStockCountUI(context) {
   const lineList = $("#stock-count-lines");
   const postButton = $("#stock-count-post-selected");
   const cancelButton = $("#stock-count-cancel");
+  const createForm = $("#stock-count-create-form");
+  const sessionNote = $("#stock-count-session-note");
+  const createButton = $("#stock-count-create");
+  const addLineForm = $("#stock-count-add-line-form");
+  const itemClassSelect = $("#stock-count-item-class");
+  const itemSelect = $("#stock-count-item");
+  const addLineButton = $("#stock-count-add-line");
   const message = (text, error = false) => {
     if (!sessionState) return;
     sessionState.textContent = text;
@@ -30,6 +39,8 @@ export function initializeStockCountUI(context) {
   let lines = [];
   let selectedSessionId = "";
   let busy = false;
+  let ingredients = [];
+  let menuItems = [];
 
   function lockControls() {
     const session = sessions.find(item => item.sessionId === selectedSessionId);
@@ -37,6 +48,21 @@ export function initializeStockCountUI(context) {
     if (cancelButton) cancelButton.disabled = busy || !session || Boolean(session.pendingPost) || !["open", "ready_for_review"].includes(session.status);
     if (refreshButton) refreshButton.disabled = busy;
     if (sessionSelect) sessionSelect.disabled = busy || sessions.length === 0;
+    const canCapture = Boolean(context.getSession()?.access_token && context.getRemoteBusinessId() && context.getScope()?.ownerId === context.getSession()?.user?.id && navigator.onLine);
+    if (createButton) createButton.disabled = busy || !canCapture;
+    if (addLineButton) addLineButton.disabled = busy || !canCapture || !session || Boolean(session.pendingPost) || !["open", "ready_for_review"].includes(session.status);
+  }
+
+  function renderItemOptions() {
+    if (!itemSelect) return;
+    const previous = itemSelect.value;
+    itemSelect.replaceChildren(new Option("Choose an item", ""));
+    const records = itemClassSelect?.value === "finished" ? menuItems : ingredients;
+    for (const record of records.filter(item => item.status !== "archived")) {
+      itemSelect.append(new Option(record.name, record.id));
+    }
+    if (records.some(item => item.id === previous && item.status !== "archived")) itemSelect.value = previous;
+    if (addLineButton) addLineButton.disabled = busy || !context.getSession()?.access_token || !context.getRemoteBusinessId() || !navigator.onLine || !selectedSessionId;
   }
 
   async function renderLines() {
@@ -152,6 +178,9 @@ export function initializeStockCountUI(context) {
     }
     await runAction(async () => {
       sessions = await listStockCountSessions(scope);
+      ingredients = await listIngredients(scope);
+      menuItems = await listMenuItems(scope);
+      renderItemOptions();
       if (sessionSelect) {
         sessionSelect.replaceChildren(new Option("Choose a stock-count session", ""));
         for (const session of sessions) sessionSelect.append(new Option(`${new Date(session.createdAt).toLocaleString()} · ${pretty(session.status)} · ${session.lineCount} lines`, session.sessionId));
@@ -169,6 +198,44 @@ export function initializeStockCountUI(context) {
     lines = selectedSessionId ? await listStockCountLines(context.getScope(), selectedSessionId) : [];
     await renderLines();
   }));
+  createForm?.addEventListener("submit", event => {
+    event.preventDefault();
+    void runAction(async () => {
+      const scope = context.getScope();
+      const session = context.getSession();
+      const remoteBusinessId = context.getRemoteBusinessId();
+      if (!scope || !session?.access_token || !remoteBusinessId || scope.ownerId !== session.user?.id || !navigator.onLine) {
+        throw new Error("Sign in to the synced business workspace and connect to the internet to create a stock-count session.");
+      }
+      const created = await createStockCountSession(scope, remoteBusinessId, { note: sessionNote?.value ?? "" });
+      selectedSessionId = created.sessionId;
+      if (sessionNote) sessionNote.value = "";
+      await refresh();
+      message("Stock-count session created. Add items to capture their current server quantities.");
+    });
+  });
+  itemClassSelect?.addEventListener("change", renderItemOptions);
+  addLineForm?.addEventListener("submit", event => {
+    event.preventDefault();
+    void runAction(async () => {
+      const scope = context.getScope();
+      const session = context.getSession();
+      const remoteBusinessId = context.getRemoteBusinessId();
+      const stockClass = itemClassSelect?.value;
+      const selected = (stockClass === "finished" ? menuItems : ingredients).find(item => item.id === itemSelect?.value);
+      if (!scope || !selectedSessionId || !session?.access_token || !remoteBusinessId || !navigator.onLine) {
+        throw new Error("Select a session, sign in to the synced business, and connect to the internet to capture an item snapshot.");
+      }
+      if (!selected) throw new Error("Choose a stock item first.");
+      await addStockCountLine(scope, selectedSessionId, {
+        stockClass, stockItemId: selected.id, stockItemName: selected.name,
+      }, session);
+      lines = await listStockCountLines(scope, selectedSessionId);
+      sessions = await listStockCountSessions(scope);
+      message("Item added using a server snapshot. Record the physical quantity when ready.");
+      await renderLines();
+    });
+  });
   refreshButton?.addEventListener("click", () => void refresh());
   cancelButton?.addEventListener("click", () => {
     if (!selectedSessionId || !window.confirm("Cancel this stock-count session? No inventory will be changed.")) return;
@@ -193,6 +260,7 @@ export function initializeStockCountUI(context) {
       await renderLines();
     });
   });
+  renderItemOptions();
   void refresh();
   return { refresh };
 }
