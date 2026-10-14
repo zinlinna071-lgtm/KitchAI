@@ -4,7 +4,7 @@ import { listIngredients } from "./ingredient-store.js";
 /** @param {string} selector @param {ParentNode} [root] @returns {Element|null} */
 const $ = (selector, root = document) => root.querySelector(selector);
 /** @param {string} selector @param {ParentNode} [root] @returns {Element[]} */
-const $ = (selector, root = document) => [...root.querySelectorAll(selector)];
+const queryAll = (selector, root = document) => [...root.querySelectorAll(selector)];
 
 function setMessage(target, message, isError = false) {
   if (!target) return;
@@ -174,7 +174,7 @@ export function initializePurchaseUI(context) {
           receiptForm.append(receive, help);
           receiptForm.addEventListener("submit", async event => {
             event.preventDefault();
-            const entries = $$("input[data-line-id]", receiptForm).filter(input => input.value.trim() !== "")
+            const entries = queryAll("input[data-line-id]", receiptForm).filter(input => input.value.trim() !== "")
               .map(input => ({ lineId: input.dataset.lineId, quantity: input.value.trim() }));
             if (!entries.length) { setMessage(state, "Enter at least one quantity received.", true); return; }
             receive.disabled = true;
@@ -232,7 +232,7 @@ export function initializePurchaseUI(context) {
     event.preventDefault();
     const scope = context.getScope();
     if (!scope || !linesContainer) { setMessage(state, "Save a Business Profile first.", true); return; }
-    const lines = $$(".purchase-line-entry", linesContainer).map(row => {
+    const lines = queryAll(".purchase-line-entry", linesContainer).map(row => {
       const ingredientId = /** @type {HTMLSelectElement} */ ($('[data-field="ingredient"]', row)).value;
       const ingredient = cachedIngredients.find(item => item.id === ingredientId);
       if (!ingredient) throw new Error("Choose an active ingredient for each purchase line.");
