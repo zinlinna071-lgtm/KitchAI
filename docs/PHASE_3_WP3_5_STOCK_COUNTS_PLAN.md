@@ -96,3 +96,21 @@ Barcode scanning, multi-user count assignments, supplier catalog synchronization
 - WP3.5e: accessible review UI and final regression/local-Supabase gates.
 
 Do not enable count posting until database review and concurrency tests prove every stock-changing RPC uses the shared lock/version protocol.
+
+
+## WP3.5d implementation note — 2026-10-14
+
+WP3.5c is merged in [PR #54](https://github.com/zinlinna071-lgtm/KitchAI/pull/54). WP3.5d implementation is under review on branch `feat/wp3-5d-atomic-stock-count-posting`.
+
+The additive migration `20261014003000_phase3_atomic_stock_count_posting.sql` introduces:
+- `post_stock_count_subset`, which takes a stable command ID, server business/session IDs, and 1–200 reviewed lines.
+- The same owner-scoped advisory transaction lock used by `apply_inventory_command`, followed by deterministic item-version locks.
+- Expected-version comparison before any line audit or stock movement is inserted. A stale line raises SQLSTATE `40001` and the entire submitted subset rolls back.
+- Server-derived system quantity and variance; the client cannot supply the authoritative system balance.
+- Append-only accepted-line audit, including zero-variance lines with no zero-quantity stock movement.
+- Per-command idempotency checked before stale-version validation; a retry after accepted posting returns the original result.
+- Optional completion of the server-side session. Partial subsets remain open; each request is atomic.
+
+The local store persists the exact command ID and payload before network delivery. An acknowledged result finalizes local line states; a stale rejection preserves the rejected attempt, marks affected lines stale, and requires a fresh server snapshot and recount.
+
+**Not yet considered complete:** the branch still needs CI verification, review of all migration/runtime failures, and evidence that concurrent count posting and ordinary inventory writes cannot both accept the same stale version. Sequential pgTAP assertions alone are not sufficient proof of a two-session race.
