@@ -1,18 +1,23 @@
 import assert from 'node:assert/strict';
+import { randomUUID } from 'node:crypto';
 import { Client } from 'pg';
 
 const connectionString = process.env.KITCHAI_DATABASE_URL
   ?? 'postgresql://postgres:postgres@127.0.0.1:54322/postgres';
-const ownerId = '55111111-1111-4111-8111-111111111111';
-const businessProfileId = 'b5511111-1111-4111-8111-111111111111';
-const itemId = 'b5521111-1111-4111-8111-111111111111';
-const commandId = 'b5530000-0000-4000-8000-000000000001';
-const sessionId = 'b5540000-0000-4000-8000-000000000001';
-const lineId = 'b5550000-0000-4000-8000-000000000001';
-const varianceEventId = 'b5590000-0000-4000-8000-000000000001';
-const writerCommandId = 'b5560000-0000-4000-8000-000000000001';
-const writerEventId = 'b5570000-0000-4000-8000-000000000001';
-const writerSourceId = 'b5580000-0000-4000-8000-000000000001';
+const databaseHost = new URL(connectionString).hostname;
+if (!['127.0.0.1', 'localhost', '::1'].includes(databaseHost)) {
+  throw new Error('Stock-count concurrency test is restricted to a local disposable database');
+}
+const ownerId = randomUUID();
+const businessProfileId = randomUUID();
+const itemId = randomUUID();
+const commandId = randomUUID();
+const sessionId = randomUUID();
+const lineId = randomUUID();
+const varianceEventId = randomUUID();
+const writerCommandId = randomUUID();
+const writerEventId = randomUUID();
+const writerSourceId = randomUUID();
 
 const admin = new Client({ connectionString });
 const writer = new Client({ connectionString });
@@ -48,7 +53,7 @@ try {
 
   await admin.query(
     `INSERT INTO auth.users (id, aud, role, email, encrypted_password, email_confirmed_at)
-     VALUES ($1, 'authenticated', 'authenticated', 'wp35d-race@example.test', '', now())
+     VALUES ($1, 'authenticated', 'authenticated', `wp35d-race-${ownerId}@example.test`, '', now())
      ON CONFLICT (id) DO NOTHING`,
     [ownerId]
   );
@@ -149,12 +154,8 @@ try {
   try { await writer.query('RESET ROLE'); } catch {}
   try { await counter.query('RESET ROLE'); } catch {}
   try { await observer.query('RESET ROLE'); } catch {}
-  try {
-    await admin.query('DELETE FROM auth.users WHERE id = $1', [ownerId]);
-  } catch (cleanupError) {
-    console.error('Cleanup warning:', cleanupError.message);
-    process.exitCode = 1;
-  }
+  // The local test database is disposable. The receipt is part of the append-only
+  // stock ledger, so deleting its owner would violate the ledger's immutability guard.
   for (const client of clients) {
     try { await client.end(); } catch {}
   }
