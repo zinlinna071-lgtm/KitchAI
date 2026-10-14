@@ -42,11 +42,11 @@ $$;
 
 select extensions.dblink_connect(
  'wp35d_writer',
- 'host=127.0.0.1 port=5432 dbname=postgres user=postgres'
+ 'host=127.0.0.1 port=5432 dbname=postgres user=postgres password=postgres'
 );
 select extensions.dblink_connect(
  'wp35d_count',
- 'host=127.0.0.1 port=5432 dbname=postgres user=postgres'
+ 'host=127.0.0.1 port=5432 dbname=postgres user=postgres password=postgres'
 );
 select extensions.dblink_exec('wp35d_writer', 'begin');
 select extensions.dblink_exec('wp35d_writer', 'set role authenticated');
