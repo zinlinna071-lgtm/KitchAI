@@ -283,6 +283,7 @@ export async function postReviewedStockCountSubset(scope, sessionId, lineIds, au
   let failure;
   let session;
   let allLines;
+  let setPreparedResult;
   const prepare = () => {
     if (session === undefined || allLines === undefined || failure) return;
     try {
@@ -321,6 +322,7 @@ export async function postReviewedStockCountSubset(scope, sessionId, lineIds, au
         };
         sessions.put({ ...session, pendingPost: pending, updatedAt: new Date().toISOString() });
       }
+      setPreparedResult?.(pending);
     } catch (error) {
       failure = error;
       try { tx.abort(); } catch {}
@@ -331,7 +333,7 @@ export async function postReviewedStockCountSubset(scope, sessionId, lineIds, au
   sessionRequest.onerror = () => { failure = sessionRequest.error; try { tx.abort(); } catch {} };
   linesRequest.onerror = () => { failure = linesRequest.error; try { tx.abort(); } catch {} };
   try {
-    await transactionResult(tx, resolve => { tx.addEventListener("complete", () => resolve(pending), { once: true }); });
+    await transactionResult(tx, resolve => { setPreparedResult = resolve; });
   } catch (error) {
     throw failure ?? error;
   }
@@ -355,6 +357,7 @@ export async function postReviewedStockCountSubset(scope, sessionId, lineIds, au
   let finalizeFailure;
   let currentSession;
   let currentLines;
+  let setFinalizedResult;
   const finalize = () => {
     if (currentSession === undefined || currentLines === undefined || finalizeFailure) return;
     try {
@@ -380,6 +383,7 @@ export async function postReviewedStockCountSubset(scope, sessionId, lineIds, au
         updatedAt: new Date().toISOString(),
       };
       finalizeSessions.put(finalizedSession);
+      setFinalizedResult?.(finalizedSession);
     } catch (error) {
       finalizeFailure = error;
       try { finalizeTx.abort(); } catch {}
@@ -390,7 +394,7 @@ export async function postReviewedStockCountSubset(scope, sessionId, lineIds, au
   currentSessionRequest.onerror = () => { finalizeFailure = currentSessionRequest.error; try { finalizeTx.abort(); } catch {} };
   currentLinesRequest.onerror = () => { finalizeFailure = currentLinesRequest.error; try { finalizeTx.abort(); } catch {} };
   try {
-    await transactionResult(finalizeTx, resolve => { finalizeTx.addEventListener("complete", () => resolve(finalizedSession), { once: true }); });
+    await transactionResult(finalizeTx, resolve => { setFinalizedResult = resolve; });
   } catch (error) {
     // Keep the saved command if local finalization fails after remote acceptance;
     // the next call replays the exact command ID/payload and receives the same result.
