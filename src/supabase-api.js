@@ -203,8 +203,8 @@ export async function getInventoryItemSnapshot(businessId, stockClass, stockItem
       body: { p_business_id: businessId, p_stock_class: stockClass, p_stock_item_id: stockItemId },
     });
     if (result?.status !== "snapshot" || result.stockClass !== stockClass || result.stockItemId !== stockItemId ||
-        typeof result.version !== "string" || !/^\\d+$/.test(result.version) ||
-        typeof result.systemQuantity !== "string" || !/^(?:0|[1-9]\\d*)(?:[.]\\d{1,6})?$/.test(result.systemQuantity) ||
+        typeof result.version !== "string" || !/^\d+$/.test(result.version) ||
+        typeof result.systemQuantity !== "string" || !/^(?:0|[1-9]\d*)(?:[.]\d{1,6})?$/.test(result.systemQuantity) ||
         (result.unit !== null && !["g", "kg", "ml", "l", "each"].includes(result.unit))) {
       throw new Error("Supabase returned an unsupported inventory item snapshot.");
     }
