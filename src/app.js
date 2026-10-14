@@ -1808,6 +1808,7 @@ if (carryForwardDate && !carryForwardDate.value) carryForwardDate.value = new Da
 const stockCountUI = initializeStockCountUI({
   getScope: activeMenuScope,
   getSession: () => activeSession,
+  getRemoteBusinessId: () => activeSession?.user?.id && currentOwnerProfile?.syncState === "synced" ? currentOwnerProfile.businessId : null,
 });
 
 const purchaseUI = initializePurchaseUI({
