@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { applyInventoryCommand, readFinishedStock } from "../src/supabase-api.js";
+import { applyInventoryCommand, readFinishedStock, getInventoryItemSnapshot } from "../src/supabase-api.js";
 
 const session = {
   access_token: "test-access-token",
@@ -189,4 +189,61 @@ test("readFinishedStock scopes both queries to the server business and normalize
 test("readFinishedStock requires an authenticated owner and server UUID", async () => {
   await assert.rejects(() => readFinishedStock(command.businessId, null), /sign in as the business owner/i);
   await assert.rejects(() => readFinishedStock("local-business-id", session), /server-issued business ID/i);
+});
+
+const snapshotBusinessId = "77777777-7777-4777-8777-777777777777";
+const snapshotItemId = "88888888-8888-4888-8888-888888888888";
+test("getInventoryItemSnapshot requests the owner-scoped locked ledger snapshot and preserves exact values", async () => {
+  const originalFetch = globalThis.fetch;
+  const originalConfig = globalThis.KITCHAI_CONFIG;
+  let observed;
+  globalThis.KITCHAI_CONFIG = { supabaseUrl: "https://example.supabase.co/", supabaseAnonKey: "anon" };
+  globalThis.fetch = async (url, options) => {
+    observed = { url, options };
+    return {
+      ok: true, status: 200,
+      text: async () => JSON.stringify({
+        status: "snapshot", stockClass: "ingredient", stockItemId: snapshotItemId,
+        version: "15", systemQuantity: "3.125", unit: "kg",
+      }),
+    };
+  };
+  try {
+    const result = await getInventoryItemSnapshot(snapshotBusinessId, "ingredient", snapshotItemId, session);
+    assert.equal(observed.url, "https://example.supabase.co/rest/v1/rpc/get_inventory_item_snapshot");
+    assert.equal(observed.options.method, "POST");
+    assert.equal(observed.options.headers.Authorization, "Bearer test-access-token");
+    assert.deepEqual(JSON.parse(observed.options.body), {
+      p_business_id: snapshotBusinessId, p_stock_class: "ingredient", p_stock_item_id: snapshotItemId,
+    });
+    assert.deepEqual({ ...result, capturedAt: undefined }, {
+      stockClass: "ingredient", stockItemId: snapshotItemId, version: "15",
+      systemQuantity: "3.125", unit: "kg", capturedAt: undefined,
+    });
+    assert.ok(Number.isFinite(Date.parse(result.capturedAt)));
+  } finally {
+    globalThis.fetch = originalFetch;
+    if (originalConfig === undefined) delete globalThis.KITCHAI_CONFIG;
+    else globalThis.KITCHAI_CONFIG = originalConfig;
+  }
+});
+
+test("getInventoryItemSnapshot rejects missing auth, local partition IDs, and malformed server snapshots", async () => {
+  await assert.rejects(() => getInventoryItemSnapshot(snapshotBusinessId, "ingredient", snapshotItemId, null), /authenticated owner session/);
+  await assert.rejects(() => getInventoryItemSnapshot("local-business", "ingredient", snapshotItemId, session), /server-issued business ID/);
+  await assert.rejects(() => getInventoryItemSnapshot(snapshotBusinessId, "ingredient", "local-item", session), /server-issued stock item ID/);
+  const originalFetch = globalThis.fetch;
+  const originalConfig = globalThis.KITCHAI_CONFIG;
+  globalThis.KITCHAI_CONFIG = { supabaseUrl: "https://example.supabase.co", supabaseAnonKey: "anon" };
+  globalThis.fetch = async () => ({ ok: true, status: 200, text: async () => JSON.stringify({
+    status: "snapshot", stockClass: "ingredient", stockItemId: snapshotItemId,
+    version: "not-a-version", systemQuantity: "1", unit: "kg",
+  }) });
+  try {
+    await assert.rejects(() => getInventoryItemSnapshot(snapshotBusinessId, "ingredient", snapshotItemId, session), /unsupported inventory item snapshot/);
+  } finally {
+    globalThis.fetch = originalFetch;
+    if (originalConfig === undefined) delete globalThis.KITCHAI_CONFIG;
+    else globalThis.KITCHAI_CONFIG = originalConfig;
+  }
 });

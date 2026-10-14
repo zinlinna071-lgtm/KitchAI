@@ -1,5 +1,5 @@
 const DATABASE_NAME = "kitchai-business-data";
-const DATABASE_VERSION = 7;
+const DATABASE_VERSION = 8;
 const ENTITY_STORES = ["ingredients", "menuItems", "recipes", "recipeLines"];
 const OPERATIONS = "operations";
 const SYNC_METADATA = "syncMetadata";
@@ -114,6 +114,19 @@ function createSchema(db) {
     store.createIndex("byScope", ["ownerId", "businessId"], { unique: false });
     store.createIndex("bySyncState", ["ownerId", "businessId", "state"], { unique: false });
     store.createIndex("byCreatedAt", ["ownerId", "businessId", "createdAt"], { unique: false });
+  }
+  // Physical stock-count drafts are local-first audit records. Posting is a separate server-validated WP.
+  if (!db.objectStoreNames.contains("stockCountSessions")) {
+    const store = db.createObjectStore("stockCountSessions", { keyPath: ["ownerId", "businessId", "sessionId"] });
+    store.createIndex("byScope", ["ownerId", "businessId"], { unique: false });
+    store.createIndex("byScopeStatus", ["ownerId", "businessId", "status"], { unique: false });
+    store.createIndex("byCreatedAt", ["ownerId", "businessId", "createdAt"], { unique: false });
+  }
+  if (!db.objectStoreNames.contains("stockCountLines")) {
+    const store = db.createObjectStore("stockCountLines", { keyPath: ["ownerId", "businessId", "sessionId", "lineId"] });
+    store.createIndex("bySession", ["ownerId", "businessId", "sessionId"], { unique: false });
+    store.createIndex("byStockItem", ["ownerId", "businessId", "stockClass", "stockItemId"], { unique: false });
+    store.createIndex("bySessionState", ["ownerId", "businessId", "sessionId", "state"], { unique: false });
   }
   // Purchases and immutable receipt commands are local-first; stock changes still require the trusted inventory RPC.
   if (!db.objectStoreNames.contains("purchases")) {

@@ -177,6 +177,54 @@ export async function sendProfileOperation(operation, session) {
  * @param {{commandId:string,businessId:string,commandType:string,payload:{movements?:unknown[],lots?:unknown[],allocations?:unknown[]}}} command
  * @param {any} session
  */
+/**
+ * Read a server-authoritative inventory balance and item version under the database item lock.
+ * This is a snapshot only; it never mutates stock.
+ * @param {string} businessId Server-issued business UUID.
+ * @param {"ingredient"|"finished"} stockClass
+ * @param {string} stockItemId Server-side ingredient or menu-item UUID.
+ * @param {any} session Authenticated owner session.
+ */
+export async function getInventoryItemSnapshot(businessId, stockClass, stockItemId, session) {
+  if (!session?.access_token || !session?.user?.id) {
+    throw new Error("An authenticated owner session is required to capture a stock-count snapshot.");
+  }
+  if (typeof businessId !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(businessId)) {
+    throw new TypeError("A server-issued business ID is required to capture a stock-count snapshot.");
+  }
+  if (!["ingredient", "finished"].includes(stockClass)) throw new TypeError("Choose a supported stock class.");
+  if (typeof stockItemId !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(stockItemId)) {
+    throw new TypeError("A server-issued stock item ID is required to capture a stock-count snapshot.");
+  }
+  try {
+    const result = await request("/rest/v1/rpc/get_inventory_item_snapshot", {
+      method: "POST",
+      session,
+      body: { p_business_id: businessId, p_stock_class: stockClass, p_stock_item_id: stockItemId },
+    });
+    if (result?.status !== "snapshot" || result.stockClass !== stockClass || result.stockItemId !== stockItemId ||
+        typeof result.version !== "string" || !/^\d+$/.test(result.version) ||
+        typeof result.systemQuantity !== "string" || !/^(?:0|[1-9]\d*)(?:[.]\d{1,6})?$/.test(result.systemQuantity) ||
+        (result.unit !== null && !["g", "kg", "ml", "l", "each"].includes(result.unit))) {
+      throw new Error("Supabase returned an unsupported inventory item snapshot.");
+    }
+    return {
+      stockClass: result.stockClass,
+      stockItemId: result.stockItemId,
+      version: result.version,
+      systemQuantity: result.systemQuantity,
+      unit: result.unit,
+      capturedAt: new Date().toISOString(),
+    };
+  } catch (error) {
+    const status = /** @type {any} */ (error).status;
+    const code = /** @type {any} */ (error).code;
+    if (status === 401) throw new Error("Your session expired. Sign in again before capturing a stock count.");
+    if (status === 403 || code === "42501") throw new Error("The server rejected access to this business or stock item.");
+    throw error;
+  }
+}
+
 export async function applyInventoryCommand(command, session) {
   if (!session?.access_token || !session?.user?.id) {
     throw new Error("An authenticated owner session is required for inventory posting.");

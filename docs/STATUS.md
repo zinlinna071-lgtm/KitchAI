@@ -152,3 +152,13 @@ A detailed proposal for Physical Stock Counts and Adjustments is in [PHASE_3_WP3
 Owner accepted D3.5-01 through D3.5-04: optimistic concurrency/recount on stale lines; partial count sessions; zero-variance audit without a zero-quantity movement; cancellation only before any accepted adjustment. Recorded in [DECISIONS.md](./DECISIONS.md).
 
 The documentation-only consistency/test contract is [PHASE_3_WP3_5A_COUNT_CONSISTENCY_TEST_CONTRACT.md](./PHASE_3_WP3_5A_COUNT_CONSISTENCY_TEST_CONTRACT.md). Code review of the current inventory RPC found no established shared per-item lock/version protocol for concurrent stock writers, so the next implementation gate is to design and test that protocol across every stock-changing path. Count posting must not ship until stale-count rejection is enforced in the same database transaction as movement posting. No application code or migration was added in WP3.5a.
+
+
+## Phase 3 stock-count implementation reconciliation — 2026-10-14
+
+This section supersedes older WP3.5 status notes above where they conflict with the latest repository state.
+
+- WP3.5a consistency/test contract merged: [PR #52](https://github.com/zinlinna071-lgtm/KitchAI/pull/52).
+- WP3.5b server-authoritative item versions merged: [PR #53](https://github.com/zinlinna071-lgtm/KitchAI/pull/53), commit `105ade9062125dd1bb18522c3a72bd7b36c830e3`. Local Supabase authorization and vertical-slice checks passed on the PR head.
+- WP3.5c offline count drafts/review is in progress on [draft PR #54](https://github.com/zinlinna071-lgtm/KitchAI/pull/54); CI is still required before merge.
+- No physical count adjustment posting is available yet. WP3.5d must enforce expected-version comparison and stock movement insertion atomically on the server. Hosted resources, billing, secrets, and deployment remain unauthorized.
