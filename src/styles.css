@@ -94,3 +94,27 @@
 @media (max-width: 360px) {
   .production-usage-form button { width: 100%; }
 }
+
+
+/* Phase 3 purchasing and receiving */
+.purchase-workspace{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:1.4rem;align-items:start;min-width:0}
+.purchase-list-panel,.purchase-line-entry-list,.purchase-card{min-width:0;max-width:100%}
+.purchase-list-toolbar{display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap}
+.purchase-list-toolbar h3{margin:.2rem 0 .6rem;color:var(--green)}
+.purchase-line-entry-list{display:grid;gap:.8rem}
+.purchase-line-entry{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.65rem;border:1px solid var(--line);border-radius:12px;padding:.8rem;min-width:0}
+.purchase-line-entry legend{font-weight:700;padding:0 .25rem}
+.purchase-line-entry label,.purchase-receipt-form label{display:grid;gap:.35rem;min-width:0;font-size:.9rem;font-weight:650}
+.purchase-line-entry input,.purchase-line-entry select,.purchase-receipt-form input,.purchase-cancel-form input{box-sizing:border-box;width:100%;min-width:0;max-width:100%;min-height:42px;padding:.55rem .65rem;border:1px solid #cbd8d0;border-radius:9px;background:white;color:#19342e;font:inherit}
+.purchase-list{display:grid;gap:.85rem;list-style:none;padding:0;margin:1rem 0}
+.purchase-card{display:grid;gap:.65rem;padding:1rem;border:1px solid var(--line);border-radius:14px;background:#fff;overflow-wrap:anywhere}
+.purchase-card>strong{color:var(--green);text-transform:capitalize}
+.purchase-card p{margin:.1rem 0;color:var(--muted);font-size:.88rem;line-height:1.5}
+.purchase-card-lines{display:grid;gap:.35rem;margin:0;padding-left:1.2rem;font-size:.9rem}
+.purchase-receipt-row{display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap;padding-top:.5rem;border-top:1px solid var(--line)}
+.purchase-receipt-form{display:grid;gap:.65rem;padding-top:.8rem;border-top:1px solid var(--line)}
+.purchase-receipt-form button,.purchase-cancel-form button,.purchase-line-entry button{justify-self:start;max-width:100%}
+.purchase-cancel-form{display:flex;align-items:flex-start;gap:.6rem;flex-wrap:wrap}
+.purchase-cancel-form input{flex:1 1 12rem}
+@media(max-width:800px){.purchase-workspace{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:560px){.purchase-line-entry{grid-template-columns:minmax(0,1fr)}.purchase-list-toolbar{align-items:stretch;flex-direction:column}.purchase-list-toolbar button,.purchase-receipt-form button,.purchase-cancel-form button,.purchase-line-entry button{width:100%}.purchase-receipt-row{align-items:stretch;flex-direction:column}.purchase-receipt-row button{width:100%}}
