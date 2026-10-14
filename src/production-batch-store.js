@@ -238,8 +238,8 @@ export function validateActualUsage(snapshot, entries) {
     if (entry.disposition === "accepted_estimate" && !note) {
       throw new Error("Accepting an estimate requires an operator note.");
     }
-    if (entry.disposition === "measured" && line.quantityMode === "exact" && quantity !== line.quantity && !varianceReason) {
-      throw new Error("Measured usage that differs from the exact target requires a variance reason.");
+    if (line.quantityMode === "exact" && quantity !== line.quantity && !varianceReason) {
+      throw new Error("Usage that differs from the exact target requires a variance reason.");
     }
     return {
       lineId,
