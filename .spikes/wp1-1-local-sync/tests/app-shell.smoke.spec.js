@@ -1372,3 +1372,31 @@ test("carry-forward decisions persist offline, sync idempotently, and keep local
     inventoryEffect: "none",
   });
 });
+
+
+test("finished stock UI is accessible and disposition records persist in the local outbox", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "Know what is still safe to sell." })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Refresh stock" })).toBeVisible();
+  await expect(page.getByLabel("Disposition")).toBeVisible();
+  const evidence = await page.evaluate(async () => {
+    const { saveFinishedDisposition, listFinishedDispositions } = await import("/src/finished-stock-workflow-store.js");
+    const scope = { ownerId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", businessId: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb" };
+    const command = {
+      commandId: "77777777-7777-4777-8777-777777777777",
+      businessId: "99999999-9999-4999-8999-999999999999",
+      commandType: "stock_movement",
+      payload: { movements: [{ eventId: "88888888-8888-4888-8888-888888888888" }], lots: [], allocations: [] },
+    };
+    const saved = await saveFinishedDisposition(scope, command, { dispositionType: "giveaway", quantity: "2", unit: "each" });
+    const rows = await listFinishedDispositions(scope);
+    return { state: saved.state, localBusinessId: saved.businessId, remoteBusinessId: saved.remoteBusinessId, count: rows.length, sameCommand: rows[0].command.commandId === command.commandId };
+  });
+  expect(evidence).toEqual({
+    state: "pending_sync",
+    localBusinessId: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+    remoteBusinessId: "99999999-9999-4999-8999-999999999999",
+    count: 1,
+    sameCommand: true,
+  });
+});
