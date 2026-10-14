@@ -214,7 +214,13 @@ export function initializeStockCountUI(context) {
       if (sessionNote) sessionNote.value = "";
       sessions = await listStockCountSessions(scope);
       lines = await listStockCountLines(scope, selectedSessionId);
-      if (sessionSelect) sessionSelect.value = selectedSessionId;
+      if (sessionSelect) {
+        sessionSelect.replaceChildren(new Option("Choose a stock-count session", ""));
+        for (const item of sessions) {
+          sessionSelect.append(new Option(`${new Date(item.createdAt).toLocaleString()} · ${pretty(item.status)} · ${item.lineCount} lines`, item.sessionId));
+        }
+        sessionSelect.value = selectedSessionId;
+      }
       renderItemOptions();
       await renderLines();
       message("Stock-count session created. Add items to capture their current server quantities.");
