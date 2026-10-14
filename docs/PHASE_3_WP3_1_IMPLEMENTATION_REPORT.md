@@ -1,9 +1,8 @@
-# WP3.1 Implementation Report (Draft)
+# WP3.1 Implementation Report
 
-**Branch:** `feat/wp3-1-inventory-domain-model`  
-**Base:** `main` at `d008ea10f69cf3ff91f316dc5508f898ccec7bf3`  
-**Status:** Partial implementation; verification and review gates remain open.  
-**Hosted resources:** None provisioned. No billing, production secrets, deployment, or merge performed.
+**Merged implementation:** PR #38 at `2decd7bb6fa6d1836d1b66bc96e0a5fbe6e57a78`; PR #39 at `723f73f774be4377b462cc1e68f0a269f489cfcf`.  
+**Status:** Inventory foundation and adapter are merged; post-merge main Supabase verification remains pending/retrying after a Docker image-pull rate limit.  
+**Hosted resources:** None provisioned. No billing, production secrets, or deployment performed.
 
 ## Implemented in this draft
 
@@ -97,3 +96,10 @@ The docs-only review refresh that follows does not change application code; fres
 
 **Acceptance decision:** the four review gates on the current implementation commit are satisfied: current-head application CI passed; SQL migration/pgTAP and browser integration passed; the complete PR #39 diff and Phase 2 quantity compatibility were reviewed; and the implementation report/registry have been refreshed. **WP3.1 itself remains partial and is not marked complete** because the product acceptance scope still lacks inventory UI, production posting, trusted remote idempotency, inventory sync, and integrated inventory conflict preservation. PR #39 and parent PR #38 remain Draft and unmerged.
 
+
+
+## Merge and current verification status — 2026-10-14
+
+PR #38 and PR #39 were merged with owner authorization. PR #38's final head passed all five workflows. PR #39's final head passed Application Shell and Local Supabase Vertical Slice, including database tests and all 8 Playwright integration tests. On the resulting main head, Baseline [run 38523934998](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38523934998) and Application Shell [run 38523934985](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38523934985) passed. The post-merge Local Supabase authorization workflow initially failed while pulling the database image with Docker `toomanyrequests: Data limit exceeded`, before pgTAP started; a retry is in progress. The latest main-head vertical-slice workflow has not completed. Thus the post-merge SQL status remains pending, not failed on an assertion and not yet confirmed passing.
+
+The merged foundation does not itself implement a complete inventory workflow. The strict recipe quantity adapter is not connected to production posting; inventory UI, atomic trusted posting RPC, production consumption, inventory sync, and integrated conflict preservation remain future work. See [WP3.2 plan](./PHASE_3_WP3_2_PLAN.md).
