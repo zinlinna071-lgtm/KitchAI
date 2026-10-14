@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { buildRecipeSnapshot, validateActualUsage, validateProductionOutput } from "../src/production-batch-store.js";
+import { buildRecipeSnapshot, buildProductionInventoryCommand, validateActualUsage, validateProductionOutput } from "../src/production-batch-store.js";
 
 const recipe = {
   id: "recipe-1",
@@ -131,4 +131,69 @@ test("production output must have a positive supported quantity and match finish
   assert.throws(() => validateProductionOutput({ productId: "menu-1", quantity: "0", unit: "each" }));
   assert.throws(() => validateProductionOutput({ productId: "menu-1", quantity: "1.5", unit: "each" }));
   assert.throws(() => validateProductionOutput({ productId: "menu-1", quantity: "1", unit: "portion" }));
+});
+
+
+test("production inventory command uses measured decisions, stable IDs, and one atomic finished lot", () => {
+  const menuItemId = "11111111-1111-4111-8111-111111111111";
+  const ingredientA = "22222222-2222-4222-8222-222222222222";
+  const ingredientB = "33333333-3333-4333-8333-333333333333";
+  const ingredientC = "44444444-4444-4444-8444-444444444444";
+  const snapshot = buildRecipeSnapshot({
+    ...recipe, id: "55555555-5555-4555-8555-555555555555", menuItemId,
+  }, [
+    { id: "line-a", recipeId: "55555555-5555-4555-8555-555555555555", ingredientId: ingredientA, quantity: 1, unit: "kg", position: 0 },
+    { id: "line-b", recipeId: "55555555-5555-4555-8555-555555555555", ingredientId: ingredientB, quantity: 0.2, quantityMode: "estimated", unit: "l", position: 1, note: "Kitchen estimate" },
+    { id: "line-c", recipeId: "55555555-5555-4555-8555-555555555555", ingredientId: ingredientC, quantityMode: "to_taste", unit: "g", position: 2, note: "Add to taste" },
+  ], { snapshotId: "snapshot-production-command" });
+  const batch = {
+    batchId: "66666666-6666-4666-8666-666666666666",
+    businessId: "77777777-7777-4777-8777-777777777777",
+    state: "ready_to_post",
+    snapshot,
+    actualUsage: [
+      { lineId: "line-a", disposition: "measured", quantity: "0.9", unit: "kg", varianceReason: "Scale showed less than the target" },
+      { lineId: "line-b", disposition: "accepted_estimate", quantity: "0.2", unit: "l", note: "Accepted kitchen estimate" },
+      { lineId: "line-c", disposition: "not_used", note: "Skipped for this batch" },
+    ],
+    output: { productId: menuItemId, quantity: "4", unit: "each" },
+  };
+  const options = {
+    commandId: "88888888-8888-4888-8888-888888888888",
+    occurredAt: "2026-10-14T10:00:00.000Z",
+    outputEventId: "99999999-9999-4999-8999-999999999999",
+    lotId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+  };
+  const command = buildProductionInventoryCommand(batch, options);
+  assert.equal(command.commandId, options.commandId);
+  assert.equal(command.businessId, batch.businessId);
+  assert.equal(command.commandType, "stock_movement");
+  assert.equal(command.payload.movements.length, 3);
+  assert.deepEqual(command.payload.movements.map((movement) => movement.kind), [
+    "production_consumption", "production_consumption", "production_output",
+  ]);
+  assert.equal(command.payload.movements[0].quantity, "0.9");
+  assert.match(command.payload.movements[0].reason, /Scale showed less than the target/);
+  assert.equal(command.payload.movements[1].stockItemId, ingredientB);
+  assert.match(command.payload.movements[1].reason, /Accepted kitchen estimate/);
+  assert.equal(command.payload.movements[2].eventId, options.outputEventId);
+  assert.equal(command.payload.lots.length, 1);
+  assert.equal(command.payload.lots[0].lotId, options.lotId);
+  assert.equal(command.payload.lots[0].outputEventId, options.outputEventId);
+  assert.equal(command.payload.lots[0].producedQuantity, "4");
+  assert.deepEqual(command.payload.allocations, []);
+  assert.deepEqual(buildProductionInventoryCommand(batch, options), command);
+});
+
+test("production inventory command rejects unprepared batches and non-UUID stock identifiers", () => {
+  assert.throws(() => buildProductionInventoryCommand({ state: "started" }), /prepared production batch/);
+  const batch = {
+    batchId: "not-a-uuid",
+    businessId: "77777777-7777-4777-8777-777777777777",
+    state: "ready_to_post",
+    snapshot: { snapshotId: "snap", menuItemId: "11111111-1111-4111-8111-111111111111", lines: [{ lineId: "line", ingredientId: "bad-id", quantityMode: "exact", quantity: "1", unit: "kg", position: 0 }] },
+    actualUsage: [{ lineId: "line", disposition: "measured", quantity: "1", unit: "kg" }],
+    output: { productId: "11111111-1111-4111-8111-111111111111", quantity: "1", unit: "each" },
+  };
+  assert.throws(() => buildProductionInventoryCommand(batch), /Production batch ID must be a UUID/);
 });
