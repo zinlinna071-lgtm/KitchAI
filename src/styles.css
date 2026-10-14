@@ -118,3 +118,5 @@
 .purchase-cancel-form input{flex:1 1 12rem}
 @media(max-width:800px){.purchase-workspace{grid-template-columns:minmax(0,1fr)}}
 @media(max-width:560px){.purchase-line-entry{grid-template-columns:minmax(0,1fr)}.purchase-list-toolbar{align-items:stretch;flex-direction:column}.purchase-list-toolbar button,.purchase-receipt-form button,.purchase-cancel-form button,.purchase-line-entry button{width:100%}.purchase-receipt-row{align-items:stretch;flex-direction:column}.purchase-receipt-row button{width:100%}}
+
+.purchase-abandon-form{display:flex;align-items:flex-start;gap:.6rem;flex-wrap:wrap}.purchase-abandon-form input{flex:1 1 12rem;box-sizing:border-box;min-width:0;max-width:100%;min-height:42px;padding:.55rem .65rem;border:1px solid #cbd8d0;border-radius:9px;background:white;color:#19342e;font:inherit}.purchase-abandon-form button{max-width:100%}@media(max-width:560px){.purchase-abandon-form{flex-direction:column}.purchase-abandon-form input,.purchase-abandon-form button{width:100%}}
