@@ -28,6 +28,7 @@ test("purchase rejects unsupported units, non-decimal quantity, duplicate lines 
   assert.throws(() => buildPurchaseDraft({ lines: [{ ingredientId, ingredientName: "Rice", orderedQuantity: "1e3", unit: "kg", unitPrice: "1" }] }), /plain decimal/);
   assert.throws(() => buildPurchaseDraft({ lines: [{ ingredientId, ingredientName: "Rice", orderedQuantity: "1", unit: "cup", unitPrice: "1" }] }), /supported unit/);
   assert.throws(() => buildPurchaseDraft({ lines: [{ ingredientId, ingredientName: "Rice", orderedQuantity: "1", unit: "kg", unitPrice: "-1" }] }), /non-negative decimal/);
+  assert.throws(() => buildPurchaseDraft({ lines: [{ ingredientId, ingredientName: "Rice", orderedQuantity: "1", unit: "kg", unitPrice: "1" }, { ingredientId, ingredientName: "Rice", orderedQuantity: "2", unit: "g", unitPrice: "1" }] }), /only once in a purchase/);
 });
 test("receipt command uses one stable source and exact positive movements", () => {
   const result = buildPurchaseReceiptCommand(purchase(), [{ lineId, quantity: "3.25", eventId }], {
