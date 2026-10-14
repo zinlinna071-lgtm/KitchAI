@@ -1,5 +1,5 @@
 import { openBusinessDatabase } from "./business-data-store.js";
-import { getInventoryItemSnapshot } from "./supabase-api.js";
+import { getInventoryItemSnapshot, postStockCountSubset } from "./supabase-api.js";
 import {
   buildStockCountSession,
   buildStockCountLine,
@@ -245,4 +245,156 @@ export async function cancelStockCountSession(scope, sessionId, cancelledAt = ne
   const tx = db.transaction(SESSION_STORE, "readwrite");
   tx.objectStore(SESSION_STORE).put(cancelled);
   return transactionResult(tx, resolve => { tx.objectStore(SESSION_STORE).get(sessionKey(partition, sessionId)).onsuccess = event => resolve(event.target.result); });
+}
+
+
+/**
+ * Persist a stable command before delivery, then retry the exact same ID and payload
+ * until the server acknowledges it. Each submitted reviewed subset is atomic.
+ * @param {{ownerId:string,businessId:string}} scope Local owner/business partition.
+ * @param {string} sessionId Local stock-count session ID.
+ * @param {string[]} lineIds Reviewed line IDs to submit in this atomic subset.
+ * @param {any} authSession Authenticated owner session.
+ * @param {{completeSession?:boolean}} options
+ */
+export async function postReviewedStockCountSubset(scope, sessionId, lineIds, authSession, options = {}) {
+  const partition = scopeKey(scope);
+  if (authSession?.user?.id !== partition.ownerId || !authSession?.access_token) {
+    throw new Error("Sign in as this business owner before posting stock counts.");
+  }
+  if (!Array.isArray(lineIds) || lineIds.length < 1 || lineIds.length > 200 ||
+      lineIds.some(id => typeof id !== "string" || !id.trim()) ||
+      new Set(lineIds).size !== lineIds.length) {
+    throw new TypeError("Choose 1 to 200 distinct reviewed count lines to post.");
+  }
+  if (options.completeSession !== undefined && typeof options.completeSession !== "boolean") {
+    throw new TypeError("The session-completion choice must be true or false.");
+  }
+
+  const db = await openBusinessDatabase();
+  const tx = db.transaction([SESSION_STORE, LINE_STORE], "readwrite");
+  const sessions = tx.objectStore(SESSION_STORE);
+  const lines = tx.objectStore(LINE_STORE);
+  const sessionRequest = sessions.get(sessionKey(partition, sessionId));
+  const linesRequest = lines.index("bySession").getAll([
+    partition.ownerId, partition.businessId, requireText(sessionId, "Count session ID"),
+  ]);
+  let pending;
+  let failure;
+  let session;
+  let allLines;
+  const prepare = () => {
+    if (session === undefined || allLines === undefined || failure) return;
+    try {
+      if (!session) throw new Error("Stock-count session was not found in this business workspace.");
+      if (session.pendingPost) {
+        pending = session.pendingPost;
+      } else {
+        if (["cancelled", "posted"].includes(session.status)) throw new Error("This stock-count session is closed.");
+        const selected = lineIds.map(id => allLines.find(line => line.lineId === id));
+        if (selected.some(line => !line || line.state !== "reviewed" || line.countedQuantity === null || line.variance === null)) {
+          throw new Error("Only reviewed, counted lines can be posted. Review the selected lines first.");
+        }
+        const command = {
+          commandId: crypto.randomUUID(),
+          businessId: session.remoteBusinessId,
+          sessionId: session.sessionId,
+          completeSession: options.completeSession === true,
+          lines: selected.map(line => ({
+            lineId: line.lineId,
+            stockClass: line.stockClass,
+            stockItemId: line.stockItemId,
+            expectedVersion: line.version,
+            countedQuantity: line.countedQuantity,
+            unit: line.unit,
+            reason: line.reason,
+            ...(line.variance === "0" ? {} : { varianceEventId: crypto.randomUUID() }),
+            countedAt: line.countedAt,
+            reviewedAt: line.reviewedAt,
+          })),
+        };
+        pending = {
+          command,
+          lineIds: selected.map(line => line.lineId),
+          completeSession: command.completeSession,
+          createdAt: new Date().toISOString(),
+        };
+        sessions.put({ ...session, pendingPost: pending, updatedAt: new Date().toISOString() });
+      }
+    } catch (error) {
+      failure = error;
+      try { tx.abort(); } catch {}
+    }
+  };
+  sessionRequest.onsuccess = () => { session = sessionRequest.result ?? null; prepare(); };
+  linesRequest.onsuccess = () => { allLines = linesRequest.result; prepare(); };
+  sessionRequest.onerror = () => { failure = sessionRequest.error; try { tx.abort(); } catch {} };
+  linesRequest.onerror = () => { failure = linesRequest.error; try { tx.abort(); } catch {} };
+  try {
+    await transactionResult(tx, resolve => { tx.addEventListener("complete", () => resolve(pending), { once: true }); });
+  } catch (error) {
+    throw failure ?? error;
+  }
+  if (!pending?.command) throw new Error("Could not persist the stock-count command before delivery.");
+
+  const result = await postStockCountSubset(pending.command, authSession);
+  const acceptedIds = [...result.postedLineIds].sort();
+  if (JSON.stringify(acceptedIds) !== JSON.stringify([...pending.lineIds].sort())) {
+    throw new Error("The server accepted an unexpected set of stock-count lines. The saved command remains available for safe retry/review.");
+  }
+
+  const finalizeDb = await openBusinessDatabase();
+  const finalizeTx = finalizeDb.transaction([SESSION_STORE, LINE_STORE], "readwrite");
+  const finalizeSessions = finalizeTx.objectStore(SESSION_STORE);
+  const finalizeLines = finalizeTx.objectStore(LINE_STORE);
+  const currentSessionRequest = finalizeSessions.get(sessionKey(partition, sessionId));
+  const currentLinesRequest = finalizeLines.index("bySession").getAll([
+    partition.ownerId, partition.businessId, requireText(sessionId, "Count session ID"),
+  ]);
+  let finalizedSession;
+  let finalizeFailure;
+  let currentSession;
+  let currentLines;
+  const finalize = () => {
+    if (currentSession === undefined || currentLines === undefined || finalizeFailure) return;
+    try {
+      if (!currentSession?.pendingPost ||
+          currentSession.pendingPost.command.commandId !== pending.command.commandId) {
+        throw new Error("The pending stock-count command changed before local finalization; retry/review is required.");
+      }
+      for (const lineId of pending.lineIds) {
+        const line = currentLines.find(candidate => candidate.lineId === lineId);
+        if (!line || !["reviewed", "posted"].includes(line.state)) {
+          throw new Error("A posted count line is missing from local storage; the server result is retained for safe retry/recovery.");
+        }
+        if (line.state !== "posted") {
+          finalizeLines.put({ ...line, state: "posted", postedAt: new Date().toISOString() });
+        }
+      }
+      finalizedSession = {
+        ...currentSession,
+        status: pending.completeSession ? "posted" : currentSession.status,
+        ...(pending.completeSession ? { postedAt: new Date().toISOString() } : {}),
+        pendingPost: null,
+        lastPostResult: result,
+        updatedAt: new Date().toISOString(),
+      };
+      finalizeSessions.put(finalizedSession);
+    } catch (error) {
+      finalizeFailure = error;
+      try { finalizeTx.abort(); } catch {}
+    }
+  };
+  currentSessionRequest.onsuccess = () => { currentSession = currentSessionRequest.result ?? null; finalize(); };
+  currentLinesRequest.onsuccess = () => { currentLines = currentLinesRequest.result; finalize(); };
+  currentSessionRequest.onerror = () => { finalizeFailure = currentSessionRequest.error; try { finalizeTx.abort(); } catch {} };
+  currentLinesRequest.onerror = () => { finalizeFailure = currentLinesRequest.error; try { finalizeTx.abort(); } catch {} };
+  try {
+    await transactionResult(finalizeTx, resolve => { finalizeTx.addEventListener("complete", () => resolve(finalizedSession), { once: true }); });
+  } catch (error) {
+    // Keep the saved command if local finalization fails after remote acceptance;
+    // the next call replays the exact command ID/payload and receives the same result.
+    throw finalizeFailure ?? error;
+  }
+  return { ...result, session: finalizedSession };
 }
