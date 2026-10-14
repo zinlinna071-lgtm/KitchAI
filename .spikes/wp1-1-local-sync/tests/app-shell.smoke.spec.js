@@ -1579,3 +1579,65 @@ test("WP3.5c stock count drafts capture a server snapshot and persist exact offl
   expect(persisted.line.reason).toBe("Spillage found");
   expect(persisted.line.state).toBe("reviewed");
 });
+
+
+test("WP3.5d freezes local count edits while a posting outcome is uncertain", async ({ page }) => {
+  await page.goto("/");
+  const outcome = await page.evaluate(async () => {
+    const scope = { ownerId: "71111111-1111-4111-8111-111111111111", businessId: "local-pending-count-partition" };
+    const remoteBusinessId = "72222222-2222-4222-8222-222222222222";
+    const itemId = "73333333-3333-4333-8333-333333333333";
+    const session = { access_token: "test-token", user: { id: scope.ownerId } };
+    const originalFetch = window.fetch;
+    const originalConfig = window.KITCHAI_CONFIG;
+    window.KITCHAI_CONFIG = { supabaseUrl: "https://example.supabase.co", supabaseAnonKey: "anon" };
+    window.fetch = async (url) => {
+      if (url.endsWith("/get_inventory_item_snapshot")) {
+        return { ok: true, status: 200, text: async () => JSON.stringify({
+          status: "snapshot", stockClass: "ingredient", stockItemId: itemId,
+          version: "0", systemQuantity: "1", unit: "kg",
+        }) };
+      }
+      throw new TypeError("simulated network loss after command persistence");
+    };
+    try {
+      const store = await import("/src/stock-count-store.js");
+      const countSession = await store.createStockCountSession(scope, remoteBusinessId, {
+        sessionId: "74444444-4444-4444-8444-444444444444",
+      });
+      const line = await store.addStockCountLine(scope, countSession.sessionId, {
+        stockClass: "ingredient", stockItemId: itemId, stockItemName: "Rice", unit: "kg",
+      }, session, { lineId: "75555555-5555-4555-8555-555555555555" });
+      await store.enterStockCount(scope, countSession.sessionId, line.lineId, "2", "Initial count");
+      await store.reviewStockCountLine(scope, countSession.sessionId, line.lineId, {
+        reviewedBy: scope.ownerId, reviewedAt: "2026-10-14T10:05:00.000Z", reason: "Physical count",
+      });
+      let postError = "";
+      try {
+        await store.postReviewedStockCountSubset(scope, countSession.sessionId, [line.lineId], session);
+      } catch (error) { postError = String(error?.message || error); }
+      const attempts = await Promise.all([
+        store.enterStockCount(scope, countSession.sessionId, line.lineId, "3", "Changed after uncertain post"),
+        store.reviewStockCountLine(scope, countSession.sessionId, line.lineId, {
+          reviewedBy: scope.ownerId, reviewedAt: "2026-10-14T10:06:00.000Z", reason: "Changed",
+        }),
+        store.addStockCountLine(scope, countSession.sessionId, {
+          stockClass: "ingredient", stockItemId: "76666666-6666-4666-8666-666666666666",
+          stockItemName: "Flour", unit: "kg",
+        }, session),
+        store.cancelStockCountSession(scope, countSession.sessionId),
+        store.refreshStaleStockCountLine(scope, countSession.sessionId, line.lineId, session),
+      ].map(promise => promise.then(() => false, () => true)));
+      const saved = await store.listStockCountLines(scope, countSession.sessionId);
+      return { postError, attempts, savedQuantity: saved[0].countedQuantity, savedState: saved[0].state };
+    } finally {
+      window.fetch = originalFetch;
+      if (originalConfig === undefined) delete window.KITCHAI_CONFIG;
+      else window.KITCHAI_CONFIG = originalConfig;
+    }
+  });
+  expect(outcome.postError).toContain("simulated network loss");
+  expect(outcome.attempts).toEqual([true, true, true, true, true]);
+  expect(outcome.savedQuantity).toBe("2");
+  expect(outcome.savedState).toBe("reviewed");
+});
