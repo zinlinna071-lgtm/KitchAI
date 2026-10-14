@@ -44,7 +44,9 @@ export function buildPurchaseDraft(input, options = {}) {
       ingredientName: text(line.ingredientName, "Ingredient name", 240),
       orderedQuantity: quantity,
       unit,
-      unitPrice: price(line.unitPrice),
+      unitPrice: line.unitPrice === undefined || line.unitPrice === null || line.unitPrice === ""
+        ? null
+        : price(line.unitPrice),
       position: index,
     };
   });
