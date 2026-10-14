@@ -146,8 +146,8 @@ begin
 
   for v_item in select value from pg_catalog.jsonb_array_elements(v_allocations)
   loop
-    if pg_catalog.jsonb_typeof(v_item -> 'quantity') <> 'string'
-       or (v_item ->> 'quantity') !~ '^[0-9]+([.][0-9]{1,6})?$' then
+    if pg_catalog.jsonb_typeof(v_item -> 'quantity') is distinct from 'string'
+       or coalesce(v_item ->> 'quantity', '') !~ '^[0-9]+([.][0-9]{1,6})?$' then
       raise exception 'Allocation quantity must be a plain decimal string with at most six fractional digits'
         using errcode = '22023';
     end if;
@@ -246,8 +246,8 @@ comment on function public.apply_inventory_command(uuid, uuid, text, jsonb) is
 
   for v_item in select value from pg_catalog.jsonb_array_elements(v_allocations)
   loop
-    if pg_catalog.jsonb_typeof(v_item -> 'quantity') <> 'string'
-       or (v_item ->> 'quantity') !~ '^[0-9]+([.][0-9]{1,6})?$' then
+    if pg_catalog.jsonb_typeof(v_item -> 'quantity') is distinct from 'string'
+       or coalesce(v_item ->> 'quantity', '') !~ '^[0-9]+([.][0-9]{1,6})?$' then
       raise exception 'Allocation quantity must be a plain decimal string with at most six fractional digits'
         using errcode = '22023';
     end if;
