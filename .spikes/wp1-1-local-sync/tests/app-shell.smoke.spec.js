@@ -77,7 +77,7 @@ test("populated IndexedDB v2 upgrades additively, failed legacy mapping retries,
     const opened = await module.openBusinessDatabase();
     const storeNames = [...opened.objectStoreNames].sort();
     const counts = {};
-    for (const name of ["ingredients", "menuItems", "recipes", "recipeLines", "operations", "syncMetadata", "metadata", "migrationLedger", "conflicts", "stockMovements", "finishedLots", "inventoryCommands", "stockMovementLotAllocations", "productionBatches", "finishedLotHandlingEvents", "finishedStockSnapshots", "finishedStockCommands"]) {
+    for (const name of ["ingredients", "menuItems", "recipes", "recipeLines", "operations", "syncMetadata", "metadata", "migrationLedger", "conflicts", "stockMovements", "finishedLots", "inventoryCommands", "stockMovementLotAllocations", "productionBatches", "finishedLotHandlingEvents", "finishedStockSnapshots", "finishedStockCommands", "purchases"]) {
       counts[name] = (await readAll(opened, name)).length;
     }
     const existingIngredient = (await readAll(opened, "ingredients")).find((row) => row.id === "existing-ingredient");
@@ -100,12 +100,14 @@ test("populated IndexedDB v2 upgrades additively, failed legacy mapping retries,
   expect(first.upgradedNames).toContain("finishedLotHandlingEvents");
   expect(first.upgradedNames).toContain("finishedStockSnapshots");
   expect(first.upgradedNames).toContain("finishedStockCommands");
+  expect(first.upgradedNames).toContain("purchases");
   expect(first.storeNames).toContain("inventoryCommands");
   expect(first.storeNames).toContain("stockMovementLotAllocations");
   expect(first.storeNames).toContain("productionBatches");
   expect(first.storeNames).toContain("finishedLotHandlingEvents");
   expect(first.storeNames).toContain("finishedStockSnapshots");
   expect(first.storeNames).toContain("finishedStockCommands");
+  expect(first.storeNames).toContain("purchases");
   expect(first.counts.ingredients).toBe(2);
   expect(first.counts.menuItems).toBe(1);
   expect(first.counts.recipes).toBe(1);
@@ -121,6 +123,7 @@ test("populated IndexedDB v2 upgrades additively, failed legacy mapping retries,
   expect(first.counts.finishedLotHandlingEvents).toBe(0);
   expect(first.counts.finishedStockSnapshots).toBe(0);
   expect(first.counts.finishedStockCommands).toBe(0);
+  expect(first.counts.purchases).toBe(0);
   expect(first.existingIngredient.name).toBe("Existing rice");
   expect(first.importedLegacy.ownerId).toBe("local:profile-1");
   expect(first.importedLegacy.businessId).toBe("profile-1");
