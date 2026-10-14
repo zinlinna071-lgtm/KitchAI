@@ -1274,7 +1274,6 @@ async function refreshProductionView() {
     productionListState.textContent = "Production batches could not be loaded.";
     setProductionState(error instanceof Error ? error.message : "Production workspace is unavailable.", true);
   }
-  await purchaseUI.refresh();
 }
 
 productionStartForm?.addEventListener("submit", async event => {
