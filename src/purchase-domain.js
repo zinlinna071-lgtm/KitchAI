@@ -37,7 +37,7 @@ export function buildPurchaseDraft(input, options = {}) {
   const lines = input.lines.map((line, index) => {
     const unit = text(line.unit, "Unit", 8);
     if (!UNITS.has(unit)) throw new TypeError("Choose a supported unit: g, kg, ml, l, or each.");
-    const quantity = formatQuantity(normalizeQuantity(line.orderedQuantity, { unit, stockClass: "ingredient" }));
+    const quantity = normalizeQuantity(line.orderedQuantity, { unit, stockClass: "ingredient" }).quantity;
     return {
       lineId: uuid(line.lineId ?? crypto.randomUUID(), "Purchase line ID"),
       ingredientId: uuid(line.ingredientId, "Ingredient ID"),
@@ -78,7 +78,7 @@ export function buildPurchaseReceiptCommand(purchase, entries, options = {}) {
     if (!line) throw new Error("Receipt line is outside this purchase.");
     if (seen.has(line.lineId)) throw new Error("A receipt cannot contain duplicate purchase lines.");
     seen.add(line.lineId);
-    const quantity = formatQuantity(normalizeQuantity(entry.quantity, { unit: line.unit, stockClass: "ingredient" }));
+    const quantity = normalizeQuantity(entry.quantity, { unit: line.unit, stockClass: "ingredient" }).quantity;
     const previouslyReserved = (purchase.receipts ?? []).flatMap(receipt => receipt.lines ?? [])
       .filter(receiptLine => receiptLine.lineId === line.lineId)
       .map(receiptLine => receiptLine.quantity);
@@ -107,10 +107,10 @@ export function buildPurchaseReceiptCommand(purchase, entries, options = {}) {
     },
     lines: entries.map(entry => ({
       lineId: entry.lineId,
-      quantity: formatQuantity(normalizeQuantity(entry.quantity, {
+      quantity: normalizeQuantity(entry.quantity, {
         unit: purchase.lines.find(candidate => candidate.lineId === entry.lineId)?.unit,
         stockClass: "ingredient",
-      })),
+      }).quantity,
       unit: purchase.lines.find(candidate => candidate.lineId === entry.lineId)?.unit,
     })),
     recordedAt,
