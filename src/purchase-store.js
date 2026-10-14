@@ -84,6 +84,7 @@ export async function syncPurchaseReceipt(scope, purchaseId, receiptId, session,
   const receipt = (purchase.receipts ?? []).find(item => item.receiptId === receiptId);
   if (!receipt) throw new Error("Receipt command was not found.");
   if (receipt.state === "synced") return projectPurchase(purchase);
+  if (receipt.state === "abandoned" || receipt.state === "permanent_error") throw new Error("This receipt was rejected or abandoned and cannot be retried. Record a new receipt after correcting the issue.");
   if (receipt.command.businessId !== remoteBusinessId) throw new Error("Receipt is bound to a different server business ID; do not rewrite its command.");
   try {
     const result = await applyInventoryCommand(receipt.command, session);
@@ -101,8 +102,13 @@ export async function syncPurchaseReceipt(scope, purchaseId, receiptId, session,
     return projectPurchase({ ...latest, receipts: updatedReceipts, status });
   } catch (error) {
     const latest = await readPurchase(partition, purchaseId);
+    const status = /** @type {any} */ (error).status;
+    const code = /** @type {any} */ (error).code;
+    const message = error instanceof Error ? error.message : "Receipt posting failed.";
+    const permanent = [400, 403, 422].includes(status) || ["22023", "23514", "42501"].includes(code)
+      || /server rejected/i.test(message);
     const updatedReceipts = latest.receipts.map(item => item.receiptId === receiptId
-      ? { ...item, state: "retryable_error", lastError: error instanceof Error ? error.message : "Receipt posting failed." }
+      ? { ...item, state: permanent ? "permanent_error" : "retryable_error", lastError: message }
       : item);
     const db = await openBusinessDatabase();
     const tx = db.transaction("purchases", "readwrite");
@@ -111,6 +117,29 @@ export async function syncPurchaseReceipt(scope, purchaseId, receiptId, session,
     throw error;
   }
 }
+/** Preserve a rejected immutable command while explicitly releasing its local quantity reservation. */
+export async function abandonPurchaseReceipt(scope, purchaseId, receiptId, reason) {
+  const partition = scopeKey(scope);
+  const message = requireText(reason, "Abandonment reason");
+  const purchase = await readPurchase(partition, purchaseId);
+  if (!purchase) throw new Error("Purchase was not found in this business workspace.");
+  const receipt = (purchase.receipts ?? []).find(item => item.receiptId === receiptId);
+  if (!receipt || receipt.state !== "permanent_error") {
+    throw new Error("Only a definitively rejected receipt can be abandoned. Retry uncertain network failures instead.");
+  }
+  const receipts = purchase.receipts.map(item => item.receiptId === receiptId
+    ? { ...item, state: "abandoned", abandonedAt: new Date().toISOString(), abandonmentReason: message }
+    : item);
+  const projected = projectPurchase({ ...purchase, receipts });
+  const status = projected.lines.every(line => line.receivedQuantity === line.orderedQuantity) ? "received"
+    : projected.lines.some(line => line.receivedQuantity !== "0") ? "partially_received" : "open";
+  const db = await openBusinessDatabase();
+  const tx = db.transaction("purchases", "readwrite");
+  tx.objectStore("purchases").put({ ...purchase, receipts, status, updatedAt: new Date().toISOString() });
+  await transactionResult(tx);
+  return projectPurchase({ ...purchase, receipts, status });
+}
+
 export async function cancelPurchase(scope, purchaseId, reason) {
   const partition = scopeKey(scope);
   const message = requireText(reason, "Cancellation reason");
@@ -122,7 +151,7 @@ export async function cancelPurchase(scope, purchaseId, reason) {
     request.onsuccess = () => {
       const purchase = request.result;
       if (!purchase) { try { tx.abort(); } catch {} return; }
-      if ((purchase.receipts ?? []).some(receipt => receipt.state !== "synced")) {
+      if ((purchase.receipts ?? []).some(receipt => ["pending", "syncing", "retryable_error", "permanent_error"].includes(receipt.state))) {
         try { tx.abort(); } catch {}
         return;
       }
