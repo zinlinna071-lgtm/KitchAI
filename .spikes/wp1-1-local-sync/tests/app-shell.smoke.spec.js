@@ -65,7 +65,7 @@ test("populated IndexedDB v2 upgrades additively, failed legacy mapping retries,
     const module = await import("/src/business-data-store.js");
     let firstError = "";
     try { await module.openBusinessDatabase(); } catch (error) { firstError = String(error.message || error); }
-    const upgraded = await openDb("kitchai-business-data", 4, () => {});
+    const upgraded = await openDb("kitchai-business-data", 5, () => {});
     const upgradedNames = [...upgraded.objectStoreNames].sort();
     upgraded.close();
     const local = await openDb("kitchai-local", 1, (database) => database.createObjectStore("profiles", { keyPath: "id" }));
@@ -77,7 +77,7 @@ test("populated IndexedDB v2 upgrades additively, failed legacy mapping retries,
     const opened = await module.openBusinessDatabase();
     const storeNames = [...opened.objectStoreNames].sort();
     const counts = {};
-    for (const name of ["ingredients", "menuItems", "recipes", "recipeLines", "operations", "syncMetadata", "metadata", "migrationLedger", "conflicts", "stockMovements", "finishedLots", "inventoryCommands", "stockMovementLotAllocations", "productionBatches"]) {
+    for (const name of ["ingredients", "menuItems", "recipes", "recipeLines", "operations", "syncMetadata", "metadata", "migrationLedger", "conflicts", "stockMovements", "finishedLots", "inventoryCommands", "stockMovementLotAllocations", "productionBatches", "finishedLotHandlingEvents"]) {
       counts[name] = (await readAll(opened, name)).length;
     }
     const existingIngredient = (await readAll(opened, "ingredients")).find((row) => row.id === "existing-ingredient");
@@ -97,9 +97,11 @@ test("populated IndexedDB v2 upgrades additively, failed legacy mapping retries,
   expect(first.firstError).toContain("Could not safely map a local Phase 2 record");
   expect(first.upgradedNames).toContain("stockMovements");
   expect(first.upgradedNames).toContain("productionBatches");
+  expect(first.upgradedNames).toContain("finishedLotHandlingEvents");
   expect(first.storeNames).toContain("inventoryCommands");
   expect(first.storeNames).toContain("stockMovementLotAllocations");
   expect(first.storeNames).toContain("productionBatches");
+  expect(first.storeNames).toContain("finishedLotHandlingEvents");
   expect(first.counts.ingredients).toBe(2);
   expect(first.counts.menuItems).toBe(1);
   expect(first.counts.recipes).toBe(1);
@@ -112,6 +114,7 @@ test("populated IndexedDB v2 upgrades additively, failed legacy mapping retries,
   expect(first.counts.inventoryCommands).toBe(0);
   expect(first.counts.stockMovementLotAllocations).toBe(0);
   expect(first.counts.productionBatches).toBe(0);
+  expect(first.counts.finishedLotHandlingEvents).toBe(0);
   expect(first.existingIngredient.name).toBe("Existing rice");
   expect(first.importedLegacy.ownerId).toBe("local:profile-1");
   expect(first.importedLegacy.businessId).toBe("profile-1");
