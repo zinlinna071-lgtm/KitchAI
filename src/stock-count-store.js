@@ -435,3 +435,75 @@ export async function postReviewedStockCountSubset(scope, sessionId, lineIds, au
   }
   return { ...result, session: finalizedSession };
 }
+
+
+/**
+ * Refresh a stale line from the server and clear the old observation so the owner must recount.
+ * The rejected attempt remains preserved on session.lastRejectedPost.
+ * @param {{ownerId:string,businessId:string}} scope
+ * @param {string} sessionId
+ * @param {string} lineId
+ * @param {any} authSession
+ */
+export async function refreshStaleStockCountLine(scope, sessionId, lineId, authSession) {
+  const partition = scopeKey(scope);
+  const session = await readSession(partition, sessionId);
+  if (!session) throw new Error("Stock-count session was not found in this business workspace.");
+  if (["cancelled", "posted"].includes(session.status)) throw new Error("This stock-count session is closed.");
+  if (authSession?.user?.id !== partition.ownerId || !authSession?.access_token) {
+    throw new Error("Sign in as this business owner before refreshing a stale stock count.");
+  }
+  const line = (await readLines(partition, sessionId)).find(candidate => candidate.lineId === lineId);
+  if (!line || line.state !== "stale") throw new Error("Only a stale stock-count line can refresh its snapshot.");
+  const snapshot = await getInventoryItemSnapshot(session.remoteBusinessId, line.stockClass, line.stockItemId, authSession);
+  if (snapshot.unit && snapshot.unit !== line.unit) {
+    throw new Error("The server ledger unit changed. Automatic unit conversion is disabled; review the item unit before recounting.");
+  }
+  const refreshed = {
+    ...line,
+    version: snapshot.version,
+    systemQuantity: snapshot.systemQuantity,
+    unit: snapshot.unit ?? line.unit,
+    snapshotAt: snapshot.capturedAt,
+    countedQuantity: null,
+    countedAt: null,
+    variance: null,
+    reason: "",
+    state: "open",
+    reviewedBy: null,
+    reviewedAt: null,
+    postedAt: null,
+    staleAt: null,
+  };
+  const db = await openBusinessDatabase();
+  const tx = db.transaction([SESSION_STORE, LINE_STORE], "readwrite");
+  const sessions = tx.objectStore(SESSION_STORE);
+  const lines = tx.objectStore(LINE_STORE);
+  const sessionRequest = sessions.get(sessionKey(partition, sessionId));
+  const lineRequest = lines.get(lineKey(partition, sessionId, lineId));
+  let latestSession;
+  let latestLine;
+  let failure;
+  let saved;
+  let setSaved;
+  const save = () => {
+    if (latestSession === undefined || latestLine === undefined || failure) return;
+    try {
+      if (!latestSession || ["cancelled", "posted"].includes(latestSession.status) || latestLine?.state !== "stale") {
+        throw new Error("The count session or stale line changed while refreshing. Reopen the session and review it.");
+      }
+      lines.put({ ...refreshed, ownerId: partition.ownerId, businessId: partition.businessId });
+      sessions.put({ ...latestSession, updatedAt: new Date().toISOString() });
+      saved = refreshed;
+      setSaved?.(saved);
+    } catch (error) { failure = error; try { tx.abort(); } catch {} }
+  };
+  sessionRequest.onsuccess = () => { latestSession = sessionRequest.result ?? null; save(); };
+  lineRequest.onsuccess = () => { latestLine = lineRequest.result ?? null; save(); };
+  sessionRequest.onerror = () => { failure = sessionRequest.error; try { tx.abort(); } catch {} };
+  lineRequest.onerror = () => { failure = lineRequest.error; try { tx.abort(); } catch {} };
+  try {
+    await transactionResult(tx, resolve => { setSaved = resolve; });
+  } catch (error) { throw failure ?? error; }
+  return saved;
+}
