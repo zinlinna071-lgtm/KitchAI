@@ -91,7 +91,7 @@ try {
       countedQuantity: '2',
       varianceEventId,
       unit: 'g',
-      reason: '',
+      reason: 'Verify the count after the concurrent receipt',
       countedAt: '2026-10-14T12:00:00Z',
       reviewedAt: '2026-10-14T12:01:00Z'
     }])]
@@ -102,9 +102,9 @@ try {
     `SELECT public.apply_inventory_command(
        $1::uuid, $2::uuid, 'stock_receipt',
        jsonb_build_object('movements', jsonb_build_array(jsonb_build_object(
-         'eventId', $3, 'stockClass', 'ingredient', 'stockItemId', $4,
+         'eventId', $3::text, 'stockClass', 'ingredient', 'stockItemId', $4::text,
          'kind', 'purchase_receipt', 'direction', 'in', 'quantity', '1',
-         'unit', 'g', 'sourceType', 'purchase_receipt', 'sourceId', $5
+         'unit', 'g', 'sourceType', 'purchase_receipt', 'sourceId', $5::text
        )))) AS result`,
     [writerCommandId, businessId, writerEventId, itemId, writerSourceId]
   );
