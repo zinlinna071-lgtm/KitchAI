@@ -2,6 +2,9 @@
 -- All inventory ledger writes go through this SECURITY DEFINER function. The
 -- caller's owner identity is derived from auth.uid(); client-supplied owner IDs
 -- are deliberately not accepted.
+create unique index if not exists finished_lots_one_lot_per_output_idx
+  on public.finished_lots(owner_id, business_id, output_event_id);
+
 create or replace function public.apply_inventory_command(
   p_command_id uuid,
   p_business_id uuid,
@@ -23,6 +26,7 @@ declare
   v_allocations jsonb;
   v_item jsonb;
   v_movement public.stock_movements%rowtype;
+  v_original public.stock_movements%rowtype;
   v_lot public.finished_lots%rowtype;
   v_quantity numeric(24,6);
   v_balance numeric(24,6);
@@ -103,6 +107,21 @@ begin
     if v_quantity <= 0 or v_quantity >= 'Infinity'::numeric then
       raise exception 'Inventory quantity must be positive and finite' using errcode = '22023';
     end if;
+    if v_item ->> 'kind' in ('correction', 'reversal') then
+      select * into v_original
+        from public.stock_movements sm
+        where sm.owner_id = v_owner and sm.business_id = p_business_id
+          and sm.event_id = (v_item ->> 'relatedEventId')::uuid;
+      if not found
+         or v_original.stock_class <> v_item ->> 'stockClass'
+         or v_original.stock_item_id <> (v_item ->> 'stockItemId')::uuid
+         or v_original.unit <> v_item ->> 'unit'
+         or v_original.direction = v_item ->> 'direction' then
+        raise exception 'Reversal or correction must reverse the linked event for the same item and unit'
+          using errcode = '23514';
+      end if;
+    end if;
+
     if exists (
       select 1 from public.stock_movements sm
       where sm.owner_id = v_owner and sm.business_id = p_business_id
@@ -183,6 +202,31 @@ begin
       group by fl.produced_quantity;
     if v_lot_remaining < 0 then
       raise exception 'Finished lot has insufficient remaining quantity' using errcode = '23514';
+    end if;
+  end loop;
+
+  -- A production output is not complete unless its finished lot is part
+  -- of the same atomic command.
+  for v_item in select value from pg_catalog.jsonb_array_elements(v_movements)
+  loop
+    if v_item ->> 'kind' = 'production_output'
+       and not exists (
+         select 1 from public.finished_lots fl
+         where fl.owner_id = v_owner and fl.business_id = p_business_id
+           and fl.output_event_id = (v_item ->> 'eventId')::uuid
+       ) then
+      raise exception 'Production output must include its finished lot in the same command'
+        using errcode = '23514';
+    end if;
+    if v_item ->> 'stockClass' = 'finished' and v_item ->> 'direction' = 'out' then
+      select coalesce(sum(smla.quantity), 0) into v_balance
+        from public.stock_movement_lot_allocations smla
+        where smla.owner_id = v_owner and smla.business_id = p_business_id
+          and smla.event_id = (v_item ->> 'eventId')::uuid;
+      if v_balance <> (v_item ->> 'quantity')::numeric then
+        raise exception 'Finished-stock reduction must be allocated exactly across lots'
+          using errcode = '23514';
+      end if;
     end if;
   end loop;
 
