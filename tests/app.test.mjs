@@ -220,6 +220,15 @@ test("stock-count review UI exposes accessible session, line, and explicit posti
  assert.match(html, /id="stock-count-lines"[^>]*aria-label="Stock-count lines"/);
  assert.match(html, /id="stock-count-state" class="profile-state" role="status" aria-live="polite"/);
  assert.match(html, /id="stock-count-post-selected"[^>]*disabled/);
+ assert.match(html, /id="stock-count-create-form"/);
+ assert.match(html, /id="stock-count-add-line-form"/);
+ assert.match(html, /id="stock-count-item-unit"/);
+ assert.match(app, /getRemoteBusinessId: \(\) => activeSession\?\.user\?\.id/);
+ assert.match(ui, /createStockCountSession/);
+ assert.match(ui, /addStockCountLine/);
+ assert.match(ui, /listIngredients/);
+ assert.match(ui, /listMenuItems/);
+ assert.match(ui, /capture their current server quantities/);
  assert.match(app, /initializeStockCountUI/);
  assert.match(ui, /postReviewedStockCountSubset/);
  assert.match(ui, /reviewedBy: context\.getSession\(\)\?\.user\?\.id/);
