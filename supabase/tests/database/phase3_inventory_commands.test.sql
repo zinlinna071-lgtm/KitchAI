@@ -78,9 +78,14 @@ select throws_ok(
 select is((select count(*)::integer from public.stock_movements
  where event_id in ('a9100000-0000-4000-8000-000000000010','a9100000-0000-4000-8000-000000000011')),
  0,'multi-row failure leaves no partial movements');
+-- The idempotency ledger is intentionally unreadable to authenticated clients.
+-- Temporarily reset to the migration/test runner role for this internal assertion.
+reset role;
 select is((select count(*)::integer from public.inventory_commands
  where operation_id='a9000000-0000-4000-8000-000000000010'),
  0,'multi-row failure leaves no command ledger entry');
+set local role authenticated;
+set local "request.jwt.claim.sub"='41111111-1111-4111-8111-111111111111';
 
 -- A finished output and its immutable lot are created atomically; sale allocation
 -- must identify that lot and match the reduction quantity exactly.
