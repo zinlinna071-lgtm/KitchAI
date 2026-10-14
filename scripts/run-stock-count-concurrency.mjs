@@ -9,6 +9,7 @@ const itemId = 'b5521111-1111-4111-8111-111111111111';
 const commandId = 'b5530000-0000-4000-8000-000000000001';
 const sessionId = 'b5540000-0000-4000-8000-000000000001';
 const lineId = 'b5550000-0000-4000-8000-000000000001';
+const varianceEventId = 'b5590000-0000-4000-8000-000000000001';
 const writerCommandId = 'b5560000-0000-4000-8000-000000000001';
 const writerEventId = 'b5570000-0000-4000-8000-000000000001';
 const writerSourceId = 'b5580000-0000-4000-8000-000000000001';
@@ -88,6 +89,7 @@ try {
       stockItemId: itemId,
       expectedVersion: '0',
       countedQuantity: '0',
+      varianceEventId,
       unit: 'g',
       reason: '',
       countedAt: '2026-10-14T12:00:00Z',
