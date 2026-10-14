@@ -219,3 +219,25 @@ This section is authoritative for WP3.5 status and supersedes older WP3.5 paragr
 - **WP3.5c — Offline count drafts and review:** merged via [PR #54](https://github.com/zinlinna071-lgtm/KitchAI/pull/54), squash commit `4788cde4bedd3012f4e16d909041cfbc67b80fdb`. Baseline, app-shell, static preview, and Local Supabase Vertical Slice workflows all passed on PR head `5a870402f091bc0588b2a3102feb9716698260e9`.
 - **WP3.5d — Atomic count posting:** implemented on [Draft PR #55](https://github.com/zinlinna071-lgtm/KitchAI/pull/55), head `e383a71b49c8fb72ad973c4bc8885f7ae03e6fd5`. All five PR-triggered workflows passed: Baseline, Static Preview, WP1.2 Application Shell, WP1.4 Local Supabase Authorization, and WP1.6 Local Supabase Vertical Slice. Evidence includes database authorization/idempotency and 175 pgTAP assertions, build/browser checks, 8 local-Supabase Playwright scenarios, a two-session concurrency regression (stale count rejected with SQLSTATE `40001`, no accepted audit), and a browser regression that freezes local count mutations while a post result is uncertain. PR remains Draft pending owner review.
 - **Hard gate:** do not mark WP3.5d complete or merge until the owner reviews the current PR and accepts the remaining scope/limitations. The automated database, adapter, offline retry, stale-recount, and concurrency gates passed on the cited head. Every count adjustment must compare the server version and append the movement in the same transaction under the lock shared with `apply_inventory_command`.
+
+
+## Phase 3 WP3.6 integration and exit review — 2026-10-15
+
+**Current state:** Planning and static test-gap reconnaissance are in Draft PR [#58](https://github.com/zinlinna071-lgtm/KitchAI/pull/58). This is not implementation evidence and does not declare Phase 3 complete.
+
+- Plan: [PHASE_3_WP3_6_PLAN.md](./PHASE_3_WP3_6_PLAN.md)
+- Coding AI handoff: [CODING_AI_PHASE3_WP3_6_EXECUTION_PROMPT.md](./CODING_AI_PHASE3_WP3_6_EXECUTION_PROMPT.md)
+- Initial static test-gap matrix: [PHASE_3_WP3_6_TEST_GAP_MATRIX.md](./PHASE_3_WP3_6_TEST_GAP_MATRIX.md)
+
+### Proposed work packages (not yet implemented)
+
+- **WP3.6.1 — Cross-workflow integration contract:** compose purchase receipt → production → finished-stock disposition → stock count and assert authoritative end state.
+- **WP3.6.2 — Reliability regression:** verify retry/idempotency, uncertain acknowledgement recovery, stale-count/concurrent-write rejection, atomic rollback, and authorization where actual coverage gaps remain.
+- **WP3.6.3 — UI/mobile smoke review:** verify key accessible interactions and narrow viewport behavior; distinguish automated checks from manual device/accessibility acceptance.
+- **WP3.6.4 — Phase 3 exit review:** summarize exact test/CI evidence, unresolved limitations, and owner decisions before considering the phase exit gate.
+
+The Coding AI must check out the latest repository, reconcile the initial matrix against actual source and tests, and complete the gap matrix before editing application code. Add only tests for demonstrated gaps and the smallest fixes justified by failing tests. Use synthetic data and local Supabase/emulators only.
+
+**Verification state:** the matrix is static inspection only. No tests were run during its preparation. PR #58's latest documentation-only head has no workflow runs or combined status visible; the current workflows use path filters, so documentation-only changes are not evidence of implementation CI. For any implementation PR, verify that changed paths trigger the required workflows and report the exact final head SHA and run links.
+
+**Hard gates:** keep PR #58 in Draft pending review. Do not merge until owner review and required CI on the final implementation head pass. No hosted provisioning, billing, production secrets, or deployment is authorized.
