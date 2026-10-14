@@ -8,6 +8,7 @@ test("stock-count review controls render accessibly and cannot post an empty dra
 
   const sessionPicker = page.getByRole("combobox", { name: "Stock-count session" });
   await expect(sessionPicker).toBeVisible();
+  await expect(sessionPicker).toBeDisabled();
   await expect(page.getByRole("list", { name: "Stock-count lines" })).toBeVisible();
   await expect(page.locator("#stock-count-state")).toContainText("Save or load a business profile");
 
@@ -15,9 +16,6 @@ test("stock-count review controls render accessibly and cannot post an empty dra
   await expect(postButton).toBeDisabled();
   await expect(page.getByRole("button", { name: "Create session" })).toBeDisabled();
   await expect(page.getByRole("button", { name: "Add count line" })).toBeDisabled();
-
-  await sessionPicker.focus();
-  await expect(sessionPicker).toBeFocused();
   expect(pageErrors).toEqual([]);
 });
 
