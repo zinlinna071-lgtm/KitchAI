@@ -33,7 +33,7 @@ export function initializeStockCountUI(context) {
 
   function lockControls() {
     if (postButton) postButton.disabled = busy || !context.getSession() || !lines.some(line => line.state === "reviewed");
-    if (cancelButton) cancelButton.disabled = busy || !selectedSessionId;
+    if (cancelButton) cancelButton.disabled = busy || !selectedSessionId || Boolean(sessions.find(item => item.sessionId === selectedSessionId)?.pendingPost);
     if (refreshButton) refreshButton.disabled = busy;
     if (sessionSelect) sessionSelect.disabled = busy || sessions.length === 0;
   }
@@ -62,7 +62,7 @@ export function initializeStockCountUI(context) {
       const meta = make("p", `${pretty(line.stockClass)} · ${line.unit} · expected ${quantity(line.systemQuantity)} · counted ${quantity(line.countedQuantity)} · variance ${quantity(line.variance)} · ${pretty(line.state)}`);
       item.append(title, meta);
       if (line.note) item.append(make("p", "Note: " + line.note));
-      if (line.reason) item.append(make("p", "Review reason: " + line.reviewReason));
+      if (line.reason) item.append(make("p", "Review reason: " + line.reason));
       if (["open", "counted"].includes(line.state) && !session.pendingPost && !["cancelled", "posted"].includes(session.status)) {
         const form = make("form", undefined, "stock-count-line-form");
         const countLabel = make("label", "Counted quantity");
@@ -88,10 +88,10 @@ export function initializeStockCountUI(context) {
         });
         item.append(form);
         const reviewForm = make("form", undefined, "stock-count-line-form");
-        const reasonLabel = make("label", line.variance !== 0 ? "Review reason (required for non-zero variance)" : "Review note (optional)");
+        const reasonLabel = make("label", line.variance !== "0" ? "Review reason (required for non-zero variance)" : "Review note (optional)");
         const reason = make("input");
-        reason.type = "text"; reason.maxLength = 1000; reason.required = line.countedQuantity !== null && line.countedQuantity !== line.expectedQuantity;
-        reason.value = line.reviewReason ?? "";
+        reason.type = "text"; reason.maxLength = 500; reason.required = line.countedQuantity !== null && line.variance !== "0";
+        reason.value = line.reason ?? "";
         reasonLabel.append(reason);
         const review = make("button", "Mark reviewed", "button button-secondary");
         review.type = "submit"; review.disabled = line.countedQuantity === null;
