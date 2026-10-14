@@ -387,7 +387,7 @@ function requireUuid(value, label) {
  * @param {any} batch
  * @param {{remoteBusinessId:string,commandId?:string,occurredAt?:string,outputEventId?:string,lotId?:string,movementEventIds?:Record<string,string>}} options
  */
-export function buildProductionInventoryCommand(batch, options = {}) {
+export function buildProductionInventoryCommand(batch, options) {
   if (!batch || !["ready_to_post", "posting", "failed_to_post"].includes(batch.state)) {
     throw new Error("Only a prepared production batch can be posted.");
   }
