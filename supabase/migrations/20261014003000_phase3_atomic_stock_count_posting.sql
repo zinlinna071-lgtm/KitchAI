@@ -97,6 +97,7 @@ declare
   v_counted numeric(24,6);
   v_variance numeric(24,6);
   v_unit text;
+  v_unit_count bigint;
   v_event_id uuid;
   v_line_id uuid;
   v_stock_class text;
@@ -243,11 +244,11 @@ begin
     end if;
     select coalesce(sum(case when sm.direction = 'in' then sm.quantity else -sm.quantity end), 0),
       min(sm.unit), count(distinct sm.unit)
-    into v_balance, v_unit, v_movement_count
+    into v_balance, v_unit, v_unit_count
     from public.stock_movements sm
     where sm.owner_id = v_owner and sm.business_id = p_business_id
       and sm.stock_class = v_stock_class and sm.stock_item_id = v_stock_item_id;
-    if v_movement_count > 1 then
+    if v_unit_count > 1 then
       raise exception 'Stock item has inconsistent units in its ledger' using errcode = '23514';
     end if;
     if v_unit is not null and v_unit <> v_line ->> 'unit' then
