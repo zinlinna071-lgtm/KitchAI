@@ -65,7 +65,7 @@ test("populated IndexedDB v2 upgrades additively, failed legacy mapping retries,
     const module = await import("/src/business-data-store.js");
     let firstError = "";
     try { await module.openBusinessDatabase(); } catch (error) { firstError = String(error.message || error); }
-    const upgraded = await openDb("kitchai-business-data", 6, () => {});
+    const upgraded = await openDb("kitchai-business-data", 7, () => {});
     const upgradedNames = [...upgraded.objectStoreNames].sort();
     upgraded.close();
     const local = await openDb("kitchai-local", 1, (database) => database.createObjectStore("profiles", { keyPath: "id" }));
