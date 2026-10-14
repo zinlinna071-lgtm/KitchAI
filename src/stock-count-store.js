@@ -193,7 +193,7 @@ export async function enterStockCount(scope, sessionId, lineId, countedQuantity,
   sessionRequest.onerror = () => { failure = sessionRequest.error; try { tx.abort(); } catch {} };
   lineRequest.onerror = () => { failure = lineRequest.error; try { tx.abort(); } catch {} };
   try {
-    return await transactionResult(tx, resolve => resolve(updatedLine));
+    return await transactionResult(tx, resolve => { tx.addEventListener("complete", () => resolve(updatedLine), { once: true }); });
   } catch (error) { throw failure ?? error; }
 }
 
@@ -230,7 +230,7 @@ export async function reviewStockCountLine(scope, sessionId, lineId, input) {
   sessionRequest.onerror = () => { failure = sessionRequest.error; try { tx.abort(); } catch {} };
   lineRequest.onerror = () => { failure = lineRequest.error; try { tx.abort(); } catch {} };
   try {
-    return await transactionResult(tx, resolve => resolve(updatedLine));
+    return await transactionResult(tx, resolve => { tx.addEventListener("complete", () => resolve(updatedLine), { once: true }); });
   } catch (error) { throw failure ?? error; }
 }
 
