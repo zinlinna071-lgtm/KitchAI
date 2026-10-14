@@ -122,25 +122,25 @@ test("disposition rejects mismatched allocation totals, insufficient lot balance
 
 test("carry-forward records suitability and quantity without creating a movement or a new lot", () => {
   const decision = buildCarryForwardDecision({
-    eventId, lotId: lotA, remainingQuantity: "8", unit: "each", suitable: true,
+    eventId, businessId, lotId: lotA, remainingQuantity: "8", unit: "each", suitable: true,
     confirmedAt: "2026-10-14T17:00:00Z", carryForwardDate: "2026-10-15",
     reason: "Stored safely under required temperature", lots, priorAllocations,
   });
   assert.deepEqual(decision, {
-    eventId, lotId: lotA, dispositionType: "carry_forward", quantity: "8", unit: "each",
+    eventId, businessId, lotId: lotA, dispositionType: "carry_forward", quantity: "8", unit: "each",
     carryForwardDate: "2026-10-15", confirmedAt: "2026-10-14T17:00:00.000Z",
     reason: "Stored safely under required temperature", inventoryEffect: "none",
   });
   assert.throws(() => buildCarryForwardDecision({
-    lotId: lotA, remainingQuantity: "8", unit: "each", suitable: false,
+    businessId, lotId: lotA, remainingQuantity: "8", unit: "each", suitable: false,
     confirmedAt: "2026-10-14T17:00:00Z", carryForwardDate: "2026-10-15", lots, priorAllocations,
   }), /explicitly confirm/);
   assert.throws(() => buildCarryForwardDecision({
-    lotId: lotA, remainingQuantity: "0", unit: "each", suitable: true,
+    businessId, lotId: lotA, remainingQuantity: "0", unit: "each", suitable: true,
     confirmedAt: "2026-10-14T17:00:00Z", carryForwardDate: "2026-02-30", lots, priorAllocations,
   }));
   assert.throws(() => buildCarryForwardDecision({
-    lotId: lotA, remainingQuantity: "7", unit: "each", suitable: true,
+    businessId, lotId: lotA, remainingQuantity: "7", unit: "each", suitable: true,
     confirmedAt: "2026-10-14T17:00:00Z", carryForwardDate: "2026-10-15", lots, priorAllocations,
   }), /ledger-derived remaining quantity/);
 });
