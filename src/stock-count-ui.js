@@ -171,7 +171,8 @@ export function initializeStockCountUI(context) {
   async function refresh() {
     const scope = context.getScope();
     if (!scope) {
-      sessions = []; lines = []; selectedSessionId = "";
+      sessions = []; lines = []; ingredients = []; menuItems = []; selectedSessionId = "";
+      renderItemOptions();
       if (sessionSelect) { sessionSelect.replaceChildren(new Option("Save or load a business profile first", "")); }
       message("Save or load a business profile to review stock counts.");
       await renderLines();
