@@ -68,7 +68,7 @@ export function initializePurchaseUI(context) {
     priceLabel.textContent = "Unit price (optional)";
     const unitPrice = document.createElement("input");
     unitPrice.type = "text"; unitPrice.inputMode = "decimal"; unitPrice.placeholder = "0.00";
-    unitPrice.value = "0"; unitPrice.dataset.field = "unitPrice";
+    unitPrice.value = ""; unitPrice.dataset.field = "unitPrice";
     priceLabel.append(unitPrice);
     row.append(ingredientLabel, quantityLabel, unitLabel, priceLabel);
     if (linesContainer.children.length > 0) {
@@ -285,7 +285,7 @@ export function initializePurchaseUI(context) {
           ingredientId, ingredientName: ingredient.name,
           orderedQuantity: /** @type {HTMLInputElement} */ ($('[data-field="quantity"]', row)).value.trim(),
           unit: /** @type {HTMLSelectElement} */ ($('[data-field="unit"]', row)).value,
-          unitPrice: /** @type {HTMLInputElement} */ ($('[data-field="unitPrice"]', row)).value.trim() || "0",
+          unitPrice: /** @type {HTMLInputElement} */ ($('[data-field="unitPrice"]', row)).value.trim() || null,
         };
       });
       await createPurchase(scope, {
