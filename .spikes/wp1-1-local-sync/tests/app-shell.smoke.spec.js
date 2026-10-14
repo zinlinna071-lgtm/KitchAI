@@ -1508,3 +1508,74 @@ test("purchase drafts persist locally and do not change stock before server rece
   const mobile = await page.evaluate(() => ({ width: innerWidth, scrollWidth: document.documentElement.scrollWidth }));
   expect(mobile.scrollWidth).toBeLessThanOrEqual(mobile.width);
 });
+
+
+test("WP3.5c stock count drafts capture a server snapshot and persist exact offline review across reload", async ({ page }) => {
+  await page.goto("/");
+  const created = await page.evaluate(async () => {
+    const scope = { ownerId: "11111111-1111-4111-8111-111111111111", businessId: "local-count-partition" };
+    const remoteBusinessId = "22222222-2222-4222-8222-222222222222";
+    const stockItemId = "33333333-3333-4333-8333-333333333333";
+    const session = { access_token: "test-token", user: { id: scope.ownerId } };
+    const originalFetch = window.fetch;
+    const originalConfig = window.KITCHAI_CONFIG;
+    window.KITCHAI_CONFIG = { supabaseUrl: "https://example.supabase.co", supabaseAnonKey: "anon" };
+    window.fetch = async (url, options) => {
+      if (url !== "https://example.supabase.co/rest/v1/rpc/get_inventory_item_snapshot") throw new Error("Unexpected URL: " + url);
+      const body = JSON.parse(options.body);
+      if (body.p_business_id !== remoteBusinessId || body.p_stock_item_id !== stockItemId) throw new Error("Snapshot used a local or wrong item ID.");
+      return {
+        ok: true, status: 200,
+        text: async () => JSON.stringify({
+          status: "snapshot", stockClass: "ingredient", stockItemId,
+          version: "7", systemQuantity: "4.25", unit: "kg",
+        }),
+      };
+    };
+    try {
+      const store = await import("/src/stock-count-store.js");
+      const countSession = await store.createStockCountSession(scope, remoteBusinessId, {
+        sessionId: "44444444-4444-4444-8444-444444444444",
+        createdAt: "2026-10-14T10:00:00.000Z",
+      });
+      const line = await store.addStockCountLine(scope, countSession.sessionId, {
+        stockClass: "ingredient", stockItemId, stockItemName: "Rice", unit: "kg",
+      }, session, { lineId: "55555555-5555-4555-8555-555555555555" });
+      const counted = await store.enterStockCount(scope, countSession.sessionId, line.lineId, "3.5", "Measured with scale");
+      const reviewed = await store.reviewStockCountLine(scope, countSession.sessionId, line.lineId, {
+        reviewedBy: scope.ownerId, reviewedAt: "2026-10-14T10:05:00.000Z", reason: "Spillage found",
+      });
+      window.fetch = originalFetch;
+      if (originalConfig === undefined) delete window.KITCHAI_CONFIG;
+      else window.KITCHAI_CONFIG = originalConfig;
+      return { sessionId: countSession.sessionId, lineId: line.lineId, version: line.version, counted: counted.countedQuantity, variance: counted.variance, state: reviewed.state };
+    } finally {
+      window.fetch = originalFetch;
+      if (originalConfig === undefined) delete window.KITCHAI_CONFIG;
+      else window.KITCHAI_CONFIG = originalConfig;
+    }
+  });
+  expect(created.version).toBe("7");
+  expect(created.counted).toBe("3.5");
+  expect(created.variance).toBe("-0.75");
+  expect(created.state).toBe("reviewed");
+  await page.reload();
+  const persisted = await page.evaluate(async ({ sessionId, lineId }) => {
+    const store = await import("/src/stock-count-store.js");
+    const scope = { ownerId: "11111111-1111-4111-8111-111111111111", businessId: "local-count-partition" };
+    const sessions = await store.listStockCountSessions(scope);
+    const lines = await store.listStockCountLines(scope, sessionId);
+    return {
+      session: sessions.find(item => item.sessionId === sessionId),
+      line: lines.find(item => item.lineId === lineId),
+    };
+  }, created);
+  expect(persisted.session).toBeTruthy();
+  expect(persisted.session.remoteBusinessId).toBe("22222222-2222-4222-8222-222222222222");
+  expect(persisted.line.version).toBe("7");
+  expect(persisted.line.systemQuantity).toBe("4.25");
+  expect(persisted.line.countedQuantity).toBe("3.5");
+  expect(persisted.line.variance).toBe("-0.75");
+  expect(persisted.line.reason).toBe("Spillage found");
+  expect(persisted.line.state).toBe("reviewed");
+});
