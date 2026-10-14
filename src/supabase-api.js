@@ -174,7 +174,7 @@ export async function sendProfileOperation(operation, session) {
 /**
  * Execute one idempotent inventory command through the owner-authorized database RPC.
  * The server derives owner identity from the authenticated JWT; owner IDs are never client-supplied.
- * @param {{commandId:string,businessId:string,commandType:string,payload:unknown}} command
+ * @param {{commandId:string,businessId:string,commandType:string,payload:{movements?:unknown[],lots?:unknown[],allocations?:unknown[]}}} command
  * @param {any} session
  */
 export async function applyInventoryCommand(command, session) {
