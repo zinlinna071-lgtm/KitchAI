@@ -103,6 +103,16 @@ begin
     if v_quantity <= 0 or v_quantity >= 'Infinity'::numeric then
       raise exception 'Inventory quantity must be positive and finite' using errcode = '22023';
     end if;
+    if exists (
+      select 1 from public.stock_movements sm
+      where sm.owner_id = v_owner and sm.business_id = p_business_id
+        and sm.stock_class = v_item ->> 'stockClass'
+        and sm.stock_item_id = (v_item ->> 'stockItemId')::uuid
+        and sm.unit <> v_item ->> 'unit'
+    ) then
+      raise exception 'Stock unit mismatch for item; automatic unit conversion is not enabled'
+        using errcode = '23514';
+    end if;
 
     insert into public.stock_movements (
       owner_id, business_id, event_id, stock_class, stock_item_id, kind, direction,
@@ -133,6 +143,173 @@ begin
 
   for v_item in select value from pg_catalog.jsonb_array_elements(v_lots)
   loop
+    if pg_catalog.jsonb_typeof(v_item -> 'producedQuantity') is distinct from 'string'
+       or coalesce(v_item ->> 'producedQuantity', '') !~ '^[0-9]+([.][0-9]{1,6})?
+      owner_id, business_id, lot_id, menu_item_id, batch_id, output_event_id,
+      produced_quantity, unit, produced_at
+    ) values (
+      v_owner, p_business_id, (v_item ->> 'lotId')::uuid, (v_item ->> 'menuItemId')::uuid,
+      (v_item ->> 'batchId')::uuid, (v_item ->> 'outputEventId')::uuid,
+      (v_item ->> 'producedQuantity')::numeric, v_item ->> 'unit',
+      coalesce(nullif(v_item ->> 'producedAt', '')::timestamptz, pg_catalog.now())
+    ) returning * into v_lot;
+  end loop;
+
+  for v_item in select value from pg_catalog.jsonb_array_elements(v_allocations)
+  loop
+    if pg_catalog.jsonb_typeof(v_item -> 'quantity') is distinct from 'string'
+       or coalesce(v_item ->> 'quantity', '') !~ '^[0-9]+([.][0-9]{1,6})?$' then
+      raise exception 'Allocation quantity must be a plain decimal string with at most six fractional digits'
+        using errcode = '22023';
+    end if;
+    v_quantity := (v_item ->> 'quantity')::numeric;
+    insert into public.stock_movement_lot_allocations (
+      owner_id, business_id, event_id, lot_id, quantity, unit
+    ) values (
+      v_owner, p_business_id, (v_item ->> 'eventId')::uuid, (v_item ->> 'lotId')::uuid,
+      v_quantity, v_item ->> 'unit'
+    );
+    select fl.produced_quantity - coalesce(sum(smla.quantity), 0)
+      into v_lot_remaining
+      from public.finished_lots fl
+      left join public.stock_movement_lot_allocations smla
+        on smla.owner_id = fl.owner_id and smla.business_id = fl.business_id and smla.lot_id = fl.lot_id
+      where fl.owner_id = v_owner and fl.business_id = p_business_id
+        and fl.lot_id = (v_item ->> 'lotId')::uuid
+      group by fl.produced_quantity;
+    if v_lot_remaining < 0 then
+      raise exception 'Finished lot has insufficient remaining quantity' using errcode = '23514';
+    end if;
+  end loop;
+
+  v_result := pg_catalog.jsonb_build_object(
+    'status', 'accepted',
+    'commandId', p_command_id,
+    'movementCount', pg_catalog.jsonb_array_length(v_movements),
+    'lotCount', pg_catalog.jsonb_array_length(v_lots),
+    'allocationCount', pg_catalog.jsonb_array_length(v_allocations),
+    'eventIds', v_command_event_ids
+  );
+
+  insert into public.inventory_commands (
+    owner_id, business_id, operation_id, request, result, completed_at
+  ) values (
+    v_owner, p_business_id, p_command_id, v_request, v_result, pg_catalog.now()
+  );
+
+  return v_result;
+end;
+$$;
+
+revoke all on function public.apply_inventory_command(uuid, uuid, text, jsonb) from public, anon;
+grant execute on function public.apply_inventory_command(uuid, uuid, text, jsonb) to authenticated;
+
+comment on function public.apply_inventory_command(uuid, uuid, text, jsonb) is
+  'WP3.2 atomic inventory ledger command; derives owner from auth.uid(), rejects negative stock, and is idempotent per owner/command ID.';
+ then
+      raise exception 'Inventory quantity must be a plain decimal string with at most six fractional digits'
+        using errcode = '22023';
+    end if;
+    v_quantity := (v_item ->> 'quantity')::numeric;
+    if v_quantity <= 0 or v_quantity >= 'Infinity'::numeric then
+      raise exception 'Inventory quantity must be positive and finite' using errcode = '22023';
+    end if;
+
+    insert into public.stock_movements (
+      owner_id, business_id, event_id, stock_class, stock_item_id, kind, direction,
+      quantity, unit, source_type, source_id, related_event_id, reason, recorded_at, effective_at
+    ) values (
+      v_owner, p_business_id, (v_item ->> 'eventId')::uuid,
+      v_item ->> 'stockClass', (v_item ->> 'stockItemId')::uuid, v_item ->> 'kind',
+      v_item ->> 'direction', v_quantity, v_item ->> 'unit', v_item ->> 'sourceType',
+      (v_item ->> 'sourceId')::uuid, nullif(v_item ->> 'relatedEventId', '')::uuid,
+      nullif(v_item ->> 'reason', ''),
+      coalesce(nullif(v_item ->> 'recordedAt', '')::timestamptz, pg_catalog.now()),
+      coalesce(nullif(v_item ->> 'effectiveAt', '')::timestamptz, pg_catalog.now())
+    ) returning * into v_movement;
+
+    v_command_event_ids := v_command_event_ids || pg_catalog.jsonb_build_array(v_movement.event_id);
+
+    if v_movement.direction = 'out' then
+      select coalesce(sum(case when sm.direction = 'in' then sm.quantity else -sm.quantity end), 0)
+        into v_balance
+        from public.stock_movements sm
+        where sm.owner_id = v_owner and sm.business_id = p_business_id
+          and sm.stock_class = v_movement.stock_class and sm.stock_item_id = v_movement.stock_item_id;
+      if v_balance < 0 then
+        raise exception 'Insufficient stock; negative stock is not allowed' using errcode = '23514';
+      end if;
+    end if;
+  end loop;
+
+  for v_item in select value from pg_catalog.jsonb_array_elements(v_lots)
+  loop
+    insert into public.finished_lots (
+      owner_id, business_id, lot_id, menu_item_id, batch_id, output_event_id,
+      produced_quantity, unit, produced_at
+    ) values (
+      v_owner, p_business_id, (v_item ->> 'lotId')::uuid, (v_item ->> 'menuItemId')::uuid,
+      (v_item ->> 'batchId')::uuid, (v_item ->> 'outputEventId')::uuid,
+      (v_item ->> 'producedQuantity')::numeric, v_item ->> 'unit',
+      coalesce(nullif(v_item ->> 'producedAt', '')::timestamptz, pg_catalog.now())
+    ) returning * into v_lot;
+  end loop;
+
+  for v_item in select value from pg_catalog.jsonb_array_elements(v_allocations)
+  loop
+    if pg_catalog.jsonb_typeof(v_item -> 'quantity') is distinct from 'string'
+       or coalesce(v_item ->> 'quantity', '') !~ '^[0-9]+([.][0-9]{1,6})?$' then
+      raise exception 'Allocation quantity must be a plain decimal string with at most six fractional digits'
+        using errcode = '22023';
+    end if;
+    v_quantity := (v_item ->> 'quantity')::numeric;
+    insert into public.stock_movement_lot_allocations (
+      owner_id, business_id, event_id, lot_id, quantity, unit
+    ) values (
+      v_owner, p_business_id, (v_item ->> 'eventId')::uuid, (v_item ->> 'lotId')::uuid,
+      v_quantity, v_item ->> 'unit'
+    );
+    select fl.produced_quantity - coalesce(sum(smla.quantity), 0)
+      into v_lot_remaining
+      from public.finished_lots fl
+      left join public.stock_movement_lot_allocations smla
+        on smla.owner_id = fl.owner_id and smla.business_id = fl.business_id and smla.lot_id = fl.lot_id
+      where fl.owner_id = v_owner and fl.business_id = p_business_id
+        and fl.lot_id = (v_item ->> 'lotId')::uuid
+      group by fl.produced_quantity;
+    if v_lot_remaining < 0 then
+      raise exception 'Finished lot has insufficient remaining quantity' using errcode = '23514';
+    end if;
+  end loop;
+
+  v_result := pg_catalog.jsonb_build_object(
+    'status', 'accepted',
+    'commandId', p_command_id,
+    'movementCount', pg_catalog.jsonb_array_length(v_movements),
+    'lotCount', pg_catalog.jsonb_array_length(v_lots),
+    'allocationCount', pg_catalog.jsonb_array_length(v_allocations),
+    'eventIds', v_command_event_ids
+  );
+
+  insert into public.inventory_commands (
+    owner_id, business_id, operation_id, request, result, completed_at
+  ) values (
+    v_owner, p_business_id, p_command_id, v_request, v_result, pg_catalog.now()
+  );
+
+  return v_result;
+end;
+$$;
+
+revoke all on function public.apply_inventory_command(uuid, uuid, text, jsonb) from public, anon;
+grant execute on function public.apply_inventory_command(uuid, uuid, text, jsonb) to authenticated;
+
+comment on function public.apply_inventory_command(uuid, uuid, text, jsonb) is
+  'WP3.2 atomic inventory ledger command; derives owner from auth.uid(), rejects negative stock, and is idempotent per owner/command ID.';
+ then
+      raise exception 'Lot quantity must be a plain decimal string with at most six fractional digits'
+        using errcode = '22023';
+    end if;
     insert into public.finished_lots (
       owner_id, business_id, lot_id, menu_item_id, batch_id, output_event_id,
       produced_quantity, unit, produced_at
