@@ -314,6 +314,43 @@ select is((select sum(case when direction='in' then quantity else -quantity end)
  and stock_item_id='a9200000-0000-4000-8000-000000000003'),
  3.75::numeric,'production posting consumes only the measured ingredient quantity');
 
+-- WP3.3.4 carry-forward is an append-only safety/handling event, not stock.
+select is(
+ public.record_finished_lot_carry_forward(
+  'a9700000-0000-4000-8000-000000000001',
+  (select business_id from public.business_profiles where owner_id='41111111-1111-4111-8111-111111111111'),
+  'a9600000-0000-4000-8000-000000000002',
+  '4','each','2026-10-15','2026-10-14T17:00:00Z','Stored safely'
+ ) ->> 'status','accepted','safe carry-forward decision is persisted');
+select is(
+ public.record_finished_lot_carry_forward(
+  'a9700000-0000-4000-8000-000000000001',
+  (select business_id from public.business_profiles where owner_id='41111111-1111-4111-8111-111111111111'),
+  'a9600000-0000-4000-8000-000000000002',
+  '4','each','2026-10-15','2026-10-14T17:00:00Z','Stored safely'
+ ) ->> 'inventoryEffect','none','carry-forward replay has no stock effect');
+select is((select count(*)::integer from public.finished_lot_handling_events
+ where event_id='a9700000-0000-4000-8000-000000000001'),1,
+ 'carry-forward retry does not duplicate the handling event');
+select throws_ok(
+ $sql$select public.record_finished_lot_carry_forward(
+  'a9700000-0000-4000-8000-000000000001',
+  (select business_id from public.business_profiles where owner_id='41111111-1111-4111-8111-111111111111'),
+  'a9600000-0000-4000-8000-000000000002',
+  '3','each','2026-10-15','2026-10-14T17:00:00Z','Stored safely'
+ )$sql$,
+ '22023','Carry-forward event ID reused with a different request',
+ 'same carry-forward event ID cannot be reused with a different payload');
+select throws_ok(
+ $sql$select public.record_finished_lot_carry_forward(
+  'a9700000-0000-4000-8000-000000000002',
+  (select business_id from public.business_profiles where owner_id='41111111-1111-4111-8111-111111111111'),
+  'a9600000-0000-4000-8000-000000000002',
+  '3','each','2026-10-15','2026-10-14T17:00:00Z','Stored safely'
+ )$sql$,
+ '23514','Carry-forward quantity must equal current lot remaining quantity',
+ 'carry-forward quantity must match current lot balance');
+
 select set_config('test.inventory_business_id',
  (select business_id::text from public.business_profiles where owner_id='41111111-1111-4111-8111-111111111111'), true);
 reset role;
