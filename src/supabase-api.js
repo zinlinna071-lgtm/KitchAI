@@ -195,7 +195,21 @@ export async function applyInventoryCommand(command, session) {
         p_payload: command.payload,
       },
     });
-    if (result?.status !== "accepted" || result.commandId !== command.commandId) {
+    const movementCount = command.payload?.movements?.length;
+    const lotCount = command.payload?.lots?.length ?? 0;
+    const allocationCount = command.payload?.allocations?.length ?? 0;
+    if (
+      result?.status !== "accepted" ||
+      result.commandId !== command.commandId ||
+      !Number.isInteger(result.movementCount) ||
+      !Number.isInteger(result.lotCount) ||
+      !Number.isInteger(result.allocationCount) ||
+      !Array.isArray(result.eventIds) ||
+      result.movementCount !== movementCount ||
+      result.lotCount !== lotCount ||
+      result.allocationCount !== allocationCount ||
+      result.eventIds.length !== result.movementCount
+    ) {
       throw new Error("Supabase returned an unsupported inventory command result.");
     }
     return result;
