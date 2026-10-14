@@ -198,7 +198,7 @@ Implementation history uses WP3.2 for the atomic inventory command foundation an
 
 ### Next proposed work package — WP3.5 Physical Stock Counts and Adjustments
 
-**Status:** Proposed; detailed plan: [PHASE_3_WP3_5_STOCK_COUNTS_PLAN.md](./PHASE_3_WP3_5_STOCK_COUNTS_PLAN.md). Not yet implemented or owner-approved as a detailed scope.
+**Status:** Owner decisions accepted 2026-10-14; WP3.5a consistency/test contract drafted in [PHASE_3_WP3_5A_COUNT_CONSISTENCY_TEST_CONTRACT.md](./PHASE_3_WP3_5A_COUNT_CONSISTENCY_TEST_CONTRACT.md). Application implementation remains gated on the shared stock-item lock/version design review.
 
 **Purpose:** let the owner record a physical count, compare it with the ledger-derived on-hand balance, review a variance, and post a reasoned adjustment through the existing atomic inventory command path.
 
@@ -215,3 +215,12 @@ Implementation history uses WP3.2 for the atomic inventory command foundation an
 
 **Required gate before implementation:** inspect current inventory movement/command APIs and the Phase 3 owner decisions; write the count consistency and concurrency contract plus acceptance tests first. If the business cannot safely handle movements during an open count, explicitly freeze/stop affected stock movements for that count or choose a reviewed cut-off/reconciliation method; never guess.
 
+
+
+### WP3.5a — Physical count consistency and test contract
+
+**State:** Documentation-only design contract prepared on branch `docs/wp3-5a-stock-count-contract`; awaiting review/CI and merge. Owner decisions D3.5-01 through D3.5-04 are accepted and recorded in `docs/DECISIONS.md`.
+
+**Key implementation finding:** the existing atomic inventory RPC derives balances from append-only movements but does not yet establish a shared per-item lock/version protocol for all concurrent writers. Timestamps alone are not safe stale-count tokens. Before count posting can be enabled, WP3.5b must introduce a server-authoritative monotonically advancing per-item version and ensure every stock-changing RPC participates in deterministic item-lock acquisition/version advancement. Count posting must compare the captured version and append its adjustment in the same transaction.
+
+See [WP3.5 plan](./PHASE_3_WP3_5_STOCK_COUNTS_PLAN.md) and [WP3.5a test contract](./PHASE_3_WP3_5A_COUNT_CONSISTENCY_TEST_CONTRACT.md). No application code or database migration was added in WP3.5a.
