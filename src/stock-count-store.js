@@ -240,17 +240,45 @@ export async function reviewStockCountLine(scope, sessionId, lineId, input) {
 /** Preserve the cancelled draft and its lines; cancellation never mutates stock. */
 export async function cancelStockCountSession(scope, sessionId, cancelledAt = new Date().toISOString()) {
   const partition = scopeKey(scope);
-  const session = await readSession(partition, sessionId);
-  if (!session) throw new Error("Stock-count session was not found in this business workspace.");
-  if (session.pendingPost) {
-    throw new Error("A stock-count posting outcome may be uncertain. Retry the saved command and reconcile its result before cancelling.");
-  }
-  const lines = await readLines(partition, sessionId);
-  const cancelled = cancelSession(session, lines, cancelledAt);
   const db = await openBusinessDatabase();
-  const tx = db.transaction(SESSION_STORE, "readwrite");
-  tx.objectStore(SESSION_STORE).put(cancelled);
-  return transactionResult(tx, resolve => { tx.objectStore(SESSION_STORE).get(sessionKey(partition, sessionId)).onsuccess = event => resolve(event.target.result); });
+  const tx = db.transaction([SESSION_STORE, LINE_STORE], "readwrite");
+  const sessions = tx.objectStore(SESSION_STORE);
+  const lines = tx.objectStore(LINE_STORE);
+  const sessionRequest = sessions.get(sessionKey(partition, sessionId));
+  const linesRequest = lines.index("bySession").getAll([
+    partition.ownerId, partition.businessId, requireText(sessionId, "Count session ID"),
+  ]);
+  let session;
+  let allLines;
+  let failure;
+  let cancelled;
+  let saved = false;
+  const maybeCancel = () => {
+    if (session === undefined || allLines === undefined || failure || saved) return;
+    try {
+      if (!session) throw new Error("Stock-count session was not found in this business workspace.");
+      if (session.pendingPost) {
+        throw new Error("A stock-count posting outcome may be uncertain. Retry the saved command and reconcile its result before cancelling.");
+      }
+      cancelled = cancelSession(session, allLines, cancelledAt);
+      sessions.put(cancelled);
+      saved = true;
+    } catch (error) {
+      failure = error;
+      try { tx.abort(); } catch {}
+    }
+  };
+  sessionRequest.onsuccess = () => { session = sessionRequest.result ?? null; maybeCancel(); };
+  linesRequest.onsuccess = () => { allLines = linesRequest.result; maybeCancel(); };
+  sessionRequest.onerror = () => { failure = sessionRequest.error; try { tx.abort(); } catch {} };
+  linesRequest.onerror = () => { failure = linesRequest.error; try { tx.abort(); } catch {} };
+  try {
+    return await transactionResult(tx, resolve => {
+      tx.addEventListener("complete", () => resolve(cancelled), { once: true });
+    });
+  } catch (error) {
+    throw failure ?? error;
+  }
 }
 
 
@@ -508,6 +536,9 @@ export async function refreshStaleStockCountLine(scope, sessionId, lineId, authS
     try {
       if (!latestSession || ["cancelled", "posted"].includes(latestSession.status) || latestLine?.state !== "stale") {
         throw new Error("The count session or stale line changed while refreshing. Reopen the session and review it.");
+      }
+      if (latestSession.pendingPost) {
+        throw new Error("A stock-count posting is awaiting reconciliation. Retry the saved command before refreshing count lines.");
       }
       lines.put({ ...refreshed, ownerId: partition.ownerId, businessId: partition.businessId });
       sessions.put({ ...latestSession, updatedAt: new Date().toISOString() });
