@@ -35,8 +35,8 @@ permissions:
   contents: read
 
 concurrency:
-  group: wp1-6-local-supabase-${{ github.ref }}
-  cancel-in-progress: true
+  group: local-supabase-stack-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   local-vertical-slice:
