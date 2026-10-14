@@ -19,7 +19,7 @@ Repository: `zinlinna071-lgtm/KitchAI`. Read this prompt and `docs/PHASE_3_WP3_6
 2. Read the Phase 3 sections of the registry/status, `docs/PHASE_3_WP3_5_STOCK_COUNTS_PLAN.md`, and decision log.
 3. Inspect inventory domain/store/UI modules, Supabase migrations/RPCs, pgTAP tests, unit tests, Playwright specs, and workflow YAML.
 4. Inspect PR #57 authenticated stock-count E2E, test fixtures and failure-artifact configuration.
-5. Build a test-gap matrix: invariant → existing test/file → missing scenario → minimal proposed test. Do not implement before this matrix is grounded in current code.
+5. Read `docs/PHASE_3_WP3_6_TEST_GAP_MATRIX.md` as an initial static-reconnaissance draft, verify every entry against the latest checkout, and correct it as needed. Complete the test-gap matrix: invariant → existing test/file → missing scenario → minimal proposed test. Do not implement before this matrix is grounded in current code.
 
 ## Phase B — Test contract
 
