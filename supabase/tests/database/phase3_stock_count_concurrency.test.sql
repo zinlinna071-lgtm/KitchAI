@@ -3,8 +3,6 @@
 -- The waiting count must see the advanced version and reject without any count audit.
 create extension if not exists dblink with schema extensions;
 alter extension dblink set schema extensions;
--- The isolated test database uses trust auth; permit this test-only connection helper.
-grant execute on function extensions.dblink_connect_u(text, text) to public;
 
 select no_plan();
 
@@ -41,11 +39,11 @@ exception when serialization_failure then
 end;
 $$;
 
-select extensions.dblink_connect_u(
+select extensions.dblink_connect(
  'wp35d_writer',
  'host=127.0.0.1 port=5432 dbname=postgres user=postgres password=postgres'
 );
-select extensions.dblink_connect_u(
+select extensions.dblink_connect(
  'wp35d_count',
  'host=127.0.0.1 port=5432 dbname=postgres user=postgres password=postgres'
 );
