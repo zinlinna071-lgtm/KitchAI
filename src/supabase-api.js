@@ -275,3 +275,52 @@ export async function recordFinishedLotCarryForward(decision, session) {
     throw error;
   }
 }
+
+
+/**
+ * Read the authenticated owner's finished lots and immutable lot allocations.
+ * Remaining quantities are projected locally from these canonical records.
+ * @param {string} businessId Server-issued business UUID, never the local IndexedDB partition ID.
+ * @param {any} session
+ */
+export async function readFinishedStock(businessId, session) {
+  if (!session?.access_token || !session?.user?.id) {
+    throw new Error("Sign in as the business owner before reading finished stock.");
+  }
+  if (typeof businessId !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(businessId)) {
+    throw new TypeError("A server-issued business ID is required to read finished stock.");
+  }
+  const filter = "&business_id=eq." + encodeURIComponent(businessId);
+  try {
+    const [lotRows, allocationRows] = await Promise.all([
+      request("/rest/v1/finished_lots?select=lot_id,menu_item_id,produced_quantity,unit,produced_at&order=produced_at.asc" + filter, { session }),
+      request("/rest/v1/stock_movement_lot_allocations?select=event_id,lot_id,quantity,unit" + filter, { session }),
+    ]);
+    if (!Array.isArray(lotRows) || !Array.isArray(allocationRows)) {
+      throw new Error("Supabase returned an unsupported finished-stock snapshot.");
+    }
+    return {
+      lots: lotRows.map((row) => ({
+        lotId: row.lot_id,
+        menuItemId: row.menu_item_id,
+        producedQuantity: String(row.produced_quantity),
+        unit: row.unit,
+        producedAt: row.produced_at,
+      })),
+      allocations: allocationRows.map((row) => ({
+        eventId: row.event_id,
+        lotId: row.lot_id,
+        quantity: String(row.quantity),
+        unit: row.unit,
+      })),
+      fetchedAt: new Date().toISOString(),
+    };
+  } catch (error) {
+    const status = /** @type {any} */ (error).status;
+    if (status === 401) throw new Error("Your session expired. Sign in again before reading finished stock.");
+    if (status === 403 || /** @type {any} */ (error).code === "42501") {
+      throw new Error("The server rejected access to this business's finished stock.");
+    }
+    throw error;
+  }
+}
