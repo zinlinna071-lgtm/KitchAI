@@ -1422,7 +1422,7 @@ test("production batch UI captures actual usage and keeps offline posting state 
   await page.getByRole("button", { name: "Save recipe draft" }).click();
   await expect(page.locator("#recipe-list")).toContainText("Rice Bowl Recipe");
 
-  await page.locator("#recipe-line-recipe").selectOption({ label: /Rice Bowl Recipe/ });
+  await page.locator("#recipe-line-recipe").selectOption({ label: "Rice Bowl Recipe · Draft" });
   await page.locator("#recipe-line-ingredient").selectOption({ label: "Rice" });
   await page.locator("#recipe-line-quantity").fill("2");
   await page.locator("#recipe-line-unit").selectOption("kg");
