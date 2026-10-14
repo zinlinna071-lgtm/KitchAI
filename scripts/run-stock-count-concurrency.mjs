@@ -53,9 +53,9 @@ try {
 
   await admin.query(
     `INSERT INTO auth.users (id, aud, role, email, encrypted_password, email_confirmed_at)
-     VALUES ($1, 'authenticated', 'authenticated', `wp35d-race-${ownerId}@example.test`, '', now())
+     VALUES ($1, 'authenticated', 'authenticated', $2, '', now())
      ON CONFLICT (id) DO NOTHING`,
-    [ownerId]
+    [ownerId, `wp35d-race-${ownerId}@example.test`]
   );
   await setOwnerClaim(admin);
   await admin.query(
