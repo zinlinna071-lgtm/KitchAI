@@ -1641,3 +1641,73 @@ test("WP3.5d freezes local count edits while a posting outcome is uncertain", as
   expect(outcome.savedQuantity).toBe("2");
   expect(outcome.savedState).toBe("reviewed");
 });
+
+
+
+test("WP3.5d serializes cancellation against persisting a pending post command", async ({ page }) => {
+  await page.goto("/");
+  const outcome = await page.evaluate(async () => {
+    const scope = { ownerId: "71111111-1111-4111-8111-111111111111", businessId: "local-cancel-post-race" };
+    const remoteBusinessId = "72222222-2222-4222-8222-222222222222";
+    const itemId = "73333333-3333-4333-8333-333333333333";
+    const session = { access_token: "test-token", user: { id: scope.ownerId } };
+    const originalFetch = window.fetch;
+    const originalConfig = window.KITCHAI_CONFIG;
+    let postCalls = 0;
+    window.KITCHAI_CONFIG = { supabaseUrl: "https://example.supabase.co", supabaseAnonKey: "anon" };
+    window.fetch = async (url) => {
+      if (url.endsWith("/get_inventory_item_snapshot")) {
+        return { ok: true, status: 200, text: async () => JSON.stringify({
+          status: "snapshot", stockClass: "ingredient", stockItemId: itemId,
+          version: "0", systemQuantity: "1", unit: "kg",
+        }) };
+      }
+      postCalls += 1;
+      throw new TypeError("simulated network loss after command persistence");
+    };
+    try {
+      const store = await import("/src/stock-count-store.js");
+      const countSession = await store.createStockCountSession(scope, remoteBusinessId, {
+        sessionId: "74444444-4444-4444-8444-444444444444",
+      });
+      const line = await store.addStockCountLine(scope, countSession.sessionId, {
+        stockClass: "ingredient", stockItemId: itemId, stockItemName: "Rice", unit: "kg",
+      }, session, { lineId: "75555555-5555-4555-8555-555555555555" });
+      await store.enterStockCount(scope, countSession.sessionId, line.lineId, "2", "Initial count");
+      await store.reviewStockCountLine(scope, countSession.sessionId, line.lineId, {
+        reviewedBy: scope.ownerId, reviewedAt: "2026-10-14T10:05:00.000Z", reason: "Physical count",
+      });
+      const [postResult, cancelResult] = await Promise.allSettled([
+        store.postReviewedStockCountSubset(scope, countSession.sessionId, [line.lineId], session),
+        store.cancelStockCountSession(scope, countSession.sessionId),
+      ]);
+      const saved = (await store.listStockCountSessions(scope)).find(item => item.sessionId === countSession.sessionId);
+      return {
+        postFulfilled: postResult.status === "fulfilled",
+        postError: postResult.status === "rejected" ? String(postResult.reason?.message || postResult.reason) : "",
+        cancelFulfilled: cancelResult.status === "fulfilled",
+        cancelError: cancelResult.status === "rejected" ? String(cancelResult.reason?.message || cancelResult.reason) : "",
+        status: saved.status,
+        pendingPost: Boolean(saved.pendingPost),
+        postCalls,
+      };
+    } finally {
+      window.fetch = originalFetch;
+      if (originalConfig === undefined) delete window.KITCHAI_CONFIG;
+      else window.KITCHAI_CONFIG = originalConfig;
+    }
+  });
+  expect(outcome.postFulfilled).toBe(false);
+  expect(outcome.cancelFulfilled || outcome.pendingPost).toBe(true);
+  expect(outcome.cancelFulfilled && outcome.pendingPost).toBe(false);
+  if (outcome.cancelFulfilled) {
+    expect(outcome.status).toBe("cancelled");
+    expect(outcome.pendingPost).toBe(false);
+    expect(outcome.postCalls).toBe(0);
+  } else {
+    expect(outcome.cancelError).toContain("awaiting reconciliation");
+    expect(outcome.status).not.toBe("cancelled");
+    expect(outcome.pendingPost).toBe(true);
+    expect(outcome.postCalls).toBe(1);
+  }
+});
