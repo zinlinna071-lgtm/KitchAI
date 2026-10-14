@@ -90,32 +90,38 @@ export async function saveFinishedDisposition(scope, command, details) {
     ...(details?.saleId ? { saleId: details.saleId } : {}),
   };
   const db = await openBusinessDatabase();
-  const tx = db.transaction(COMMAND_STORE, "readwrite");
-  const store = tx.objectStore(COMMAND_STORE);
-  const key = [partition.ownerId, partition.businessId, record.commandId];
-  const existing = await requestResult(store.get(key), "Could not inspect the finished-stock outbox.");
-  if (existing) {
-    if (JSON.stringify(existing.command) !== JSON.stringify(record.command) ||
-        existing.dispositionType !== record.dispositionType ||
-        existing.quantity !== record.quantity || existing.unit !== record.unit || existing.reason !== record.reason) {
-      tx.abort();
-      throw new Error("Inventory command ID is already used by a different disposition.");
-    }
-    tx.abort();
-    return structuredClone(existing);
-  }
-  const now = new Date().toISOString();
-  record.state = "pending_sync";
-  record.syncAttempts = 0;
-  record.createdAt = now;
-  record.updatedAt = now;
-  store.add(record);
-  await new Promise((resolve, reject) => {
-    tx.oncomplete = resolve;
-    tx.onerror = () => reject(tx.error ?? new Error("Could not save the finished-stock command."));
-    tx.onabort = () => reject(tx.error ?? new Error("Finished-stock command save was aborted."));
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(COMMAND_STORE, "readwrite");
+    const store = tx.objectStore(COMMAND_STORE);
+    const request = store.get([partition.ownerId, partition.businessId, record.commandId]);
+    let result;
+    let failure;
+    request.onsuccess = () => {
+      const existing = request.result;
+      if (existing) {
+        if (JSON.stringify(existing.command) !== JSON.stringify(record.command) ||
+            existing.dispositionType !== record.dispositionType ||
+            existing.quantity !== record.quantity || existing.unit !== record.unit || existing.reason !== record.reason) {
+          failure = new Error("Inventory command ID is already used by a different disposition.");
+          tx.abort();
+          return;
+        }
+        result = existing;
+        return;
+      }
+      const now = new Date().toISOString();
+      record.state = "pending_sync";
+      record.syncAttempts = 0;
+      record.createdAt = now;
+      record.updatedAt = now;
+      result = record;
+      store.add(record);
+    };
+    request.onerror = () => { failure = request.error ?? new Error("Could not inspect the finished-stock outbox."); tx.abort(); };
+    tx.oncomplete = () => resolve(structuredClone(result));
+    tx.onerror = () => reject(failure ?? tx.error ?? new Error("Could not save the finished-stock command."));
+    tx.onabort = () => reject(failure ?? tx.error ?? new Error("Finished-stock command save was aborted."));
   });
-  return structuredClone(record);
 }
 
 /** @param {{ownerId:string,businessId:string}} scope */
