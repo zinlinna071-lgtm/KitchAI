@@ -91,3 +91,28 @@ The Phase 2 entity sync, conflict, and migration/upgrade acceptance scenarios ar
 
 ### Exit decision
 Automated WP2.6 gates pass for the local/emulated milestone, with no known critical data-loss or authorization failure surfaced by these tests. This is not a guarantee beyond tested scenarios. PR #35 is ready for owner review but remains unmerged; Phase 3 remains blocked until the owner reviews the PR and accepts the exit record. No hosted provisioning, billing, production secrets, or deployment is authorized.
+
+
+## Phase 3 WP3.1 implementation in progress
+
+- Feature branch: `feat/wp3-1-inventory-domain-model` (based on `d008ea1`).
+- Added exact decimal quantity and stock-movement domain primitives, explicit lot-allocation/carry-over validation, and additive IndexedDB v2→v3 inventory stores. See [WP3.1 implementation report](./PHASE_3_WP3_1_IMPLEMENTATION_REPORT.md).
+- GitHub Actions [run 38416284642](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38416284642) passed syntax/typecheck/unit tests/build and Chromium smoke tests; [run 38416284761](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38416284761) passed static preview checks.
+- Supabase local test run [38416285182](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38416285182) failed before tests due to Docker Hub image-pull rate limiting; no SQL tests are claimed as passed. Populated-v2 migration tests remain outstanding. WP3.1 is **not complete** and must not be merged until the documented gates are addressed.
+
+## Phase 3 WP3.1 — Inventory foundation (draft PR #38)
+
+The draft [PR #38](https://github.com/zinlinna071-lgtm/KitchAI/pull/38) adds the inventory domain primitives, additive IndexedDB v2→v3 stores, and owner-scoped Supabase ledger/lot schema. The populated-v2 Chromium migration test now covers existing Phase 2 data/indexes, legacy-source preservation, failure then retry, and reload idempotency. Current-head [app-shell run 38419093724](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38419093724), [baseline run 38419093572](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38419093572), and [static preview run 38419093895](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38419093895) passed. The latest [local Supabase authorization run 38419093567](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38419093567) and [local vertical-slice run 38419093728](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38419093728) are pending; earlier SQL tests were blocked before execution by Docker Hub rate limiting. WP3.1 remains incomplete until the migration/pgTAP suite passes and the full diff/recipe-quantity compatibility review is complete. No inventory UI, production posting, inventory sync, hosted provisioning, billing, deployment, or merge is included.
+## WP3.1 verification refresh — 2026-10-13
+
+Current code-head [app-shell run 38420258964](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38420258964), [baseline run 38420259073](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38420259073), and [static preview run 38420259044](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38420259044) passed. The populated-v2 IndexedDB migration test and required movement-reason checks are included in that app-shell run. Local Supabase authorization [run 38420259349](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38420259349) and vertical slice [run 38420259000](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38420259000) failed before the database-test step because the isolated Supabase Docker stack could not start; prior logs explicitly show Docker Hub `toomanyrequests: Data limit exceeded`. SQL/pgTAP remains unverified; WP3.1 is still a draft and must not be merged.
+
+
+## WP3.1 verification refresh — 2026-10-13 (implementation commit)
+
+The migration test's stale schema-version assertion was corrected from v2 to the current v3 schema. On implementation commit `a868a04f452951d444bc403d8f3b561e6bfd2b0b`, [Application Shell](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38426418210), [Baseline](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38426418289), [Static Preview](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38426418207), [Local Supabase Authorization](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38426418362), and [Local Supabase Vertical Slice](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38426418224) passed. The local database suite passed 102 pgTAP tests and the vertical slice passed all 8 browser integration tests. Recipe-line numeric values are preserved unchanged by v2→v3; no inventory conversion/production posting is implemented. WP3.1 remains partial and PR #38 remains Draft/unmerged; a documentation-only commit will trigger fresh CI.
+
+
+## WP3.1 current-head verification — 2026-10-13
+
+Current code commit `ae07e57827601e6929f1a28abdda9a40f1f79cf9` passed [Baseline](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38434123234), [Application Shell](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38434122835), [Static Preview](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38434122588), [Supabase Authorization](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38434122639), and [Supabase Vertical Slice](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38434122993). The database pgTAP groups passed (40, 37, 26 tests); all 8 browser integration tests passed. A negative test now verifies incomplete lot allocations are rejected. WP3.1 remains partial; PR #38 remains Draft and unmerged.

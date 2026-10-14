@@ -1,5 +1,5 @@
 const DATABASE_NAME = "kitchai-business-data";
-const DATABASE_VERSION = 2;
+const DATABASE_VERSION = 3;
 const ENTITY_STORES = ["ingredients", "menuItems", "recipes", "recipeLines"];
 const OPERATIONS = "operations";
 const SYNC_METADATA = "syncMetadata";
@@ -67,6 +67,33 @@ function createSchema(db) {
     store.createIndex("byOwnerBusiness", ["ownerId", "businessId"], { unique: false });
     store.createIndex("byOwnerState", ["ownerId", "state"], { unique: false });
     store.createIndex("byOwnerBusinessRecord", ["ownerId", "businessId", "entityType", "recordId"], { unique: false });
+  }
+  // Phase 3 inventory stores are additive. Never recreate or rewrite Phase 2 stores.
+  if (!db.objectStoreNames.contains("stockMovements")) {
+    const store = db.createObjectStore("stockMovements", { keyPath: ["ownerId", "businessId", "eventId"] });
+    store.createIndex("byScope", ["ownerId", "businessId"], { unique: false });
+    store.createIndex("byStockItem", ["ownerId", "businessId", "stockClass", "stockItemId"], { unique: false });
+    store.createIndex("bySource", ["ownerId", "businessId", "sourceType", "sourceId"], { unique: false });
+    store.createIndex("byRecordedAt", ["ownerId", "businessId", "recordedAt"], { unique: false });
+    store.createIndex("byRelatedEvent", ["ownerId", "businessId", "relatedEventId"], { unique: false });
+  }
+  if (!db.objectStoreNames.contains("finishedLots")) {
+    const store = db.createObjectStore("finishedLots", { keyPath: ["ownerId", "businessId", "lotId"] });
+    store.createIndex("byScope", ["ownerId", "businessId"], { unique: false });
+    store.createIndex("byMenuItem", ["ownerId", "businessId", "menuItemId"], { unique: false });
+    store.createIndex("byBatch", ["ownerId", "businessId", "batchId"], { unique: false });
+  }
+  if (!db.objectStoreNames.contains("inventoryCommands")) {
+    const store = db.createObjectStore("inventoryCommands", { keyPath: "operationId" });
+    store.createIndex("byOwnerBusiness", ["ownerId", "businessId"], { unique: false });
+    store.createIndex("byOwnerBusinessState", ["ownerId", "businessId", "state"], { unique: false });
+  }
+  if (!db.objectStoreNames.contains("stockMovementLotAllocations")) {
+    const store = db.createObjectStore("stockMovementLotAllocations", {
+      keyPath: ["ownerId", "businessId", "eventId", "lotId"],
+    });
+    store.createIndex("byEvent", ["ownerId", "businessId", "eventId"], { unique: false });
+    store.createIndex("byLot", ["ownerId", "businessId", "lotId"], { unique: false });
   }
 }
 

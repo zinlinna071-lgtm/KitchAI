@@ -1,0 +1,256 @@
+-- WP3.1 inventory data foundation. Write access is intentionally reserved for a
+-- future trusted aggregate RPC; clients must not upsert stock events directly.
+-- Phase 2 already provides the composite owner/business candidate key used below.
+create table public.inventory_commands (
+  owner_id uuid not null references auth.users(id) on delete cascade,
+  business_id uuid not null,
+  operation_id uuid not null,
+  request jsonb not null,
+  result jsonb,
+  created_at timestamptz not null default pg_catalog.now(),
+  completed_at timestamptz,
+  primary key (owner_id, operation_id),
+  constraint inventory_commands_owner_business_fk foreign key (owner_id, business_id)
+    references public.business_profiles(owner_id, business_id) on delete cascade,
+  constraint inventory_commands_completion_pair check ((result is null) = (completed_at is null))
+);
+comment on table public.inventory_commands is
+  'WP3.1 idempotency foundation. Only a future trusted atomic inventory RPC may write this table.';
+
+create table public.stock_movements (
+  owner_id uuid not null references auth.users(id) on delete cascade,
+  business_id uuid not null,
+  event_id uuid not null,
+  stock_class text not null check (stock_class in ('ingredient', 'finished')),
+  stock_item_id uuid not null,
+  kind text not null check (kind in (
+    'opening_balance', 'purchase_receipt', 'production_consumption', 'production_output',
+    'sale', 'owner_consumption', 'giveaway', 'waste', 'count_adjustment', 'correction', 'reversal'
+  )),
+  direction text not null check (direction in ('in', 'out')),
+  quantity numeric(24,6) not null check (quantity > 0 and quantity < 'Infinity'::numeric),
+  unit text not null check (unit in ('g', 'kg', 'ml', 'l', 'each')),
+  source_type text not null check (char_length(btrim(source_type)) between 1 and 80),
+  source_id uuid not null,
+  related_event_id uuid,
+  reason text,
+  recorded_at timestamptz not null,
+  effective_at timestamptz not null,
+  primary key (owner_id, business_id, event_id),
+  constraint stock_movements_owner_business_fk foreign key (owner_id, business_id)
+    references public.business_profiles(owner_id, business_id) on delete cascade,
+  constraint stock_movements_related_event_fk foreign key (owner_id, business_id, related_event_id)
+    references public.stock_movements(owner_id, business_id, event_id),
+  constraint stock_movements_kind_direction check (
+    (kind in ('opening_balance', 'purchase_receipt', 'production_output') and direction = 'in')
+    or (kind in ('production_consumption', 'sale', 'owner_consumption', 'giveaway', 'waste') and direction = 'out')
+    or kind in ('count_adjustment', 'correction', 'reversal')
+  ),
+  constraint stock_movements_production_stock_class check (
+    (kind <> 'production_consumption' or stock_class = 'ingredient')
+    and (kind <> 'production_output' or stock_class = 'finished')
+    and (kind <> 'sale' or stock_class = 'finished')
+  ),
+  constraint stock_movements_linked_correction check (
+    (kind not in ('correction', 'reversal') or related_event_id is not null)
+  ),
+  constraint stock_movements_finished_each_integral check (
+    not (stock_class = 'finished' and unit = 'each') or quantity = trunc(quantity)
+  ),
+  constraint stock_movements_reason_required check (
+    kind not in ('waste', 'count_adjustment', 'correction') or char_length(btrim(coalesce(reason, ''))) > 0
+  )
+);
+create index stock_movements_by_item_idx
+  on public.stock_movements(owner_id, business_id, stock_class, stock_item_id, recorded_at);
+create index stock_movements_by_source_idx
+  on public.stock_movements(owner_id, business_id, source_type, source_id);
+comment on table public.stock_movements is
+  'Canonical append-only stock ledger. On-hand balances are derived projections, never independently editable truth.';
+
+create table public.finished_lots (
+  owner_id uuid not null references auth.users(id) on delete cascade,
+  business_id uuid not null,
+  lot_id uuid not null,
+  menu_item_id uuid not null,
+  batch_id uuid not null,
+  output_event_id uuid not null,
+  produced_quantity numeric(24,6) not null check (produced_quantity > 0 and produced_quantity < 'Infinity'::numeric),
+  unit text not null check (unit in ('g', 'kg', 'ml', 'l', 'each')),
+  produced_at timestamptz not null,
+  primary key (owner_id, business_id, lot_id),
+  constraint finished_lots_owner_business_fk foreign key (owner_id, business_id)
+    references public.business_profiles(owner_id, business_id) on delete cascade,
+  constraint finished_lots_menu_item_fk foreign key (owner_id, business_id, menu_item_id)
+    references public.menu_items(owner_id, business_id, id),
+  constraint finished_lots_output_event_fk foreign key (owner_id, business_id, output_event_id)
+    references public.stock_movements(owner_id, business_id, event_id),
+  constraint finished_lots_output_kind check (unit <> 'each' or produced_quantity = trunc(produced_quantity)
+  )
+);
+create index finished_lots_by_menu_item_idx on public.finished_lots(owner_id, business_id, menu_item_id);
+create index finished_lots_by_batch_idx on public.finished_lots(owner_id, business_id, batch_id);
+
+-- Every finished-stock reduction must name the lot(s) it consumes. Sale pricing
+-- and revenue remain in the sales domain; this table only records quantity allocation.
+create table public.stock_movement_lot_allocations (
+  owner_id uuid not null,
+  business_id uuid not null,
+  event_id uuid not null,
+  lot_id uuid not null,
+  quantity numeric(24,6) not null check (quantity > 0 and quantity < 'Infinity'::numeric),
+  unit text not null check (unit in ('g', 'kg', 'ml', 'l', 'each')),
+  primary key (owner_id, business_id, event_id, lot_id),
+  constraint stock_movement_lot_allocations_event_fk foreign key (owner_id, business_id, event_id)
+    references public.stock_movements(owner_id, business_id, event_id),
+  constraint stock_movement_lot_allocations_lot_fk foreign key (owner_id, business_id, lot_id)
+    references public.finished_lots(owner_id, business_id, lot_id)
+);
+
+create or replace function public.validate_stock_movement_lot_allocation()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+declare
+  movement public.stock_movements%rowtype;
+  lot public.finished_lots%rowtype;
+begin
+  if tg_op <> 'INSERT' then
+    raise exception 'Lot allocations are immutable; record a linked stock movement'
+      using errcode = '55000';
+  end if;
+  select * into movement from public.stock_movements
+   where owner_id = new.owner_id and business_id = new.business_id and event_id = new.event_id;
+  select * into lot from public.finished_lots
+   where owner_id = new.owner_id and business_id = new.business_id and lot_id = new.lot_id;
+  if not found or lot.menu_item_id <> movement.stock_item_id
+     or lot.unit <> new.unit
+     or movement.unit <> new.unit
+     or movement.stock_class <> 'finished'
+     or movement.direction <> 'out' then
+    raise exception 'Lot allocation must match a finished-stock reduction and its lot'
+      using errcode = '23514';
+  end if;
+  return new;
+end;
+$$;
+revoke all on function public.validate_stock_movement_lot_allocation() from public, anon, authenticated;
+create trigger stock_movement_lot_allocations_immutable
+before update or delete on public.stock_movement_lot_allocations
+for each row execute function public.validate_stock_movement_lot_allocation();
+create trigger stock_movement_lot_allocations_validate
+before insert on public.stock_movement_lot_allocations
+for each row execute function public.validate_stock_movement_lot_allocation();
+
+create or replace function public.assert_finished_reduction_allocations()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+declare
+  movement public.stock_movements%rowtype;
+  allocated numeric(24,6);
+  allocation_count bigint;
+  target_event uuid;
+begin
+  target_event := new.event_id;
+  select * into movement from public.stock_movements
+   where owner_id = new.owner_id and business_id = new.business_id and event_id = target_event;
+  if not found then
+    return null;
+  end if;
+  select coalesce(sum(quantity), 0), count(*) into allocated, allocation_count
+    from public.stock_movement_lot_allocations
+   where owner_id = movement.owner_id and business_id = movement.business_id and event_id = movement.event_id;
+  if movement.stock_class = 'finished' and movement.direction = 'out' then
+    if allocation_count = 0 or allocated <> movement.quantity then
+      raise exception 'Finished-stock reduction must be allocated exactly across lots'
+        using errcode = '23514';
+    end if;
+  elsif allocation_count <> 0 then
+    raise exception 'Lot allocations are only valid for finished-stock reductions'
+      using errcode = '23514';
+  end if;
+  return null;
+end;
+$$;
+revoke all on function public.assert_finished_reduction_allocations() from public, anon, authenticated;
+create constraint trigger stock_movements_require_lot_allocations
+after insert on public.stock_movements
+deferrable initially deferred
+for each row execute function public.assert_finished_reduction_allocations();
+create constraint trigger lot_allocations_sum_to_movement
+after insert on public.stock_movement_lot_allocations
+deferrable initially deferred
+for each row execute function public.assert_finished_reduction_allocations();
+
+create or replace function public.validate_finished_lot_output()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+declare
+  output public.stock_movements%rowtype;
+begin
+  if tg_op <> 'INSERT' then
+    raise exception 'Finished lots are immutable; record stock changes as movements'
+      using errcode = '55000';
+  end if;
+
+  select * into output
+  from public.stock_movements
+  where owner_id = new.owner_id
+    and business_id = new.business_id
+    and event_id = new.output_event_id;
+
+  if not found
+     or output.stock_class <> 'finished'
+     or output.kind <> 'production_output'
+     or output.direction <> 'in'
+     or output.stock_item_id <> new.menu_item_id
+     or output.quantity <> new.produced_quantity
+     or output.unit <> new.unit then
+    raise exception 'Finished lot must match its finished production output event'
+      using errcode = '23514';
+  end if;
+  return new;
+end;
+$$;
+revoke all on function public.validate_finished_lot_output() from public, anon, authenticated;
+create trigger finished_lots_validate_output
+before insert or update or delete on public.finished_lots
+for each row execute function public.validate_finished_lot_output();
+
+comment on table public.finished_lots is
+  'Immutable identity/traceability for finished output. Remaining quantity is derived from stock movements.';
+
+create or replace function public.reject_stock_movement_mutation()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  raise exception 'Stock movements are append-only; record a linked correction or reversal'
+    using errcode = '55000';
+end;
+$$;
+revoke all on function public.reject_stock_movement_mutation() from public, anon, authenticated;
+create trigger stock_movements_append_only
+before update or delete on public.stock_movements
+for each row execute function public.reject_stock_movement_mutation();
+
+alter table public.inventory_commands enable row level security;
+alter table public.stock_movements enable row level security;
+alter table public.finished_lots enable row level security;
+alter table public.stock_movement_lot_allocations enable row level security;
+
+create policy "Owners read their stock movements" on public.stock_movements
+  for select to authenticated using ((select auth.uid()) = owner_id);
+create policy "Owners read their finished lots" on public.finished_lots
+  for select to authenticated using ((select auth.uid()) = owner_id);
+create policy "Owners read their lot allocations" on public.stock_movement_lot_allocations
+  for select to authenticated using ((select auth.uid()) = owner_id);
+
+revoke all on table public.inventory_commands, public.stock_movements, public.finished_lots, public.stock_movement_lot_allocations from anon, authenticated;
+grant select on table public.stock_movements, public.finished_lots, public.stock_movement_lot_allocations to authenticated;
