@@ -33,7 +33,7 @@ export function initializeStockCountUI(context) {
 
   function lockControls() {
     if (postButton) postButton.disabled = busy || !context.getSession() || !lines.some(line => line.state === "reviewed");
-    if (cancelButton) cancelButton.disabled = busy || !selectedSessionId || Boolean(sessions.find(item => item.sessionId === selectedSessionId)?.pendingPost);
+    if (cancelButton) { const session = sessions.find(item => item.sessionId === selectedSessionId); cancelButton.disabled = busy || !session || Boolean(session.pendingPost) || !["open", "ready_for_review"].includes(session.status); }
     if (refreshButton) refreshButton.disabled = busy;
     if (sessionSelect) sessionSelect.disabled = busy || sessions.length === 0;
   }
@@ -72,7 +72,7 @@ export function initializeStockCountUI(context) {
         countLabel.append(count);
         const noteLabel = make("label", "Count note");
         const noteInput = make("input");
-        noteInput.type = "text"; noteInput.maxLength = 1000; noteInput.value = line.note ?? "";
+        noteInput.type = "text"; noteInput.maxLength = 500; noteInput.value = line.note ?? "";
         noteLabel.append(noteInput);
         const saveCount = make("button", "Save count", "button button-secondary");
         saveCount.type = "submit";
@@ -123,7 +123,7 @@ export function initializeStockCountUI(context) {
       const selectLabel = make("label", "Select for posting");
       const checkbox = make("input");
       checkbox.type = "checkbox"; checkbox.dataset.lineId = line.lineId;
-      checkbox.checked = line.state === "reviewed";
+      checkbox.checked = false;
       checkbox.disabled = line.state !== "reviewed" || Boolean(session.pendingPost) || !context.getSession();
       selectLabel.prepend(checkbox);
       item.append(selectLabel);
