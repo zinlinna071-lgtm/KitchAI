@@ -1400,3 +1400,46 @@ test("finished stock UI is accessible and disposition records persist in the loc
     sameCommand: true,
   });
 });
+
+
+test("production batch UI captures actual usage and keeps offline posting state honest", async ({ page }) => {
+  await page.goto("/");
+  await page.locator("#business-name").fill("Production UI Kitchen");
+  await page.getByRole("button", { name: "Save profile" }).click();
+
+  await page.locator("#ingredient-name").fill("Rice");
+  await page.getByRole("button", { name: "Add ingredient" }).click();
+  await expect(page.locator("#ingredient-list")).toContainText("Rice");
+
+  await page.locator("#menu-item-name").fill("Rice Bowl");
+  await page.getByRole("button", { name: "Add menu item" }).click();
+  await expect(page.locator("#menu-item-list")).toContainText("Rice Bowl");
+
+  await page.locator("#recipe-menu-item").selectOption({ label: "Rice Bowl" });
+  await page.locator("#recipe-name").fill("Rice Bowl Recipe");
+  await page.locator("#recipe-yield").fill("4");
+  await page.locator("#recipe-status").selectOption("draft");
+  await page.getByRole("button", { name: "Save recipe draft" }).click();
+  await expect(page.locator("#recipe-list")).toContainText("Rice Bowl Recipe");
+
+  await page.locator("#recipe-line-recipe").selectOption({ label: /Rice Bowl Recipe/ });
+  await page.locator("#recipe-line-ingredient").selectOption({ label: "Rice" });
+  await page.locator("#recipe-line-quantity").fill("2");
+  await page.locator("#recipe-line-unit").selectOption("kg");
+  await page.getByRole("button", { name: "Add ingredient line" }).click();
+  await expect(page.locator("#recipe-line-list")).toContainText("2 kg");
+
+  await page.locator("#recipe-list").getByRole("button", { name: "Activate" }).click();
+  await expect(page.locator("#recipe-list")).toContainText("Active");
+  await page.locator("#production-recipe").selectOption({ label: "Rice Bowl Recipe" });
+  await page.getByRole("button", { name: "Start production batch" }).click();
+  const batch = page.locator(".production-batch-card").filter({ hasText: "Rice Bowl Recipe" });
+  await expect(batch).toContainText("started");
+  await batch.locator(".production-usage-line select").selectOption("measured");
+  await batch.locator('.production-usage-line input[data-field="quantity"]').fill("2");
+  await batch.locator('input[data-field="outputQuantity"]').fill("4");
+  await batch.getByRole("button", { name: "Save usage and prepare batch" }).click();
+  await expect(batch).toContainText("ready to post");
+  await expect(batch.getByRole("button", { name: "Post batch" })).toBeDisabled();
+  await expect(page.locator("#production-state")).toContainText("ready to post when you are online and signed in");
+});
