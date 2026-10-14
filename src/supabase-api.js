@@ -372,3 +372,62 @@ export async function readFinishedStock(businessId, session) {
     throw error;
   }
 }
+
+
+/**
+ * Atomically post a reviewed subset of a physical stock-count session.
+ * The database compares expected versions while holding the shared inventory lock.
+ * @param {{commandId:string,businessId:string,sessionId:string,lines:unknown[],completeSession?:boolean}} command
+ * @param {any} session
+ */
+export async function postStockCountSubset(command, session) {
+  if (!session?.access_token || !session?.user?.id) {
+    throw new Error("An authenticated owner session is required for stock-count posting.");
+  }
+  const uuid = value => typeof value === "string" &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+  if (!uuid(command?.commandId) || !uuid(command?.businessId) || !uuid(command?.sessionId) ||
+      !Array.isArray(command?.lines) || command.lines.length < 1 || command.lines.length > 200 ||
+      (command.completeSession !== undefined && typeof command.completeSession !== "boolean")) {
+    throw new TypeError("A valid stock-count command with 1 to 200 reviewed lines is required.");
+  }
+  try {
+    const result = await request("/rest/v1/rpc/post_stock_count_subset", {
+      method: "POST",
+      session,
+      body: {
+        p_command_id: command.commandId,
+        p_business_id: command.businessId,
+        p_session_id: command.sessionId,
+        p_lines: command.lines,
+        p_complete_session: command.completeSession === true,
+      },
+    });
+    if (
+      result?.status !== "accepted" ||
+      result.commandId !== command.commandId ||
+      result.sessionId !== command.sessionId ||
+      !Array.isArray(result.postedLineIds) ||
+      result.postedLineIds.length !== command.lines.length ||
+      !Array.isArray(result.eventIds) ||
+      !Number.isInteger(result.movementCount) ||
+      !Number.isInteger(result.zeroVarianceCount) ||
+      result.movementCount + result.zeroVarianceCount !== command.lines.length ||
+      !["open", "completed"].includes(result.sessionStatus)
+    ) {
+      throw new Error("Supabase returned an unsupported stock-count posting result.");
+    }
+    return result;
+  } catch (error) {
+    const status = /** @type {any} */ (error).status;
+    const code = /** @type {any} */ (error).code;
+    if (status === 401) throw new Error("Your session expired. Sign in again before retrying stock-count posting.");
+    if (status === 403 || code === "42501") {
+      throw new Error("The server rejected stock-count posting because this account cannot access the business or item.");
+    }
+    if (code === "40001") {
+      throw new Error("This stock count is stale because stock changed after the snapshot. Refresh the item snapshot and recount/review the line.");
+    }
+    throw error;
+  }
+}

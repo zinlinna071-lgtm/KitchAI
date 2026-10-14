@@ -2,14 +2,14 @@ name: WP1.4 Local Supabase Authorization
 on:
   push:
     branches: [main]
-    paths: ["supabase/**", ".github/workflows/supabase-local.yml"]
+    paths: ["supabase/**", "scripts/run-stock-count-concurrency.mjs", ".github/workflows/supabase-local.yml"]
   pull_request:
-    paths: ["supabase/**", ".github/workflows/supabase-local.yml"]
+    paths: ["supabase/**", "scripts/run-stock-count-concurrency.mjs", ".github/workflows/supabase-local.yml"]
 permissions:
   contents: read
 concurrency:
-  group: supabase-local-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  group: wp1-4-local-supabase-${{ github.ref }}
+  cancel-in-progress: false
 jobs:
   local-authorization:
     name: Local schema and RLS tests
@@ -28,6 +28,11 @@ jobs:
       - name: Run database migration and pgTAP authorization tests
         timeout-minutes: 7
         run: npx --yes supabase@2.39.2 test db --debug
+      - name: Run two-session stock-count concurrency regression
+        run: |
+          npm install --no-save --no-package-lock pg@8.16.3
+          node scripts/run-stock-count-concurrency.mjs
+        timeout-minutes: 2
       - name: Stop local Supabase stack
         if: always()
         timeout-minutes: 3

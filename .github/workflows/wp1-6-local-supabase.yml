@@ -12,6 +12,7 @@ on:
       - "package.json"
       - "tests/**"
       - "supabase/**"
+      - "scripts/run-stock-count-concurrency.mjs"
       - ".spikes/wp1-1-local-sync/local-supabase.playwright.config.js"
       - ".spikes/wp1-1-local-sync/tests/local-supabase.integration.spec.js"
       - ".github/workflows/wp1-6-local-supabase.yml"
@@ -25,6 +26,7 @@ on:
       - "package.json"
       - "tests/**"
       - "supabase/**"
+      - "scripts/run-stock-count-concurrency.mjs"
       - ".spikes/wp1-1-local-sync/local-supabase.playwright.config.js"
       - ".spikes/wp1-1-local-sync/tests/local-supabase.integration.spec.js"
       - ".github/workflows/wp1-6-local-supabase.yml"
@@ -34,7 +36,7 @@ permissions:
 
 concurrency:
   group: wp1-6-local-supabase-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   local-vertical-slice:
@@ -63,6 +65,11 @@ jobs:
       - name: Run database authorization and idempotency tests
         run: npx --yes supabase@2.39.2 test db
         timeout-minutes: 7
+      - name: Run two-session stock-count concurrency regression
+        run: |
+          npm install --no-save --no-package-lock pg@8.16.3
+          node scripts/run-stock-count-concurrency.mjs
+        timeout-minutes: 2
       - name: Build app
         run: npm run build
       - name: Install isolated browser test dependencies

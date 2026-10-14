@@ -1,6 +1,6 @@
 # WP3.5 — Physical Stock Counts and Adjustments Plan
 
-**Status:** Owner decisions accepted 2026-10-14. WP3.5a contract merged via [PR #52](https://github.com/zinlinna071-lgtm/KitchAI/pull/52); WP3.5b server-authoritative item versions merged via [PR #53](https://github.com/zinlinna071-lgtm/KitchAI/pull/53). WP3.5c offline count drafts/review is in progress on [draft PR #54](https://github.com/zinlinna071-lgtm/KitchAI/pull/54). Stock-count posting remains gated on the atomic expected-version implementation in WP3.5d.  
+**Status:** Owner decisions accepted 2026-10-14. WP3.5a contract merged via [PR #52](https://github.com/zinlinna071-lgtm/KitchAI/pull/52); WP3.5b server-authoritative item versions merged via [PR #53](https://github.com/zinlinna071-lgtm/KitchAI/pull/53); WP3.5c offline count drafts/review merged via [PR #54](https://github.com/zinlinna071-lgtm/KitchAI/pull/54). WP3.5d atomic count posting is implemented on [Draft PR #55](https://github.com/zinlinna071-lgtm/KitchAI/pull/55); all five PR-triggered CI workflows passed on head `e383a71b49c8fb72ad973c4bc8885f7ae03e6fd5`. Final owner review remains open.  
 **Phase:** 3 — Purchasing & Inventory  
 **Parent:** `docs/ROADMAP.md`, Phase 3; see current WP status in `docs/WP_REGISTRY.md`.  
 **Implementation boundary:** local/offline-first PWA and isolated local Supabase only. No hosted provisioning, billing, secrets, or deployment is authorized.
@@ -96,3 +96,21 @@ Barcode scanning, multi-user count assignments, supplier catalog synchronization
 - WP3.5e: accessible review UI and final regression/local-Supabase gates.
 
 Do not enable count posting until database review and concurrency tests prove every stock-changing RPC uses the shared lock/version protocol.
+
+
+## WP3.5d implementation note — 2026-10-14
+
+WP3.5c is merged in [PR #54](https://github.com/zinlinna071-lgtm/KitchAI/pull/54). WP3.5d implementation is under review on branch `feat/wp3-5d-atomic-stock-count-posting`.
+
+The additive migration `20261014003000_phase3_atomic_stock_count_posting.sql` introduces:
+- `post_stock_count_subset`, which takes a stable command ID, server business/session IDs, and 1–200 reviewed lines.
+- The same owner-scoped advisory transaction lock used by `apply_inventory_command`, followed by deterministic item-version locks.
+- Expected-version comparison before any line audit or stock movement is inserted. A stale line raises SQLSTATE `40001` and the entire submitted subset rolls back.
+- Server-derived system quantity and variance; the client cannot supply the authoritative system balance.
+- Append-only accepted-line audit, including zero-variance lines with no zero-quantity stock movement.
+- Per-command idempotency checked before stale-version validation; a retry after accepted posting returns the original result.
+- Optional completion of the server-side session. Partial subsets remain open; each request is atomic.
+
+The local store persists the exact command ID and payload before network delivery. An acknowledged result finalizes local line states; a stale rejection preserves the rejected attempt, marks affected lines stale, and requires a fresh server snapshot and recount.
+
+**Verification status — 2026-10-15:** all five PR-triggered workflows passed on head `e383a71b49c8fb72ad973c4bc8885f7ae03e6fd5` (Baseline, Static Preview, WP1.2 Application Shell, WP1.4 Local Supabase Authorization, and WP1.6 Local Supabase Vertical Slice). The separate-session concurrency regression confirmed the count waited on the shared owner advisory lock, the concurrent receipt committed, the stale count rejected with SQLSTATE `40001`, and no accepted count audit row was written. A browser regression also verifies that local count mutations are blocked while a posting result is uncertain. Keep PR #55 Draft pending owner review; this does not authorize hosted resources, billing, secrets, deployment, or merging.
