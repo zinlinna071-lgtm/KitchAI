@@ -492,6 +492,7 @@ test("legacy Phase 2 records migrate through the current runtime, queue once, an
         version: db.version,
         hasConflictStore: db.objectStoreNames.contains("conflicts"),
         hasScopeIndex: db.transaction("ingredients", "readonly").objectStore("ingredients").indexNames.contains("byScope"),
+        hasFinishedLotHandlingStore: db.objectStoreNames.contains("finishedLotHandlingEvents"),
       };
       const ledgerRows = await read("migrationLedger", store => store.getAll());
       const sourceDbRequest = indexedDB.open("kitchai-ingredients");
