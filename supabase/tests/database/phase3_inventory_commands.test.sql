@@ -214,6 +214,106 @@ select is(
  )
  ) ->> 'status','accepted','finished stock reduction and exact lot allocation are atomic');
 
+-- WP3.3.3 production consumption, finished output, and lot share one atomic command.
+select is(
+ public.apply_inventory_command(
+ 'a9000000-0000-4000-8000-000000000040',
+ (select business_id from public.business_profiles where owner_id='41111111-1111-4111-8111-111111111111'),
+ 'stock_receipt',
+ jsonb_build_object('movements',jsonb_build_array(jsonb_build_object(
+  'eventId','a9100000-0000-4000-8000-000000000040','stockClass','ingredient',
+  'stockItemId','a9200000-0000-4000-8000-000000000003','kind','purchase_receipt',
+  'direction','in','quantity','5','unit','kg','sourceType','purchase_receipt',
+  'sourceId','a9300000-0000-4000-8000-000000000040')))
+ ) ->> 'status','accepted','production fixture ingredient stock is available');
+
+select throws_ok(
+ $sql$select public.apply_inventory_command(
+ 'a9000000-0000-4000-8000-000000000041',
+ (select business_id from public.business_profiles where owner_id='41111111-1111-4111-8111-111111111111'),
+ 'stock_movement',
+ jsonb_build_object('movements',jsonb_build_array(
+  jsonb_build_object('eventId','a9100000-0000-4000-8000-000000000041','stockClass','ingredient',
+   'stockItemId','a9200000-0000-4000-8000-000000000003','kind','production_consumption',
+   'direction','out','quantity','1.25','unit','kg','sourceType','production_batch',
+   'sourceId','a9500000-0000-4000-8000-000000000002'),
+  jsonb_build_object('eventId','a9100000-0000-4000-8000-000000000042','stockClass','finished',
+   'stockItemId','a9400000-0000-4000-8000-000000000001','kind','production_output',
+   'direction','in','quantity','4','unit','each','sourceType','production_batch',
+   'sourceId','a9500000-0000-4000-8000-000000000002')
+  )))$sql$,
+ '23514','Production output must include its finished lot in the same command',
+ 'production command without lot rolls back ingredient consumption and output');
+select is((select sum(case when direction='in' then quantity else -quantity end)
+ from public.stock_movements where stock_class='ingredient'
+ and stock_item_id='a9200000-0000-4000-8000-000000000003'),
+ 5::numeric,'failed production command preserves ingredient stock');
+select is((select count(*)::integer from public.stock_movements
+ where event_id in ('a9100000-0000-4000-8000-000000000041','a9100000-0000-4000-8000-000000000042')),
+ 0,'failed production command leaves no ingredient or finished movement');
+
+select is(
+ public.apply_inventory_command(
+ 'a9000000-0000-4000-8000-000000000043',
+ (select business_id from public.business_profiles where owner_id='41111111-1111-4111-8111-111111111111'),
+ 'stock_movement',
+ jsonb_build_object(
+  'movements',jsonb_build_array(
+   jsonb_build_object('eventId','a9100000-0000-4000-8000-000000000044','stockClass','ingredient',
+    'stockItemId','a9200000-0000-4000-8000-000000000003','kind','production_consumption',
+    'direction','out','quantity','1.25','unit','kg','sourceType','production_batch',
+    'sourceId','a9500000-0000-4000-8000-000000000002'),
+   jsonb_build_object('eventId','a9100000-0000-4000-8000-000000000045','stockClass','finished',
+    'stockItemId','a9400000-0000-4000-8000-000000000001','kind','production_output',
+    'direction','in','quantity','4','unit','each','sourceType','production_batch',
+    'sourceId','a9500000-0000-4000-8000-000000000002')
+  ),
+  'lots',jsonb_build_array(jsonb_build_object(
+   'lotId','a9600000-0000-4000-8000-000000000002',
+   'menuItemId','a9400000-0000-4000-8000-000000000001',
+   'batchId','a9500000-0000-4000-8000-000000000002',
+   'outputEventId','a9100000-0000-4000-8000-000000000045',
+   'producedQuantity','4','unit','each')),
+  'allocations','[]'::jsonb
+ )
+ ) ->> 'status','accepted','production consumption, output, and lot post together');
+
+select is(
+ public.apply_inventory_command(
+ 'a9000000-0000-4000-8000-000000000043',
+ (select business_id from public.business_profiles where owner_id='41111111-1111-4111-8111-111111111111'),
+ 'stock_movement',
+ jsonb_build_object(
+  'movements',jsonb_build_array(
+   jsonb_build_object('eventId','a9100000-0000-4000-8000-000000000044','stockClass','ingredient',
+    'stockItemId','a9200000-0000-4000-8000-000000000003','kind','production_consumption',
+    'direction','out','quantity','1.25','unit','kg','sourceType','production_batch',
+    'sourceId','a9500000-0000-4000-8000-000000000002'),
+   jsonb_build_object('eventId','a9100000-0000-4000-8000-000000000045','stockClass','finished',
+    'stockItemId','a9400000-0000-4000-8000-000000000001','kind','production_output',
+    'direction','in','quantity','4','unit','each','sourceType','production_batch',
+    'sourceId','a9500000-0000-4000-8000-000000000002')
+  ),
+  'lots',jsonb_build_array(jsonb_build_object(
+   'lotId','a9600000-0000-4000-8000-000000000002',
+   'menuItemId','a9400000-0000-4000-8000-000000000001',
+   'batchId','a9500000-0000-4000-8000-000000000002',
+   'outputEventId','a9100000-0000-4000-8000-000000000045',
+   'producedQuantity','4','unit','each')),
+  'allocations','[]'::jsonb
+ )
+ ) ->> 'status','accepted','production command retry returns original result');
+select is((select count(*)::integer from public.stock_movements
+ where event_id in ('a9100000-0000-4000-8000-000000000044','a9100000-0000-4000-8000-000000000045')),
+ 2,'production retry does not duplicate movements');
+select is((select count(*)::integer from public.finished_lots
+ where lot_id='a9600000-0000-4000-8000-000000000002'),
+ 1,'production retry does not duplicate the finished lot');
+select is((select sum(case when direction='in' then quantity else -quantity end)
+ from public.stock_movements where stock_class='ingredient'
+ and stock_item_id='a9200000-0000-4000-8000-000000000003'),
+ 3.75::numeric,'production posting consumes only the measured ingredient quantity');
+
 select set_config('test.inventory_business_id',
  (select business_id::text from public.business_profiles where owner_id='41111111-1111-4111-8111-111111111111'), true);
 reset role;

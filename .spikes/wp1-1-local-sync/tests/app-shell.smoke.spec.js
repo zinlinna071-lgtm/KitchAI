@@ -1165,3 +1165,115 @@ test("production batch usage, preparation, cancellation, and business scoping pe
     rejectsCancelledPrepare: true,
   });
 });
+
+
+test("production posting retries the exact persisted command and only completes after RPC acceptance", async ({ page }) => {
+  await page.goto("/");
+  const evidence = await page.evaluate(async () => {
+    const { openBusinessDatabase } = await import("/src/business-data-store.js");
+    const {
+      startProductionBatch,
+      getProductionBatch,
+      recordProductionBatchActualUsage,
+      prepareProductionBatchForPosting,
+      postProductionBatch,
+    } = await import("/src/production-batch-store.js");
+    const ownerId = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+    const businessId = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
+    const remoteBusinessId = "99999999-9999-4999-8999-999999999999";
+    const recipeId = "cccccccc-cccc-4ccc-8ccc-cccccccccccc";
+    const menuItemId = "dddddddd-dddd-4ddd-8ddd-dddddddddddd";
+    const ingredientId = "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee";
+    const scope = { ownerId, businessId };
+    const db = await openBusinessDatabase();
+    const tx = db.transaction(["recipes", "recipeLines"], "readwrite");
+    tx.objectStore("recipes").put({
+      ownerId, businessId, id: recipeId, menuItemId,
+      name: "Posting retry test", instructions: "Cook", yieldPortions: 2, status: "active",
+    });
+    tx.objectStore("recipeLines").put({
+      ownerId, businessId, id: "ffffffff-ffff-4fff-8fff-ffffffffffff", recipeId,
+      ingredientId, quantity: 1, quantityMode: "exact", unit: "kg", position: 0, note: "",
+    });
+    await new Promise((resolve, reject) => {
+      tx.oncomplete = resolve;
+      tx.onerror = () => reject(tx.error);
+      tx.onabort = () => reject(tx.error ?? new Error("Seed transaction aborted"));
+    });
+    const batch = await startProductionBatch(scope, recipeId);
+    await recordProductionBatchActualUsage(scope, batch.batchId, [{
+      lineId: batch.snapshot.lines[0].lineId, disposition: "measured", quantity: "1", unit: "kg",
+    }]);
+    await prepareProductionBatchForPosting(scope, batch.batchId, {
+      productId: menuItemId, quantity: "2", unit: "each",
+    });
+
+    globalThis.KITCHAI_CONFIG = { supabaseUrl: "https://kitchai-test.supabase.co", supabaseAnonKey: "test-anon" };
+    const originalFetch = globalThis.fetch;
+    const submittedBodies = [];
+    let shouldFail = true;
+    globalThis.fetch = async (_url, options) => {
+      const body = JSON.parse(options.body);
+      submittedBodies.push(body);
+      if (shouldFail) {
+        shouldFail = false;
+        throw new Error("Simulated offline interruption");
+      }
+      return {
+        ok: true,
+        status: 200,
+        text: async () => JSON.stringify({
+          status: "accepted",
+          commandId: body.p_command_id,
+          movementCount: body.p_payload.movements.length,
+          lotCount: body.p_payload.lots.length,
+          allocationCount: body.p_payload.allocations.length,
+          eventIds: body.p_payload.movements.map((movement) => movement.eventId),
+        }),
+      };
+    };
+    const session = { access_token: "owner-test-token", user: { id: ownerId } };
+    let firstFailed = false;
+    try {
+      await postProductionBatch(scope, batch.batchId, session, remoteBusinessId);
+    } catch {
+      firstFailed = true;
+    }
+    const afterFailure = await getProductionBatch(scope, batch.batchId);
+    const completed = await postProductionBatch(scope, batch.batchId, session, remoteBusinessId);
+    const afterCompletedCallCount = submittedBodies.length;
+    const duplicate = await postProductionBatch(scope, batch.batchId, session, remoteBusinessId);
+    globalThis.fetch = originalFetch;
+    delete globalThis.KITCHAI_CONFIG;
+    db.close();
+    return {
+      firstFailed,
+      failedState: afterFailure.state,
+      savedCommandOnFailure: Boolean(afterFailure.posting?.command?.commandId),
+      retryState: completed.state,
+      retryStatus: completed.posting?.status,
+      remoteBusinessIdUsed: submittedBodies[0]?.p_business_id === remoteBusinessId && submittedBodies[1]?.p_business_id === remoteBusinessId,
+      sameCommandId: submittedBodies[0]?.p_command_id === submittedBodies[1]?.p_command_id,
+      samePayload: JSON.stringify(submittedBodies[0]?.p_payload) === JSON.stringify(submittedBodies[1]?.p_payload),
+      callCountAfterRetry: afterCompletedCallCount,
+      duplicateReturnsCompleted: duplicate.state === "completed",
+      duplicateDidNotCallServer: submittedBodies.length === 2,
+      postedEventCount: duplicate.events.filter((event) => event.type === "production_posted").length,
+    };
+  });
+
+  expect(evidence).toEqual({
+    firstFailed: true,
+    failedState: "failed_to_post",
+    savedCommandOnFailure: true,
+    retryState: "completed",
+    retryStatus: "accepted",
+    remoteBusinessIdUsed: true,
+    sameCommandId: true,
+    samePayload: true,
+    callCountAfterRetry: 2,
+    duplicateReturnsCompleted: true,
+    duplicateDidNotCallServer: true,
+    postedEventCount: 1,
+  });
+});
