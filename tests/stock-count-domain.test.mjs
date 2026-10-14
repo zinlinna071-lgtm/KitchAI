@@ -56,6 +56,7 @@ test("exact count supports zero, calculates signed variance without floating poi
   const line = recordStockCount(makeLine(), "3.125");
   assert.equal(line.countedQuantity, "3.125");
   assert.equal(line.variance, "-1.125");
+  assert.ok(Number.isFinite(Date.parse(line.countedAt)));
   assert.equal(line.state, "counted");
   assert.throws(() => reviewStockCountLine(line, { reviewedBy: ownerId, reviewedAt: capturedAt }), /requires a reason/);
   const reviewed = reviewStockCountLine(line, {
@@ -81,6 +82,7 @@ test("rejects negative, excessive precision, and fractional each counts", () => 
   assert.throws(() => recordStockCount(makeLine(), "1.0000001"), /plain decimal/);
   assert.throws(() => recordStockCount(makeLine({ unit: "each", systemQuantity: "2" }), "1.5"), /whole numbers/);
   assert.throws(() => makeLine({ version: "-1" }), /version must be a non-negative integer/);
+  assert.throws(() => makeLine({ unit: "each", systemQuantity: "1.5" }), /System quantities in each must be whole numbers/);
 });
 
 test("session projection reports incomplete and reviewed lines without mutating audit data", () => {
