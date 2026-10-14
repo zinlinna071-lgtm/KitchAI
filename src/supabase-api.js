@@ -223,3 +223,55 @@ export async function applyInventoryCommand(command, session) {
     throw error;
   }
 }
+
+/**
+ * Persist a carry-forward suitability event without changing inventory quantity.
+ * The event is immutable and the event ID is its idempotency key.
+ * @param {{eventId:string,businessId:string,lotId:string,quantity:string,unit:string,carryForwardDate:string,confirmedAt:string,reason?:string}} decision
+ * @param {any} session
+ */
+export async function recordFinishedLotCarryForward(decision, session) {
+  if (!session?.access_token || !session?.user?.id) {
+    throw new Error("An authenticated owner session is required to record carry-forward.");
+  }
+  if (!decision?.eventId || !decision?.businessId || !decision?.lotId ||
+      !decision?.quantity || !decision?.unit || !decision?.carryForwardDate || !decision?.confirmedAt) {
+    throw new TypeError("A complete carry-forward decision is required.");
+  }
+  try {
+    const result = await request("/rest/v1/rpc/record_finished_lot_carry_forward", {
+      method: "POST",
+      session,
+      body: {
+        p_event_id: decision.eventId,
+        p_business_id: decision.businessId,
+        p_lot_id: decision.lotId,
+        p_quantity: decision.quantity,
+        p_unit: decision.unit,
+        p_carry_forward_date: decision.carryForwardDate,
+        p_confirmed_at: decision.confirmedAt,
+        p_reason: decision.reason ?? null,
+      },
+    });
+    if (result?.status !== "accepted" ||
+        result.eventId !== decision.eventId ||
+        result.businessId !== decision.businessId ||
+        result.lotId !== decision.lotId ||
+        result.handlingType !== "carry_forward" ||
+        result.inventoryEffect !== "none" ||
+        result.quantity !== decision.quantity ||
+        result.unit !== decision.unit ||
+        result.carryForwardDate !== decision.carryForwardDate) {
+      throw new Error("Supabase returned an unsupported carry-forward result.");
+    }
+    return result;
+  } catch (error) {
+    const status = /** @type {any} */ (error).status;
+    const code = /** @type {any} */ (error).code;
+    if (status === 401) throw new Error("Your session expired. Sign in again before recording carry-forward.");
+    if (status === 403 || code === "42501") {
+      throw new Error("The server rejected carry-forward because this account cannot access the business or lot.");
+    }
+    throw error;
+  }
+}

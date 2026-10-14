@@ -492,6 +492,7 @@ test("legacy Phase 2 records migrate through the current runtime, queue once, an
         version: db.version,
         hasConflictStore: db.objectStoreNames.contains("conflicts"),
         hasScopeIndex: db.transaction("ingredients", "readonly").objectStore("ingredients").indexNames.contains("byScope"),
+        hasFinishedLotHandlingStore: db.objectStoreNames.contains("finishedLotHandlingEvents"),
       };
       const ledgerRows = await read("migrationLedger", store => store.getAll());
       const sourceDbRequest = indexedDB.open("kitchai-ingredients");
@@ -529,7 +530,7 @@ test("legacy Phase 2 records migrate through the current runtime, queue once, an
   expect(evidence.operationRows).toHaveLength(1);
   expect(evidence.operationRows[0]).toMatchObject({ operation: "create", state: "pending", recordId: seeded.ingredient.id });
   expect(evidence.existingSharedRecord).toMatchObject(seeded.sharedRecord);
-  expect(evidence.upgradedSchema).toEqual({ version: 4, hasConflictStore: true, hasScopeIndex: true });
+  expect(evidence.upgradedSchema).toEqual({ version: 5, hasConflictStore: true, hasScopeIndex: true, hasFinishedLotHandlingStore: true });
   expect(evidence.ledgerRows).toHaveLength(1);
   expect(evidence.ledgerRows[0].needsOutbox).toBe(false);
   expect(evidence.sourceRows).toEqual([seeded.ingredient]);

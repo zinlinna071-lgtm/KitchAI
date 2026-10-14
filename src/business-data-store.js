@@ -1,5 +1,5 @@
 const DATABASE_NAME = "kitchai-business-data";
-const DATABASE_VERSION = 4;
+const DATABASE_VERSION = 5;
 const ENTITY_STORES = ["ingredients", "menuItems", "recipes", "recipeLines"];
 const OPERATIONS = "operations";
 const SYNC_METADATA = "syncMetadata";
@@ -94,6 +94,14 @@ function createSchema(db) {
     });
     store.createIndex("byEvent", ["ownerId", "businessId", "eventId"], { unique: false });
     store.createIndex("byLot", ["ownerId", "businessId", "lotId"], { unique: false });
+  }
+  if (!db.objectStoreNames.contains("finishedLotHandlingEvents")) {
+    const store = db.createObjectStore("finishedLotHandlingEvents", {
+      keyPath: ["ownerId", "businessId", "eventId"],
+    });
+    store.createIndex("byScope", ["ownerId", "businessId"], { unique: false });
+    store.createIndex("byLot", ["ownerId", "businessId", "lotId"], { unique: false });
+    store.createIndex("bySyncState", ["ownerId", "businessId", "syncState"], { unique: false });
   }
   // Production batches are local-first workflow records; recipe snapshots are captured once at start.
   if (!db.objectStoreNames.contains("productionBatches")) {

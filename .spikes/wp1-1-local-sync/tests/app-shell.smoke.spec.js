@@ -65,7 +65,7 @@ test("populated IndexedDB v2 upgrades additively, failed legacy mapping retries,
     const module = await import("/src/business-data-store.js");
     let firstError = "";
     try { await module.openBusinessDatabase(); } catch (error) { firstError = String(error.message || error); }
-    const upgraded = await openDb("kitchai-business-data", 4, () => {});
+    const upgraded = await openDb("kitchai-business-data", 5, () => {});
     const upgradedNames = [...upgraded.objectStoreNames].sort();
     upgraded.close();
     const local = await openDb("kitchai-local", 1, (database) => database.createObjectStore("profiles", { keyPath: "id" }));
@@ -77,7 +77,7 @@ test("populated IndexedDB v2 upgrades additively, failed legacy mapping retries,
     const opened = await module.openBusinessDatabase();
     const storeNames = [...opened.objectStoreNames].sort();
     const counts = {};
-    for (const name of ["ingredients", "menuItems", "recipes", "recipeLines", "operations", "syncMetadata", "metadata", "migrationLedger", "conflicts", "stockMovements", "finishedLots", "inventoryCommands", "stockMovementLotAllocations", "productionBatches"]) {
+    for (const name of ["ingredients", "menuItems", "recipes", "recipeLines", "operations", "syncMetadata", "metadata", "migrationLedger", "conflicts", "stockMovements", "finishedLots", "inventoryCommands", "stockMovementLotAllocations", "productionBatches", "finishedLotHandlingEvents"]) {
       counts[name] = (await readAll(opened, name)).length;
     }
     const existingIngredient = (await readAll(opened, "ingredients")).find((row) => row.id === "existing-ingredient");
@@ -97,9 +97,11 @@ test("populated IndexedDB v2 upgrades additively, failed legacy mapping retries,
   expect(first.firstError).toContain("Could not safely map a local Phase 2 record");
   expect(first.upgradedNames).toContain("stockMovements");
   expect(first.upgradedNames).toContain("productionBatches");
+  expect(first.upgradedNames).toContain("finishedLotHandlingEvents");
   expect(first.storeNames).toContain("inventoryCommands");
   expect(first.storeNames).toContain("stockMovementLotAllocations");
   expect(first.storeNames).toContain("productionBatches");
+  expect(first.storeNames).toContain("finishedLotHandlingEvents");
   expect(first.counts.ingredients).toBe(2);
   expect(first.counts.menuItems).toBe(1);
   expect(first.counts.recipes).toBe(1);
@@ -112,6 +114,7 @@ test("populated IndexedDB v2 upgrades additively, failed legacy mapping retries,
   expect(first.counts.inventoryCommands).toBe(0);
   expect(first.counts.stockMovementLotAllocations).toBe(0);
   expect(first.counts.productionBatches).toBe(0);
+  expect(first.counts.finishedLotHandlingEvents).toBe(0);
   expect(first.existingIngredient.name).toBe("Existing rice");
   expect(first.importedLegacy.ownerId).toBe("local:profile-1");
   expect(first.importedLegacy.businessId).toBe("profile-1");
@@ -1275,5 +1278,91 @@ test("production posting retries the exact persisted command and only completes 
     duplicateReturnsCompleted: true,
     duplicateDidNotCallServer: true,
     postedEventCount: 1,
+  });
+});
+
+test("carry-forward decisions persist offline, sync idempotently, and keep local/server business IDs separate", async ({ page }) => {
+  await page.goto("/");
+  const evidence = await page.evaluate(async () => {
+    const { openBusinessDatabase } = await import("/src/business-data-store.js");
+    const { saveCarryForwardDecision, listCarryForwardDecisions, syncCarryForwardDecision } =
+      await import("/src/finished-stock-store.js");
+    const ownerId = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+    const localBusinessId = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
+    const remoteBusinessId = "99999999-9999-4999-8999-999999999999";
+    const eventId = "55555555-5555-4555-8555-555555555555";
+    const lotId = "66666666-6666-4666-8666-666666666666";
+    const scope = { ownerId, businessId: localBusinessId };
+    const decision = {
+      eventId, businessId: remoteBusinessId, lotId, dispositionType: "carry_forward",
+      quantity: "4", unit: "each", carryForwardDate: "2026-10-15",
+      confirmedAt: "2026-10-14T17:00:00.000Z", reason: "Stored safely", inventoryEffect: "none",
+    };
+    const db = await openBusinessDatabase();
+    const saved = await saveCarryForwardDecision(scope, decision);
+    const beforeSync = await listCarryForwardDecisions(scope);
+    globalThis.KITCHAI_CONFIG = { supabaseUrl: "https://kitchai-test.supabase.co", supabaseAnonKey: "test-anon" };
+    const originalFetch = globalThis.fetch;
+    const requests = [];
+    let failFirst = true;
+    globalThis.fetch = async (url, options) => {
+      requests.push({ url, body: JSON.parse(options.body) });
+      if (failFirst) {
+        failFirst = false;
+        throw new Error("Simulated offline interruption");
+      }
+      return {
+        ok: true, status: 200,
+        text: async () => JSON.stringify({
+          status: "accepted", eventId, businessId: remoteBusinessId, lotId,
+          handlingType: "carry_forward", quantity: "4", unit: "each",
+          carryForwardDate: "2026-10-15", inventoryEffect: "none",
+        }),
+      };
+    };
+    const session = { access_token: "owner-test-token", user: { id: ownerId } };
+    let firstFailed = false;
+    try { await syncCarryForwardDecision(scope, eventId, session); } catch { firstFailed = true; }
+    const afterFailure = (await listCarryForwardDecisions(scope))[0];
+    const synced = await syncCarryForwardDecision(scope, eventId, session);
+    const callCountAfterSync = requests.length;
+    const duplicate = await syncCarryForwardDecision(scope, eventId, session);
+    globalThis.fetch = originalFetch;
+    delete globalThis.KITCHAI_CONFIG;
+    db.close();
+    return {
+      savedState: saved.state,
+      savedLocalPartition: saved.businessId,
+      savedRemoteBusinessId: saved.remoteBusinessId,
+      visibleOfflineBeforeSync: beforeSync.length,
+      firstFailed,
+      failedState: afterFailure.state,
+      retryCount: synced.syncAttempts,
+      syncedState: synced.state,
+      duplicateState: duplicate.state,
+      sameEventId: requests.every((request) => request.body.p_event_id === eventId),
+      serverBusinessIdUsed: requests.every((request) => request.body.p_business_id === remoteBusinessId),
+      samePayload: JSON.stringify(requests[0]?.body) === JSON.stringify(requests[1]?.body),
+      callCountAfterSync,
+      duplicateDidNotCallServer: requests.length === 2,
+      inventoryEffect: duplicate.serverResult?.inventoryEffect,
+    };
+  });
+  expect(evidence).toEqual({
+    savedState: "pending_sync",
+    savedLocalPartition: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+    savedRemoteBusinessId: "99999999-9999-4999-8999-999999999999",
+    visibleOfflineBeforeSync: 1,
+    firstFailed: true,
+    failedState: "retryable_error",
+    retryCount: 2,
+    syncedState: "synced",
+    duplicateState: "synced",
+    sameEventId: true,
+    serverBusinessIdUsed: true,
+    samePayload: true,
+    callCountAfterSync: 2,
+    duplicateDidNotCallServer: true,
+    inventoryEffect: "none",
   });
 });
