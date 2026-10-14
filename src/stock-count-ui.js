@@ -120,7 +120,7 @@ export function initializeStockCountUI(context) {
         }));
         item.append(refreshLine);
       }
-      const selectLabel = make("label", "Select for posting");
+      const selectLabel = make("label", `Select ${line.stockItemName} for posting`);
       const checkbox = make("input");
       checkbox.type = "checkbox"; checkbox.dataset.lineId = line.lineId;
       checkbox.checked = false;
