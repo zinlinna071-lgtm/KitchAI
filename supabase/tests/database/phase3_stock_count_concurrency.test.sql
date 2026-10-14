@@ -1,4 +1,4 @@
--- dblink_connect_u is used only by this isolated test to open two local sessions against the trust-authenticated Supabase test database; production RPCs do not use it.
+-- Use dblink_connect (not dblink_connect_u): the test must not bypass PostgreSQL's non-superuser authentication safeguards. Both sessions connect as the test runner's database role.
 -- Two-session regression: hold the shared owner lock in an ordinary stock writer,
 -- start a count post using the captured version, then commit the writer first.
 -- The waiting count must see the advanced version and reject without any count audit.
@@ -40,11 +40,11 @@ exception when serialization_failure then
 end;
 $$;
 
-select extensions.dblink_connect_u(
+select extensions.dblink_connect(
  'wp35d_writer',
  'host=127.0.0.1 port=5432 dbname=postgres user=postgres'
 );
-select extensions.dblink_connect_u(
+select extensions.dblink_connect(
  'wp35d_count',
  'host=127.0.0.1 port=5432 dbname=postgres user=postgres'
 );
