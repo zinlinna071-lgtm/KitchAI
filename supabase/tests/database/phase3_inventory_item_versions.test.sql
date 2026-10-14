@@ -13,11 +13,11 @@ insert into public.business_profiles (id,name)
 values ('b5311111-1111-4111-8111-111111111111','WP3.5b Owner A')
 on conflict (owner_id) do nothing;
 
-insert into public.ingredients (id, owner_id, business_id, name)
-select 'b5321111-1111-4111-8111-111111111111', owner_id, business_id, 'WP3.5b ingredient'
-from public.business_profiles
-where owner_id='53111111-1111-4111-8111-111111111111'
-on conflict (id) do nothing;
+select public.apply_phase2_entity_operation(
+ 'b5320000-0000-4000-8000-000000000001','ingredient',
+ 'b5321111-1111-4111-8111-111111111111','create',null,
+ '{"name":"WP3.5b ingredient","description":"Version test stock item","status":"active"}'::jsonb
+);
 
 select ok(
  has_function_privilege('authenticated','public.get_inventory_item_snapshot(uuid,text,uuid)','execute'),
