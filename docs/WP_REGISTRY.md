@@ -178,3 +178,40 @@ Planning artifacts do not count as implementation completion. Implement one boun
 
 - **WP3.1 final review refresh (2026-10-14):** Reviewed the complete PR #39 diff and Phase 2 recipe-line compatibility. On commit `4ebfca8a7d63955894b0e1f22c777ddfed7d0c87`, [Application Shell run 38455887104](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38455887104) passed and [Local Supabase Vertical Slice run 38455887046](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38455887046) passed all 103 pgTAP tests plus all 8 browser integration tests. The strict recipe quantity adapter is a guarded boundary only, not production posting. WP3.1 remains partial; PRs #38 and #39 remain Draft/unmerged. Fresh CI is required after this documentation refresh.
 
+
+
+## Phase 3 implementation reconciliation — 2026-10-14
+
+This dated section supersedes the older WP3.1 status paragraphs above where they still describe PRs as draft/unmerged. Historical CI notes are retained as history, not current state.
+
+| Work item | Current state on `main` | Evidence / boundary |
+|---|---|---|
+| WP3.1 — Inventory domain foundation and guarded recipe quantity adapter | Merged | PR [#38](https://github.com/zinlinna071-lgtm/KitchAI/pull/38), merge `2decd7b`; PR [#39](https://github.com/zinlinna071-lgtm/KitchAI/pull/39), merge `723f73f`. Latest recorded implementation verification passed 103 pgTAP tests and 8 local-Supabase browser integration tests. Exact quantity conversion is guarded; this does not imply every recipe line is precisely measurable. |
+| WP3.2 — Atomic inventory commands and idempotent posting | Merged | PR [#41](https://github.com/zinlinna071-lgtm/KitchAI/pull/41), merge `81fafdd`. Server-side command ID/payload idempotency, owner/business scope, negative-stock rejection, atomic stock/lot/allocation writes, and append-only ledger are implemented. |
+| WP3.2.1 — Purchasing and receiving | Merged | PR [#50](https://github.com/zinlinna071-lgtm/KitchAI/pull/50), merge `337a5d8`. Local purchase drafts, partial receiving, durable retry-safe receipt commands, and explicit rejected/uncertain receipt handling. Stock changes only after the server accepts the receipt command. Purchase price is not yet an official inventory valuation, COGS, or profit calculation. |
+| WP3.3 — Production batch workflow | Merged implementation slices | Recipe snapshot: PR [#43](https://github.com/zinlinna071-lgtm/KitchAI/pull/43), merge `744f6db`; production lifecycle/actual usage: PR [#45](https://github.com/zinlinna071-lgtm/KitchAI/pull/45), merge `d3502e8`; atomic posting/retry: PR [#46](https://github.com/zinlinna071-lgtm/KitchAI/pull/46), merge `bf6b0a0`; operator UI: PR [#49](https://github.com/zinlinna071-lgtm/KitchAI/pull/49), merge `500591d`. |
+| Finished stock and disposition | Merged | PR [#47](https://github.com/zinlinna071-lgtm/KitchAI/pull/47), merge `94eadc7`; UI/offline disposition: PR [#48](https://github.com/zinlinna071-lgtm/KitchAI/pull/48), merge `5100e5e`. Carry-forward is an explicit safe/suitable decision; sale/discounted sale/owner consumption/giveaway/waste are separate stock dispositions. Sales/revenue accounting is not included. |
+
+### Work-package numbering rule
+
+Implementation history uses WP3.2 for the atomic inventory command foundation and WP3.2.1 for the purchasing/receiving UI workflow, while earlier planning material may use WP3.2 more broadly for purchasing/inventory. Preserve the existing IDs in history; new work must use the implementation registry IDs and avoid reusing an identifier.
+
+### Next proposed work package — WP3.5 Physical Stock Counts and Adjustments
+
+**Status:** Proposed; not yet implemented or owner-approved as a detailed scope.
+
+**Purpose:** let the owner record a physical count, compare it with the ledger-derived on-hand balance, review a variance, and post a reasoned adjustment through the existing atomic inventory command path.
+
+**Initial scope to design before coding:**
+- owner/business-scoped count sessions with a stable count ID, start/cut-off metadata, and explicit open/reviewed/posted/cancelled states;
+- capture the system quantity observed at count start and the operator's counted quantity as exact supported decimal quantities;
+- show variance explicitly and require a reason before posting;
+- prevent duplicate posting through stable idempotent command IDs; use the existing server-side atomic inventory command and append-only ledger rather than editing balances or past movements;
+- define what happens to receipts, production, sales, and waste posted while a count is open; do not silently apply a stale count over newer movements;
+- support offline draft/review with owner/business partitioning, but require server acceptance before claiming the adjustment is posted;
+- test negative/invalid quantities, stale count snapshots, concurrent movement, duplicate retry, authorization, cancellation, reload/offline durability, and full regression.
+
+**Out of scope unless separately approved:** barcode/scanner support, multi-user count assignment, automatic stock valuation/COGS, supplier or sales accounting, hosted provisioning, billing, and deployment.
+
+**Required gate before implementation:** inspect current inventory movement/command APIs and the Phase 3 owner decisions; write the count consistency and concurrency contract plus acceptance tests first. If the business cannot safely handle movements during an open count, explicitly freeze/stop affected stock movements for that count or choose a reviewed cut-off/reconciliation method; never guess.
+
