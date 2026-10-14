@@ -88,7 +88,7 @@ try {
       stockClass: 'ingredient',
       stockItemId: itemId,
       expectedVersion: '0',
-      countedQuantity: '0',
+      countedQuantity: '2',
       varianceEventId,
       unit: 'g',
       reason: '',
@@ -124,7 +124,7 @@ try {
   await observer.query('SET ROLE authenticated');
   await observer.query("SELECT set_config('request.jwt.claim.sub', $1, false)", [ownerId]);
   const snapshot = await observer.query(
-    'SELECT public.get_inventory_item_snapshot($1::uuid, $2, $3) AS snapshot',
+    'SELECT public.get_inventory_item_snapshot($1::uuid, $2::text, $3::uuid) AS snapshot',
     [businessId, 'ingredient', itemId]
   );
   assert.equal(snapshot.rows[0].snapshot.systemQuantity, '1.000000');
