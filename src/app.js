@@ -1287,6 +1287,7 @@ productionStartForm?.addEventListener("submit", async event => {
   } finally {
     if (productionStartButton) productionStartButton.disabled = false;
   }
+  await refreshProductionView();
 });
 
 recipeForm?.addEventListener("submit", async (event) => {
