@@ -1705,7 +1705,7 @@ test("WP3.5d serializes cancellation against persisting a pending post command",
     expect(outcome.pendingPost).toBe(false);
     expect(outcome.postCalls).toBe(0);
   } else {
-    expect(outcome.cancelError).toContain("awaiting reconciliation");
+    expect(outcome.cancelError).toContain("outcome may be uncertain");
     expect(outcome.status).not.toBe("cancelled");
     expect(outcome.pendingPost).toBe(true);
     expect(outcome.postCalls).toBe(1);
