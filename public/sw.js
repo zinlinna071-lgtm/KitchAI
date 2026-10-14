@@ -10,6 +10,7 @@ const APP_SHELL = [
 	"src/production-batch-store.js",
 	"src/purchase-domain.js",
 	"src/purchase-store.js",
+	"src/purchase-ui.js",
 	"src/recipe-quantity-adapter.js",
 	"src/local-store.js",
 	"src/business-data-store.js",
