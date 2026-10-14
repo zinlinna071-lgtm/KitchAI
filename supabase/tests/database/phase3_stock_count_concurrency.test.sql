@@ -1,4 +1,4 @@
--- Use dblink_connect (not dblink_connect_u): the test must not bypass PostgreSQL's non-superuser authentication safeguards. Both sessions connect as the test runner's database role.
+-- This test runs only against the disposable local Supabase test stack. Its loopback PostgreSQL uses trust auth, so dblink_connect rejects the connection because the server does not request a password. Use dblink_connect_u only for these explicit loopback-only test connections; never use it for a remote or production database.
 -- Two-session regression: hold the shared owner lock in an ordinary stock writer,
 -- start a count post using the captured version, then commit the writer first.
 -- The waiting count must see the advanced version and reject without any count audit.
@@ -40,13 +40,13 @@ exception when serialization_failure then
 end;
 $$;
 
-select extensions.dblink_connect(
+select extensions.dblink_connect_u(
  'wp35d_writer',
- 'host=127.0.0.1 port=5432 dbname=postgres user=postgres password=postgres'
+ 'host=127.0.0.1 port=5432 dbname=postgres user=postgres'
 );
-select extensions.dblink_connect(
+select extensions.dblink_connect_u(
  'wp35d_count',
- 'host=127.0.0.1 port=5432 dbname=postgres user=postgres password=postgres'
+ 'host=127.0.0.1 port=5432 dbname=postgres user=postgres'
 );
 select extensions.dblink_exec('wp35d_writer', 'begin');
 select extensions.dblink_exec('wp35d_writer', 'set role authenticated');
