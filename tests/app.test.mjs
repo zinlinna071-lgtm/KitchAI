@@ -241,3 +241,11 @@ test("stock-count review UI exposes accessible session, line, and explicit posti
  assert.match(ui, /Boolean\(session\.pendingPost\) \|\| session\.status !== "ready_for_review"/);
  assert.match(css, /WP3\.5e accessible stock-count review/);
 });
+
+test("stock-count UI allows retrying pending posting and refreshes state after rejection", async () => {
+  const ui = await read("../src/stock-count-ui.js");
+  assert.ok(ui.includes('postButton.textContent = pendingPost ? "Retry pending posting"'));
+  assert.ok(ui.includes("if (session?.pendingPost)"));
+  assert.ok(ui.includes("session.pendingPost.lineIds ?? session.pendingPost.command?.lines?.map(line => line.lineId)"));
+  assert.ok(ui.includes("Always reload local state: a stale rejection clears the pending command and marks lines stale."));
+});
