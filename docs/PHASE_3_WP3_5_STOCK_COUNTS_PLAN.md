@@ -1,6 +1,6 @@
 # WP3.5 — Physical Stock Counts and Adjustments Plan
 
-**Status:** Owner decisions accepted 2026-10-14; WP3.5a documentation/test contract in [PHASE_3_WP3_5A_COUNT_CONSISTENCY_TEST_CONTRACT.md](./PHASE_3_WP3_5A_COUNT_CONSISTENCY_TEST_CONTRACT.md). Application implementation is not yet approved until the shared database lock/version design is reviewed.  
+**Status:** Owner decisions accepted 2026-10-14. WP3.5a contract merged via [PR #52](https://github.com/zinlinna071-lgtm/KitchAI/pull/52); WP3.5b server-authoritative item versions merged via [PR #53](https://github.com/zinlinna071-lgtm/KitchAI/pull/53). WP3.5c offline count drafts/review is in progress on [draft PR #54](https://github.com/zinlinna071-lgtm/KitchAI/pull/54). Stock-count posting remains gated on the atomic expected-version implementation in WP3.5d.  
 **Phase:** 3 — Purchasing & Inventory  
 **Parent:** `docs/ROADMAP.md`, Phase 3; see current WP status in `docs/WP_REGISTRY.md`.  
 **Implementation boundary:** local/offline-first PWA and isolated local Supabase only. No hosted provisioning, billing, secrets, or deployment is authorized.
