@@ -1101,7 +1101,6 @@ async function refreshProductionView() {
       ? batches.length + (batches.length === 1 ? " batch in this business." : " batches in this business.")
       : "No production batches yet. Start one from an active recipe.";
     const ingredientNames = new Map(ingredients.map(item => [item.id, item.name]));
-    const menuNames = new Map(menuItems.map(item => [item.id, item.name]));
     for (const batch of batches) {
       const item = document.createElement("li");
       item.className = "production-batch-card";
@@ -1185,6 +1184,7 @@ async function refreshProductionView() {
           const option = document.createElement("option"); option.value = unit; option.textContent = unit; outputUnit.append(option);
         }
         outputUnit.value = "each";
+        outputUnit.addEventListener("change", () => { outputQuantity.step = outputUnit.value === "each" ? "1" : "any"; outputQuantity.min = outputUnit.value === "each" ? "1" : "0.000001"; });
         outputUnitLabel.append(outputUnit);
         form.append(outputHeading, outputQuantityLabel, outputUnitLabel);
         const submit = document.createElement("button");
@@ -1205,7 +1205,7 @@ async function refreshProductionView() {
           submit.disabled = true;
           try {
             const entries = [...form.querySelectorAll("fieldset[data-line-id]")].map(fieldset => {
-              const get = field => fieldset.querySelector('[data-field="' + field + '"]');
+              const get = field => /** @type {HTMLInputElement | HTMLSelectElement} */ (fieldset.querySelector('[data-field="' + field + '"]'));
               const disposition = get("disposition").value;
               return {
                 lineId: fieldset.dataset.lineId,
@@ -1265,7 +1265,9 @@ async function refreshProductionView() {
       }
       productionBatchList.append(item);
     }
-    setProductionState(activeRecipes.length ? "Started batches keep their captured recipe snapshot, even after recipe edits." : "Activate a recipe with at least one ingredient line before starting production.");
+    if (productionState?.textContent?.includes("Save or load a business profile")) {
+      setProductionState(activeRecipes.length ? "Starting a batch saves a recipe snapshot; stock changes only after server confirmation." : "Activate a recipe with at least one ingredient line before starting production.");
+    }
   } catch (error) {
     productionListState.textContent = "Production batches could not be loaded.";
     setProductionState(error instanceof Error ? error.message : "Production workspace is unavailable.", true);
