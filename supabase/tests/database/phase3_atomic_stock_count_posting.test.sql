@@ -63,6 +63,24 @@ select is(
  '5.000000',
  'server records variance derived from the canonical ledger, not client-supplied system quantity'
 );
+select throws_ok(
+ $sql$update public.stock_count_line_postings set reason='tampered'
+   where owner_id='54111111-1111-4111-8111-111111111111'
+     and session_id='b5440000-0000-4000-8000-000000000001'
+     and line_id='b5450000-0000-4000-8000-000000000001'$sql$,
+ '55000',
+ 'Stock-count line postings are append-only; accepted audit rows cannot be changed or deleted',
+ 'accepted count audit rows cannot be updated even by a privileged database role'
+);
+select throws_ok(
+ $sql$delete from public.stock_count_line_postings
+   where owner_id='54111111-1111-4111-8111-111111111111'
+     and session_id='b5440000-0000-4000-8000-000000000001'
+     and line_id='b5450000-0000-4000-8000-000000000001'$sql$,
+ '55000',
+ 'Stock-count line postings are append-only; accepted audit rows cannot be changed or deleted',
+ 'accepted count audit rows cannot be deleted'
+);
 set local role authenticated;
 
 select is(
