@@ -1,5 +1,5 @@
 const DATABASE_NAME = "kitchai-business-data";
-const DATABASE_VERSION = 6;
+const DATABASE_VERSION = 7;
 const ENTITY_STORES = ["ingredients", "menuItems", "recipes", "recipeLines"];
 const OPERATIONS = "operations";
 const SYNC_METADATA = "syncMetadata";
@@ -113,6 +113,13 @@ function createSchema(db) {
     });
     store.createIndex("byScope", ["ownerId", "businessId"], { unique: false });
     store.createIndex("bySyncState", ["ownerId", "businessId", "state"], { unique: false });
+    store.createIndex("byCreatedAt", ["ownerId", "businessId", "createdAt"], { unique: false });
+  }
+  // Purchases and immutable receipt commands are local-first; stock changes still require the trusted inventory RPC.
+  if (!db.objectStoreNames.contains("purchases")) {
+    const store = db.createObjectStore("purchases", { keyPath: ["ownerId", "businessId", "purchaseId"] });
+    store.createIndex("byScope", ["ownerId", "businessId"], { unique: false });
+    store.createIndex("byStatus", ["ownerId", "businessId", "status"], { unique: false });
     store.createIndex("byCreatedAt", ["ownerId", "businessId", "createdAt"], { unique: false });
   }
   // Production batches are local-first workflow records; recipe snapshots are captured once at start.
