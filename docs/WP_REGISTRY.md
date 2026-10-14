@@ -224,3 +224,13 @@ Implementation history uses WP3.2 for the atomic inventory command foundation an
 **Key implementation finding:** the existing atomic inventory RPC derives balances from append-only movements but does not yet establish a shared per-item lock/version protocol for all concurrent writers. Timestamps alone are not safe stale-count tokens. Before count posting can be enabled, WP3.5b must introduce a server-authoritative monotonically advancing per-item version and ensure every stock-changing RPC participates in deterministic item-lock acquisition/version advancement. Count posting must compare the captured version and append its adjustment in the same transaction.
 
 See [WP3.5 plan](./PHASE_3_WP3_5_STOCK_COUNTS_PLAN.md) and [WP3.5a test contract](./PHASE_3_WP3_5A_COUNT_CONSISTENCY_TEST_CONTRACT.md). No application code or database migration was added in WP3.5a.
+
+
+## Phase 3 stock-count implementation reconciliation — 2026-10-14
+
+This section is authoritative for WP3.5 status and supersedes older WP3.5 paragraphs above where they say the design is awaiting review or that WP3.5b remains future work.
+
+- **WP3.5a — Count consistency/test contract:** merged via [PR #52](https://github.com/zinlinna071-lgtm/KitchAI/pull/52). Owner decisions D3.5-01 through D3.5-04 are accepted and documented.
+- **WP3.5b — Server-authoritative stock-item versions:** merged via [PR #53](https://github.com/zinlinna071-lgtm/KitchAI/pull/53), squash commit `105ade9062125dd1bb18522c3a72bd7b36c830e3`. WP1.4 Local Supabase Authorization and WP1.6 Local Supabase Vertical Slice both passed on PR head `b783f274d7ff9b5ce8e4468fe0b903c6327df72a`.
+- **WP3.5c — Offline count drafts and review:** in progress on [draft PR #54](https://github.com/zinlinna071-lgtm/KitchAI/pull/54). Scope includes IndexedDB v8 count-session/line stores, trusted server snapshot adapter, exact count/variance domain, offline count entry and review, and cancellation audit. CI is required before this WP can be merged.
+- **Hard gate:** WP3.5c does not post stock adjustments. WP3.5d must compare the captured server version and commit any adjustment in the same database transaction, with retry/idempotency checked before stale-version rejection. Do not enable posting UI before concurrent movement/count tests prove this invariant.
