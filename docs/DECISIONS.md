@@ -44,3 +44,15 @@ Before provider-specific authorization/security tests against a hosted project, 
 2. Distinguish reversible implementation choices from material product/security/cost choices.
 3. Make recommendations with trade-offs and record the owner's selected direction.
 4. Implement one work package at a time, verify tests and diffs, and update status/registry with evidence.
+
+
+## Phase 3 — Physical Stock Counts (accepted 2026-10-14)
+
+| ID | Decision | Status |
+|---|---|---|
+| D3.5-01 | Use optimistic concurrency for physical counts. A count line is rejected as stale if any stock movement occurs after its server-authoritative snapshot; the owner must review/recount. Do not freeze normal operations or silently reconcile an old physical observation. | Accepted |
+| D3.5-02 | Allow partial count sessions: only fully counted/reviewed lines may be submitted; each submitted subset is atomic and unsubmitted lines remain open. | Accepted |
+| D3.5-03 | Save zero-variance count audit records but do not create a zero-quantity stock movement. | Accepted |
+| D3.5-04 | Cancellation is allowed only before any adjustment has been accepted. Preserve cancelled session/line history; after posting, use a new linked correction/reversal event rather than reopening or editing posted history. | Accepted |
+
+**Technical prerequisite:** the database must serialize inventory writes per stock item and maintain a server-owned monotonically advancing version/watermark. The existing inventory RPC does not yet prove this invariant. All stock-changing command paths must participate before count posting is enabled. See [WP3.5a consistency and test contract](./PHASE_3_WP3_5A_COUNT_CONSISTENCY_TEST_CONTRACT.md).
