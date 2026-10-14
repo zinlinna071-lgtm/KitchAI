@@ -2,7 +2,7 @@
 
 **Branch:** `feat/wp3-1-inventory-domain-model`
 **Base:** `main` at `d008ea10f69cf3ff91f316dc5508f898ccec7bf3`
-**Status:** Implementation in progress; domain foundation and v2→v3 migration are implemented on the feature branch. WP3.1 remains incomplete until final-head CI evidence and full review are recorded.
+**Status (2026-10-14):** Inventory foundation and strict recipe quantity adapter are merged via PRs #38 and #39. PR heads passed their documented CI gates; post-merge main Supabase verification is still pending/retrying after a Docker image-pull rate limit. Do not mark WP3.1 accepted until post-merge database checks finish.
 
 ## Source-to-change map
 
@@ -42,3 +42,8 @@ Added `src/recipe-quantity-adapter.js` as a strict boundary for future productio
 
 The strict recipe quantity adapter and its focused tests are now present. Review confirms it refuses unsupported decimal representations rather than silently rounding and leaves existing Phase 2 recipe-line data unchanged. On implementation commit `4ebfca8a7d63955894b0e1f22c777ddfed7d0c87`, application-shell CI passed and the local Supabase vertical slice passed all 103 pgTAP tests and all 8 browser integration tests. WP3.1 remains incomplete because inventory UI, production posting, trusted remote idempotency, inventory sync, and integrated conflict preservation are not implemented. Fresh CI is required after this documentation refresh.
 
+
+
+## Merge and post-merge verification — 2026-10-14
+
+PR [#38](https://github.com/zinlinna071-lgtm/KitchAI/pull/38) merged to main at `2decd7bb6fa6d1836d1b66bc96e0a5fbe6e57a78`; PR [#39](https://github.com/zinlinna071-lgtm/KitchAI/pull/39) merged at `723f73f774be4377b462cc1e68f0a269f489cfcf`. The PR #38 head passed all five workflows. PR #39's final head passed Application Shell and Local Supabase Vertical Slice, including pgTAP/database tests and all 8 browser integration tests. Post-merge main Baseline and Application Shell passed. Post-merge authorization first failed before pgTAP due Docker image-pull `toomanyrequests: Data limit exceeded`; its rerun is in progress and the newest main-head vertical slice is not yet complete. This is an infrastructure gate, not a SQL assertion failure, but the post-merge database result is not yet confirmed. The strict adapter remains a guarded boundary, not production posting.
