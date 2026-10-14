@@ -142,6 +142,7 @@ async function mutateCommand(scope, commandId, mutate) {
   const store = tx.objectStore(COMMAND_STORE);
   const key = [partition.ownerId, partition.businessId, commandId];
   const request = store.get(key);
+  /** @type {any} */
   let result;
   let failure;
   request.onsuccess = () => {
