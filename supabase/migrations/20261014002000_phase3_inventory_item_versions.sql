@@ -359,7 +359,7 @@ begin
   if v_owner is null then
     raise exception 'Authenticated owner required' using errcode = '42501';
   end if;
-  if p_business_id is null or p_stock_item_id is null
+  if p_business_id is null or p_stock_item_id is null or p_stock_class is null
      or p_stock_class not in ('ingredient', 'finished') then
     raise exception 'Valid business, stock class, and stock item are required' using errcode = '22023';
   end if;
