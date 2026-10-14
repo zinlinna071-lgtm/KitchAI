@@ -66,7 +66,7 @@ jobs:
       - name: Run two-session stock-count concurrency regression
         run: |
           npm install --no-save --no-package-lock pg@8.16.3
-          node scripts/test-stock-count-concurrency.mjs
+          node scripts/run-stock-count-concurrency.mjs
         timeout-minutes: 2
       - name: Build app
         run: npm run build
