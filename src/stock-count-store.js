@@ -356,11 +356,14 @@ export async function postReviewedStockCountSubset(scope, sessionId, lineIds, au
         staleSessions.put({
           ...latestSession,
           pendingPost: null,
-          lastRejectedPost: {
-            command: pending.command,
-            rejectedAt: staleAt,
-            reason: "stale_snapshot",
-          },
+          rejectedPosts: [
+            ...(Array.isArray(latestSession.rejectedPosts) ? latestSession.rejectedPosts : []),
+            {
+              command: pending.command,
+              rejectedAt: staleAt,
+              reason: "stale_snapshot",
+            },
+          ],
           updatedAt: staleAt,
         });
         for (const lineId of pending.lineIds) {
@@ -440,7 +443,7 @@ export async function postReviewedStockCountSubset(scope, sessionId, lineIds, au
 
 /**
  * Refresh a stale line from the server and clear the old observation so the owner must recount.
- * The rejected attempt remains preserved on session.lastRejectedPost.
+ * The rejected attempt remains preserved in session.rejectedPosts.
  * @param {{ownerId:string,businessId:string}} scope
  * @param {string} sessionId
  * @param {string} lineId
