@@ -189,7 +189,7 @@ test("capture desktop and mobile UI previews for review", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Implemented for local testing" })).toBeVisible();
   await expect(page.getByText("Hosted sync is not configured", { exact: true })).toBeVisible();
   await expect(page.getByText("Cloud identity and sync will be introduced only after their security checks.")).toHaveCount(0);
-  await expect(page.getByText("Full operational pages arrive in later phases.")).toBeVisible();
+  await expect(page.getByText(/offline-first kitchen workspace for business records, recipe-based production batches/i)).toBeVisible();
   await page.setViewportSize({ width: 1365, height: 900 });
   await page.screenshot({ path: "artifacts/kitchai-ui-preview-desktop.png", fullPage: true });
   await page.setViewportSize({ width: 390, height: 844 });
