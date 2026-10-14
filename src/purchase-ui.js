@@ -1,4 +1,4 @@
-import { createPurchase, listPurchases, recordPurchaseReceipt, syncPurchaseReceipt, cancelPurchase } from "./purchase-store.js";
+import { createPurchase, listPurchases, recordPurchaseReceipt, syncPurchaseReceipt, cancelPurchase, abandonPurchaseReceipt } from "./purchase-store.js";
 import { listIngredients } from "./ingredient-store.js";
 
 /** @param {string} selector @param {ParentNode} [root] @returns {Element|null} */
@@ -129,7 +129,30 @@ export function initializePurchaseUI(context) {
           receiptText.textContent = "Receipt " + receipt.receiptId + " · " + receipt.state.replaceAll("_", " ")
             + (receipt.lastError ? " · " + receipt.lastError : "");
           receiptRow.append(receiptText);
-          if (receipt.state !== "synced") {
+          if (receipt.state === "permanent_error") {
+            const abandonForm = document.createElement("form");
+            abandonForm.className = "purchase-abandon-form";
+            const reason = document.createElement("input");
+            reason.type = "text"; reason.maxLength = 500; reason.required = true;
+            reason.placeholder = "Why abandon this rejected receipt?";
+            reason.setAttribute("aria-label", "Reason for abandoning rejected receipt");
+            const abandon = document.createElement("button");
+            abandon.type = "submit"; abandon.className = "button button-secondary";
+            abandon.textContent = "Abandon rejected receipt";
+            abandonForm.append(reason, abandon);
+            abandonForm.addEventListener("submit", async event => {
+              event.preventDefault();
+              abandon.disabled = true;
+              try {
+                await abandonPurchaseReceipt(scope, purchase.purchaseId, receipt.receiptId, reason.value);
+                setMessage(state, "Rejected receipt preserved in history and its quantity reservation released. No stock was added.");
+              } catch (error) {
+                setMessage(state, error instanceof Error ? error.message : "Could not abandon rejected receipt.", true);
+              }
+              await refresh();
+            });
+            receiptRow.append(abandonForm);
+          } else if (receipt.state !== "synced" && receipt.state !== "abandoned") {
             const retry = document.createElement("button");
             retry.type = "button"; retry.className = "button button-secondary";
             retry.textContent = "Retry receipt";
@@ -198,24 +221,32 @@ export function initializePurchaseUI(context) {
             }
           });
           item.append(receiptForm);
-          const cancelForm = document.createElement("form");
-          cancelForm.className = "purchase-cancel-form";
-          const reason = document.createElement("input");
-          reason.type = "text"; reason.maxLength = 500; reason.placeholder = "Cancellation reason"; reason.setAttribute("aria-label", "Purchase cancellation reason");
-          const cancel = document.createElement("button");
-          cancel.type = "submit"; cancel.className = "button button-secondary"; cancel.textContent = "Cancel unreceived remainder";
-          cancelForm.append(reason, cancel);
-          cancelForm.addEventListener("submit", async event => {
-            event.preventDefault();
-            try {
-              await cancelPurchase(scope, purchase.purchaseId, reason.value);
-              setMessage(state, "Purchase remainder cancelled. Earlier confirmed receipts remain in the ledger.");
-              await refresh();
-            } catch (error) {
-              setMessage(state, error instanceof Error ? error.message : "Could not cancel purchase.", true);
-            }
-          });
-          item.append(cancelForm);
+          const unresolvedReceipt = (purchase.receipts ?? []).some(receipt => ["pending", "syncing", "retryable_error", "permanent_error"].includes(receipt.state));
+          if (unresolvedReceipt) {
+            const help = document.createElement("p");
+            help.className = "field-help";
+            help.textContent = "Resolve receipt commands first. Network-uncertain commands must be retried; definitively rejected commands can be abandoned with a reason.";
+            item.append(help);
+          } else {
+            const cancelForm = document.createElement("form");
+            cancelForm.className = "purchase-cancel-form";
+            const reason = document.createElement("input");
+            reason.type = "text"; reason.maxLength = 500; reason.placeholder = "Cancellation reason"; reason.setAttribute("aria-label", "Purchase cancellation reason");
+            const cancel = document.createElement("button");
+            cancel.type = "submit"; cancel.className = "button button-secondary"; cancel.textContent = "Cancel unreceived remainder";
+            cancelForm.append(reason, cancel);
+            cancelForm.addEventListener("submit", async event => {
+              event.preventDefault();
+              try {
+                await cancelPurchase(scope, purchase.purchaseId, reason.value);
+                setMessage(state, "Purchase remainder cancelled. Earlier confirmed receipts remain in the ledger.");
+                await refresh();
+              } catch (error) {
+                setMessage(state, error instanceof Error ? error.message : "Could not cancel purchase.", true);
+              }
+            });
+            item.append(cancelForm);
+          }
         }
         list.append(item);
       }
