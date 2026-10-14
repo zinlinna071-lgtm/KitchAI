@@ -110,6 +110,8 @@ select is(
  'stale:Stock count is stale for item b5521111-1111-4111-8111-111111111111: expected version 0, current version 1. Refresh the snapshot and recount/review this line.',
  'count that waited behind a concurrent stock movement is rejected as stale'
 );
+-- libpq requires one final empty result read to return the async connection to idle.
+select count(*) from extensions.dblink_get_result('wp35d_count') as t(result text);
 
 set role authenticated;
 set "request.jwt.claim.sub"='55111111-1111-4111-8111-111111111111';
