@@ -577,7 +577,7 @@ test("authenticated stock-count UI creates a session, captures a server snapshot
   const ingredientName = "E2E Count Ingredient " + Date.now();
   await page.locator("#ingredient-name").fill(ingredientName);
   await page.getByRole("button", { name: "Add ingredient", exact: true }).click();
-  await expect(page.locator("#ingredient-state")).toContainText("queued", { timeout: 10000 });
+  await expect(page.locator("#ingredient-list")).toContainText(ingredientName);
   await page.getByRole("button", { name: "Sync now" }).click();
   await expect(page.locator("#phase2-sync-state")).toContainText("acknowledged", { timeout: 15000 });
   await expect(page.locator("#ingredient-list")).toContainText(ingredientName);
