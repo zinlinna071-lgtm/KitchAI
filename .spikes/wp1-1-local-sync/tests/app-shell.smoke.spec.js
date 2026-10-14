@@ -1469,10 +1469,38 @@ test("purchase drafts persist locally and do not change stock before server rece
   await expect(page.locator("#purchase-list")).toContainText("Morning Market");
   await expect(page.locator("#purchase-list")).toContainText("ordered 10 kg");
   await expect(page.locator("#purchase-list")).toContainText("confirmed 0 kg");
+  const queuedReceipt = await page.evaluate(async () => {
+    const { readLocalProfile } = await import("/src/local-store.js");
+    const { scopeForBusinessProfile } = await import("/src/business-data-store.js");
+    const { listPurchases, recordPurchaseReceipt } = await import("/src/purchase-store.js");
+    const profile = await readLocalProfile();
+    const scope = scopeForBusinessProfile({ profileId: profile.id, local: true });
+    const purchase = (await listPurchases(scope))[0];
+    const receipt = await recordPurchaseReceipt(scope, purchase.purchaseId, [
+      { lineId: purchase.lines[0].lineId, quantity: "3" },
+    ], "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa");
+    return { receiptId: receipt.receipt.receiptId, commandId: receipt.receipt.command.commandId };
+  });
+  expect(queuedReceipt.commandId).toMatch(/^[0-9a-f-]{36}$/i);
+  await page.getByRole("button", { name: "Refresh purchases" }).click();
+  await expect(page.locator("#purchase-list")).toContainText("pending");
+  await expect(page.locator("#purchase-list")).toContainText("pending/reserved 3 kg");
+  await expect(page.locator("#purchase-list")).toContainText("confirmed 0 kg");
   await page.reload();
   await page.getByRole("button", { name: "Refresh purchases" }).click();
   await expect(page.locator("#purchase-list")).toContainText("Morning Market");
   await expect(page.locator("#purchase-list")).toContainText("confirmed 0 kg");
+  await expect(page.locator("#purchase-list")).toContainText(queuedReceipt.receiptId);
+  const afterReload = await page.evaluate(async () => {
+    const { readLocalProfile } = await import("/src/local-store.js");
+    const { scopeForBusinessProfile } = await import("/src/business-data-store.js");
+    const { listPurchases } = await import("/src/purchase-store.js");
+    const profile = await readLocalProfile();
+    const scope = scopeForBusinessProfile({ profileId: profile.id, local: true });
+    const purchase = (await listPurchases(scope))[0];
+    return purchase.receipts[0].command.commandId;
+  });
+  expect(afterReload).toBe(queuedReceipt.commandId);
   const mobile = await page.evaluate(() => ({ width: innerWidth, scrollWidth: document.documentElement.scrollWidth }));
   expect(mobile.scrollWidth).toBeLessThanOrEqual(mobile.width);
 });
