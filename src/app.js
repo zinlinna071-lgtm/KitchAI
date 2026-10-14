@@ -471,6 +471,7 @@ async function refreshRecipeView() {
     setRecipeState(error instanceof Error ? error.message : "Recipe storage is unavailable.", true);
     await refreshRecipeLines(scope, [], []);
   }
+  await refreshProductionView();
 }
 
 function setRecipeOptionsWithoutScope() {
@@ -1289,7 +1290,6 @@ productionStartForm?.addEventListener("submit", async event => {
   } finally {
     if (productionStartButton) productionStartButton.disabled = false;
   }
-  await refreshProductionView();
 });
 
 recipeForm?.addEventListener("submit", async (event) => {
