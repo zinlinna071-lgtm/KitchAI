@@ -96,7 +96,10 @@ begin
 
   -- Insert movements one at a time in payload order, checking the projected
   -- balance after each movement. Any error rolls the entire function call back.
-  for v_item in select value from pg_catalog.jsonb_array_elements(v_movements)
+  for v_item in
+    select entry.value
+    from pg_catalog.jsonb_array_elements(v_movements) with ordinality as entry(value, position)
+    order by entry.position
   loop
     if pg_catalog.jsonb_typeof(v_item -> 'quantity') is distinct from 'string'
        or coalesce(v_item ->> 'quantity', '') !~ '^[0-9]+([.][0-9]{1,6})?$' then
