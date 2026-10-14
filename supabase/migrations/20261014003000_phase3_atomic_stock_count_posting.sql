@@ -74,12 +74,12 @@ create or replace function public.reject_stock_count_posting_mutation()
 returns trigger
 language plpgsql
 set search_path = ''
-as $
+as $$
 begin
   raise exception 'Stock-count line postings are append-only; accepted audit rows cannot be changed or deleted'
     using errcode = '55000';
 end;
-$;
+$$;
 revoke all on function public.reject_stock_count_posting_mutation() from public, anon, authenticated;
 
 create trigger stock_count_line_postings_append_only
