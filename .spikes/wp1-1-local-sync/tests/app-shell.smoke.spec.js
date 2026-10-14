@@ -1180,6 +1180,7 @@ test("production posting retries the exact persisted command and only completes 
     } = await import("/src/production-batch-store.js");
     const ownerId = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
     const businessId = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
+    const remoteBusinessId = "99999999-9999-4999-8999-999999999999";
     const recipeId = "cccccccc-cccc-4ccc-8ccc-cccccccccccc";
     const menuItemId = "dddddddd-dddd-4ddd-8ddd-dddddddddddd";
     const ingredientId = "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee";
@@ -1234,7 +1235,7 @@ test("production posting retries the exact persisted command and only completes 
     const session = { access_token: "owner-test-token", user: { id: ownerId } };
     let firstFailed = false;
     try {
-      await postProductionBatch(scope, batch.batchId, session);
+      await postProductionBatch(scope, batch.batchId, session, remoteBusinessId);
     } catch {
       firstFailed = true;
     }
@@ -1251,6 +1252,7 @@ test("production posting retries the exact persisted command and only completes 
       savedCommandOnFailure: Boolean(afterFailure.posting?.command?.commandId),
       retryState: completed.state,
       retryStatus: completed.posting?.status,
+      remoteBusinessIdUsed: submittedBodies[0]?.p_business_id === remoteBusinessId && submittedBodies[1]?.p_business_id === remoteBusinessId,
       sameCommandId: submittedBodies[0]?.p_command_id === submittedBodies[1]?.p_command_id,
       samePayload: JSON.stringify(submittedBodies[0]?.p_payload) === JSON.stringify(submittedBodies[1]?.p_payload),
       callCountAfterRetry: afterCompletedCallCount,
@@ -1266,6 +1268,7 @@ test("production posting retries the exact persisted command and only completes 
     savedCommandOnFailure: true,
     retryState: "completed",
     retryStatus: "accepted",
+    remoteBusinessIdUsed: true,
     sameCommandId: true,
     samePayload: true,
     callCountAfterRetry: 2,
