@@ -78,6 +78,7 @@ export async function saveFinishedDisposition(scope, command, details) {
   if (!command || typeof command !== "object" || !command.commandId || !command.businessId || !command.payload) {
     throw new TypeError("A complete finished-stock inventory command is required.");
   }
+  /** @type {any} */
   const record = {
     ...partition,
     commandId: requireText(command.commandId, "Inventory command ID"),
@@ -184,6 +185,7 @@ export async function syncFinishedDisposition(scope, commandId, session) {
       lastError: null,
     };
   });
+  if (!command) throw new Error("Finished-stock command could not be loaded.");
   if (command.state === "synced") return command;
   try {
     const serverResult = await applyInventoryCommand(command.command, session);
