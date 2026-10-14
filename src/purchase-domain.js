@@ -49,6 +49,7 @@ export function buildPurchaseDraft(input, options = {}) {
     };
   });
   if (new Set(lines.map(line => line.lineId)).size !== lines.length) throw new Error("Purchase line IDs must be unique.");
+  if (new Set(lines.map(line => line.ingredientId)).size !== lines.length) throw new Error("Each ingredient may appear only once in a purchase; keep one consistent unit per ingredient.");
   return {
     purchaseId,
     supplierName: typeof input.supplierName === "string" ? input.supplierName.trim().slice(0, 200) : "",
