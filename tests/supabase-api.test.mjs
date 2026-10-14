@@ -32,7 +32,7 @@ test("applyInventoryCommand sends the exact idempotent command to the authentica
         movementCount: 1,
         lotCount: 0,
         allocationCount: 0,
-        eventIds: [],
+        eventIds: ["event-1"],
       }),
     };
   };
