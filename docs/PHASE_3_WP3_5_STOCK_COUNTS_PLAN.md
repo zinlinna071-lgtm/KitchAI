@@ -1,6 +1,6 @@
 # WP3.5 — Physical Stock Counts and Adjustments Plan
 
-**Status:** Proposed design; owner decision required before implementation.  
+**Status:** Owner decisions accepted 2026-10-14; WP3.5a documentation/test contract in [PHASE_3_WP3_5A_COUNT_CONSISTENCY_TEST_CONTRACT.md](./PHASE_3_WP3_5A_COUNT_CONSISTENCY_TEST_CONTRACT.md). Application implementation is not yet approved until the shared database lock/version design is reviewed.  
 **Phase:** 3 — Purchasing & Inventory  
 **Parent:** `docs/ROADMAP.md`, Phase 3; see current WP status in `docs/WP_REGISTRY.md`.  
 **Implementation boundary:** local/offline-first PWA and isolated local Supabase only. No hosted provisioning, billing, secrets, or deployment is authorized.
@@ -49,14 +49,14 @@ Record a reliable event order and each item's actual count time, then adjust the
 
 **Recommendation:** Option A for the first release. The database must own the final concurrency check; a client-only timestamp check is insufficient. If the current ledger lacks a safe per-ingredient version/watermark, add the smallest additive server-side mechanism and test it under concurrent posting.
 
-## 4. Owner decisions needed
+## 4. Accepted owner decisions (2026-10-14)
 
-- **D3.5-01 — Movement during count:** A) optimistic concurrency and require review/recount on stale lines (recommended); B) freeze affected stock; C) reconcile movements during count.
-- **D3.5-02 — Partial count sessions:** A) allow posting only completed lines while keeping remaining lines open (recommended); B) require every selected line to be counted before any line can post.
-- **D3.5-03 — Zero variance:** A) save the count audit record but create no stock adjustment movement for zero variance (recommended); B) create a zero-quantity ledger event (usually unnecessary).
-- **D3.5-04 — Count cancellation:** A) allow cancellation only before any adjustment is accepted; preserve the cancelled session and its entered values in history (recommended); B) permit reopening after posting (not recommended; use a new count/correction instead).
+- **D3.5-01 — Movement during count:** accepted Option A, optimistic concurrency. A stale line is rejected and must be reviewed/recounted.
+- **D3.5-02 — Partial count sessions:** accepted Option A. Submit only completed/reviewed lines; unsubmitted lines remain open. Each submitted subset is all-or-nothing.
+- **D3.5-03 — Zero variance:** accepted Option A. Save an audit record; do not create a zero-quantity ledger movement.
+- **D3.5-04 — Count cancellation:** accepted Option A. Cancel only before any accepted adjustment; after posting, preserve history and use a new linked correction/reversal.
 
-These are proposals, not accepted decisions. No implementation should assume the owner has approved them until they are recorded in `docs/DECISIONS.md` or a dedicated owner-decision record.
+The detailed state, concurrency, quantity and test contract is in [PHASE_3_WP3_5A_COUNT_CONSISTENCY_TEST_CONTRACT.md](./PHASE_3_WP3_5A_COUNT_CONSISTENCY_TEST_CONTRACT.md).
 
 ## 5. Data and security constraints
 
@@ -89,10 +89,10 @@ Barcode scanning, multi-user count assignments, supplier catalog synchronization
 
 ## 8. Implementation sequence after owner decisions
 
-- WP3.5a: finalize decision record, count consistency contract, server-side concurrency invariant, and database test matrix.
-- WP3.5b: local count-session/line domain and additive IndexedDB migration with reload/offline tests.
-- WP3.5c: atomic server posting and idempotent command integration, including stale-count rejection.
-- WP3.5d: accessible count/review UI and retry/conflict handling.
-- WP3.5e: final regression, migration, authorization, and local-Supabase integration review.
+- WP3.5a: accepted decisions, consistency invariant, session/line state contract, and DB/browser test matrix. Documentation-only contract: [PHASE_3_WP3_5A_COUNT_CONSISTENCY_TEST_CONTRACT.md](./PHASE_3_WP3_5A_COUNT_CONSISTENCY_TEST_CONTRACT.md).
+- WP3.5b: design and implement additive schema/version protocol, with migration tests; audit all inventory writers and serialize same-item commands.
+- WP3.5c: local count-session/line domain/store and offline persistence.
+- WP3.5d: atomic count posting, idempotency, stale conflicts and retry handling.
+- WP3.5e: accessible review UI and final regression/local-Supabase gates.
 
-Do not start database or UI implementation before the owner resolves D3.5-01 through D3.5-04.
+Do not enable count posting until database review and concurrency tests prove every stock-changing RPC uses the shared lock/version protocol.
