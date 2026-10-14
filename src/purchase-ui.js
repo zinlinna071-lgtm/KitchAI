@@ -92,9 +92,20 @@ export function initializePurchaseUI(context) {
     }
     try {
       cachedIngredients = await listIngredients(scope);
-      linesContainer.replaceChildren();
-      addLineRow();
-      if (addLine) addLine.disabled = cachedIngredients.filter(item => item.status !== "archived").length === 0;
+      const activeIngredients = cachedIngredients.filter(item => item.status !== "archived");
+      if (linesContainer.children.length === 0) {
+        addLineRow();
+      } else {
+        for (const row of queryAll(".purchase-line-entry", linesContainer)) {
+          const select = /** @type {HTMLSelectElement|null} */ ($('[data-field="ingredient"]', row));
+          if (!select) continue;
+          const selected = select.value;
+          select.replaceChildren(makeOption("", "Choose an ingredient"));
+          for (const ingredient of activeIngredients) select.append(makeOption(ingredient.id, ingredient.name));
+          if (activeIngredients.some(ingredient => ingredient.id === selected)) select.value = selected;
+        }
+      }
+      if (addLine) addLine.disabled = activeIngredients.length === 0;
       if (submitButton) submitButton.disabled = cachedIngredients.filter(item => item.status !== "archived").length === 0;
       const purchases = await listPurchases(scope);
       listState.textContent = purchases.length ? "Purchase drafts and receipts are stored on this device. Only confirmed receipts affect server stock." : "No purchases yet.";
