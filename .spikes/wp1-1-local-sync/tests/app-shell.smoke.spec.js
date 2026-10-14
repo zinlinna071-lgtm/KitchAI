@@ -1446,3 +1446,31 @@ test("production batch UI captures actual usage and keeps offline posting state 
   await expect(batch.getByRole("button", { name: "Post batch" })).toBeDisabled();
   await expect(page.locator("#production-state")).toContainText("ready to post when you are online and signed in");
 });
+
+
+test("purchase drafts persist locally and do not change stock before server receipt acceptance", async ({ page }) => {
+  await page.goto("/");
+  await page.locator("#business-name").fill("Purchase Test Kitchen");
+  await page.getByRole("button", { name: "Save profile" }).click();
+  await expect(page.locator("#profile-state")).toContainText("Saved on this device");
+  await page.locator("#ingredient-name").fill("Rice");
+  await page.getByRole("button", { name: "Add ingredient", exact: true }).click();
+  await expect(page.locator("#ingredient-list")).toContainText("Rice");
+  await page.getByRole("button", { name: "Refresh purchases" }).click();
+  await page.locator('#purchase-line-entry-list select[data-field="ingredient"]').selectOption({ label: "Rice" });
+  await page.locator('#purchase-line-entry-list input[data-field="quantity"]').fill("10");
+  await page.locator('#purchase-line-entry-list select[data-field="unit"]').selectOption("kg");
+  await page.locator('#purchase-line-entry-list input[data-field="unitPrice"]').fill("35.50");
+  await page.locator("#purchase-supplier").fill("Morning Market");
+  await page.getByRole("button", { name: "Save purchase draft" }).click();
+  await expect(page.locator("#purchase-state")).toContainText("Purchase draft saved locally");
+  await expect(page.locator("#purchase-list")).toContainText("Morning Market");
+  await expect(page.locator("#purchase-list")).toContainText("ordered 10 kg");
+  await expect(page.locator("#purchase-list")).toContainText("confirmed 0 kg");
+  await page.reload();
+  await page.getByRole("button", { name: "Refresh purchases" }).click();
+  await expect(page.locator("#purchase-list")).toContainText("Morning Market");
+  await expect(page.locator("#purchase-list")).toContainText("confirmed 0 kg");
+  const mobile = await page.evaluate(() => ({ width: innerWidth, scrollWidth: document.documentElement.scrollWidth }));
+  expect(mobile.scrollWidth).toBeLessThanOrEqual(mobile.width);
+});
