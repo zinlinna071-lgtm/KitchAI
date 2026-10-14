@@ -163,10 +163,11 @@ export function buildFinishedDispositionCommand(input) {
  * Record a suitability decision for carrying remaining stock into a later day's inventory view.
  * This is a handling event only: it intentionally creates no stock movement or new production lot.
  * The caller must persist/sync the returned append-only event before presenting it as recorded.
- * @param {{eventId?:string,lotId:string,remainingQuantity:string,unit:string,suitable:boolean,confirmedAt:string,carryForwardDate:string,reason?:string,lots:Array<{lotId:string,menuItemId:string,producedQuantity:string,unit:string,producedAt?:string}>,priorAllocations?:Array<{lotId:string,quantity:string,unit:string}>}} input
+ * @param {{eventId?:string,businessId:string,lotId:string,remainingQuantity:string,unit:string,suitable:boolean,confirmedAt:string,carryForwardDate:string,reason?:string,lots:Array<{lotId:string,menuItemId:string,producedQuantity:string,unit:string,producedAt?:string}>,priorAllocations?:Array<{lotId:string,quantity:string,unit:string}>}} input
  */
 export function buildCarryForwardDecision(input) {
   if (!input || typeof input !== "object") throw new TypeError("Carry-forward decision is required.");
+  const businessId = requireUuid(input.businessId, "Server business ID");
   const lotId = requireUuid(input.lotId, "Finished lot ID");
   if (input.suitable !== true) throw new Error("Operator must explicitly confirm the lot is safe and suitable for carry-forward.");
   const quantity = normalizeQuantity(input.remainingQuantity, { unit: input.unit, stockClass: "finished" });
@@ -186,6 +187,7 @@ export function buildCarryForwardDecision(input) {
   const reason = typeof input.reason === "string" ? input.reason.trim() : "";
   return Object.freeze({
     eventId: requireUuid(input.eventId ?? crypto.randomUUID(), "Carry-forward event ID"),
+    businessId,
     lotId,
     dispositionType: "carry_forward",
     quantity: quantity.quantity,
