@@ -128,8 +128,8 @@ export function projectPurchase(purchase) {
     lines: purchase.lines.map(line => {
       const synced = (purchase.receipts ?? []).flatMap(receipt => receipt.state === "synced" ? receipt.lines : [])
         .filter(entry => entry.lineId === line.lineId).map(entry => entry.quantity);
-      const reserved = (purchase.receipts ?? []).flatMap(receipt => receipt.lines ?? [])
-        .filter(entry => entry.lineId === line.lineId).map(entry => entry.quantity);
+      const reserved = (purchase.receipts ?? []).filter(receipt => receipt.state !== "abandoned")
+        .flatMap(receipt => receipt.lines ?? []).filter(entry => entry.lineId === line.lineId).map(entry => entry.quantity);
       const received = sumQuantities(synced);
       const reservedTotal = sumQuantities(reserved);
       return {
