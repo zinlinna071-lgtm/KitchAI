@@ -85,6 +85,17 @@ Deliver a small, auditable production workflow that converts a started recipe ba
 6. Implement WP3.3.4 traceability and focused end-to-end tests.
 7. Review migration safety, authorization, offline/retry semantics, and complete CI before marking WP3.3 done.
 
+## Current-main data-contract review (2026-10-14)
+
+The current Phase 2 implementation was inspected before planning implementation:
+
+- `src/recipe-store.js` stores recipe identity, menu-item ID, name, instructions, yield, status, and timestamps. It has no durable recipe revision/version field.
+- Recipe lines already have stable record IDs, plus recipe ID, ingredient ID, JavaScript-number quantity, unit, position, optional note, and timestamps. Position is sortable presentation metadata; it must not be used as line identity.
+- Recipe and recipe-line changes are persisted in separate IndexedDB transactions and enqueued as separate sync operations. The current line contract has no quantity mode for “to taste”, verified conversion provenance, or actual batch usage.
+- `src/recipe-quantity-adapter.js` intentionally rejects quantities that cannot be represented as plain decimal values with at most six fractional digits; WP3.3 must retain that no-silent-rounding behavior.
+
+**Implementation consequence:** do not label `updatedAt` as a recipe version or rely on it alone as a concurrency token. WP3.3.1 must define an immutable, content-bearing batch snapshot with a stable snapshot ID/hash or explicit revision record, preserving the exact line IDs and captured values. Snapshot creation must read recipe plus lines as one consistent operation and persist the snapshot/batch atomically in local storage. The implementation must also define how cloud sync/conflict handling protects a started batch from later recipe edits, and add quantity modes without breaking existing Phase 2 records. These are required design tasks, not already-implemented behavior.
+
 ## Risks and unresolved gates
 
 - The current recipe model may not have a durable version identifier. If so, define a compatible immutable snapshot/version strategy before writing production code.
