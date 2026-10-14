@@ -63,6 +63,11 @@ jobs:
       - name: Run database authorization and idempotency tests
         run: npx --yes supabase@2.39.2 test db
         timeout-minutes: 7
+      - name: Run two-session stock-count concurrency regression
+        run: |
+          npm install --no-save --no-package-lock pg@8.16.3
+          node scripts/test-stock-count-concurrency.mjs
+        timeout-minutes: 2
       - name: Build app
         run: npm run build
       - name: Install isolated browser test dependencies
