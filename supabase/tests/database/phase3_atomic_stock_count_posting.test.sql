@@ -54,6 +54,7 @@ select is(
  '1',
  'count adjustment advances the shared item version once'
 );
+reset role;
 select is(
  (select variance::text from public.stock_count_line_postings
   where owner_id='54111111-1111-4111-8111-111111111111'
@@ -62,6 +63,7 @@ select is(
  '5.000000',
  'server records variance derived from the canonical ledger, not client-supplied system quantity'
 );
+set local role authenticated;
 
 select is(
  public.post_stock_count_subset(
@@ -111,6 +113,7 @@ select is(
   0,
  'zero-variance audit creates no zero-quantity ledger movement'
 );
+reset role;
 select is(
  (select variance::text from public.stock_count_line_postings
   where owner_id='54111111-1111-4111-8111-111111111111'
@@ -118,6 +121,7 @@ select is(
  '0.000000',
  'zero variance is retained in the immutable count audit'
 );
+set local role authenticated;
 
 select throws_ok(
  $sql$select public.post_stock_count_subset(
@@ -130,6 +134,7 @@ select throws_ok(
  'Stock count is stale for item b5421111-1111-4111-8111-111111111111: expected version 0, current version 1. Refresh the snapshot and recount/review this line.',
  'a stale line rejects the entire submitted subset atomically'
 );
+reset role;
 select is(
  (select count(*)::integer from public.stock_count_line_postings
   where owner_id='54111111-1111-4111-8111-111111111111'
@@ -137,6 +142,7 @@ select is(
   0,
  'atomic subset failure leaves no earlier line audit behind'
 );
+set local role authenticated;
 select is(
  public.get_inventory_item_snapshot(
   (select business_id from public.business_profiles where owner_id='54111111-1111-4111-8111-111111111111'),
