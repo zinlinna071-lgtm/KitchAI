@@ -116,9 +116,6 @@ export function buildFinishedDispositionCommand(input) {
     if (!lot) throw new Error("Disposition references a finished lot outside this business.");
     if (lot.unit !== quantity.unit) throw new Error("Disposition unit must match every selected lot.");
     if (lot.remainingQuantity === "0") throw new Error("Disposition references an exhausted finished lot.");
-    if (lot.menuItemId !== lots[0]?.menuItemId && allocations.some((item) => lotById.get(item.lotId)?.menuItemId !== lot.menuItemId)) {
-      throw new Error("One stock movement cannot reduce different menu items.");
-    }
     const allocatedForLot = allocations.filter((item) => item.lotId === lot.lotId)
       .reduce((sum, item) => sum + parseQuantity(item.quantity), 0n);
     if (allocatedForLot > parseQuantity(lot.remainingQuantity)) {
