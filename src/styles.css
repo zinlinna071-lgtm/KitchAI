@@ -120,3 +120,22 @@
 @media(max-width:560px){.purchase-line-entry{grid-template-columns:minmax(0,1fr)}.purchase-list-toolbar{align-items:stretch;flex-direction:column}.purchase-list-toolbar button,.purchase-receipt-form button,.purchase-cancel-form button,.purchase-line-entry button{width:100%}.purchase-receipt-row{align-items:stretch;flex-direction:column}.purchase-receipt-row button{width:100%}}
 
 .purchase-abandon-form{display:flex;align-items:flex-start;gap:.6rem;flex-wrap:wrap}.purchase-abandon-form input{flex:1 1 12rem;box-sizing:border-box;min-width:0;max-width:100%;min-height:42px;padding:.55rem .65rem;border:1px solid #cbd8d0;border-radius:9px;background:white;color:#19342e;font:inherit}.purchase-abandon-form button{max-width:100%}@media(max-width:560px){.purchase-abandon-form{flex-direction:column}.purchase-abandon-form input,.purchase-abandon-form button{width:100%}}
+
+
+/* WP3.5e accessible stock-count review */
+.stock-count-toolbar,.stock-count-actions{display:flex;align-items:end;gap:.75rem;flex-wrap:wrap;margin:1rem 0}
+.stock-count-create-form,.stock-count-add-line-form{display:grid;gap:.6rem;align-content:start;margin:1rem 0;padding:1rem;border:1px solid var(--line);border-radius:12px;background:#fbfcfa;min-width:0}.stock-count-create-form h3,.stock-count-add-line-form h3{margin:.1rem 0 .25rem;color:var(--green)}.stock-count-create-form label,.stock-count-add-line-form label{font-size:.9rem;font-weight:650}.stock-count-create-form input,.stock-count-add-line-form input,.stock-count-add-line-form select{width:100%;min-width:0;min-height:2.75rem;border:1px solid #cbd8d0;border-radius:10px;padding:.55rem .7rem;background:white;color:inherit;font:inherit}.stock-count-create-form button,.stock-count-add-line-form button{justify-self:start;white-space:normal;overflow-wrap:anywhere}
+.stock-count-session-picker{display:grid;gap:.4rem;flex:1;min-width:min(100%,16rem)}
+.stock-count-session-picker select,.stock-count-line-form input{width:100%;min-height:2.75rem;border:1px solid #cbd8d0;border-radius:10px;padding:.55rem .7rem;background:white;color:inherit;font:inherit}
+.stock-count-lines{list-style:none;padding:0;margin:1rem 0;display:grid;gap:1rem}
+.stock-count-line{border:1px solid var(--line);border-radius:14px;padding:1rem;min-width:0;background:white}
+.stock-count-line h4{margin:.1rem 0 .5rem}
+.stock-count-line p{color:var(--muted);overflow-wrap:anywhere}
+.stock-count-line-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.75rem;margin:.9rem 0;align-items:end}
+.stock-count-line-form label{display:grid;gap:.35rem;min-width:0;font-size:.9rem;font-weight:650}
+.stock-count-line-form button{justify-self:start}
+.stock-count-line input[type="checkbox"]{width:1.15rem;height:1.15rem;margin-right:.5rem;vertical-align:middle;accent-color:var(--green)}
+.stock-count-line label:has(input[type="checkbox"]){display:block;margin-top:.75rem;font-weight:650}
+.stock-count-session-summary{font-weight:700}
+.stock-count-actions button:disabled{opacity:.55;cursor:not-allowed}
+@media(max-width:560px){.stock-count-line-form{grid-template-columns:minmax(0,1fr)}.stock-count-toolbar,.stock-count-actions{align-items:stretch;flex-direction:column}.stock-count-actions button{width:100%}}

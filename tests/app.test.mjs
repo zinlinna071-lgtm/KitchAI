@@ -23,7 +23,7 @@ test("service worker caches shell assets and falls back for offline navigation",
  const assetsMatch=worker.match(/const APP_SHELL = \[([\s\S]*?)\]\.map/);
  assert.ok(assetsMatch,"service worker declares a shell asset list");
  const assets=JSON.parse(`[${assetsMatch[1].replace(/,\s*$/,"")}]`);
- for(const asset of ["","index.html","src/app.js","src/local-store.js","src/ingredient-store.js","src/menu-item-store.js","src/recipe-store.js","src/phase2-sync-engine.js","src/sync-store.js","src/sync-engine.js","src/supabase-api.js","runtime-config.js","src/styles.css","manifest.webmanifest","favicon.svg"])assert.ok(assets.includes(asset),"missing app-shell asset: "+asset);
+ for(const asset of ["","index.html","src/app.js","src/stock-count-ui.js","src/stock-count-store.js","src/stock-count-domain.js","src/local-store.js","src/ingredient-store.js","src/menu-item-store.js","src/recipe-store.js","src/phase2-sync-engine.js","src/sync-store.js","src/sync-engine.js","src/supabase-api.js","runtime-config.js","src/styles.css","manifest.webmanifest","favicon.svg"])assert.ok(assets.includes(asset),"missing app-shell asset: "+asset);
  assert.match(worker,/new URL\(asset, self\.registration\.scope\)/);assert.match(worker,/new URL\("index\.html", self\.registration\.scope\)/);
  assert.match(worker,/request\.mode === "navigate"/);assert.match(worker,/caches\.match\(INDEX_URL\)/);assert.match(worker,/request\.method !== "GET"/);
 });
@@ -60,7 +60,7 @@ test("responsive stylesheet includes small viewport, focus, and reduced-motion s
 test("production build emits every shell asset without modifying source files",async()=>{
  const sourceHtml=await read("../index.html");
  const result=spawnSync(process.execPath,["scripts/build.mjs"],{encoding:"utf8"});assert.equal(result.status,0,result.stderr);
- await Promise.all(["index.html","src/app.js","src/local-store.js","src/phase2-sync-engine.js","src/sync-store.js","src/sync-engine.js","src/supabase-api.js","runtime-config.js","src/styles.css","sw.js","manifest.webmanifest","favicon.svg"].map(path=>access(new URL("../dist/"+path,import.meta.url))));
+ await Promise.all(["index.html","src/app.js","src/stock-count-ui.js","src/stock-count-store.js","src/stock-count-domain.js","src/local-store.js","src/phase2-sync-engine.js","src/sync-store.js","src/sync-engine.js","src/supabase-api.js","runtime-config.js","src/styles.css","sw.js","manifest.webmanifest","favicon.svg"].map(path=>access(new URL("../dist/"+path,import.meta.url))));
  assert.equal(await read("../index.html"),sourceHtml);
 });
 
@@ -207,4 +207,45 @@ test("entity scope stays stable when the server assigns a different remote busin
     ownerId: "owner-1", businessId: "profile-1",
   });
   assert.throws(() => scopeForBusinessProfile({ ownerId: "owner-1", profileId: "" }), /Business Profile ID is required/);
+});
+
+
+test("stock-count review UI exposes accessible session, line, and explicit posting controls", async () => {
+ const html = await read("../index.html");
+ const app = await read("../src/app.js");
+ const ui = await read("../src/stock-count-ui.js");
+ const css = await read("../src/styles.css");
+ assert.match(html, /id="stock-count-panel"/);
+ assert.match(html, /id="stock-count-session"/);
+ assert.match(html, /id="stock-count-lines"[^>]*aria-label="Stock-count lines"/);
+ assert.match(html, /id="stock-count-state" class="profile-state" role="status" aria-live="polite"/);
+ assert.match(html, /id="stock-count-post-selected"[^>]*disabled/);
+ assert.match(html, /id="stock-count-create-form"/);
+ assert.match(html, /id="stock-count-add-line-form"/);
+ assert.match(html, /id="stock-count-item-unit"/);
+ assert.match(app, /getRemoteBusinessId: \(\) => activeSession\?\.user\?\.id/);
+ assert.match(ui, /createStockCountSession/);
+ assert.match(ui, /addStockCountLine/);
+ assert.match(ui, /listIngredients/);
+ assert.match(ui, /listMenuItems/);
+ assert.match(ui, /capture their current server quantities/);
+ assert.match(app, /initializeStockCountUI/);
+ assert.match(ui, /postReviewedStockCountSubset/);
+ assert.match(ui, /reviewedBy: context\.getSession\(\)\?\.user\?\.id/);
+ assert.match(ui, /A posting outcome is uncertain/);
+ assert.match(ui, /server-confirmed stock change/);
+ assert.match(ui, /noteInput\.maxLength = 500/);
+ assert.match(ui, /checkbox\.checked = false/);
+ assert.match(ui, /`Select \$\{line\.stockItemName\} for posting`/);
+ assert.match(ui, /!\["open", "ready_for_review"\]\.includes\(session\.status\)/);
+ assert.ok(ui.includes("pendingPost") && ui.includes("!navigator.onLine"));
+ assert.match(css, /WP3\.5e accessible stock-count review/);
+});
+
+test("stock-count UI allows retrying pending posting and refreshes state after rejection", async () => {
+  const ui = await read("../src/stock-count-ui.js");
+  assert.ok(ui.includes('postButton.textContent = pendingPost ? "Retry pending posting"'));
+  assert.ok(ui.includes("if (session?.pendingPost)"));
+  assert.ok(ui.includes("session.pendingPost.lineIds ?? session.pendingPost.command?.lines?.map(line => line.lineId)"));
+  assert.ok(ui.includes("Always reload local state: a stale rejection clears the pending command and marks lines stale."));
 });

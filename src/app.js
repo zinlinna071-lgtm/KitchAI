@@ -16,6 +16,7 @@ import { listCarryForwardDecisions, saveCarryForwardDecision, syncCarryForwardDe
 import { getFinishedStockSnapshot, listFinishedDispositions, refreshFinishedStock, saveFinishedDisposition, syncFinishedDisposition } from "./finished-stock-workflow-store.js";
 import { listProductionBatches, startProductionBatch, recordProductionBatchActualUsage, prepareProductionBatchForPosting, cancelProductionBatch, postProductionBatch } from "./production-batch-store.js";
 import { initializePurchaseUI } from "./purchase-ui.js";
+import { initializeStockCountUI } from "./stock-count-ui.js";
 
 /** @typedef {Event & { prompt: () => Promise<void> }} BeforeInstallPromptEvent */
 const connectionStatus = /** @type {HTMLParagraphElement | null} */ (document.querySelector("#connection-status"));
@@ -1803,6 +1804,12 @@ window.addEventListener("offline", () => {
   if (currentFinishedSnapshot) setFinishedStockMessage(finishedStockState, "Offline · using the last saved snapshot. New changes remain on this device until synced.");
 });
 if (carryForwardDate && !carryForwardDate.value) carryForwardDate.value = new Date().toISOString().slice(0, 10);
+
+const stockCountUI = initializeStockCountUI({
+  getScope: activeMenuScope,
+  getSession: () => activeSession,
+  getRemoteBusinessId: () => activeSession?.user?.id && currentOwnerProfile?.syncState === "synced" ? currentOwnerProfile.businessId : null,
+});
 
 const purchaseUI = initializePurchaseUI({
   getScope: activeMenuScope,

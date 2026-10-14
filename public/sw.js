@@ -1,8 +1,11 @@
-const CACHE_NAME = "kitchai-shell-v12";
+const CACHE_NAME = "kitchai-shell-v13";
 const APP_SHELL = [
 	"",
 	"index.html",
 	"src/app.js",
+	"src/stock-count-ui.js",
+	"src/stock-count-store.js",
+	"src/stock-count-domain.js",
 	"src/finished-stock-domain.js",
 	"src/finished-stock-store.js",
 	"src/finished-stock-workflow-store.js",
