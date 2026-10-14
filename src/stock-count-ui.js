@@ -29,6 +29,7 @@ export function initializeStockCountUI(context) {
   const addLineForm = $("#stock-count-add-line-form");
   const itemClassSelect = $("#stock-count-item-class");
   const itemSelect = $("#stock-count-item");
+  const itemUnitSelect = $("#stock-count-item-unit");
   const addLineButton = $("#stock-count-add-line");
   const message = (text, error = false) => {
     if (!sessionState) return;
@@ -62,7 +63,7 @@ export function initializeStockCountUI(context) {
       itemSelect.append(new Option(record.name, record.id));
     }
     if (records.some(item => item.id === previous && item.status !== "archived")) itemSelect.value = previous;
-    if (addLineButton) addLineButton.disabled = busy || !context.getSession()?.access_token || !context.getRemoteBusinessId() || !navigator.onLine || !selectedSessionId;
+
   }
 
   async function renderLines() {
@@ -210,7 +211,11 @@ export function initializeStockCountUI(context) {
       const created = await createStockCountSession(scope, remoteBusinessId, { note: sessionNote?.value ?? "" });
       selectedSessionId = created.sessionId;
       if (sessionNote) sessionNote.value = "";
-      await refresh();
+      sessions = await listStockCountSessions(scope);
+      lines = await listStockCountLines(scope, selectedSessionId);
+      if (sessionSelect) sessionSelect.value = selectedSessionId;
+      renderItemOptions();
+      await renderLines();
       message("Stock-count session created. Add items to capture their current server quantities.");
     });
   });
@@ -229,6 +234,7 @@ export function initializeStockCountUI(context) {
       if (!selected) throw new Error("Choose a stock item first.");
       await addStockCountLine(scope, selectedSessionId, {
         stockClass, stockItemId: selected.id, stockItemName: selected.name,
+        ...(itemUnitSelect?.value ? { unit: itemUnitSelect.value } : {}),
       }, session);
       lines = await listStockCountLines(scope, selectedSessionId);
       sessions = await listStockCountSessions(scope);
