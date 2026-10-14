@@ -65,7 +65,7 @@ test("populated IndexedDB v2 upgrades additively, failed legacy mapping retries,
     const module = await import("/src/business-data-store.js");
     let firstError = "";
     try { await module.openBusinessDatabase(); } catch (error) { firstError = String(error.message || error); }
-    const upgraded = await openDb("kitchai-business-data", 5, () => {});
+    const upgraded = await openDb("kitchai-business-data", 6, () => {});
     const upgradedNames = [...upgraded.objectStoreNames].sort();
     upgraded.close();
     const local = await openDb("kitchai-local", 1, (database) => database.createObjectStore("profiles", { keyPath: "id" }));
@@ -77,7 +77,7 @@ test("populated IndexedDB v2 upgrades additively, failed legacy mapping retries,
     const opened = await module.openBusinessDatabase();
     const storeNames = [...opened.objectStoreNames].sort();
     const counts = {};
-    for (const name of ["ingredients", "menuItems", "recipes", "recipeLines", "operations", "syncMetadata", "metadata", "migrationLedger", "conflicts", "stockMovements", "finishedLots", "inventoryCommands", "stockMovementLotAllocations", "productionBatches", "finishedLotHandlingEvents"]) {
+    for (const name of ["ingredients", "menuItems", "recipes", "recipeLines", "operations", "syncMetadata", "metadata", "migrationLedger", "conflicts", "stockMovements", "finishedLots", "inventoryCommands", "stockMovementLotAllocations", "productionBatches", "finishedLotHandlingEvents", "finishedStockSnapshots", "finishedStockCommands"]) {
       counts[name] = (await readAll(opened, name)).length;
     }
     const existingIngredient = (await readAll(opened, "ingredients")).find((row) => row.id === "existing-ingredient");
@@ -98,10 +98,14 @@ test("populated IndexedDB v2 upgrades additively, failed legacy mapping retries,
   expect(first.upgradedNames).toContain("stockMovements");
   expect(first.upgradedNames).toContain("productionBatches");
   expect(first.upgradedNames).toContain("finishedLotHandlingEvents");
+  expect(first.upgradedNames).toContain("finishedStockSnapshots");
+  expect(first.upgradedNames).toContain("finishedStockCommands");
   expect(first.storeNames).toContain("inventoryCommands");
   expect(first.storeNames).toContain("stockMovementLotAllocations");
   expect(first.storeNames).toContain("productionBatches");
   expect(first.storeNames).toContain("finishedLotHandlingEvents");
+  expect(first.storeNames).toContain("finishedStockSnapshots");
+  expect(first.storeNames).toContain("finishedStockCommands");
   expect(first.counts.ingredients).toBe(2);
   expect(first.counts.menuItems).toBe(1);
   expect(first.counts.recipes).toBe(1);
@@ -115,6 +119,8 @@ test("populated IndexedDB v2 upgrades additively, failed legacy mapping retries,
   expect(first.counts.stockMovementLotAllocations).toBe(0);
   expect(first.counts.productionBatches).toBe(0);
   expect(first.counts.finishedLotHandlingEvents).toBe(0);
+  expect(first.counts.finishedStockSnapshots).toBe(0);
+  expect(first.counts.finishedStockCommands).toBe(0);
   expect(first.existingIngredient.name).toBe("Existing rice");
   expect(first.importedLegacy.ownerId).toBe("local:profile-1");
   expect(first.importedLegacy.businessId).toBe("profile-1");
@@ -1364,5 +1370,33 @@ test("carry-forward decisions persist offline, sync idempotently, and keep local
     callCountAfterSync: 2,
     duplicateDidNotCallServer: true,
     inventoryEffect: "none",
+  });
+});
+
+
+test("finished stock UI is accessible and disposition records persist in the local outbox", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "Know what is still safe to sell." })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Refresh stock" })).toBeVisible();
+  await expect(page.getByLabel("Disposition", { exact: true })).toBeVisible();
+  const evidence = await page.evaluate(async () => {
+    const { saveFinishedDisposition, listFinishedDispositions } = await import("/src/finished-stock-workflow-store.js");
+    const scope = { ownerId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", businessId: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb" };
+    const command = {
+      commandId: "77777777-7777-4777-8777-777777777777",
+      businessId: "99999999-9999-4999-8999-999999999999",
+      commandType: "stock_movement",
+      payload: { movements: [{ eventId: "88888888-8888-4888-8888-888888888888" }], lots: [], allocations: [] },
+    };
+    const saved = await saveFinishedDisposition(scope, command, { dispositionType: "giveaway", quantity: "2", unit: "each" });
+    const rows = await listFinishedDispositions(scope);
+    return { state: saved.state, localBusinessId: saved.businessId, remoteBusinessId: saved.remoteBusinessId, count: rows.length, sameCommand: rows[0].command.commandId === command.commandId };
+  });
+  expect(evidence).toEqual({
+    state: "pending_sync",
+    localBusinessId: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+    remoteBusinessId: "99999999-9999-4999-8999-999999999999",
+    count: 1,
+    sameCommand: true,
   });
 });

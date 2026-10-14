@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { applyInventoryCommand } from "../src/supabase-api.js";
+import { applyInventoryCommand, readFinishedStock } from "../src/supabase-api.js";
 
 const session = {
   access_token: "test-access-token",
@@ -154,4 +154,39 @@ test("recordFinishedLotCarryForward requires authentication and rejects mismatch
     if (originalConfig === undefined) delete globalThis.KITCHAI_CONFIG;
     else globalThis.KITCHAI_CONFIG = originalConfig;
   }
+});
+
+
+test("readFinishedStock scopes both queries to the server business and normalizes immutable rows", async () => {
+  const originalFetch = globalThis.fetch;
+  const originalConfig = globalThis.KITCHAI_CONFIG;
+  const urls = [];
+  globalThis.KITCHAI_CONFIG = { supabaseUrl: "https://example.supabase.co", supabaseAnonKey: "anon" };
+  globalThis.fetch = async (url, options) => {
+    urls.push({ url: String(url), authorization: options.headers.Authorization });
+    const body = String(url).includes("/finished_lots?")
+      ? [{ lot_id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", menu_item_id: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", produced_quantity: "4.000000", unit: "each", produced_at: "2026-10-14T09:00:00+00:00" }]
+      : [{ event_id: "cccccccc-cccc-4ccc-8ccc-cccccccccccc", lot_id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", quantity: "1.000000", unit: "each" }];
+    return { ok: true, status: 200, text: async () => JSON.stringify(body) };
+  };
+  try {
+    const snapshot = await readFinishedStock(command.businessId, session);
+    assert.equal(urls.length, 2);
+    assert.ok(urls.every(item => item.url.includes("business_id=eq." + command.businessId)));
+    assert.ok(urls.every(item => item.authorization === "Bearer test-access-token"));
+    assert.equal(snapshot.lots[0].producedQuantity, "4.000000");
+    assert.equal(snapshot.lots[0].menuItemId, "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb");
+    assert.equal(snapshot.allocations[0].quantity, "1.000000");
+    assert.equal(snapshot.allocations[0].lotId, snapshot.lots[0].lotId);
+    assert.ok(Number.isFinite(Date.parse(snapshot.fetchedAt)));
+  } finally {
+    globalThis.fetch = originalFetch;
+    if (originalConfig === undefined) delete globalThis.KITCHAI_CONFIG;
+    else globalThis.KITCHAI_CONFIG = originalConfig;
+  }
+});
+
+test("readFinishedStock requires an authenticated owner and server UUID", async () => {
+  await assert.rejects(() => readFinishedStock(command.businessId, null), /sign in as the business owner/i);
+  await assert.rejects(() => readFinishedStock("local-business-id", session), /server-issued business ID/i);
 });

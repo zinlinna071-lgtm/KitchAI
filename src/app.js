@@ -11,6 +11,9 @@ import { listIngredients, saveIngredient, setIngredientStatus } from "./ingredie
 import { listMenuItems, saveMenuItem, setMenuItemStatus } from "./menu-item-store.js";
 import { listRecipes, listRecipeLines, saveRecipe, saveRecipeLine, setRecipeStatus } from "./recipe-store.js";
 import { createPhase2SyncStore, syncPhase2Operations, sendPhase2EntityOperation, readRemotePhase2Entity, normalizeRemoteEntity } from "./phase2-sync-engine.js";
+import { buildCarryForwardDecision, buildFinishedDispositionCommand, projectFinishedLotBalances } from "./finished-stock-domain.js";
+import { listCarryForwardDecisions, saveCarryForwardDecision, syncCarryForwardDecision } from "./finished-stock-store.js";
+import { getFinishedStockSnapshot, listFinishedDispositions, refreshFinishedStock, saveFinishedDisposition, syncFinishedDisposition } from "./finished-stock-workflow-store.js";
 
 /** @typedef {Event & { prompt: () => Promise<void> }} BeforeInstallPromptEvent */
 const connectionStatus = /** @type {HTMLParagraphElement | null} */ (document.querySelector("#connection-status"));
@@ -906,6 +909,7 @@ async function loadOwnerWorkspace(session) {
       setPhase2SyncState("Create or load this account’s Business Profile before syncing Phase 2 records.");
       await refreshPhase2ConflictView();
     }
+    await refreshFinishedStockView(true);
   } catch (error) {
     setProfileState("Account workspace could not be loaded. Existing local data is preserved. " + (error instanceof Error ? error.message : ""), true);
   }
@@ -930,6 +934,7 @@ async function loadLocalProfile() {
     await refreshIngredientView();
     await refreshMenuView();
     await refreshRecipeView();
+    await refreshFinishedStockView(false);
     await runPhase2EntitySync();
   } catch (error) {
     setProfileState(error instanceof Error
@@ -1219,6 +1224,348 @@ useRemoteButton?.addEventListener("click", () => { void resolveConflictChoice("u
 window.addEventListener("online", () => { if (activeSession) void runSync(); else void runPhase2EntitySync(); });
 window.addEventListener("offline", () => { setPhase2SyncState("Offline. Phase 2 changes remain queued locally and will retry when online."); });
 phase2SyncButton?.addEventListener("click", () => { if (activeSession) void runSync(); else void runPhase2EntitySync(); });
+
+
+const finishedStockState = /** @type {HTMLParagraphElement | null} */ (document.querySelector("#finished-stock-state"));
+const finishedStockRefreshButton = /** @type {HTMLButtonElement | null} */ (document.querySelector("#finished-stock-refresh"));
+const finishedStockList = /** @type {HTMLUListElement | null} */ (document.querySelector("#finished-stock-list"));
+const finishedDispositionForm = /** @type {HTMLFormElement | null} */ (document.querySelector("#finished-disposition-form"));
+const finishedDispositionType = /** @type {HTMLSelectElement | null} */ (document.querySelector("#finished-disposition-type"));
+const finishedDispositionLot = /** @type {HTMLSelectElement | null} */ (document.querySelector("#finished-disposition-lot"));
+const finishedDispositionQuantity = /** @type {HTMLInputElement | null} */ (document.querySelector("#finished-disposition-quantity"));
+const finishedDispositionReason = /** @type {HTMLTextAreaElement | null} */ (document.querySelector("#finished-disposition-reason"));
+const finishedDispositionUnit = /** @type {HTMLParagraphElement | null} */ (document.querySelector("#finished-disposition-unit"));
+const finishedDispositionSubmit = /** @type {HTMLButtonElement | null} */ (document.querySelector("#finished-disposition-submit"));
+const finishedDispositionState = /** @type {HTMLParagraphElement | null} */ (document.querySelector("#finished-disposition-state"));
+const finishedDispositionList = /** @type {HTMLUListElement | null} */ (document.querySelector("#finished-disposition-list"));
+const carryForwardForm = /** @type {HTMLFormElement | null} */ (document.querySelector("#carry-forward-form"));
+const carryForwardLot = /** @type {HTMLSelectElement | null} */ (document.querySelector("#carry-forward-lot"));
+const carryForwardDate = /** @type {HTMLInputElement | null} */ (document.querySelector("#carry-forward-date"));
+const carryForwardSafe = /** @type {HTMLInputElement | null} */ (document.querySelector("#carry-forward-safe"));
+const carryForwardReason = /** @type {HTMLTextAreaElement | null} */ (document.querySelector("#carry-forward-reason"));
+const carryForwardSubmit = /** @type {HTMLButtonElement | null} */ (document.querySelector("#carry-forward-submit"));
+const carryForwardState = /** @type {HTMLParagraphElement | null} */ (document.querySelector("#carry-forward-state"));
+const carryForwardList = /** @type {HTMLUListElement | null} */ (document.querySelector("#carry-forward-list"));
+let currentFinishedSnapshot = null;
+/** @type {readonly any[]} */
+let currentFinishedBalances = [];
+let currentFinishedMenuNames = new Map();
+
+function setFinishedStockMessage(target, message, isError = false) {
+  if (!target) return;
+  target.textContent = message;
+  target.classList.toggle("is-error", isError);
+}
+
+function finishedLotLabel(lot, menuNames) {
+  const name = menuNames.get(lot.menuItemId) ?? "Finished menu item";
+  const date = lot.producedAt ? new Date(lot.producedAt).toLocaleString() : "production time unavailable";
+  return name + " · " + lot.remainingQuantity + " " + lot.unit + " remaining · " + date;
+}
+
+function appendFinishedHistoryItem(list, titleText, detailText, stateText, actionLabel, action) {
+  if (!list) return;
+  const item = document.createElement("li");
+  item.className = "finished-stock-card";
+  const copy = document.createElement("div");
+  const title = document.createElement("strong");
+  title.textContent = titleText;
+  const detail = document.createElement("p");
+  detail.textContent = detailText;
+  const state = document.createElement("p");
+  state.textContent = stateText;
+  copy.append(title, detail, state);
+  item.append(copy);
+  if (actionLabel && action) {
+    const actions = document.createElement("div");
+    actions.className = "finished-stock-card-actions";
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "button button-secondary";
+    button.textContent = actionLabel;
+    button.addEventListener("click", action);
+    actions.append(button);
+    item.append(actions);
+  }
+  list.append(item);
+}
+
+function renderFinishedStockLists() {
+  if (!currentFinishedSnapshot) {
+    finishedStockList?.replaceChildren();
+    if (finishedDispositionLot) setSelectOptions(finishedDispositionLot, [], "Load a stock snapshot first", "");
+    if (carryForwardLot) setSelectOptions(carryForwardLot, [], "Load a stock snapshot first", "");
+    if (finishedDispositionSubmit) finishedDispositionSubmit.disabled = true;
+    if (carryForwardSubmit) carryForwardSubmit.disabled = true;
+    return;
+  }
+  const usable = currentFinishedBalances.filter(lot => Number(lot.remainingQuantity) > 0);
+  const options = usable.map(lot => ({ value: lot.lotId, label: finishedLotLabel(lot, currentFinishedMenuNames) }));
+  if (finishedDispositionLot) setSelectOptions(finishedDispositionLot, options, options.length ? "Choose a finished lot" : "No remaining finished stock", finishedDispositionLot.value);
+  if (carryForwardLot) setSelectOptions(carryForwardLot, options, options.length ? "Choose a lot to carry forward" : "No remaining finished stock", carryForwardLot.value);
+  const canRecord = Boolean(activeSession?.user?.id && currentOwnerProfile?.syncState === "synced" && currentFinishedSnapshot.remoteBusinessId);
+  if (finishedDispositionSubmit) finishedDispositionSubmit.disabled = !canRecord || !usable.length;
+  if (carryForwardSubmit) carryForwardSubmit.disabled = !canRecord || !usable.length;
+  if (finishedStockList) {
+    finishedStockList.replaceChildren();
+    if (!currentFinishedBalances.length) {
+      const empty = document.createElement("li");
+      empty.className = "finished-stock-card";
+      empty.textContent = "No production lots found for this business yet.";
+      finishedStockList.append(empty);
+    }
+    for (const lot of currentFinishedBalances) {
+      const item = document.createElement("li");
+      item.className = "finished-stock-card";
+      const copy = document.createElement("div");
+      const title = document.createElement("strong");
+      title.textContent = currentFinishedMenuNames.get(lot.menuItemId) ?? "Finished menu item";
+      const detail = document.createElement("p");
+      detail.textContent = "Produced " + lot.producedQuantity + " " + lot.unit + " · Allocated " + lot.allocatedQuantity + " " + lot.unit + " · Remaining " + lot.remainingQuantity + " " + lot.unit;
+      const date = document.createElement("p");
+      date.textContent = lot.producedAt ? "Produced " + new Date(lot.producedAt).toLocaleString() : "Production time unavailable";
+      copy.append(title, detail, date);
+      const actions = document.createElement("div");
+      actions.className = "finished-stock-card-actions";
+      const use = document.createElement("button");
+      use.type = "button"; use.className = "button button-secondary"; use.textContent = "Record disposition";
+      use.disabled = Number(lot.remainingQuantity) <= 0;
+      use.addEventListener("click", () => {
+        if (finishedDispositionLot) finishedDispositionLot.value = lot.lotId;
+        if (finishedDispositionQuantity) finishedDispositionQuantity.value = lot.remainingQuantity;
+        updateFinishedDispositionUnit();
+        finishedDispositionForm?.scrollIntoView({ behavior: "smooth", block: "center" });
+      });
+      const carry = document.createElement("button");
+      carry.type = "button"; carry.className = "button button-secondary"; carry.textContent = "Carry forward";
+      carry.disabled = Number(lot.remainingQuantity) <= 0;
+      carry.addEventListener("click", () => {
+        if (carryForwardLot) carryForwardLot.value = lot.lotId;
+        carryForwardForm?.scrollIntoView({ behavior: "smooth", block: "center" });
+      });
+      actions.append(use, carry);
+      item.append(copy, actions);
+      finishedStockList.append(item);
+    }
+  }
+  void renderFinishedStockHistory();
+  updateFinishedDispositionUnit();
+}
+
+function updateFinishedDispositionUnit() {
+  const lot = currentFinishedBalances.find(item => item.lotId === finishedDispositionLot?.value);
+  if (finishedDispositionUnit) finishedDispositionUnit.textContent = lot
+    ? "Unit: " + lot.unit + " · Remaining: " + lot.remainingQuantity + " " + lot.unit
+    : "Select a lot to see its unit and remaining quantity.";
+  if (lot && finishedDispositionQuantity && (!finishedDispositionQuantity.value || Number(finishedDispositionQuantity.value) > Number(lot.remainingQuantity))) {
+    finishedDispositionQuantity.value = lot.remainingQuantity;
+  }
+}
+
+async function renderFinishedStockHistory() {
+  const scope = activeMenuScope();
+  if (!scope) {
+    finishedDispositionList?.replaceChildren();
+    carryForwardList?.replaceChildren();
+    return;
+  }
+  const [dispositions, carryEvents] = await Promise.all([
+    listFinishedDispositions(scope).catch(() => []),
+    listCarryForwardDecisions(scope).catch(() => []),
+  ]);
+  if (finishedDispositionList) {
+    finishedDispositionList.replaceChildren();
+    if (!dispositions.length) {
+      const empty = document.createElement("li"); empty.className = "finished-stock-card"; empty.textContent = "No local disposition records yet."; finishedDispositionList.append(empty);
+    }
+    for (const record of dispositions) {
+      const title = record.dispositionType.replaceAll("_", " ");
+      const detail = record.quantity + " " + record.unit + (record.reason ? " · " + record.reason : "") + " · " + new Date(record.createdAt).toLocaleString();
+      const action = record.state === "synced" || !activeSession ? null : () => void retryFinishedDisposition(record.commandId);
+      appendFinishedHistoryItem(finishedDispositionList, title, detail, "Sync: " + record.state + (record.lastError ? " · " + record.lastError : ""), action ? "Retry sync" : "", action);
+    }
+  }
+  if (carryForwardList) {
+    carryForwardList.replaceChildren();
+    if (!carryEvents.length) {
+      const empty = document.createElement("li"); empty.className = "finished-stock-card"; empty.textContent = "No carry-forward decisions yet."; carryForwardList.append(empty);
+    }
+    for (const record of carryEvents) {
+      const detail = record.quantity + " " + record.unit + " · carry-forward date " + record.carryForwardDate + " · " + new Date(record.confirmedAt).toLocaleString();
+      const action = record.state === "synced" || !activeSession ? null : () => void retryCarryForward(record.eventId);
+      appendFinishedHistoryItem(carryForwardList, "Carry-forward suitability confirmed", detail, "Sync: " + (record.state ?? record.syncState ?? "pending_sync") + (record.lastError ? " · " + record.lastError : ""), action ? "Retry sync" : "", action);
+    }
+  }
+}
+
+async function refreshFinishedStockView(refreshRemote = true) {
+  const scope = activeMenuScope();
+  if (!scope) {
+    currentFinishedSnapshot = null;
+    currentFinishedBalances = [];
+    renderFinishedStockLists();
+    setFinishedStockMessage(finishedStockState, "Create or load a business profile to use finished stock.");
+    return;
+  }
+  let message = "";
+  let isError = false;
+  if (refreshRemote && activeSession && navigator.onLine && currentOwnerProfile?.syncState === "synced" && currentOwnerProfile.businessId) {
+    try {
+      currentFinishedSnapshot = await refreshFinishedStock(scope, currentOwnerProfile.businessId, activeSession);
+      message = "Stock refreshed from the server · " + new Date(currentFinishedSnapshot.fetchedAt).toLocaleString() + ".";
+    } catch (error) {
+      currentFinishedSnapshot = await getFinishedStockSnapshot(scope).catch(() => null);
+      message = "Could not refresh stock. " + (currentFinishedSnapshot ? "Showing the last saved snapshot. " : "") + (error instanceof Error ? error.message : "Network or server error.");
+      isError = true;
+    }
+  } else {
+    currentFinishedSnapshot = await getFinishedStockSnapshot(scope).catch(() => null);
+    message = currentFinishedSnapshot
+      ? (navigator.onLine ? "Showing the last saved stock snapshot · " : "Offline · showing the last saved stock snapshot · ") + new Date(currentFinishedSnapshot.fetchedAt).toLocaleString() + "."
+      : activeSession ? "No finished-stock snapshot is cached yet. Connect to refresh stock." : "Sign in and sync the business profile to load server-authoritative finished stock.";
+  }
+  const menuItems = await listMenuItems(scope).catch(() => []);
+  currentFinishedMenuNames = new Map(menuItems.map(item => [item.id, item.name]));
+  currentFinishedBalances = currentFinishedSnapshot
+    ? projectFinishedLotBalances(currentFinishedSnapshot.lots, currentFinishedSnapshot.allocations)
+    : [];
+  renderFinishedStockLists();
+  setFinishedStockMessage(finishedStockState, message, isError);
+}
+
+async function retryFinishedDisposition(commandId) {
+  const scope = activeMenuScope();
+  if (!scope || !activeSession) return;
+  try {
+    await syncFinishedDisposition(scope, commandId, activeSession);
+    setFinishedStockMessage(finishedDispositionState, "Disposition synced. Refreshing authoritative stock.");
+    await refreshFinishedStockView(true);
+  } catch (error) {
+    setFinishedStockMessage(finishedDispositionState, "The local record is preserved; sync can be retried. " + (error instanceof Error ? error.message : ""), true);
+    await renderFinishedStockHistory();
+  }
+}
+
+async function retryCarryForward(eventId) {
+  const scope = activeMenuScope();
+  if (!scope || !activeSession) return;
+  try {
+    await syncCarryForwardDecision(scope, eventId, activeSession);
+    setFinishedStockMessage(carryForwardState, "Carry-forward decision synced. Inventory quantity is unchanged.");
+    await renderFinishedStockHistory();
+  } catch (error) {
+    setFinishedStockMessage(carryForwardState, "The local decision is preserved; sync can be retried. " + (error instanceof Error ? error.message : ""), true);
+    await renderFinishedStockHistory();
+  }
+}
+
+finishedStockRefreshButton?.addEventListener("click", () => { void refreshFinishedStockView(true); });
+finishedDispositionLot?.addEventListener("change", updateFinishedDispositionUnit);
+finishedDispositionType?.addEventListener("change", () => {
+  if (finishedDispositionReason) finishedDispositionReason.required = ["discounted_sale", "waste"].includes(finishedDispositionType.value);
+});
+finishedDispositionForm?.addEventListener("submit", async event => {
+  event.preventDefault();
+  const scope = activeMenuScope();
+  const snapshot = currentFinishedSnapshot;
+  const lot = currentFinishedBalances.find(item => item.lotId === finishedDispositionLot?.value);
+  if (!scope || !activeSession || !snapshot?.remoteBusinessId || !lot || !finishedDispositionType || !finishedDispositionQuantity) {
+    setFinishedStockMessage(finishedDispositionState, "Load a synced stock snapshot and select a finished lot first.", true);
+    return;
+  }
+  if (finishedDispositionSubmit) finishedDispositionSubmit.disabled = true;
+  try {
+    const dispositionType = finishedDispositionType.value;
+    const quantity = finishedDispositionQuantity.value.trim();
+    const saleId = ["sale", "discounted_sale"].includes(dispositionType) ? crypto.randomUUID() : undefined;
+    const command = buildFinishedDispositionCommand({
+      businessId: snapshot.remoteBusinessId,
+      dispositionId: crypto.randomUUID(),
+      dispositionType,
+      quantity,
+      unit: lot.unit,
+      allocations: [{ lotId: lot.lotId, quantity, unit: lot.unit }],
+      lots: snapshot.lots,
+      priorAllocations: snapshot.allocations,
+      ...(saleId ? { saleId } : {}),
+      ...(finishedDispositionReason?.value.trim() ? { reason: finishedDispositionReason.value.trim() } : {}),
+    });
+    const saved = await saveFinishedDisposition(scope, command, {
+      dispositionType, quantity, unit: lot.unit,
+      ...(saleId ? { saleId } : {}),
+      ...(finishedDispositionReason?.value.trim() ? { reason: finishedDispositionReason.value.trim() } : {}),
+    });
+    if (navigator.onLine) {
+      try {
+        await syncFinishedDisposition(scope, saved.commandId, activeSession);
+        setFinishedStockMessage(finishedDispositionState, "Stock disposition synced. Refreshing the server-authoritative balance.");
+        await refreshFinishedStockView(true);
+      } catch (error) {
+        setFinishedStockMessage(finishedDispositionState, "Saved on this device; server sync is pending. " + (error instanceof Error ? error.message : ""), true);
+      }
+    } else {
+      setFinishedStockMessage(finishedDispositionState, "Saved on this device while offline. It will remain queued until you retry sync.");
+    }
+    if (finishedDispositionReason) finishedDispositionReason.value = "";
+    await renderFinishedStockHistory();
+  } catch (error) {
+    setFinishedStockMessage(finishedDispositionState, error instanceof Error ? error.message : "Could not save this disposition.", true);
+  } finally {
+    if (finishedDispositionSubmit) finishedDispositionSubmit.disabled = false;
+    renderFinishedStockLists();
+  }
+});
+
+carryForwardForm?.addEventListener("submit", async event => {
+  event.preventDefault();
+  const scope = activeMenuScope();
+  const snapshot = currentFinishedSnapshot;
+  const lot = currentFinishedBalances.find(item => item.lotId === carryForwardLot?.value);
+  if (!scope || !activeSession || !snapshot?.remoteBusinessId || !lot || !carryForwardDate || !carryForwardSafe?.checked) {
+    setFinishedStockMessage(carryForwardState, "Choose a lot, date, and explicitly confirm that the food is safe and suitable to keep.", true);
+    return;
+  }
+  if (carryForwardSubmit) carryForwardSubmit.disabled = true;
+  try {
+    const decision = buildCarryForwardDecision({
+      businessId: snapshot.remoteBusinessId,
+      lotId: lot.lotId,
+      remainingQuantity: lot.remainingQuantity,
+      unit: lot.unit,
+      suitable: true,
+      confirmedAt: new Date().toISOString(),
+      carryForwardDate: carryForwardDate.value,
+      ...(carryForwardReason?.value.trim() ? { reason: carryForwardReason.value.trim() } : {}),
+      lots: snapshot.lots,
+      priorAllocations: snapshot.allocations,
+    });
+    const saved = await saveCarryForwardDecision(scope, decision);
+    if (navigator.onLine) {
+      try {
+        await syncCarryForwardDecision(scope, saved.eventId, activeSession);
+        setFinishedStockMessage(carryForwardState, "Carry-forward decision synced. Stock quantity remains unchanged.");
+      } catch (error) {
+        setFinishedStockMessage(carryForwardState, "Decision saved locally; cloud sync is pending. " + (error instanceof Error ? error.message : ""), true);
+      }
+    } else {
+      setFinishedStockMessage(carryForwardState, "Decision saved locally while offline; sync can be retried later.");
+    }
+    if (carryForwardSafe) carryForwardSafe.checked = false;
+    if (carryForwardReason) carryForwardReason.value = "";
+    await renderFinishedStockHistory();
+  } catch (error) {
+    setFinishedStockMessage(carryForwardState, error instanceof Error ? error.message : "Could not record carry-forward.", true);
+  } finally {
+    if (carryForwardSubmit) carryForwardSubmit.disabled = false;
+    renderFinishedStockLists();
+  }
+});
+
+window.addEventListener("online", () => { void refreshFinishedStockView(true); });
+window.addEventListener("offline", () => {
+  if (currentFinishedSnapshot) setFinishedStockMessage(finishedStockState, "Offline · using the last saved snapshot. New changes remain on this device until synced.");
+});
+if (carryForwardDate && !carryForwardDate.value) carryForwardDate.value = new Date().toISOString().slice(0, 10);
 
 updateAuthControls();
 void (async () => {
