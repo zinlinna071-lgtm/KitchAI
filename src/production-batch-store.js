@@ -370,3 +370,201 @@ export function cancelProductionBatch(scope, batchId, reason) {
     return batch;
   });
 }
+
+
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+/** @param {unknown} value @param {string} label */
+function requireUuid(value, label) {
+  const text = requireText(value, label);
+  if (!UUID_PATTERN.test(text)) throw new TypeError(label + " must be a UUID before cloud posting.");
+  return text;
+}
+
+/**
+ * Build a stable server command from the frozen recipe snapshot and explicit actual-usage decisions.
+ * Call once and persist the returned command before any network request; retries must reuse it verbatim.
+ * @param {any} batch
+ * @param {{commandId?:string,occurredAt?:string,outputEventId?:string,lotId?:string}} [options]
+ */
+export function buildProductionInventoryCommand(batch, options = {}) {
+  if (!batch || !["ready_to_post", "posting", "failed_to_post"].includes(batch.state)) {
+    throw new Error("Only a prepared production batch can be posted.");
+  }
+  const batchId = requireUuid(batch.batchId, "Production batch ID");
+  const businessId = requireUuid(batch.businessId, "Business ID");
+  if (!batch.snapshot?.snapshotId || !Array.isArray(batch.snapshot.lines) || batch.snapshot.lines.length === 0) {
+    throw new Error("A valid immutable recipe snapshot is required for posting.");
+  }
+  const actualUsage = validateActualUsage(batch.snapshot, batch.actualUsage);
+  const output = validateProductionOutput(batch.output);
+  if (output.productId !== batch.snapshot.menuItemId) {
+    throw new Error("Production output must match the menu item captured in the recipe snapshot.");
+  }
+  const menuItemId = requireUuid(output.productId, "Finished menu item ID");
+  const commandId = requireUuid(options.commandId ?? crypto.randomUUID(), "Inventory command ID");
+  const occurredAt = options.occurredAt ?? new Date().toISOString();
+  if (!Number.isFinite(Date.parse(occurredAt))) throw new TypeError("Production posting timestamp must be valid.");
+  const timestamp = new Date(occurredAt).toISOString();
+  const usageByLine = new Map(actualUsage.map((entry) => [entry.lineId, entry]));
+  const movements = [];
+
+  for (const line of [...batch.snapshot.lines].sort((a, b) => a.position - b.position || a.lineId.localeCompare(b.lineId))) {
+    const usage = usageByLine.get(line.lineId);
+    if (!usage || usage.disposition === "not_used") continue;
+    const ingredientId = requireUuid(line.ingredientId, "Ingredient stock ID");
+    const eventId = crypto.randomUUID();
+    const reasons = [
+      usage.disposition === "accepted_estimate" ? "Accepted estimate: " + usage.note : "",
+      usage.varianceReason ? "Variance: " + usage.varianceReason : "",
+      usage.disposition === "measured" && usage.note ? "Operator note: " + usage.note : "",
+    ].filter(Boolean);
+    movements.push({
+      eventId,
+      stockItemId: ingredientId,
+      stockClass: "ingredient",
+      kind: "production_consumption",
+      direction: "out",
+      quantity: usage.quantity,
+      unit: usage.unit,
+      sourceType: "production_batch",
+      sourceId: batchId,
+      ...(reasons.length ? { reason: reasons.join("; ") } : {}),
+      recordedAt: timestamp,
+      effectiveAt: timestamp,
+    });
+  }
+
+  const outputEventId = requireUuid(options.outputEventId ?? crypto.randomUUID(), "Production output event ID");
+  const lotId = requireUuid(options.lotId ?? crypto.randomUUID(), "Finished lot ID");
+  movements.push({
+    eventId: outputEventId,
+    stockItemId: menuItemId,
+    stockClass: "finished",
+    kind: "production_output",
+    direction: "in",
+    quantity: output.quantity,
+    unit: output.unit,
+    sourceType: "production_batch",
+    sourceId: batchId,
+    recordedAt: timestamp,
+    effectiveAt: timestamp,
+  });
+
+  return {
+    commandId,
+    businessId,
+    commandType: "stock_movement",
+    payload: {
+      movements,
+      lots: [{
+        lotId,
+        menuItemId,
+        batchId,
+        outputEventId,
+        producedQuantity: output.quantity,
+        unit: output.unit,
+        producedAt: timestamp,
+      }],
+      allocations: [],
+    },
+  };
+}
+
+/**
+ * Submit a prepared batch to the trusted Supabase inventory RPC.
+ * The exact command is saved locally before the network call and reused after failures/reloads.
+ * @param {{ownerId:string,businessId:string}} scope
+ * @param {string} batchId
+ * @param {any} session
+ */
+export async function postProductionBatch(scope, batchId, session) {
+  const partition = normalizeScope(scope);
+  requireText(batchId, "Batch ID");
+  if (!session?.access_token || !session?.user?.id || session.user.id !== partition.ownerId) {
+    throw new Error("Sign in as the owner of this business before posting production.");
+  }
+  const { applyInventoryCommand } = await import("./supabase-api.js");
+  const queued = await mutateProductionBatch(partition, batchId, (batch) => {
+    if (batch.state === "completed") return batch;
+    if (!["ready_to_post", "posting", "failed_to_post"].includes(batch.state)) {
+      throw new Error("Only a prepared batch can be posted or retried.");
+    }
+    if (batch.posting?.command) {
+      // Never rebuild a command after an ambiguous network result: its idempotency key and payload stay fixed.
+      batch.state = "posting";
+      batch.posting.status = "pending";
+      batch.posting.lastAttemptAt = new Date().toISOString();
+      batch.updatedAt = batch.posting.lastAttemptAt;
+      return batch;
+    }
+    const command = buildProductionInventoryCommand(batch);
+    const attemptedAt = new Date().toISOString();
+    batch.posting = {
+      status: "pending",
+      command,
+      attemptCount: 1,
+      firstAttemptAt: attemptedAt,
+      lastAttemptAt: attemptedAt,
+    };
+    batch.state = "posting";
+    batch.updatedAt = attemptedAt;
+    batch.events = [...(batch.events ?? []), {
+      eventId: crypto.randomUUID(), type: "posting_started", occurredAt: attemptedAt,
+      snapshotId: batch.snapshot.snapshotId, commandId: command.commandId,
+    }];
+    return batch;
+  });
+
+  if (queued.state === "completed") return queued;
+  const command = queued.posting?.command;
+  if (!command) throw new Error("Production posting command was not persisted.");
+  try {
+    const result = await applyInventoryCommand(command, session);
+    const completedAt = new Date().toISOString();
+    return await mutateProductionBatch(partition, batchId, (batch) => {
+      if (batch.state === "completed") return batch;
+      if (batch.posting?.command?.commandId !== command.commandId) {
+        throw new Error("The persisted production command changed while posting; manual review is required.");
+      }
+      batch.state = "completed";
+      batch.completedAt = completedAt;
+      batch.updatedAt = completedAt;
+      batch.posting = {
+        ...batch.posting,
+        status: "accepted",
+        acceptedAt: completedAt,
+        result: structuredClone(result),
+      };
+      batch.events = [...(batch.events ?? []), {
+        eventId: crypto.randomUUID(), type: "production_posted", occurredAt: completedAt,
+        snapshotId: batch.snapshot.snapshotId, commandId: command.commandId,
+        movementCount: result.movementCount, lotCount: result.lotCount,
+      }];
+      return batch;
+    });
+  } catch (error) {
+    const failedAt = new Date().toISOString();
+    await mutateProductionBatch(partition, batchId, (batch) => {
+      if (batch.state === "completed" || batch.posting?.command?.commandId !== command.commandId) return batch;
+      const attemptCount = (batch.posting?.attemptCount ?? 1) + 1;
+      const message = error instanceof Error ? error.message : "Production posting failed.";
+      batch.state = "failed_to_post";
+      batch.updatedAt = failedAt;
+      batch.posting = {
+        ...batch.posting,
+        status: "failed",
+        attemptCount,
+        lastAttemptAt: failedAt,
+        lastError: message.slice(0, 500),
+      };
+      batch.events = [...(batch.events ?? []), {
+        eventId: crypto.randomUUID(), type: "posting_failed", occurredAt: failedAt,
+        snapshotId: batch.snapshot.snapshotId, commandId: command.commandId,
+        attemptCount, message: message.slice(0, 500),
+      }];
+      return batch;
+    });
+    throw error;
+  }
+}
