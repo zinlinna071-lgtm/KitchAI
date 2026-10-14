@@ -1247,6 +1247,7 @@ const carryForwardSubmit = /** @type {HTMLButtonElement | null} */ (document.que
 const carryForwardState = /** @type {HTMLParagraphElement | null} */ (document.querySelector("#carry-forward-state"));
 const carryForwardList = /** @type {HTMLUListElement | null} */ (document.querySelector("#carry-forward-list"));
 let currentFinishedSnapshot = null;
+/** @type {readonly any[]} */
 let currentFinishedBalances = [];
 let currentFinishedMenuNames = new Map();
 
