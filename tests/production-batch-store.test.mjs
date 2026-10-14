@@ -100,21 +100,22 @@ test("actual usage requires one explicit, valid decision per stable snapshot lin
   assert.equal(usage.find((line) => line.lineId === "taste").quantity, "0.004");
   assert.throws(() => validateActualUsage(snapshot, usage.slice(0, 2)), /every recipe line/);
   assert.throws(() => validateActualUsage(snapshot, [...usage, usage[0]]), /every recipe line/);
+  const byId = Object.fromEntries(usage.map((line) => [line.lineId, line]));
   assert.throws(() => validateActualUsage(snapshot, [
     { lineId: "exact", disposition: "measured", quantity: "0.9", unit: "kg" },
-    usage[1], usage[2],
+    byId.estimate, byId.taste,
   ]), /variance reason/);
   assert.throws(() => validateActualUsage(snapshot, [
-    usage[0],
+    byId.exact,
     { lineId: "estimate", disposition: "accepted_estimate", quantity: "0.2", unit: "l" },
-    usage[2],
+    byId.taste,
   ]), /operator note/);
   assert.throws(() => validateActualUsage(snapshot, [
-    usage[0], usage[1],
+    byId.exact, byId.estimate,
     { lineId: "taste", disposition: "not_used", note: "" },
   ]), /reason/);
   assert.throws(() => validateActualUsage(snapshot, [
-    usage[0], usage[1],
+    byId.exact, byId.estimate,
     { lineId: "taste", disposition: "measured", quantity: "0.004", unit: "kg" },
   ]), /snapshot unit/);
 });
