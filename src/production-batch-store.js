@@ -317,6 +317,8 @@ export function recordProductionBatchActualUsage(scope, batchId, entries) {
     batch.events = [...(batch.events ?? []), {
       eventId: crypto.randomUUID(), type: "actual_usage_recorded", occurredAt,
       snapshotId: batch.snapshot.snapshotId, lineCount: actualUsage.length,
+      // Preserve the prior decision set for audit if an operator records a later revision.
+      actualUsage: structuredClone(actualUsage),
     }];
     return batch;
   });
