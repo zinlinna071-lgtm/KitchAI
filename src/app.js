@@ -1026,6 +1026,8 @@ ingredientForm?.addEventListener("submit", async (event) => {
     resetIngredientForm();
     await refreshIngredientView();
     await refreshRecipeView();
+    // Keep the stock-count item picker in sync with newly created or edited ingredients.
+    await stockCountUI.refresh();
     setIngredientState(entitySaveMessage());
     if (activeSession) void runSync();
   } catch (error) {
@@ -1059,7 +1061,9 @@ menuItemForm?.addEventListener("submit", async (event) => {
     });
     resetMenuItemForm();
     await refreshMenuView();
-      await refreshRecipeView();
+    await refreshRecipeView();
+    // Keep the finished-stock item picker in sync with newly created or edited menu items.
+    await stockCountUI.refresh();
     setMenuItemState(entitySaveMessage());
     if (activeSession) void runSync();
   } catch (error) {
