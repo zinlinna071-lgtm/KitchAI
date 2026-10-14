@@ -11,7 +11,7 @@
 <header class="topbar"><a class="brand" href="__KITCHAI_BASE_PATH__" aria-label="KitchAI home"><span class="brand-mark" aria-hidden="true">K</span><span>KitchAI</span></a>
 <div class="topbar-actions"><p id="connection-status" class="connection-status" role="status" aria-live="polite"><span class="status-dot" aria-hidden="true"></span> Checking connection…</p><button id="install-button" class="button button-secondary" type="button" hidden>Install app</button></div></header>
 <main id="main" class="page-shell" tabindex="-1">
-<section class="welcome" aria-labelledby="welcome-title"><p class="eyebrow">YOUR KITCHEN WORKSPACE</p><h1 id="welcome-title">Good work starts with a clear view.</h1><p class="welcome-copy">A local-first workspace foundation for kitchen operations. Business Profile sync, safe retries, and conflict review are implemented; full operational pages arrive in later phases.</p></section>
+<section class="welcome" aria-labelledby="welcome-title"><p class="eyebrow">YOUR KITCHEN WORKSPACE</p><h1 id="welcome-title">Good work starts with a clear view.</h1><p class="welcome-copy">An offline-first kitchen workspace for business records, recipe-based production batches, and finished-stock handling. Inventory changes are posted atomically and remain auditable.</p></section>
 <section class="status-grid" aria-label="Workspace readiness">
 <article class="status-card status-card-primary"><div class="card-icon" aria-hidden="true">✓</div><p class="card-label">APP SHELL</p><h2>Ready to open</h2><p>The core interface is available without needing a cloud connection.</p><span class="card-foot"><span class="status-dot" aria-hidden="true"></span>Local interface</span></article>
 <article class="status-card"><div class="card-icon card-icon-muted" aria-hidden="true">▤</div><p class="card-label">BUSINESS PROFILE</p><h2>Local-first record</h2><p>Create a profile locally or manage an account-scoped profile when local Supabase is configured.</p><span class="card-foot">Sync requires account connection</span></article>
@@ -100,6 +100,17 @@
 <p id="recipe-line-state" class="profile-state" role="status" aria-live="polite">Select a recipe to manage its ingredient lines.</p>
 </form>
 <ul id="recipe-line-list" class="ingredient-list" aria-label="Recipe ingredient lines"></ul>
+</div>
+</section>
+<section id="production-panel" class="profile-editor production-panel" aria-labelledby="production-title">
+<div class="profile-editor-heading"><p class="eyebrow">PHASE 3 · PRODUCTION</p><h2 id="production-title">Make a batch from a recipe.</h2><p>Starting a batch captures an immutable recipe snapshot. Record actual usage for every line before preparing the output. Only a server-confirmed atomic post changes inventory.</p></div>
+<div class="production-workspace">
+<form id="production-start-form" class="profile-form">
+<label for="production-recipe">Active recipe</label><select id="production-recipe" required><option value="">Choose an active recipe</option></select>
+<button id="production-start-button" class="button button-primary" type="submit">Start production batch</button>
+<p id="production-state" class="profile-state" role="status" aria-live="polite">Save or load a business profile and activate a recipe to start a batch.</p>
+</form>
+<div class="production-batch-panel"><h3>Production batches</h3><p id="production-list-state" class="profile-state" role="status" aria-live="polite">No business workspace selected.</p><ul id="production-batch-list" class="production-batch-list" aria-label="Production batches"></ul></div>
 </div>
 </section>
 <section id="finished-stock-panel" class="profile-editor finished-stock-panel" aria-labelledby="finished-stock-title">
