@@ -58,21 +58,23 @@ export function buildStockCountLine(input) {
   if (stockItemName.length > 120) throw new RangeError("Stock item name must not exceed 120 characters.");
   const version = requireText(input.version, "Snapshot version");
   if (!/^\d+$/.test(version)) throw new TypeError("Snapshot version must be a non-negative integer string.");
-  const systemQuantity = normalizeQuantity(input.systemQuantity, { unit: input.unit, stockClass, positive: false }).quantity;
   const unit = normalizeUnit(input.unit);
+  const system = normalizeQuantity(input.systemQuantity, { unit, stockClass, positive: false });
+  if (unit === "each" && system.scaled % 1000000n !== 0n) throw new RangeError("System quantities in each must be whole numbers.");
+  const systemQuantity = system.quantity;
   const snapshotAt = requireUtc(input.snapshotAt, "Snapshot timestamp");
   const note = typeof input.note === "string" ? input.note.trim() : "";
   if (note.length > 500) throw new RangeError("Count-line note must not exceed 500 characters.");
   return Object.freeze({
     lineId, sessionId, stockClass, stockItemId, stockItemName, version,
     systemQuantity, unit, snapshotAt,
-    countedQuantity: null, variance: null, reason: "",
+    countedQuantity: null, countedAt: null, variance: null, reason: "",
     note, state: "open", reviewedBy: null, reviewedAt: null, postedAt: null,
   });
 }
 
 /** Record an exact observed count. Zero is valid; null means not yet counted. */
-export function recordStockCount(line, countedQuantity, note = line?.note ?? "") {
+export function recordStockCount(line, countedQuantity, note = line?.note ?? "", countedAt = new Date().toISOString()) {
   if (!line || typeof line !== "object" || !["open", "counted"].includes(line.state)) {
     throw new Error("Only an unposted, non-reviewed count line can be edited.");
   }
@@ -81,10 +83,11 @@ export function recordStockCount(line, countedQuantity, note = line?.note ?? "")
     throw new RangeError("Counts in each must be whole numbers.");
   }
   const variance = normalized.scaled - parseQuantity(line.systemQuantity);
+  const capturedCountAt = requireUtc(countedAt, "Count-entry timestamp");
   const cleanNote = typeof note === "string" ? note.trim() : "";
   if (cleanNote.length > 500) throw new RangeError("Count-line note must not exceed 500 characters.");
   return Object.freeze({
-    ...line, countedQuantity: normalized.quantity, variance: signedQuantity(variance),
+    ...line, countedQuantity: normalized.quantity, countedAt: capturedCountAt, variance: signedQuantity(variance),
     note: cleanNote, state: "counted", reason: "", reviewedBy: null, reviewedAt: null,
   });
 }
