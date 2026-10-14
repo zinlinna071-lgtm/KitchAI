@@ -1,4 +1,4 @@
--- dblink uses the Postgres container's TCP listener so password authentication is used instead of local socket trust.
+-- dblink uses the isolated local test database's TCP listener with its configured local trust authentication; omit a password so libpq does not reject a password sent to a server that does not request one.
 -- Two-session regression: hold the shared owner lock in an ordinary stock writer,
 -- start a count post using the captured version, then commit the writer first.
 -- The waiting count must see the advanced version and reject without any count audit.
@@ -42,11 +42,11 @@ $$;
 
 select extensions.dblink_connect(
  'wp35d_writer',
- 'host=127.0.0.1 port=5432 dbname=postgres user=postgres password=postgres'
+ 'host=127.0.0.1 port=5432 dbname=postgres user=postgres'
 );
 select extensions.dblink_connect(
  'wp35d_count',
- 'host=127.0.0.1 port=5432 dbname=postgres user=postgres password=postgres'
+ 'host=127.0.0.1 port=5432 dbname=postgres user=postgres'
 );
 select extensions.dblink_exec('wp35d_writer', 'begin');
 select extensions.dblink_exec('wp35d_writer', 'set role authenticated');
