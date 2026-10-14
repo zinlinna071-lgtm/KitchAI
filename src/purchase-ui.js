@@ -233,19 +233,19 @@ export function initializePurchaseUI(context) {
     event.preventDefault();
     const scope = context.getScope();
     if (!scope || !linesContainer) { setMessage(state, "Save a Business Profile first.", true); return; }
-    const lines = queryAll(".purchase-line-entry", linesContainer).map(row => {
-      const ingredientId = /** @type {HTMLSelectElement} */ ($('[data-field="ingredient"]', row)).value;
-      const ingredient = cachedIngredients.find(item => item.id === ingredientId);
-      if (!ingredient) throw new Error("Choose an active ingredient for each purchase line.");
-      return {
-        ingredientId, ingredientName: ingredient.name,
-        orderedQuantity: /** @type {HTMLInputElement} */ ($('[data-field="quantity"]', row)).value.trim(),
-        unit: /** @type {HTMLSelectElement} */ ($('[data-field="unit"]', row)).value,
-        unitPrice: /** @type {HTMLInputElement} */ ($('[data-field="unitPrice"]', row)).value.trim() || "0",
-      };
-    });
     if (submitButton) submitButton.disabled = true;
     try {
+      const lines = queryAll(".purchase-line-entry", linesContainer).map(row => {
+        const ingredientId = /** @type {HTMLSelectElement} */ ($('[data-field="ingredient"]', row)).value;
+        const ingredient = cachedIngredients.find(item => item.id === ingredientId);
+        if (!ingredient) throw new Error("Choose an active ingredient for each purchase line.");
+        return {
+          ingredientId, ingredientName: ingredient.name,
+          orderedQuantity: /** @type {HTMLInputElement} */ ($('[data-field="quantity"]', row)).value.trim(),
+          unit: /** @type {HTMLSelectElement} */ ($('[data-field="unit"]', row)).value,
+          unitPrice: /** @type {HTMLInputElement} */ ($('[data-field="unitPrice"]', row)).value.trim() || "0",
+        };
+      });
       await createPurchase(scope, {
         supplierName: supplier?.value ?? "", currency: currency?.value ?? "THB",
         note: note?.value ?? "", lines,
