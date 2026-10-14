@@ -1408,7 +1408,7 @@ test("production batch UI captures actual usage and keeps offline posting state 
   await page.getByRole("button", { name: "Save profile" }).click();
 
   await page.locator("#ingredient-name").fill("Rice");
-  await page.getByRole("button", { name: "Add ingredient" }).click();
+  await page.getByRole("button", { name: "Add ingredient", exact: true }).click();
   await expect(page.locator("#ingredient-list")).toContainText("Rice");
 
   await page.locator("#menu-item-name").fill("Rice Bowl");
