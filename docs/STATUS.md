@@ -241,3 +241,11 @@ PR #59 now points to `3aed4c9edf0f3250d9d9c5a61799d24669d72464`, a small test-fi
 - This supersedes the prior current-state note that exact-head checks were pending. The image pull rate-limit attempt recovered on retry; it was not a product-test failure.
 - Remaining integration boundary: the SQL composition test supplies purchase-source metadata directly to the server RPC. It does not exercise `purchase-store.js` draft persistence, partial-receipt reservation/projection, or `syncPurchaseReceipt` end to end. Domain-level partial-receipt tests exist. Continue with a bounded authenticated local-Supabase purchase-store/UI test before asserting complete purchasing integration.
 - WP3.6.4 remains conditional/not ready to close. Real-device install/offline use, screen-reader/contrast and manual recovery checks remain deferred. PRs #58–#60 remain Draft/unmerged; no Phase 3 completion claim, hosted provisioning, billing, secrets, or deployment is authorized.
+
+
+## WP3.6 authenticated purchase integration — 2026-10-15
+
+- PR [#59](https://github.com/zinlinna071-lgtm/KitchAI/pull/59) head `1d5d3aeb288094eb6f89eec1460c643a0073254c` passed [WP1.6 run 38697638766](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38697638766), [WP1.4 run 38697638744](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38697638744), and [WP1.2 baseline run 38697638670](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38697638670).
+- WP1.6 passed all 10 Playwright scenarios, including the authenticated local-Supabase purchase UI/store/RPC test: a 10 kg draft, accepted 4 kg partial receipt, accepted 6 kg remainder, authoritative server snapshots at 4 kg and 10 kg, zero outstanding quantity, and inventory version advancement. WP1.4 database/RLS and two-session concurrency checks passed.
+- This supersedes the prior note that the authenticated purchase-store test was pending. It demonstrates the purchase UI/store/RPC slice but not a single browser journey through production, finished-stock dispositions, and stock count.
+- WP3.6.4 remains conditional: manual real-device installation/offline navigation, screen-reader/contrast and recovery checks remain deferred; broader owner review is outstanding. PRs #58–#60 remain Draft/unmerged. No Phase 3 completion claim, hosted provisioning, billing, secrets, or deployment is authorized.
