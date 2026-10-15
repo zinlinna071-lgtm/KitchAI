@@ -140,6 +140,28 @@ select is(
  ) ->> 'status',
  'accepted','reviewed stock count posts against the current server version');
 
+-- WP3.6.2 reliability: model a lost acknowledgement by replaying the exact
+-- accepted count command, then prove a changed request cannot reuse its key.
+select is(
+ public.post_stock_count_subset(
+  'b6920000-0000-4000-8000-000000000001',
+  (select business_id from public.business_profiles where owner_id='68111111-1111-4111-8111-111111111111'),
+  'b68f0000-0000-4000-8000-000000000001',
+  '[{"lineId":"b6900000-0000-4000-8000-000000000001","stockClass":"ingredient","stockItemId":"b6821111-1111-4111-8111-111111111111","expectedVersion":"2","countedQuantity":"7400","unit":"g","reason":"Physical count confirmed 7400 g","varianceEventId":"b6910000-0000-4000-8000-000000000001","countedAt":"2026-10-15T12:00:00Z","reviewedAt":"2026-10-15T12:01:00Z"}]'::jsonb
+ ) ->> 'status',
+ 'accepted','retry after an uncertain acknowledgement returns the original accepted result');
+
+select throws_ok(
+ $sql$select public.post_stock_count_subset(
+  'b6920000-0000-4000-8000-000000000001',
+  (select business_id from public.business_profiles where owner_id='68111111-1111-4111-8111-111111111111'),
+  'b68f0000-0000-4000-8000-000000000001',
+  '[{"lineId":"b6900000-0000-4000-8000-000000000001","stockClass":"ingredient","stockItemId":"b6821111-1111-4111-8111-111111111111","expectedVersion":"2","countedQuantity":"7300","unit":"g","reason":"Changed request must not be accepted","varianceEventId":"b6910000-0000-4000-8000-000000000001","countedAt":"2026-10-15T12:00:00Z","reviewedAt":"2026-10-15T12:01:00Z"}]'::jsonb
+ )$sql$,
+ '22023',
+ 'Count command ID reused with a different request',
+ 'same command key with changed count payload is rejected');
+
 select is(
  (select sum(case when direction='in' then quantity else -quantity end)
   from public.stock_movements
