@@ -249,3 +249,11 @@ PR #59 now points to `3aed4c9edf0f3250d9d9c5a61799d24669d72464`, a small test-fi
 - WP1.6 passed all 10 Playwright scenarios, including the authenticated local-Supabase purchase UI/store/RPC test: a 10 kg draft, accepted 4 kg partial receipt, accepted 6 kg remainder, authoritative server snapshots at 4 kg and 10 kg, zero outstanding quantity, and inventory version advancement. WP1.4 database/RLS and two-session concurrency checks passed.
 - This supersedes the prior note that the authenticated purchase-store test was pending. It demonstrates the purchase UI/store/RPC slice but not a single browser journey through production, finished-stock dispositions, and stock count.
 - WP3.6.4 remains conditional: manual real-device installation/offline navigation, screen-reader/contrast and recovery checks remain deferred; broader owner review is outstanding. PRs #58–#60 remain Draft/unmerged. No Phase 3 completion claim, hosted provisioning, billing, secrets, or deployment is authorized.
+
+
+## WP3.6 purchase receipt replay — exact-head CI passed (2026-10-15)
+
+- PR [#59](https://github.com/zinlinna071-lgtm/KitchAI/pull/59) head `1ab03e9ebacdc2c598e169cef4d313f60c0c3a16` passed WP1.2 [run 38703522847](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38703522847), WP1.4 [run 38703522765](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38703522765), and WP1.6 [run 38703522779](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38703522779).
+- All 10 Playwright scenarios passed. The authenticated purchase test confirms replaying the first accepted 4 kg immutable receipt command leaves authoritative stock at 4 kg and does not advance inventory version; the next 6 kg receipt then brings authoritative stock to 10 kg with zero outstanding.
+- WP1.4 passed all 200 pgTAP tests across 7 files and the two-session stock-count concurrency regression. The earlier image-pull rate limit did not recur.
+- Remaining WP3.6.4 limits: no single authenticated browser journey yet composes purchase → production → finished-stock disposition → count; command-specific uncertain-acknowledgement tests are not claimed for every workflow; real-device install/offline, screen-reader/contrast, and manual recovery checks remain deferred. Keep PRs #58–#60 Draft/unmerged and Phase 3 completion unclaimed.
