@@ -257,3 +257,8 @@ This addendum supersedes the earlier WP3.6 paragraph that described all work as 
 - **CI qualification:** [WP1.4 run 38659411120](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38659411120) failed while pulling the Supabase Postgres image due to `toomanyrequests: Data limit exceeded`; database/concurrency tests were skipped. Rerun is still required for that workflow gate.
 - **WP3.6.3 — UI/mobile:** partial only. The authenticated stock-count E2E passed on PR #57 head `cd5e60a2ba50b0786500b58f1eab50f90f8b5cfe`; the narrow 360px browser smoke currently exercises the empty state. Manual device, screen-reader, contrast and recovery acceptance remain deferred.
 - **WP3.6.4 — Exit review:** conditional / not ready to close. PR #58 and PR #59 remain Draft/unmerged pending owner review, rerun of the blocked gate, and remaining evidence. Phase 3 is not declared complete. Hosted provisioning, billing, production secrets and deployment remain unauthorized.
+
+
+### WP3.6.3 focused mobile E2E follow-up — 2026-10-15
+
+Draft [PR #60](https://github.com/zinlinna071-lgtm/KitchAI/pull/60), head `e9c0560287d58065a385be22ddf727f5bff5f99b`, changes the authenticated stock-count local-Supabase E2E to a 360 × 800 CSS-pixel viewport and asserts no horizontal overflow after server-confirmed posting. This is test-only. CI is pending on the exact PR head; do not treat WP3.6.3 as passed until the workflow completes. Real-device, screen-reader, contrast and manual recovery checks remain deferred.
