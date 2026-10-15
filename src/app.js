@@ -1738,11 +1738,14 @@ async function refreshFinishedStockView(refreshRemote = true) {
   let isError = false;
   if (refreshRemote && activeSession && navigator.onLine && currentOwnerProfile?.syncState === "synced" && currentOwnerProfile.businessId) {
     try {
+      console.debug("[finished-stock-debug-stage]", "remote-refresh-start", refreshSequence, currentOwnerProfile.businessId);
       const refreshedSnapshot = await refreshFinishedStock(scope, currentOwnerProfile.businessId, activeSession);
-      if (!isCurrentRefresh()) return;
+      if (!isCurrentRefresh()) { console.debug("[finished-stock-debug-stage]", "remote-refresh-stale", refreshSequence); return; }
       currentFinishedSnapshot = refreshedSnapshot;
+      console.debug("[finished-stock-debug-stage]", "remote-refresh-success", refreshSequence, refreshedSnapshot?.remoteBusinessId, refreshedSnapshot?.lots?.length);
       message = "Stock refreshed from the server · " + new Date(currentFinishedSnapshot.fetchedAt).toLocaleString() + ".";
     } catch (error) {
+      console.debug("[finished-stock-debug-stage]", "remote-refresh-error", refreshSequence, error instanceof Error ? error.message : String(error));
       if (!isCurrentRefresh()) return;
       const cachedSnapshot = await getFinishedStockSnapshot(scope).catch(() => null);
       if (!isCurrentRefresh()) return;
