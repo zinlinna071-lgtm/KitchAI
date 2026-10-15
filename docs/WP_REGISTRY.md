@@ -291,3 +291,10 @@ PR #59 now points to `3aed4c9edf0f3250d9d9c5a61799d24669d72464`, a small test-fi
 - PR #59 head `3aed4c9edf0f3250d9d9c5a61799d24669d72464` passed [WP1.4 run 38661906406](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38661906406): 200 pgTAP tests across 7 files and the two-session stock-count concurrency regression.
 - The same exact head passed [WP1.6 run 38661906399](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38661906399): database suite, concurrency regression, app build, and all 9 local-Supabase Playwright scenarios.
 - Remaining boundary: the composed SQL test does not invoke the purchase UI/store path (`createPurchase` → `recordPurchaseReceipt` → `syncPurchaseReceipt`). A bounded authenticated integration test remains a candidate before claiming full purchase workflow integration. Manual device/accessibility checks are deferred; WP3.6.4 remains conditional and PRs #58–#60 remain Draft/unmerged.
+
+
+### WP3.6 authenticated purchase-store integration — 2026-10-15
+
+- PR #59 head `1d5d3aeb288094eb6f89eec1460c643a0073254c` passed [WP1.6 run 38697638766](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38697638766), [WP1.4 run 38697638744](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38697638744), and [WP1.2 baseline run 38697638670](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38697638670).
+- The authenticated purchase scenario now proves a 10 kg draft can receive 4 kg and then 6 kg through the UI/store/RPC path; server snapshots show 4 kg then 10 kg, final outstanding is zero, and inventory version advances. All 10 Playwright scenarios passed on the WP1.6 run.
+- This closes the specifically identified purchase-store test gap, but does not itself close WP3.6.4: full browser composition across production/disposition/count and manual device/accessibility/recovery acceptance are still outstanding/deferred. PRs #58–#60 remain Draft/unmerged.
