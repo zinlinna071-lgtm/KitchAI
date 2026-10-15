@@ -139,3 +139,13 @@
 .stock-count-session-summary{font-weight:700}
 .stock-count-actions button:disabled{opacity:.55;cursor:not-allowed}
 @media(max-width:560px){.stock-count-line-form{grid-template-columns:minmax(0,1fr)}.stock-count-toolbar,.stock-count-actions{align-items:stretch;flex-direction:column}.stock-count-actions button{width:100%}}
+
+/* Compact, predictable section navigation for the long-form workspace. */
+.workspace-nav{position:sticky;top:0;z-index:5;display:flex;gap:.45rem;overflow-x:auto;margin:1.4rem 0 .65rem;padding:.65rem;border:1px solid var(--line);border-radius:14px;background:#ffffffed;backdrop-filter:blur(12px);scrollbar-width:thin}
+.workspace-nav-button{flex:0 0 auto;min-height:42px;padding:.65rem .9rem;border:1px solid transparent;border-radius:10px;background:transparent;color:#496258;font:inherit;font-size:.88rem;font-weight:700;white-space:nowrap;cursor:pointer}
+.workspace-nav-button:hover{background:#f1f5f1}
+.workspace-nav-button.is-active{background:var(--green);color:white}
+.workspace-nav-button:focus-visible{outline:3px solid #e1a84b;outline-offset:2px}
+.workspace-view-status{margin:.35rem 0 1rem;color:var(--muted);font-size:.82rem;font-weight:650}
+.profile-editor[hidden],.offline-panel[hidden],.status-grid[hidden]{display:none!important}
+@media(max-width:560px){.workspace-nav{margin:1rem -0.1rem .5rem;padding:.45rem;border-radius:12px}.workspace-nav-button{min-height:44px;padding:.65rem .75rem;font-size:.82rem}.workspace-view-status{margin-bottom:.8rem}}
