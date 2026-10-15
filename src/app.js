@@ -89,6 +89,8 @@ const phase2ConflictList = /** @type {HTMLElement | null} */ (document.querySele
 let currentProfile = null;
 let currentOwnerProfile = null;
 let activeSession = null;
+// Invalidates asynchronous work from a workspace superseded by an auth transition.
+let ownerWorkspaceSequence = 0;
 let finishedStockRefreshSequence = 0;
 let syncRunning = false;
 let phase2SyncRunning = false;
@@ -808,10 +810,13 @@ function stateLabel(profile) {
   }
 }
 
-async function refreshOwnerView() {
+async function refreshOwnerView(expectedSequence = ownerWorkspaceSequence, expectedOwnerId = activeSession?.user?.id) {
   if (!activeSession || !businessNameInput) return;
   const ownerId = activeSession.user.id;
+  if (expectedOwnerId !== ownerId || expectedSequence !== ownerWorkspaceSequence) return;
   const profiles = await listOwnerProfiles(ownerId);
+  // IndexedDB reads can finish after another workspace load has already started.
+  if (expectedSequence !== ownerWorkspaceSequence || activeSession?.user?.id !== ownerId) return;
   currentOwnerProfile = profiles[0] ?? null;
   if (currentOwnerProfile) {
     businessNameInput.value = currentOwnerProfile.name;
@@ -825,9 +830,13 @@ async function refreshOwnerView() {
     if (adoptLocalButton) adoptLocalButton.hidden = !currentProfile;
   }
   await showUnresolvedConflict(ownerId);
+  if (expectedSequence !== ownerWorkspaceSequence || activeSession?.user?.id !== ownerId) return;
   await refreshIngredientView();
+  if (expectedSequence !== ownerWorkspaceSequence || activeSession?.user?.id !== ownerId) return;
   await refreshMenuView();
+  if (expectedSequence !== ownerWorkspaceSequence || activeSession?.user?.id !== ownerId) return;
   await refreshRecipeView();
+  if (expectedSequence !== ownerWorkspaceSequence || activeSession?.user?.id !== ownerId) return;
   await refreshPhase2ConflictView();
 }
 
@@ -849,10 +858,15 @@ async function scheduleRetryForOwner(ownerId) {
 
 async function runSync() {
   if (!activeSession || !navigator.onLine || syncRunning || !isSupabaseConfigured()) return;
+  const requestedOwnerId = activeSession.user.id;
+  const requestedWorkspaceSequence = ownerWorkspaceSequence;
   syncRunning = true;
   try {
     const session = await getSession();
-    if (!session) {
+    // A delayed session lookup must not sign out or replace a newer workspace.
+    if (requestedWorkspaceSequence !== ownerWorkspaceSequence || activeSession?.user?.id !== requestedOwnerId) return;
+    if (!session || session.user?.id !== requestedOwnerId) {
+      ownerWorkspaceSequence += 1;
       activeSession = null;
       currentOwnerProfile = null;
       updateAuthControls();
@@ -899,6 +913,7 @@ async function runSync() {
 }
 
 async function loadOwnerWorkspace(session) {
+  const workspaceSequence = ++ownerWorkspaceSequence;
   activeSession = session;
   currentOwnerProfile = null;
   updateAuthControls();
@@ -906,36 +921,55 @@ async function loadOwnerWorkspace(session) {
   businessNameInput.value = "";
   if (adoptLocalButton) adoptLocalButton.hidden = true;
   const ownerId = session.user.id;
+  const isCurrentWorkspace = () =>
+    workspaceSequence === ownerWorkspaceSequence && activeSession?.user?.id === ownerId;
   try {
     await recoverInterruptedOperations(ownerId);
+    if (!isCurrentWorkspace()) return;
     let profiles = await listOwnerProfiles(ownerId);
     const operations = await listOperations(ownerId);
+    if (!isCurrentWorkspace()) return;
     if (!profiles.length && !operations.length && navigator.onLine) {
       const remote = await readRemoteProfile(session);
+      if (!isCurrentWorkspace()) return;
       if (remote) await adoptRemoteProfile(ownerId, remote);
+      if (!isCurrentWorkspace()) return;
       profiles = await listOwnerProfiles(ownerId);
+      if (!isCurrentWorkspace()) return;
     }
-    await refreshOwnerView();
+    await refreshOwnerView(workspaceSequence, ownerId);
+    if (!isCurrentWorkspace()) return;
     if (currentOwnerProfile || operations.some(operation => ["pending", "retryable_error", "in_flight"].includes(operation.state))) {
       await runSync();
     } else {
       setPhase2SyncState("Create or load this account’s Business Profile before syncing Phase 2 records.");
       await refreshPhase2ConflictView();
     }
+    if (!isCurrentWorkspace()) return;
     await refreshFinishedStockView(true);
+    if (!isCurrentWorkspace()) return;
     await refreshProductionView();
+    if (!isCurrentWorkspace()) return;
     // The stock-count module may have initialized before the account workspace loaded.
     // Refresh it now so its scope and capture controls reflect the active owner profile.
     await stockCountUI.refresh();
   } catch (error) {
+    if (!isCurrentWorkspace()) return;
     setProfileState("Account workspace could not be loaded. Existing local data is preserved. " + (error instanceof Error ? error.message : ""), true);
   }
 }
 
 async function loadLocalProfile() {
   if (!profileForm || !businessNameInput || !profileState) return;
+  const workspaceSequence = ownerWorkspaceSequence;
+  const isCurrentLocalLoad = () => workspaceSequence === ownerWorkspaceSequence && !activeSession;
   try {
     currentProfile = await readLocalProfile();
+    // Startup's local read can overlap sign-in/sign-up. Do not render over the account workspace.
+    if (!isCurrentLocalLoad()) {
+      if (activeSession) await loadOwnerWorkspace(activeSession);
+      return;
+    }
     if (activeSession) {
       await loadOwnerWorkspace(activeSession);
       return;
@@ -949,10 +983,15 @@ async function loadLocalProfile() {
     }
     if (adoptLocalButton) adoptLocalButton.hidden = true;
     await refreshIngredientView();
+    if (!isCurrentLocalLoad()) return;
     await refreshMenuView();
+    if (!isCurrentLocalLoad()) return;
     await refreshRecipeView();
+    if (!isCurrentLocalLoad()) return;
     await refreshFinishedStockView(false);
+    if (!isCurrentLocalLoad()) return;
     await refreshProductionView();
+    if (!isCurrentLocalLoad()) return;
     await runPhase2EntitySync();
   } catch (error) {
     setProfileState(error instanceof Error
@@ -1437,6 +1476,7 @@ signUpButton?.addEventListener("click", async () => {
 
 signOutButton?.addEventListener("click", async () => {
   clearTimeout(retryTimer);
+  ownerWorkspaceSequence += 1;
   activeSession = null;
   currentOwnerProfile = null;
   updateAuthControls();
