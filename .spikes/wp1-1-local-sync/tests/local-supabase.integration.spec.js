@@ -868,6 +868,12 @@ test("authenticated browser journey composes purchase, production, giveaway, and
       requestedBusinessId: businessId,
       snapshot: snapshot ? { remoteBusinessId: snapshot.remoteBusinessId, lots: snapshot.lots, allocations: snapshot.allocations } : null,
       status: document.querySelector("#finished-stock-state")?.textContent ?? "",
+      authStatus: document.querySelector("#auth-state")?.textContent ?? "",
+      profileStatus: document.querySelector("#profile-state")?.textContent ?? "",
+      signOutHidden: document.querySelector("#sign-out-button")?.hidden ?? null,
+      signUpHidden: document.querySelector("#sign-up-button")?.hidden ?? null,
+      storedSessionPresent: Boolean(sessionStorage.getItem("kitchai.auth.session")),
+      stockCountState: document.querySelector("#stock-count-state")?.textContent ?? "",
     };
   }, { businessId: itemIds.businessId });
   await expect(page.locator("#finished-stock-state"), JSON.stringify(finishedStockDiagnostics)).toContainText("Stock refreshed from the server", { timeout: 15000 });
