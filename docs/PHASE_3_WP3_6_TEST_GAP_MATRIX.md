@@ -137,3 +137,11 @@ This section supersedes the earlier pending-state notes above where they describ
 - [WP1.6 run 38696099463](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38696099463) passed DB tests, concurrency, and build; the 9 existing Playwright scenarios passed. The new purchase scenario reached the ingredient-option assertion but failed because the assertion's locator matched both the blank placeholder option and the matching ingredient option under strict mode. The test did not reach draft/receipt posting, so this is not evidence for or against receipt behavior.
 - Corrected the assertion to filter the option by the expected ingredient name and assert exactly one match. New PR #59 head: `1de3f8cf86ac377bf355128b91665d579f8f896c`. Exact-head WP1.2/WP1.4/WP1.6 workflows are running; the purchase E2E remains unverified until WP1.6 passes on this head.
 - Keep WP3.6.4 conditional/not ready to close. PRs #58–#60 remain Draft/unmerged; no hosted resources, billing, secrets, or deployment.
+
+
+## Purchase E2E test iteration 4 — 2026-10-15
+
+- PR #59 head `1de3f8cf86ac377bf355128b91665d579f8f896c`: [WP1.4 run 38697031764](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38697031764) passed 200 database tests and concurrency regression; [WP1.2 run 38697031773](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38697031773) passed. WP1.6 [run 38697031882](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38697031882) passed DB/concurrency/build and 9 of 10 Playwright tests.
+- The new purchase scenario successfully created the draft and accepted the first 4 kg partial receipt, then fetched the server snapshot. It failed because the API returned the fixed-scale decimal string `4.000000`, while the test expected `4`; the second receipt step was not reached. No application behavior failure is established by this assertion-format mismatch.
+- Snapshot assertions now convert the returned quantity to a number before comparing to 4 and 10. New PR #59 head: `1d5d3aeb288094eb6f89eec1460c643a0073254c`. Fresh exact-head CI is required; purchase E2E remains unverified.
+- Keep WP3.6.4 conditional/not ready to close. PRs #58–#60 remain Draft/unmerged.
