@@ -35,10 +35,12 @@ const workspaceViewLabels = {
 };
 function showWorkspaceView(view) {
   if (!Object.hasOwn(workspaceViewLabels, view)) return;
-  document.querySelectorAll("[data-view]").forEach((panel) => {
+  document.querySelectorAll("[data-view]").forEach((node) => {
+    const panel = /** @type {HTMLElement} */ (node);
     panel.hidden = panel.dataset.view !== view;
   });
-  workspaceNav?.querySelectorAll("[data-view-target]").forEach((button) => {
+  workspaceNav?.querySelectorAll("[data-view-target]").forEach((node) => {
+    const button = /** @type {HTMLButtonElement} */ (node);
     const active = button.dataset.viewTarget === view;
     button.classList.toggle("is-active", active);
     button.setAttribute("aria-pressed", String(active));
@@ -46,7 +48,9 @@ function showWorkspaceView(view) {
   if (workspaceViewStatus) workspaceViewStatus.textContent = workspaceViewLabels[view];
 }
 workspaceNav?.addEventListener("click", (event) => {
-  const button = event.target.closest("[data-view-target]");
+  const target = event.target;
+  if (!(target instanceof Element)) return;
+  const button = target.closest("[data-view-target]");
   if (!button) return;
   showWorkspaceView(button.dataset.viewTarget);
   document.querySelector("#main")?.scrollIntoView({ behavior: "auto", block: "start" });
