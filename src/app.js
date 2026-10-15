@@ -1690,15 +1690,22 @@ async function refreshFinishedStockView(refreshRemote = true) {
   let isError = false;
   if (refreshRemote && activeSession && navigator.onLine && currentOwnerProfile?.syncState === "synced" && currentOwnerProfile.businessId) {
     try {
-      currentFinishedSnapshot = await refreshFinishedStock(scope, currentOwnerProfile.businessId, activeSession);
+      const refreshedSnapshot = await refreshFinishedStock(scope, currentOwnerProfile.businessId, activeSession);
+      if (!isCurrentRefresh()) return;
+      currentFinishedSnapshot = refreshedSnapshot;
       message = "Stock refreshed from the server · " + new Date(currentFinishedSnapshot.fetchedAt).toLocaleString() + ".";
     } catch (error) {
-      currentFinishedSnapshot = await getFinishedStockSnapshot(scope).catch(() => null);
+      if (!isCurrentRefresh()) return;
+      const cachedSnapshot = await getFinishedStockSnapshot(scope).catch(() => null);
+      if (!isCurrentRefresh()) return;
+      currentFinishedSnapshot = cachedSnapshot;
       message = "Could not refresh stock. " + (currentFinishedSnapshot ? "Showing the last saved snapshot. " : "") + (error instanceof Error ? error.message : "Network or server error.");
       isError = true;
     }
   } else {
-    currentFinishedSnapshot = await getFinishedStockSnapshot(scope).catch(() => null);
+    const cachedSnapshot = await getFinishedStockSnapshot(scope).catch(() => null);
+    if (!isCurrentRefresh()) return;
+    currentFinishedSnapshot = cachedSnapshot;
     message = currentFinishedSnapshot
       ? (navigator.onLine ? "Showing the last saved stock snapshot · " : "Offline · showing the last saved stock snapshot · ") + new Date(currentFinishedSnapshot.fetchedAt).toLocaleString() + "."
       : activeSession ? "No finished-stock snapshot is cached yet. Connect to refresh stock." : "Sign in and sync the business profile to load server-authoritative finished stock.";
