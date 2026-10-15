@@ -845,6 +845,14 @@ test("authenticated browser journey composes purchase, production, giveaway, and
   await expect(page.locator("#production-state")).toContainText("Production batch posted", { timeout: 20000 });
   await expect(batch).toContainText("completed");
 
+  // Separate the server read path from UI refresh/rendering so a regression points to the right layer.
+  const serverFinishedStock = await page.evaluate(async ({ businessId }) => {
+    const session = JSON.parse(sessionStorage.getItem("kitchai.auth.session"));
+    const api = await import("/src/supabase-api.js");
+    return api.readFinishedStock(businessId, session);
+  }, { businessId: itemIds.businessId });
+  expect(serverFinishedStock.lots.map(lot => lot.menuItemId), JSON.stringify(serverFinishedStock.lots)).toContain(itemIds.menuItemId);
+
   await page.getByRole("button", { name: "Refresh stock" }).click();
   await expect(page.locator("#finished-stock-list")).toContainText(menuItemName, { timeout: 15000 });
   await expect(page.locator("#finished-stock-list")).toContainText("Remaining 4 each");
