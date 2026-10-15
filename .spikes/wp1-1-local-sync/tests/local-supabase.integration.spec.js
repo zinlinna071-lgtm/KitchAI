@@ -749,7 +749,7 @@ test("authenticated browser journey composes purchase, production, giveaway, and
   const pageErrors = [];
   const finishedStockDebugLogs = [];
   page.on("console", message => {
-    if (message.type() === "debug" && message.text().includes("[finished-stock-debug]")) finishedStockDebugLogs.push(message.text());
+    if (message.type() === "debug" && (message.text().includes("[finished-stock-debug]") || message.text().includes("[finished-stock-debug-stage]"))) finishedStockDebugLogs.push(message.text());
   });
   page.on("pageerror", error => pageErrors.push(error.message));
   await createAccount(page);
