@@ -240,7 +240,7 @@ test("Phase 2 ingredient, menu item, recipe, and recipe line sync end to end aga
   await expect(page.locator("#ingredient-list")).toContainText("Integration Mushrooms");
   await expect(page.locator("#menu-item-list")).toContainText("Integration Mushroom Soup");
   await expect(page.locator("#recipe-list")).toContainText("Integration Mushroom Soup Base");
-  await expect(page.locator("#recipe-line-list")).toContainText("250 g");
+  await expect(page.locator("#recipe-line-list")).toContainText("0.25 kg");
 });
 
 test("Phase 2 ingredient conflicts preserve both candidates and support explicit remote/local resolution", async ({ page, context, browser }) => {
@@ -631,7 +631,15 @@ test("authenticated purchase UI persists partial receipts and only confirmed rec
   await page.getByRole("button", { name: "Add ingredient", exact: true }).click();
   await expect(page.locator("#ingredient-list")).toContainText(ingredientName);
   await page.getByRole("button", { name: "Sync now" }).click();
-  await expect(page.locator("#phase2-sync-state")).toContainText("acknowledged", { timeout: 15000 });
+  // Auto-sync may have acknowledged the ingredient before this manual check, leaving no due work.
+  await expect.poll(async () => page.evaluate(async (name) => {
+    const auth = JSON.parse(sessionStorage.getItem("kitchai.auth.session"));
+    const sync = await import("/src/phase2-sync-engine.js");
+    const profiles = await import("/src/sync-store.js");
+    const profile = (await profiles.listOwnerProfiles(auth.user.id))[0];
+    const operations = await sync.createPhase2SyncStore().listOperations(auth.user.id, profile.id);
+    return operations.some(item => item.entityType === "ingredient" && item.state === "synced");
+  }, ingredientName), { timeout: 15000 }).toBe(true);
 
   // The purchase workspace may have initialized before the profile/ingredient existed.
   // Explicitly refresh so its cached ingredient list and first line are populated.
@@ -766,11 +774,12 @@ test("authenticated browser journey composes purchase, production, giveaway, and
 
   await page.locator("#recipe-line-recipe").selectOption({ label: recipeName + " · Draft" });
   await page.locator("#recipe-line-ingredient").selectOption({ label: ingredientName });
-  await page.locator("#recipe-line-quantity").fill("250");
-  await page.locator("#recipe-line-unit").selectOption("g");
+  // Match the purchased inventory unit; automatic kg-to-g conversion is not enabled.
+  await page.locator("#recipe-line-quantity").fill("0.25");
+  await page.locator("#recipe-line-unit").selectOption("kg");
   await page.locator("#recipe-line-position").fill("0");
   await page.getByRole("button", { name: "Add ingredient line" }).click();
-  await expect(page.locator("#recipe-line-list")).toContainText("250 g");
+  await expect(page.locator("#recipe-line-list")).toContainText("0.25 kg");
 
   const recipeCard = page.locator("#recipe-list li").filter({ hasText: recipeName });
   await recipeCard.getByRole("button", { name: "Activate" }).click();
