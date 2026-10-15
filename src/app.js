@@ -1686,9 +1686,16 @@ async function renderFinishedStockHistory() {
 async function refreshFinishedStockView(refreshRemote = true) {
   const refreshSequence = ++finishedStockRefreshSequence;
   const requestedOwnerId = activeSession?.user?.id ?? null;
-  const isCurrentRefresh = () =>
-    refreshSequence === finishedStockRefreshSequence &&
-    requestedOwnerId === (activeSession?.user?.id ?? null);
+  const isCurrentRefresh = () => {
+    if (refreshSequence !== finishedStockRefreshSequence ||
+        requestedOwnerId !== (activeSession?.user?.id ?? null)) return false;
+    // A request is only allowed to publish results for the workspace it started with.
+    // A same-owner profile switch must invalidate the old workspace just like an auth change.
+    if (!scope) return true;
+    const activeScope = activeMenuScope();
+    return activeScope?.ownerId === scope.ownerId &&
+      activeScope?.businessId === scope.businessId;
+  };
   let scope = activeMenuScope();
   console.debug("[finished-stock-debug-stage]", "refresh-enter", refreshSequence, JSON.stringify({ refreshRemote, online: navigator.onLine, hasSession: Boolean(activeSession?.user?.id), scope }));
   console.debug("[finished-stock-debug]", JSON.stringify({
@@ -1746,8 +1753,14 @@ async function refreshFinishedStockView(refreshRemote = true) {
       const refreshedSnapshot = await refreshFinishedStock(scope, currentOwnerProfile.businessId, activeSession);
       if (!isCurrentRefresh()) { console.debug("[finished-stock-debug-stage]", "remote-refresh-stale", refreshSequence); return; }
       currentFinishedSnapshot = refreshedSnapshot;
+      currentFinishedBalances = projectFinishedLotBalances(currentFinishedSnapshot.lots, currentFinishedSnapshot.allocations);
       console.debug("[finished-stock-debug-stage]", "remote-refresh-success", refreshSequence, refreshedSnapshot?.remoteBusinessId, refreshedSnapshot?.lots?.length);
       message = "Stock refreshed from the server · " + new Date(currentFinishedSnapshot.fetchedAt).toLocaleString() + ".";
+      // Publish the authoritative snapshot immediately. Menu names are presentation-only
+      // data; waiting for their IndexedDB lookup must not leave the old no-profile status
+      // visible after the server has already confirmed this refresh.
+      renderFinishedStockLists();
+      setFinishedStockMessage(finishedStockState, message, false);
     } catch (error) {
       console.debug("[finished-stock-debug-stage]", "remote-refresh-error", refreshSequence, error instanceof Error ? error.message : String(error));
       if (!isCurrentRefresh()) return;
@@ -1765,10 +1778,14 @@ async function refreshFinishedStockView(refreshRemote = true) {
       ? (navigator.onLine ? "Showing the last saved stock snapshot · " : "Offline · showing the last saved stock snapshot · ") + new Date(currentFinishedSnapshot.fetchedAt).toLocaleString() + "."
       : activeSession ? "No finished-stock snapshot is cached yet. Connect to refresh stock." : "Sign in and sync the business profile to load server-authoritative finished stock.";
   }
+  console.debug("[finished-stock-debug-stage]", "menu-name-read-start", refreshSequence, JSON.stringify(scope));
   const menuItems = await listMenuItems(scope).catch(() => []);
-  // Never let an older request (or one started for a different auth state) overwrite
-  // the snapshot and status produced by a newer refresh.
-  if (!isCurrentRefresh()) return;
+  // Never let an older request (or one started for a different auth state/workspace)
+  // overwrite the snapshot and status produced by a newer refresh.
+  if (!isCurrentRefresh()) {
+    console.debug("[finished-stock-debug-stage]", "refresh-stale-after-menu-read", refreshSequence, finishedStockRefreshSequence, JSON.stringify({ requestedOwnerId, activeOwnerId: activeSession?.user?.id ?? null, requestedScope: scope, activeScope: activeMenuScope() }));
+    return;
+  }
   currentFinishedMenuNames = new Map(menuItems.map(item => [item.id, item.name]));
   currentFinishedBalances = currentFinishedSnapshot
     ? projectFinishedLotBalances(currentFinishedSnapshot.lots, currentFinishedSnapshot.allocations)
