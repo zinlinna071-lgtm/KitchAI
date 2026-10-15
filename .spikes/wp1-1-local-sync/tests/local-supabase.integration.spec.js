@@ -675,6 +675,37 @@ test("authenticated purchase UI persists partial receipts and only confirmed rec
   }, ingredientName);
   expect(Number(firstSnapshot.systemQuantity)).toBe(4);
 
+  // Simulate an uncertain acknowledgement: replay the immutable first receipt
+  // command directly through the real inventory RPC, then prove it does not
+  // duplicate stock or advance the server version.
+  await page.evaluate(async ({ supplierName }) => {
+    const session = JSON.parse(sessionStorage.getItem("kitchai.auth.session"));
+    const profiles = await import("/src/sync-store.js");
+    const businessStore = await import("/src/business-data-store.js");
+    const purchases = await import("/src/purchase-store.js");
+    const inventory = await import("/src/supabase-api.js");
+    const profile = (await profiles.listOwnerProfiles(session.user.id))[0];
+    const scope = businessStore.scopeForBusinessProfile({ ownerId: session.user.id, profileId: profile.id });
+    const purchase = (await purchases.listPurchases(scope)).find(item => item.supplier === supplierName);
+    if (!purchase) throw new Error("Purchase for idempotency replay was not found.");
+    const receipt = purchase.receipts?.[0];
+    if (!receipt?.command) throw new Error("First immutable receipt command was not found.");
+    await inventory.applyInventoryCommand(receipt.command, session);
+  }, { supplierName });
+  const replayedSnapshot = await page.evaluate(async (name) => {
+    const session = JSON.parse(sessionStorage.getItem("kitchai.auth.session"));
+    const profiles = await import("/src/sync-store.js");
+    const businessStore = await import("/src/business-data-store.js");
+    const ingredientsStore = await import("/src/ingredient-store.js");
+    const inventory = await import("/src/supabase-api.js");
+    const profile = (await profiles.listOwnerProfiles(session.user.id))[0];
+    const scope = businessStore.scopeForBusinessProfile({ ownerId: session.user.id, profileId: profile.id });
+    const ingredient = (await ingredientsStore.listIngredients(scope)).find(item => item.name === name);
+    return inventory.getInventoryItemSnapshot(profile.businessId, "ingredient", ingredient.id, session);
+  }, ingredientName);
+  expect(Number(replayedSnapshot.systemQuantity)).toBe(4);
+  expect(replayedSnapshot.version).toBe(firstSnapshot.version);
+
   await purchaseCard.locator(".purchase-receipt-form input[data-line-id]").fill("6");
   await purchaseCard.getByRole("button", { name: "Save receipt" }).click();
   await expect(page.locator("#purchase-state")).toContainText("Receipt accepted by the server", { timeout: 20000 });
