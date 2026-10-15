@@ -19,7 +19,7 @@ select public.apply_phase2_entity_operation(
  '{"name":"WP3.6 Rice","description":"Synthetic cross-workflow fixture","status":"active"}'::jsonb
 );
 select public.apply_phase2_entity_operation(
- 'b6840000-0000-4000-8000-000000000002','menuItem',
+ 'b6840000-0000-4000-8000-000000000002','menu_item',
  'b6831111-1111-4111-8111-111111111111','create',null,
  '{"name":"WP3.6 Rice Bowl","description":"Synthetic cross-workflow fixture","status":"active"}'::jsonb
 );
