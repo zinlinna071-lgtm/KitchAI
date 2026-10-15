@@ -636,7 +636,7 @@ test("authenticated purchase UI persists partial receipts and only confirmed rec
   // Explicitly refresh so its cached ingredient list and first line are populated.
   await page.getByRole("button", { name: "Refresh purchases" }).click();
   await expect(page.locator("#purchase-line-entry-list .purchase-line-entry")).toHaveCount(1, { timeout: 10000 });
-  await expect(page.locator('#purchase-line-entry-list select[data-field="ingredient"] option')).toContainText(ingredientName);
+  await expect(page.locator('#purchase-line-entry-list select[data-field="ingredient"] option').filter({ hasText: ingredientName })).toHaveCount(1);
 
   const supplierName = "E2E Supplier " + Date.now();
   await page.locator("#purchase-supplier").fill(supplierName);
