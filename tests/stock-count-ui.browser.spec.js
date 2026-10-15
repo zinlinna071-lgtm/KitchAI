@@ -4,6 +4,7 @@ test("stock-count review controls render accessibly and cannot post an empty dra
   const pageErrors = [];
   page.on("pageerror", error => pageErrors.push(error.message));
   await page.goto("/");
+  await page.getByRole("button", { name: "Stock & leftovers" }).click();
   await expect(page.getByRole("heading", { name: "Review a physical stock count." })).toBeVisible();
 
   const sessionPicker = page.getByRole("combobox", { name: "Stock-count session" });
