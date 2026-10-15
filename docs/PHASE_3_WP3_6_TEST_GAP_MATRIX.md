@@ -145,3 +145,14 @@ This section supersedes the earlier pending-state notes above where they describ
 - The new purchase scenario successfully created the draft and accepted the first 4 kg partial receipt, then fetched the server snapshot. It failed because the API returned the fixed-scale decimal string `4.000000`, while the test expected `4`; the second receipt step was not reached. No application behavior failure is established by this assertion-format mismatch.
 - Snapshot assertions now convert the returned quantity to a number before comparing to 4 and 10. New PR #59 head: `1d5d3aeb288094eb6f89eec1460c643a0073254c`. Fresh exact-head CI is required; purchase E2E remains unverified.
 - Keep WP3.6.4 conditional/not ready to close. PRs #58–#60 remain Draft/unmerged.
+
+
+## Purchase E2E iteration 5 — exact-head CI passed — 2026-10-15
+
+- PR [#59](https://github.com/zinlinna071-lgtm/KitchAI/pull/59) head `1d5d3aeb288094eb6f89eec1460c643a0073254c` now has passing exact-head verification:
+  - [WP1.6 run 38697638766](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38697638766) passed the local-Supabase vertical slice, database/idempotency tests, two-session stock-count concurrency regression, app build, and all 10 Playwright scenarios.
+  - [WP1.4 run 38697638744](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38697638744) passed the database migration/RLS tests and two-session stock-count concurrency regression.
+  - [WP1.2 baseline run 38697638670](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38697638670) passed.
+- The new authenticated purchase UI scenario passed through the actual purchase UI/store/RPC path: save a 10 kg draft, accept a 4 kg partial receipt, verify the authoritative server snapshot is numerically 4 kg, accept the remaining 6 kg, verify confirmed quantity 10 kg and outstanding quantity 0 kg, verify the authoritative server snapshot is 10 kg and inventory version advanced. This resolves the earlier fixed-scale decimal assertion mismatch.
+- This is local/emulator automated evidence only. It does not prove a single authenticated browser journey spanning purchase → production → finished-stock disposition → stock count, nor real-device/offline/accessibility/manual-recovery acceptance.
+- Keep PRs #58–#60 Draft/unmerged. WP3.6.4 remains conditional pending owner review and acceptance of deferred manual checks; no Phase 3 completion claim, hosted provisioning, billing, secrets, or deployment.
