@@ -51,7 +51,7 @@ workspaceNav?.addEventListener("click", (event) => {
   const target = event.target;
   if (!(target instanceof Element)) return;
   const button = target.closest("[data-view-target]");
-  if (!button) return;
+  if (!(button instanceof HTMLButtonElement)) return;
   showWorkspaceView(button.dataset.viewTarget);
   document.querySelector("#main")?.scrollIntoView({ behavior: "auto", block: "start" });
 });
