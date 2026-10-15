@@ -1750,10 +1750,22 @@ async function refreshFinishedStockView(refreshRemote = true) {
   if (refreshRemote && activeSession && navigator.onLine && currentOwnerProfile?.syncState === "synced" && currentOwnerProfile.businessId) {
     try {
       console.debug("[finished-stock-debug-stage]", "remote-refresh-start", refreshSequence, currentOwnerProfile.businessId);
-      const refreshedSnapshot = await refreshFinishedStock(scope, currentOwnerProfile.businessId, activeSession);
-      if (!isCurrentRefresh()) { console.debug("[finished-stock-debug-stage]", "remote-refresh-stale", refreshSequence); return; }
+      const requestedRemoteBusinessId = currentOwnerProfile.businessId;
+      const refreshedSnapshot = await refreshFinishedStock(scope, requestedRemoteBusinessId, activeSession);
+      if (!isCurrentRefresh() ||
+          currentOwnerProfile?.businessId !== requestedRemoteBusinessId ||
+          refreshedSnapshot?.remoteBusinessId !== requestedRemoteBusinessId) {
+        console.debug("[finished-stock-debug-stage]", "remote-refresh-stale", refreshSequence, JSON.stringify({
+          requestedRemoteBusinessId,
+          activeRemoteBusinessId: currentOwnerProfile?.businessId ?? null,
+          snapshotRemoteBusinessId: refreshedSnapshot?.remoteBusinessId ?? null,
+        }));
+        return;
+      }
       currentFinishedSnapshot = refreshedSnapshot;
       currentFinishedBalances = projectFinishedLotBalances(currentFinishedSnapshot.lots, currentFinishedSnapshot.allocations);
+      // Do not briefly label a new workspace's stock with names from the previous workspace.
+      currentFinishedMenuNames = new Map();
       console.debug("[finished-stock-debug-stage]", "remote-refresh-success", refreshSequence, refreshedSnapshot?.remoteBusinessId, refreshedSnapshot?.lots?.length);
       message = "Stock refreshed from the server · " + new Date(currentFinishedSnapshot.fetchedAt).toLocaleString() + ".";
       // Publish the authoritative snapshot immediately. Menu names are presentation-only
