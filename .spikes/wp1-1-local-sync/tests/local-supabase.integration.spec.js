@@ -202,12 +202,13 @@ test("Phase 2 ingredient, menu item, recipe, and recipe line sync end to end aga
 
   await page.locator("#recipe-line-recipe").selectOption({ label: "Integration Mushroom Soup Base · Draft" });
   await page.locator("#recipe-line-ingredient").selectOption({ label: "Integration Mushrooms" });
-  await page.locator("#recipe-line-quantity").fill("250");
-  await page.locator("#recipe-line-unit").selectOption("g");
+  // Inventory movement units must match the purchased stock unit; automatic conversion is not enabled.
+  await page.locator("#recipe-line-quantity").fill("0.25");
+  await page.locator("#recipe-line-unit").selectOption("kg");
   await page.locator("#recipe-line-position").fill("0");
   await page.locator("#recipe-line-note").fill("Integration test line");
   await page.getByRole("button", { name: "Add ingredient line" }).click();
-  await expect(page.locator("#recipe-line-list")).toContainText("250 g");
+  await expect(page.locator("#recipe-line-list")).toContainText("0.25 kg");
 
   await page.context().setOffline(false);
   await expect.poll(async () => page.evaluate(async () => {
@@ -828,7 +829,7 @@ test("authenticated browser journey composes purchase, production, giveaway, and
   await expect(batch).toBeVisible();
   const usageLine = batch.locator("fieldset.production-usage-line").first();
   await usageLine.locator('select[data-field="disposition"]').selectOption("measured");
-  await usageLine.locator('input[data-field="quantity"]').fill("250");
+  await usageLine.locator('input[data-field="quantity"]').fill("0.25");
   await batch.locator('input[data-field="outputQuantity"]').fill("4");
   await batch.locator('select[data-field="outputUnit"]').selectOption("each");
   await batch.getByRole("button", { name: "Save usage and prepare batch" }).click();
