@@ -48,7 +48,31 @@
   <div id="sales-placeholder" class="planned-page-note" hidden data-i18n="salesPlanned">Sales page is planned for a later step.</div><div id="expense-placeholder" class="planned-page-note" hidden data-i18n="expensesPlanned">Expenses page is planned for a later step.</div>
 </section>
 
-<nav class="workspace-nav" aria-label="KitchAI sections" role="group">
+<nav class="main-nav" aria-label="Main navigation">
+<button type="button" data-main-page="dashboard" class="main-nav-button is-active" aria-current="page">⌂ <span>Dashboard</span></button>
+<button type="button" data-main-page="business" class="main-nav-button">▦ <span>Business</span></button>
+<button type="button" data-main-page="personal" class="main-nav-button">◉ <span>Personal</span></button>
+<button type="button" data-main-page="reports" class="main-nav-button">▤ <span>Reports</span></button>
+<button type="button" data-main-page="ai" class="main-nav-button">✳ <span>AI Assistant</span></button>
+<button type="button" data-main-page="tools" class="main-nav-button">⌘ <span>Tools</span></button>
+<button type="button" data-main-page="settings" class="main-nav-button">⚙ <span>Settings</span></button>
+</nav>
+<section id="planned-main-page" class="planned-main-page" hidden aria-live="polite"></section>
+<section id="business-planned-pages" class="business-planned-pages" hidden aria-label="Business pages not yet built">
+<h2>Business workspace</h2><p>Available sections and upcoming pages.</p>
+<div class="planned-page-grid">
+<article class="planned-page-card"><span>✓</span><h3>Ingredients</h3><p>Available · ingredient catalog</p><button type="button" data-open-workspace="ingredients">Open page</button></article>
+<article class="planned-page-card"><span>✓</span><h3>Menu & recipes</h3><p>Available · menu items and recipe lines</p><button type="button" data-open-workspace="menu">Open page</button></article>
+<article class="planned-page-card"><span>✓</span><h3>Purchases</h3><p>Available · purchase drafts and receipts</p><button type="button" data-open-workspace="purchases">Open page</button></article>
+<article class="planned-page-card"><span>✓</span><h3>Production</h3><p>Available · recipe-based batches</p><button type="button" data-open-workspace="production">Open page</button></article>
+<article class="planned-page-card"><span>✓</span><h3>Stock & leftovers</h3><p>Available · stock count and finished stock</p><button type="button" data-open-workspace="stock">Open page</button></article>
+<article class="planned-page-card is-planned"><span>◷</span><h3>Sales</h3><p>Not built yet</p></article>
+<article class="planned-page-card is-planned"><span>◷</span><h3>Operating expenses</h3><p>Not built yet</p></article>
+<article class="planned-page-card is-planned"><span>◷</span><h3>Equipment & assets</h3><p>Not built yet</p></article>
+<article class="planned-page-card is-planned"><span>◷</span><h3>Shopping list</h3><p>Not built yet</p></article>
+<article class="planned-page-card is-planned"><span>◷</span><h3>Business finance</h3><p>Not built yet</p></article>
+<article class="planned-page-card is-planned"><span>◷</span><h3>Business settings</h3><p>Not built yet</p></article>
+</div></section><nav class="workspace-nav" aria-label="Business subpages" role="group">
 <button class="workspace-nav-button is-active" type="button" data-view-target="overview" aria-pressed="true">Overview</button>
 <button class="workspace-nav-button" type="button" data-view-target="ingredients" aria-pressed="false">Ingredients</button>
 <button class="workspace-nav-button" type="button" data-view-target="menu" aria-pressed="false">Menu & recipes</button>
