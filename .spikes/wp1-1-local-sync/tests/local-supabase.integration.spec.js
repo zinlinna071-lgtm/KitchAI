@@ -568,7 +568,11 @@ test("legacy Phase 2 records migrate through the current runtime, queue once, an
 
 test("authenticated stock-count UI creates a session, captures a server snapshot, reviews a variance, and posts atomically", async ({ page }) => {
   const pageErrors = [];
+  const finishedStockDebugLogs = [];
   page.on("pageerror", error => pageErrors.push(error.message));
+  page.on("console", message => {
+    if (message.type() === "debug" && message.text().includes("[finished-stock-debug]")) finishedStockDebugLogs.push(message.text());
+  });
   await createAccount(page);
 
   await page.locator("#business-name").fill("Stock Count E2E Kitchen");
@@ -876,6 +880,7 @@ test("authenticated browser journey composes purchase, production, giveaway, and
       stockCountState: document.querySelector("#stock-count-state")?.textContent ?? "",
     };
   }, { businessId: itemIds.businessId });
+  finishedStockDiagnostics.finishedStockDebugLogs = finishedStockDebugLogs;
   await expect(page.locator("#finished-stock-state"), JSON.stringify(finishedStockDiagnostics)).toContainText("Stock refreshed from the server", { timeout: 15000 });
   await expect(page.locator("#finished-stock-list")).toContainText(menuItemName, { timeout: 15000 });
   await expect(page.locator("#finished-stock-list")).toContainText("Remaining 4 each");
