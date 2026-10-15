@@ -246,3 +246,14 @@ The Coding AI must check out the latest repository, reconcile the initial matrix
 
 The owner accepted the proposed WP3.6 plan in conversation and directed work to continue. Treat this as approval to proceed with bounded test-first implementation, **not** as approval to merge PR #58, waive CI, declare Phase 3 complete, or provision hosted resources. The test-gap matrix has been refreshed with source/workflow paths inspected against the current main baseline. The remaining candidate is the composed purchase receipt → production posting → finished-stock disposition → physical stock-count path, pending verification that no equivalent test already exists. Local tests were not executed in this inspection environment; no pass is claimed. Keep PR #58 Draft/unmerged until implementation evidence and required CI are available.
 
+
+
+### WP3.6 implementation and verification update — 2026-10-15
+
+This addendum supersedes the earlier WP3.6 paragraph that described all work as static reconnaissance only; retain its planning/authorization boundaries.
+
+- **WP3.6.1 — Cross-workflow DB integration:** test added in [PR #59](https://github.com/zinlinna071-lgtm/KitchAI/pull/59), combining accepted receipt → production usage/output and finished lot → giveaway allocation → reviewed physical count adjustment with authoritative balance/ledger/audit assertions.
+- **WP3.6.2 — Reliability regression:** PR #59 head `031bf2798c29c55315898c2b3760959816d0a0aa` adds same-command retry after uncertain acknowledgement and rejects reuse of the command ID with a changed payload. [WP1.6 run 38659411117](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38659411117) passed on this exact head. This does not claim fault injection for every command type.
+- **CI qualification:** [WP1.4 run 38659411120](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38659411120) failed while pulling the Supabase Postgres image due to `toomanyrequests: Data limit exceeded`; database/concurrency tests were skipped. Rerun is still required for that workflow gate.
+- **WP3.6.3 — UI/mobile:** partial only. The authenticated stock-count E2E passed on PR #57 head `cd5e60a2ba50b0786500b58f1eab50f90f8b5cfe`; the narrow 360px browser smoke currently exercises the empty state. Manual device, screen-reader, contrast and recovery acceptance remain deferred.
+- **WP3.6.4 — Exit review:** conditional / not ready to close. PR #58 and PR #59 remain Draft/unmerged pending owner review, rerun of the blocked gate, and remaining evidence. Phase 3 is not declared complete. Hosted provisioning, billing, production secrets and deployment remain unauthorized.
