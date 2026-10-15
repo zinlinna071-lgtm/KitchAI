@@ -241,3 +241,8 @@ The Coding AI must check out the latest repository, reconcile the initial matrix
 **Verification state:** the matrix is static inspection only. No tests were run during its preparation. PR #58's latest documentation-only head has no workflow runs or combined status visible; the current workflows use path filters, so documentation-only changes are not evidence of implementation CI. For any implementation PR, verify that changed paths trigger the required workflows and report the exact final head SHA and run links.
 
 **Hard gates:** keep PR #58 in Draft pending review. Do not merge until owner review and required CI on the final implementation head pass. No hosted provisioning, billing, production secrets, or deployment is authorized.
+
+## WP3.6 owner direction and source-inspection refresh — 2026-10-15
+
+The owner accepted the proposed WP3.6 plan in conversation and directed work to continue. Treat this as approval to proceed with bounded test-first implementation, **not** as approval to merge PR #58, waive CI, declare Phase 3 complete, or provision hosted resources. The test-gap matrix has been refreshed with source/workflow paths inspected against the current main baseline. The remaining candidate is the composed purchase receipt → production posting → finished-stock disposition → physical stock-count path, pending verification that no equivalent test already exists. Local tests were not executed in this inspection environment; no pass is claimed. Keep PR #58 Draft/unmerged until implementation evidence and required CI are available.
+
