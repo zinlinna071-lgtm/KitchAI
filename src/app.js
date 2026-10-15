@@ -2013,3 +2013,52 @@ themeToggle?.addEventListener("click", () => {
   applyKitchAITheme(nextTheme);
   try { localStorage.setItem("kitchai-theme", nextTheme); } catch {}
 });
+
+
+/* Main application frame: each top-level destination has its own page state. */
+const mainPageButtons = [...document.querySelectorAll("[data-main-page]")];
+const plannedMainPage = document.getElementById("planned-main-page");
+const businessPlannedPages = document.getElementById("business-planned-pages");
+const dashboardPage = document.getElementById("dashboard");
+const businessSubnav = document.querySelector(".workspace-nav");
+const workspaceStatus = document.getElementById("workspace-view-status");
+const plannedPageContent = {
+ personal: ["Personal", "Your personal money and records stay separate from Business.", ["Personal income", "Personal expenses", "Transfers & owner withdrawals", "Personal reports"]],
+ reports: ["Reports", "Reporting pages will be built after their underlying records are ready.", ["Sales report", "Expense report", "Profit & loss", "Production & stock history"]],
+ ai: ["AI Assistant", "The real AI service is not connected yet. This page is reserved for the connected assistant.", ["Ask about your business", "Explain costs and stock", "Production planning"]],
+ tools: ["Tools", "Useful everyday tools will be added here. Selected tools will work offline.", ["Calculator", "Unit converter", "Currency converter", "Discount calculator", "Cooking timer", "Date & time tools"]],
+ settings: ["Settings", "Manage language, appearance, business preferences, and account options here.", ["Language & appearance", "Business profiles", "Account & sync", "Data backup & recovery"]]
+};
+function showMainPage(page) {
+  mainPageButtons.forEach((button) => {
+    const active = button.dataset.mainPage === page;
+    button.classList.toggle("is-active", active);
+    if (active) button.setAttribute("aria-current", "page"); else button.removeAttribute("aria-current");
+  });
+  dashboardPage.hidden = page !== "dashboard";
+  if (businessPlannedPages) businessPlannedPages.hidden = page !== "business";
+  if (businessSubnav) businessSubnav.hidden = page !== "business";
+  if (workspaceStatus) workspaceStatus.hidden = page !== "business";
+  document.querySelectorAll(".status-grid,.profile-editor,.offline-panel").forEach((node) => {
+    const section = /** @type {HTMLElement} */ (node);
+    const view = section.dataset.view;
+    const showBusiness = page === "business" && (view === "ingredients" || view === "menu" || view === "purchases" || view === "production" || view === "stock" || section.id === "profile-form");
+    section.hidden = !showBusiness;
+  });
+  if (page === "dashboard") {
+    document.querySelectorAll(".status-grid,.profile-editor,.offline-panel").forEach((node) => { /** @type {HTMLElement} */ (node).hidden = true; });
+    if (businessPlannedPages) businessPlannedPages.hidden = true;
+  }
+  if (plannedMainPage) {
+    const info = plannedPageContent[page];
+    plannedMainPage.hidden = !info;
+    if (info) plannedMainPage.innerHTML = '<div class="planned-page-header"><span class="planned-kicker">COMING IN STAGES</span><h1>' + info[0] + '</h1><p>' + info[1] + '</p></div><div class="planned-page-grid">' + info[2].map((name) => '<article class="planned-page-card is-planned"><span>◷</span><h2>' + name + '</h2><p>Not built yet</p><small>This page will be designed before its features are implemented.</small></article>').join('') + '</div>';
+  }
+  window.scrollTo({top:0,behavior:"auto"});
+}
+mainPageButtons.forEach((button) => button.addEventListener("click", () => showMainPage(button.dataset.mainPage)));
+document.querySelectorAll("[data-open-workspace]").forEach((button) => button.addEventListener("click", () => {
+  showMainPage("business");
+  showWorkspaceView(button.dataset.openWorkspace, true);
+}));
+showMainPage("dashboard");
