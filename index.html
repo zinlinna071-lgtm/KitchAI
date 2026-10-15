@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="kitchai-base-path" content="__KITCHAI_BASE_PATH__">
-<meta name="theme-color" content="#173d35"><meta name="description" content="KitchAI helps kitchen and food-business teams work reliably, even when offline.">
+<meta name="theme-color" content="#176B52"><meta name="description" content="KitchAI helps kitchen and food-business teams work reliably, even when offline.">
 <title>KitchAI — Kitchen workspace</title><link rel="icon" href="__KITCHAI_BASE_PATH__favicon.svg" type="image/svg+xml"><link rel="manifest" href="__KITCHAI_BASE_PATH__manifest.webmanifest"><link rel="stylesheet" href="__KITCHAI_BASE_PATH__src/styles.css"><script src="__KITCHAI_BASE_PATH__runtime-config.js"></script><script type="module" src="__KITCHAI_BASE_PATH__src/app.js"></script>
 </head>
 <body>
@@ -11,7 +11,38 @@
 <header class="topbar"><a class="brand" href="__KITCHAI_BASE_PATH__" aria-label="KitchAI home"><span class="brand-mark" aria-hidden="true">K</span><span>KitchAI</span></a>
 <div class="topbar-actions"><p id="connection-status" class="connection-status" role="status" aria-live="polite"><span class="status-dot" aria-hidden="true"></span> Checking connection…</p><button id="install-button" class="button button-secondary" type="button" hidden>Install app</button></div></header>
 <main id="main" class="page-shell" tabindex="-1">
-<section class="welcome" aria-labelledby="welcome-title"><p class="eyebrow">YOUR KITCHEN WORKSPACE</p><h1 id="welcome-title">Good work starts with a clear view.</h1><p class="welcome-copy">An offline-first kitchen workspace for business records, recipe-based production batches, and finished-stock handling. Inventory changes are posted atomically and remain auditable.</p></section>
+<section class="dashboard" id="dashboard" aria-labelledby="dashboard-title">
+  <div class="dashboard-heading">
+    <div><p class="eyebrow" data-i18n="eyebrow">YOUR BUSINESS AT A GLANCE</p><h1 id="dashboard-title" data-i18n="title">Good evening. Let’s get your kitchen running.</h1><p class="dashboard-subtitle" data-i18n="subtitle">A clear view of today’s work, stock, and next steps.</p></div>
+    <div class="dashboard-heading-actions"><label class="language-picker"><span data-i18n="language">Language</span><select id="dashboard-language" aria-label="Language"><option value="en">English</option><option value="my">မြန်မာ</option><option value="th">ไทย</option></select></label><button class="button button-secondary" type="button" data-jump-to="profile-form" data-i18n="businessSetup">Set up business</button></div>
+  </div>
+  <section class="weather-card" aria-labelledby="weather-title">
+    <div class="weather-symbol" aria-hidden="true">☁</div><div class="weather-copy"><p class="card-label" data-i18n="weather">WEATHER & STALL CHECK</p><h2 id="weather-title" data-i18n="weatherPending">Weather is not connected yet</h2><p data-i18n="weatherHelp">Connect a weather service later to show current conditions, rain chance, and outdoor-stall alerts.</p></div><span class="weather-status" data-i18n="notAvailable">Not available</span>
+  </section>
+  <section class="dashboard-section" aria-labelledby="today-title"><div class="section-heading"><div><p class="eyebrow" data-i18n="todayEyebrow">TODAY</p><h2 id="today-title" data-i18n="today">Today’s summary</h2></div><span class="section-note" data-i18n="needsRecords">Based on saved records</span></div>
+    <div class="metric-grid">
+      <article class="metric-card metric-sales"><div class="metric-top"><span data-i18n="sales">Sales</span><span aria-hidden="true">↗</span></div><strong>—</strong><p data-i18n="noSalesData">Sales records are not connected to this summary yet.</p></article>
+      <article class="metric-card"><div class="metric-top"><span data-i18n="expenses">Expenses</span><span aria-hidden="true">↘</span></div><strong>—</strong><p data-i18n="noExpenseData">Expense records are not connected to this summary yet.</p></article>
+      <article class="metric-card"><div class="metric-top"><span data-i18n="profit">Profit</span><span aria-hidden="true">◌</span></div><strong class="metric-unavailable" data-i18n="cannotCalculate">Not calculated</strong><p data-i18n="profitHelp">Profit appears when sales, costs, and expenses are complete.</p></article>
+      <article class="metric-card"><div class="metric-top"><span data-i18n="production">Production</span><span aria-hidden="true">▦</span></div><strong>—</strong><p data-i18n="productionHelp">Your production totals will appear here when available.</p></article>
+    </div>
+  </section>
+  <section class="dashboard-section" aria-labelledby="actions-title"><div class="section-heading"><div><p class="eyebrow" data-i18n="shortcuts">SHORTCUTS</p><h2 id="actions-title" data-i18n="quickActions">Quick actions</h2></div></div>
+    <div class="quick-action-grid">
+      <button class="quick-action" type="button" data-jump-to="purchase-panel"><span class="quick-action-icon">＋</span><span><strong data-i18n="newPurchase">New purchase</strong><small data-i18n="newPurchaseHelp">Record ingredients you buy</small></span><span class="quick-arrow">→</span></button>
+      <button class="quick-action" type="button" data-jump-to="production-panel"><span class="quick-action-icon">♨</span><span><strong data-i18n="startProduction">Start production</strong><small data-i18n="startProductionHelp">Prepare a recipe batch</small></span><span class="quick-arrow">→</span></button>
+      <button class="quick-action" type="button" data-jump-to="sales-placeholder"><span class="quick-action-icon">฿</span><span><strong data-i18n="recordSale">Record a sale</strong><small data-i18n="salesComing">Sales page planned next</small></span><span class="quick-arrow">→</span></button>
+      <button class="quick-action" type="button" data-jump-to="expense-placeholder"><span class="quick-action-icon">−</span><span><strong data-i18n="addExpense">Add expense</strong><small data-i18n="expensesComing">Expense page planned next</small></span><span class="quick-arrow">→</span></button>
+    </div>
+  </section>
+  <div class="dashboard-lower-grid">
+    <section class="dashboard-panel" aria-labelledby="stock-alerts-title"><div class="panel-heading"><span class="panel-icon">◉</span><div><h2 id="stock-alerts-title" data-i18n="stockAlerts">Stock alerts</h2><p data-i18n="stockAlertsHelp">Low stock and ingredients to check</p></div></div><div class="empty-state"><span class="empty-state-icon">✓</span><p data-i18n="stockNotConnected">Stock alerts will appear when stock thresholds and live balances are connected.</p></div><button class="text-action" type="button" data-jump-to="stock-count-panel" data-i18n="reviewStock">Review stock →</button></section>
+    <section class="dashboard-panel" aria-labelledby="closing-title"><div class="panel-heading"><span class="panel-icon panel-icon-amber">◷</span><div><h2 id="closing-title" data-i18n="unsoldFood">Unsold food & day closing</h2><p data-i18n="unsoldFoodHelp">Keep every leftover outcome clear</p></div></div><ul class="disposition-list"><li><span class="disposition-dot sale"></span><span data-i18n="discountSale">Discounted sale</span></li><li><span class="disposition-dot carry"></span><span data-i18n="carryOver">Safe carry-over to tomorrow</span></li><li><span class="disposition-dot personal"></span><span data-i18n="personalUse">Personal consumption</span></li><li><span class="disposition-dot waste"></span><span data-i18n="wasteGiveaway">Waste, spoilage or giveaway</span></li></ul><button class="text-action" type="button" data-jump-to="stock-count-panel" data-i18n="manageLeftovers">Manage stock & leftovers →</button></section>
+    <section class="dashboard-panel ai-panel" aria-labelledby="ai-title"><div class="panel-heading"><span class="panel-icon panel-icon-ai">✳</span><div><h2 id="ai-title" data-i18n="aiAssistant">KitchAI assistant</h2><p data-i18n="aiHelp">Ask about your kitchen workflow</p></div></div><p class="ai-disclaimer" data-i18n="aiNotConnected">AI responses are not connected yet. We’ll connect the real assistant later rather than show pretend answers.</p><div class="ai-input-row"><input id="dashboard-ai-question" type="text" placeholder="Ask KitchAI…" data-i18n-placeholder="aiPlaceholder" disabled><button class="button button-primary" type="button" disabled data-i18n="ask">Ask</button></div><button class="text-action" type="button" data-i18n="openAssistant" disabled>Open AI Assistant →</button></section>
+    <section class="dashboard-panel" aria-labelledby="activity-title"><div class="panel-heading"><span class="panel-icon">↻</span><div><h2 id="activity-title" data-i18n="recentActivity">Recent activity</h2><p data-i18n="activityHelp">A timeline of important changes</p></div></div><div class="empty-state"><span class="empty-state-icon">⌁</span><p data-i18n="activityNotConnected">Recent business activity will appear here when records are connected.</p></div></section>
+  </div>
+  <div id="sales-placeholder" class="planned-page-note" hidden data-i18n="salesPlanned">Sales page is planned for a later step.</div><div id="expense-placeholder" class="planned-page-note" hidden data-i18n="expensesPlanned">Expenses page is planned for a later step.</div>
+</section>
 
 <nav class="workspace-nav" aria-label="KitchAI sections" role="group">
 <button class="workspace-nav-button is-active" type="button" data-view-target="overview" aria-pressed="true">Overview</button>
