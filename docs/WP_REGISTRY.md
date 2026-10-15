@@ -298,3 +298,11 @@ PR #59 now points to `3aed4c9edf0f3250d9d9c5a61799d24669d72464`, a small test-fi
 - PR #59 head `1d5d3aeb288094eb6f89eec1460c643a0073254c` passed [WP1.6 run 38697638766](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38697638766), [WP1.4 run 38697638744](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38697638744), and [WP1.2 baseline run 38697638670](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38697638670).
 - The authenticated purchase scenario now proves a 10 kg draft can receive 4 kg and then 6 kg through the UI/store/RPC path; server snapshots show 4 kg then 10 kg, final outstanding is zero, and inventory version advances. All 10 Playwright scenarios passed on the WP1.6 run.
 - This closes the specifically identified purchase-store test gap, but does not itself close WP3.6.4: full browser composition across production/disposition/count and manual device/accessibility/recovery acceptance are still outstanding/deferred. PRs #58–#60 remain Draft/unmerged.
+
+
+### WP3.6 latest purchase-replay verification — 2026-10-15
+
+- PR #59 test head `1ab03e9ebacdc2c598e169cef4d313f60c0c3a16` passed WP1.2 [38703522847](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38703522847), WP1.4 [38703522765](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38703522765), and WP1.6 [38703522779](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38703522779).
+- WP1.6 passed all 10 Playwright scenarios, including replay of the first immutable 4 kg purchase receipt command. Replay left authoritative stock at 4 kg and inventory version unchanged; the subsequent 6 kg receipt brought stock to 10 kg with zero outstanding.
+- WP1.4 passed 200 pgTAP tests across 7 files and the two-session stock-count concurrency regression. WP1.2 baseline passed.
+- WP3.6.4 remains conditional: full authenticated browser composition across purchase, production, finished-stock disposition, and count is not yet demonstrated; manual device/offline/accessibility/recovery checks remain deferred. PRs #58–#60 remain Draft/unmerged.
