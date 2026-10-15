@@ -10,7 +10,7 @@ test("project-path preview loads local assets and exposes no backend sign-in con
   });
 
   await page.goto("./");
-  await expect(page.getByRole("heading", { name: "Good work starts with a clear view." })).toBeVisible();
+  await expect(page.locator("#dashboard-title")).toBeVisible();
   await expect(page.locator("#preview-notice")).toBeVisible();
   await expect(page.locator("#preview-notice")).toContainText("NON-PRODUCTION STATIC PREVIEW");
   await expect(page.locator("#auth-panel")).toBeHidden();
@@ -46,7 +46,7 @@ test("unknown project paths load the Pages fallback shell with scoped assets", a
   const response = await page.goto("preview-profile/");
 
   expect(response?.status()).toBe(404);
-  await expect(page.getByRole("heading", { name: "Good work starts with a clear view." })).toBeVisible();
+  await expect(page.locator("#dashboard-title")).toBeVisible();
   await expect(page.locator("#preview-notice")).toBeVisible();
   await expect(page.locator('link[rel="stylesheet"]')).toHaveAttribute("href", "/KitchAI/src/styles.css");
 });
@@ -59,7 +59,7 @@ test("the scoped worker serves the app shell after offline navigation", async ({
   await context.setOffline(true);
   await page.goto("offline-preview-route/");
 
-  await expect(page.getByRole("heading", { name: "Good work starts with a clear view." })).toBeVisible();
+  await expect(page.locator("#dashboard-title")).toBeVisible();
   await expect(page.locator("#preview-notice")).toBeVisible();
   await expect(page.locator("#connection-status")).toContainText("Offline");
   await context.setOffline(false);
