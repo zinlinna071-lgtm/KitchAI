@@ -1646,7 +1646,19 @@ async function renderFinishedStockHistory() {
 }
 
 async function refreshFinishedStockView(refreshRemote = true) {
-  const scope = activeMenuScope();
+  let scope = activeMenuScope();
+  // Auth/workspace refreshes can overlap a user-triggered stock refresh. During that
+  // transition currentOwnerProfile is temporarily null even though this account already
+  // has a persisted owner profile. Rehydrate the in-memory selection before deciding that
+  // finished stock has no business scope.
+  if (!scope && activeSession?.user?.id && !currentOwnerProfile) {
+    const session = activeSession;
+    const profiles = await listOwnerProfiles(session.user.id);
+    if (activeSession?.user?.id === session.user.id && !currentOwnerProfile) {
+      currentOwnerProfile = profiles[0] ?? null;
+    }
+    scope = activeMenuScope();
+  }
   if (!scope) {
     // Workspace loading temporarily clears currentOwnerProfile before the owner profile is reloaded.
     // Do not clear stock state during that transition; a truly profile-less account keeps the initial
