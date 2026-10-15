@@ -1880,3 +1880,60 @@ void (async () => {
   }
   await loadLocalProfile();
 })();
+
+
+/* Dashboard shortcuts and language controls; existing data workflows remain unchanged. */
+const dashboardJumpLabels = {
+  "profile-form": "Business profile",
+  "purchase-panel": "Purchases",
+  "production-panel": "Production",
+  "stock-count-panel": "Stock & leftovers",
+  "sales-placeholder": "Sales page",
+  "expense-placeholder": "Expenses page",
+};
+document.querySelectorAll("[data-jump-to]").forEach((button) => {
+  button.addEventListener("click", () => {
+    const targetId = button.getAttribute("data-jump-to");
+    if (!targetId) return;
+    const target = document.getElementById(targetId);
+    if (targetId === "sales-placeholder" || targetId === "expense-placeholder") {
+      const notice = document.getElementById(targetId);
+      if (notice) {
+        notice.hidden = false;
+        notice.scrollIntoView({ behavior: "auto", block: "center" });
+      }
+      return;
+    }
+    if (target) {
+      target.scrollIntoView({ behavior: "auto", block: "start" });
+      const viewButton = document.querySelector('[data-view-target="' + ({
+        "purchase-panel": "purchases",
+        "production-panel": "production",
+        "stock-count-panel": "stock",
+        "profile-form": "overview",
+      }[targetId] ?? "") + '"]');
+      viewButton?.click();
+      target.scrollIntoView({ behavior: "auto", block: "start" });
+    }
+  });
+});
+const dashboardTranslations = {
+  en: {eyebrow:"YOUR BUSINESS AT A GLANCE",title:"Good evening. Let’s get your kitchen running.",subtitle:"A clear view of today’s work, stock, and next steps.",language:"Language",businessSetup:"Set up business",weather:"WEATHER & STALL CHECK",weatherPending:"Weather is not connected yet",weatherHelp:"Connect a weather service later to show current conditions, rain chance, and outdoor-stall alerts.",notAvailable:"Not available",todayEyebrow:"TODAY",today:"Today’s summary",needsRecords:"Based on saved records",sales:"Sales",expenses:"Expenses",profit:"Profit",cannotCalculate:"Not calculated",production:"Production",noSalesData:"Sales records are not connected to this summary yet.",noExpenseData:"Expense records are not connected to this summary yet.",profitHelp:"Profit appears when sales, costs, and expenses are complete.",productionHelp:"Your production totals will appear here when available.",shortcuts:"SHORTCUTS",quickActions:"Quick actions",newPurchase:"New purchase",newPurchaseHelp:"Record ingredients you buy",startProduction:"Start production",startProductionHelp:"Prepare a recipe batch",recordSale:"Record a sale",salesComing:"Sales page planned next",addExpense:"Add expense",expensesComing:"Expense page planned next",stockAlerts:"Stock alerts",stockAlertsHelp:"Low stock and ingredients to check",stockNotConnected:"Stock alerts will appear when stock thresholds and live balances are connected.",reviewStock:"Review stock →",unsoldFood:"Unsold food & day closing",unsoldFoodHelp:"Keep every leftover outcome clear",discountSale:"Discounted sale",carryOver:"Safe carry-over to tomorrow",personalUse:"Personal consumption",wasteGiveaway:"Waste, spoilage or giveaway",manageLeftovers:"Manage stock & leftovers →",aiAssistant:"KitchAI assistant",aiHelp:"Ask about your kitchen workflow",aiNotConnected:"AI responses are not connected yet. We’ll connect the real assistant later rather than show pretend answers.",aiPlaceholder:"Ask KitchAI…",ask:"Ask",openAssistant:"Open AI Assistant →",recentActivity:"Recent activity",activityHelp:"A timeline of important changes",activityNotConnected:"Recent business activity will appear here when records are connected.",salesPlanned:"Sales page is planned for a later step.",expensesPlanned:"Expenses page is planned for a later step."},
+  my: {eyebrow:"သင့်လုပ်ငန်း အခြေအနေ",title:"မင်္ဂလာညနေခင်းပါ။ မီးဖိုချောင်လုပ်ငန်းကို စလိုက်ရအောင်။",subtitle:"ဒီနေ့လုပ်ငန်း၊ လက်ကျန်ပစ္စည်းနဲ့ နောက်တစ်ဆင့်တွေကို တစ်နေရာတည်းမှာ ကြည့်နိုင်ပါတယ်။",language:"ဘာသာစကား",businessSetup:"လုပ်ငန်းသတ်မှတ်ရန်",weather:"ရာသီဥတုနှင့် ဆိုင်ခင်းစစ်ဆေးမှု",weatherPending:"ရာသီဥတု ဝန်ဆောင်မှု မချိတ်ဆက်ရသေးပါ",weatherHelp:"ရာသီဥတု၊ မိုးရွာနိုင်ခြေနှင့် အပြင်ဆိုင် သတိပေးချက်များကို နောက်ပိုင်း ချိတ်ဆက်ပေးမည်။",notAvailable:"မရရှိသေးပါ",todayEyebrow:"ယနေ့",today:"ယနေ့ အကျဉ်းချုပ်",needsRecords:"သိမ်းထားသော မှတ်တမ်းများအပေါ် အခြေခံသည်",sales:"အရောင်း",expenses:"အသုံးစရိတ်",profit:"အမြတ်",cannotCalculate:"မတွက်ချက်ရသေးပါ",production:"ထုတ်လုပ်မှု",noSalesData:"အရောင်းမှတ်တမ်းကို ဤနေရာနှင့် မချိတ်ဆက်ရသေးပါ။",noExpenseData:"အသုံးစရိတ်မှတ်တမ်းကို ဤနေရာနှင့် မချိတ်ဆက်ရသေးပါ။",profitHelp:"အရောင်း၊ ကုန်ကျစရိတ်နှင့် အသုံးစရိတ် ပြည့်စုံမှ အမြတ်ကို ပြသပါမည်။",productionHelp:"ထုတ်လုပ်မှု စုစုပေါင်းကို ရရှိလာသည့်အခါ ပြသပါမည်။",shortcuts:"အမြန်လုပ်ဆောင်ရန်",quickActions:"အမြန်လုပ်ဆောင်ချက်များ",newPurchase:"ဝယ်ယူမှုအသစ်",newPurchaseHelp:"ဝယ်ယူသော ကုန်ကြမ်းများ မှတ်တမ်းတင်ရန်",startProduction:"ထုတ်လုပ်မှု စတင်ရန်",startProductionHelp:"Recipe အလိုက် အစားအစာ ထုတ်လုပ်ရန်",recordSale:"အရောင်းမှတ်တမ်းတင်ရန်",salesComing:"အရောင်းစာမျက်နှာကို နောက်တစ်ဆင့်တွင် ပြုလုပ်မည်",addExpense:"အသုံးစရိတ်ထည့်ရန်",expensesComing:"အသုံးစရိတ်စာမျက်နှာကို နောက်တစ်ဆင့်တွင် ပြုလုပ်မည်",stockAlerts:"လက်ကျန် သတိပေးချက်များ",stockAlertsHelp:"နည်းနေသော ကုန်ကြမ်းများကို စစ်ဆေးရန်",stockNotConnected:"လက်ကျန်သတိပေးချက်ကို လက်ရှိလက်ကျန်နှင့် မချိတ်ဆက်ရသေးပါ။",reviewStock:"လက်ကျန်စစ်ဆေးရန် →",unsoldFood:"မရောင်းရသေးသော အစားအစာနှင့် ဆိုင်ပိတ်ချိန်",unsoldFoodHelp:"လက်ကျန်အစားအစာတိုင်း၏ အခြေအနေကို မှတ်တမ်းတင်ပါ",discountSale:"လျှော့ဈေးဖြင့် ရောင်းချခြင်း",carryOver:"မနက်ဖြန်အတွက် လုံခြုံစွာ သိမ်းဆည်းခြင်း",personalUse:"ကိုယ်တိုင်စားသုံးခြင်း",wasteGiveaway:"စွန့်ပစ်ခြင်း၊ ပျက်စီးခြင်း သို့မဟုတ် လှူဒါန်းခြင်း",manageLeftovers:"လက်ကျန်နှင့် အစားအစာ စီမံရန် →",aiAssistant:"KitchAI အကူအညီပေးသူ",aiHelp:"လုပ်ငန်းအကြောင်း မေးမြန်းရန်",aiNotConnected:"AI အဖြေစနစ် မချိတ်ဆက်ရသေးပါ။ မမှန်သော အဖြေများ မပြဘဲ တကယ့် AI ကို နောက်ပိုင်း ချိတ်ဆက်ပါမည်။",aiPlaceholder:"KitchAI ကို မေးပါ…",ask:"မေးရန်",openAssistant:"AI စာမျက်နှာဖွင့်ရန် →",recentActivity:"လတ်တလော လုပ်ဆောင်ချက်များ",activityHelp:"အရေးကြီးသော ပြောင်းလဲမှုမှတ်တမ်း",activityNotConnected:"လုပ်ငန်းမှတ်တမ်းများ ချိတ်ဆက်ပြီးမှ လတ်တလောလုပ်ဆောင်ချက်များကို ပြသပါမည်။",salesPlanned:"အရောင်းစာမျက်နှာကို နောက်တစ်ဆင့်တွင် ပြုလုပ်မည်။",expensesPlanned:"အသုံးစရိတ်စာမျက်နှာကို နောက်တစ်ဆင့်တွင် ပြုလုပ်မည်။"},
+  th: {eyebrow:"ภาพรวมธุรกิจของคุณ",title:"สวัสดีตอนเย็น มาเริ่มจัดการครัวกัน",subtitle:"ดูงานวันนี้ สต็อก และขั้นตอนถัดไปได้ในที่เดียว",language:"ภาษา",businessSetup:"ตั้งค่าธุรกิจ",weather:"สภาพอากาศและตรวจแผงร้าน",weatherPending:"ยังไม่ได้เชื่อมต่อบริการสภาพอากาศ",weatherHelp:"จะเชื่อมต่อบริการสภาพอากาศภายหลัง เพื่อแสดงสภาพปัจจุบัน โอกาสฝนตก และการแจ้งเตือนร้านกลางแจ้ง",notAvailable:"ยังไม่พร้อมใช้งาน",todayEyebrow:"วันนี้",today:"สรุปวันนี้",needsRecords:"อ้างอิงจากข้อมูลที่บันทึก",sales:"ยอดขาย",expenses:"ค่าใช้จ่าย",profit:"กำไร",cannotCalculate:"ยังคำนวณไม่ได้",production:"การผลิต",noSalesData:"ยังไม่ได้เชื่อมข้อมูลการขายกับสรุปนี้",noExpenseData:"ยังไม่ได้เชื่อมข้อมูลค่าใช้จ่ายกับสรุปนี้",profitHelp:"จะแสดงกำไรเมื่อข้อมูลยอดขาย ต้นทุน และค่าใช้จ่ายครบถ้วน",productionHelp:"จะแสดงยอดการผลิตเมื่อมีข้อมูลพร้อม",shortcuts:"ทางลัด",quickActions:"การดำเนินการด่วน",newPurchase:"บันทึกการซื้อ",newPurchaseHelp:"บันทึกวัตถุดิบที่ซื้อ",startProduction:"เริ่มการผลิต",startProductionHelp:"ผลิตตามสูตรอาหาร",recordSale:"บันทึกการขาย",salesComing:"หน้าการขายจะทำในขั้นตอนถัดไป",addExpense:"เพิ่มค่าใช้จ่าย",expensesComing:"หน้าค่าใช้จ่ายจะทำในขั้นตอนถัดไป",stockAlerts:"แจ้งเตือนสต็อก",stockAlertsHelp:"ตรวจสอบวัตถุดิบที่ใกล้หมด",stockNotConnected:"จะแสดงการแจ้งเตือนเมื่อเชื่อมยอดคงเหลือและเกณฑ์สต็อกแล้ว",reviewStock:"ตรวจสอบสต็อก →",unsoldFood:"อาหารเหลือและปิดวัน",unsoldFoodHelp:"บันทึกสถานะของอาหารเหลือแต่ละรายการ",discountSale:"ขายลดราคา",carryOver:"เก็บไว้ขายวันถัดไปอย่างปลอดภัย",personalUse:"รับประทานเอง",wasteGiveaway:"ทิ้ง เสีย หรือแจกให้ผู้อื่น",manageLeftovers:"จัดการสต็อกและอาหารเหลือ →",aiAssistant:"ผู้ช่วย KitchAI",aiHelp:"ถามเกี่ยวกับการทำงานในครัว",aiNotConnected:"ยังไม่ได้เชื่อมต่อ AI จะเชื่อมต่อระบบจริงภายหลังแทนการแสดงคำตอบจำลอง",aiPlaceholder:"ถาม KitchAI…",ask:"ถาม",openAssistant:"เปิดผู้ช่วย AI →",recentActivity:"กิจกรรมล่าสุด",activityHelp:"ประวัติการเปลี่ยนแปลงสำคัญ",activityNotConnected:"จะแสดงกิจกรรมล่าสุดเมื่อเชื่อมต่อข้อมูลธุรกิจแล้ว",salesPlanned:"หน้าการขายจะทำในขั้นตอนถัดไป",expensesPlanned:"หน้าค่าใช้จ่ายจะทำในขั้นตอนถัดไป"}
+};
+function applyDashboardLanguage(language) {
+  const dictionary = dashboardTranslations[language] ?? dashboardTranslations.en;
+  document.documentElement.lang = language;
+  document.querySelectorAll("#dashboard [data-i18n]").forEach((node) => {
+    const key = node.getAttribute("data-i18n");
+    if (key && dictionary[key]) node.textContent = dictionary[key];
+  });
+  document.querySelectorAll("#dashboard [data-i18n-placeholder]").forEach((node) => {
+    const key = node.getAttribute("data-i18n-placeholder");
+    if (key && dictionary[key]) node.setAttribute("placeholder", dictionary[key]);
+  });
+}
+const dashboardLanguage = document.getElementById("dashboard-language");
+dashboardLanguage?.addEventListener("change", () => applyDashboardLanguage(dashboardLanguage.value));
+if (dashboardLanguage) applyDashboardLanguage(dashboardLanguage.value);
