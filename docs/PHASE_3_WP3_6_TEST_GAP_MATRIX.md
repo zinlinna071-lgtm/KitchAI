@@ -129,3 +129,11 @@ This section supersedes the earlier pending-state notes above where they describ
 - Updated the test on PR #59 head `a98e44c8c35b2d16002ecc01ca34d5970e2499d4` to click **Refresh purchases** after syncing the ingredient and wait for the purchase line/ingredient option before interacting. This is a test setup correction; receipt posting remains unverified until the fresh exact-head WP1.6 run passes.
 - WP1.4 run [38662939676](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38662939676) failed before DB tests because Docker image pull returned `toomanyrequests: Data limit exceeded`. The failed job was re-run; this rerun is not yet verified as green. WP1.2 baseline [run 38662939623](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38662939623) passed.
 - Keep WP3.6.4 conditional/not ready to close. No claim that purchase E2E passed; PRs remain Draft/unmerged.
+
+
+## Purchase E2E test iteration 3 — 2026-10-15
+
+- On PR #59 head `a98e44c8c35b2d16002ecc01ca34d5970e2499d4`, [WP1.4 run 38696099624](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38696099624) passed all 200 pgTAP tests across 7 files and the two-session stock-count concurrency regression.
+- [WP1.6 run 38696099463](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38696099463) passed DB tests, concurrency, and build; the 9 existing Playwright scenarios passed. The new purchase scenario reached the ingredient-option assertion but failed because the assertion's locator matched both the blank placeholder option and the matching ingredient option under strict mode. The test did not reach draft/receipt posting, so this is not evidence for or against receipt behavior.
+- Corrected the assertion to filter the option by the expected ingredient name and assert exactly one match. New PR #59 head: `1de3f8cf86ac377bf355128b91665d579f8f896c`. Exact-head WP1.2/WP1.4/WP1.6 workflows are running; the purchase E2E remains unverified until WP1.6 passes on this head.
+- Keep WP3.6.4 conditional/not ready to close. PRs #58–#60 remain Draft/unmerged; no hosted resources, billing, secrets, or deployment.
