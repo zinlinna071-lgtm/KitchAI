@@ -284,3 +284,10 @@ This update supersedes the preceding pending/rate-limited CI notes where they de
 ## Current test-head note — 2026-10-15
 
 PR #59 now points to `3aed4c9edf0f3250d9d9c5a61799d24669d72464`, a small test-fidelity correction aligning the synthetic receipt movement metadata with the purchase domain contract (`sourceType: purchase`, source ID representing the purchase draft). The prior head's WP1.4 pass (200 tests + concurrency) remains useful historical evidence, but it is **not** a green check on this newest head. The WP1.6 retry for the prior head was still running at last poll and had not completed; the newest head's required CI is pending. Do not close WP3.6.4 or treat PR #59 as ready until exact-head required checks are green.
+
+
+### WP3.6 current-head verification refresh — 2026-10-15
+
+- PR #59 head `3aed4c9edf0f3250d9d9c5a61799d24669d72464` passed [WP1.4 run 38661906406](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38661906406): 200 pgTAP tests across 7 files and the two-session stock-count concurrency regression.
+- The same exact head passed [WP1.6 run 38661906399](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38661906399): database suite, concurrency regression, app build, and all 9 local-Supabase Playwright scenarios.
+- Remaining boundary: the composed SQL test does not invoke the purchase UI/store path (`createPurchase` → `recordPurchaseReceipt` → `syncPurchaseReceipt`). A bounded authenticated integration test remains a candidate before claiming full purchase workflow integration. Manual device/accessibility checks are deferred; WP3.6.4 remains conditional and PRs #58–#60 remain Draft/unmerged.
