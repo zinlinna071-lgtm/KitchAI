@@ -350,7 +350,7 @@ begin
         loop
           exit when v_to_allocate = 0;
           v_lot_remaining := v_lot.remaining;
-          v_lot_take := pg_catalog.least(v_lot_remaining, v_to_allocate);
+          v_lot_take := case when v_lot_remaining < v_to_allocate then v_lot_remaining else v_to_allocate end;
           insert into public.stock_movement_lot_allocations(
             owner_id, business_id, event_id, lot_id, quantity, unit
           ) values (
