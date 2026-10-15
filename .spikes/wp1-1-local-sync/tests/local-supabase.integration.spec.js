@@ -758,11 +758,12 @@ test("authenticated browser journey composes purchase, production, giveaway, and
   await page.locator("#recipe-menu-item").selectOption({ label: menuItemName });
   await page.locator("#recipe-name").fill(recipeName);
   await page.locator("#recipe-yield").fill("4");
-  await page.locator("#recipe-status").selectOption("active");
+  // Recipes must have a valid ingredient line before activation. Save the draft first.
+  await page.locator("#recipe-status").selectOption("draft");
   await page.getByRole("button", { name: "Save recipe draft" }).click();
   await expect(page.locator("#recipe-list")).toContainText(recipeName);
 
-  await page.locator("#recipe-line-recipe").selectOption({ label: recipeName + " · Active" });
+  await page.locator("#recipe-line-recipe").selectOption({ label: recipeName + " · Draft" });
   await page.locator("#recipe-line-ingredient").selectOption({ label: ingredientName });
   await page.locator("#recipe-line-quantity").fill("250");
   await page.locator("#recipe-line-unit").selectOption("g");
@@ -770,6 +771,9 @@ test("authenticated browser journey composes purchase, production, giveaway, and
   await page.getByRole("button", { name: "Add ingredient line" }).click();
   await expect(page.locator("#recipe-line-list")).toContainText("250 g");
 
+  const recipeCard = page.locator("#recipe-list li").filter({ hasText: recipeName });
+  await recipeCard.getByRole("button", { name: "Activate" }).click();
+  await expect(recipeCard).toContainText("Active");
   await page.getByRole("button", { name: "Sync now" }).click();
   await expect(page.locator("#phase2-sync-state")).toContainText("acknowledged", { timeout: 20000 });
   await expect.poll(async () => page.evaluate(async () => {
