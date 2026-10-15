@@ -272,3 +272,10 @@ This update supersedes the preceding pending/rate-limited CI notes where they de
 - **WP3.6.2 — Count retry/idempotency and concurrency:** same-command count replay and changed-payload rejection are in PR #59; the exact-head WP1.6 and WP1.4 runs passed. This does not establish fault-injection coverage for every command type.
 - **WP3.6.3 — Authenticated mobile E2E:** [PR #60 WP1.6 run 38660630936](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38660630936) passed on exact head `e9c0560287d58065a385be22ddf727f5bff5f99b`: 177 DB tests across 6 files, concurrency regression, build, and all 9 Playwright scenarios. The authenticated stock-count scenario ran at 360 × 800 CSS pixels and passed its no-horizontal-overflow and no-uncaught-page-error assertions through posting.
 - **WP3.6.4 — Phase 3 exit review:** still **conditional / not ready to close**. Automated evidence is stronger, but real-device install, offline navigation on device, screen-reader/contrast checks, and manual recovery acceptance remain deferred. The composed cross-workflow path is DB-level, not one authenticated browser journey across all workflows. PRs #58–#60 remain Draft/unmerged; Phase 3 is not declared complete. No hosted resources, billing, secrets, or deployment are authorized.
+
+
+### PR #59 latest-head CI — 2026-10-15
+
+- Current head `26ed3e336bf5bb322a32f343875a4a4b5bffa423` extends the server-side composition with safe carry-forward handling. [WP1.4 run 38661235589](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38661235589) passed 200 pgTAP tests across 7 files and the two-session concurrency regression.
+- [WP1.6 run 38661235561](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38661235561) failed at Supabase Postgres image pull due to Docker `toomanyrequests: Data limit exceeded`; its database/concurrency/build/browser steps did not execute. Failed job rerun was requested; pending outcome.
+- Keep WP3.6.1 database composition evidence separate from full WP1.6 vertical-slice evidence. PR #59 remains Draft/unmerged; WP3.6.4 remains conditional.
