@@ -1925,6 +1925,10 @@ const dashboardTranslations = {
 function applyDashboardLanguage(language) {
   const dictionary = dashboardTranslations[language] ?? dashboardTranslations.en;
   document.documentElement.lang = language;
+  const languageLabel = document.querySelector(".compact-language [data-i18n='language']");
+  if (languageLabel) languageLabel.textContent = dictionary.language ?? "Language";
+  const languageSelect = /** @type {HTMLSelectElement | null} */ (document.getElementById("dashboard-language"));
+  languageSelect?.setAttribute("aria-label", dictionary.language ?? "Language");
   document.querySelectorAll("#dashboard [data-i18n]").forEach((node) => {
     const key = node.getAttribute("data-i18n");
     if (key && dictionary[key]) node.textContent = dictionary[key];
@@ -1988,3 +1992,24 @@ dashboardAiForm?.addEventListener("submit", (event) => {
   dashboardAiStatus.textContent = dashboardTranslations[language]?.aiSubmitUnavailable ?? dashboardTranslations.en.aiSubmitUnavailable;
 });
 applyDashboardLanguage(dashboardLanguage?.value ?? "en");
+
+
+/* Compact, persistent light/dark appearance control. */
+const themeToggle = /** @type {HTMLButtonElement | null} */ (document.getElementById("theme-toggle"));
+function applyKitchAITheme(theme) {
+  const dark = theme === "dark";
+  document.documentElement.dataset.theme = dark ? "dark" : "light";
+  if (themeToggle) {
+    themeToggle.setAttribute("aria-label", dark ? "Switch to light mode" : "Switch to dark mode");
+    themeToggle.title = dark ? "Light mode" : "Dark mode";
+    themeToggle.innerHTML = dark ? '<span aria-hidden="true">☀</span>' : '<span aria-hidden="true">☾</span>';
+  }
+}
+let savedKitchAITheme = "light";
+try { savedKitchAITheme = localStorage.getItem("kitchai-theme") === "dark" ? "dark" : "light"; } catch {}
+applyKitchAITheme(savedKitchAITheme);
+themeToggle?.addEventListener("click", () => {
+  const nextTheme = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+  applyKitchAITheme(nextTheme);
+  try { localStorage.setItem("kitchai-theme", nextTheme); } catch {}
+});
