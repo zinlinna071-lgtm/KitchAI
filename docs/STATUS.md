@@ -179,3 +179,8 @@ The main candidate gap is a single local-Supabase integration path covering purc
 **Current CI evidence:** no workflow runs or combined statuses are visible for the latest documentation-only PR #58 head. Existing app and database workflows use path filters; this absence must not be described as a pass or failure of application tests. Implementation work must trigger the relevant workflows, record exact final-head evidence, and remain unmerged until required CI passes and the owner reviews the scope.
 
 **Safety boundary:** synthetic data and local Supabase/emulators only. Hosted provisioning, billing, production secrets, and deployment remain unauthorized.
+
+## WP3.6 owner review acknowledgment — 2026-10-15
+
+The owner reviewed and accepted the proposed WP3.6 approach in conversation and authorized continuing the work. This acknowledges acceptance of the **plan and next-step recommendation**, not a claim that implementation has been reviewed, CI has passed, or Phase 3 is complete. PR [#58](https://github.com/zinlinna071-lgtm/KitchAI/pull/58) remains Draft/unmerged while the next step is to verify and implement only demonstrated integration-test gaps. No tests were run during this source inspection; the updated matrix records the inspected source paths and execution limitation.
+
