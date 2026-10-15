@@ -194,3 +194,14 @@ PR [#59](https://github.com/zinlinna071-lgtm/KitchAI/pull/59) adds a synthetic l
 Both workflows run `supabase test db`; the new SQL test is in the discovered database-test directory. The composed scenario checks receipt, production consumption/output with a finished lot, a non-revenue giveaway with lot allocation, and reviewed stock-count variance correction. The test uses synthetic IDs and rolls back its transaction.
 
 **Scope limit:** this confirms the server-side database composition covered by this test only. It does not close all WP3.6 gaps or complete Phase 3 acceptance. UI/store orchestration, broader retry/lost-acknowledgement cases, real-device/manual checks, and remaining exit criteria must still be reviewed. PR #59 remains subject to review; no hosted resources, billing, secrets, or deployment were changed.
+
+
+## WP3.6 verification refresh — 2026-10-15 (PR #59 head)
+
+PR [#59](https://github.com/zinlinna071-lgtm/KitchAI/pull/59) was updated to head `031bf2798c29c55315898c2b3760959816d0a0aa` with stock-count command replay and changed-payload idempotency assertions.
+
+- [WP1.6 Local Supabase Vertical Slice — run 38659411117](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38659411117): **passed** on the exact head. The workflow completed database authorization/idempotency tests, two-session count concurrency, app build, and authenticated local-Supabase browser checks.
+- [WP1.4 Local Supabase Authorization — run 38659411120](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38659411120): **failed before DB tests** because pulling `public.ecr.aws/supabase/postgres:15.8.1.085` returned `toomanyrequests: Data limit exceeded`. Database and concurrency steps were skipped; this is an infrastructure/rate-limit block, not evidence of a failed SQL assertion.
+- Existing authenticated stock-count E2E evidence is from PR #57's head `cd5e60a2ba50b0786500b58f1eab50f90f8b5cfe`, including [baseline run 38654092924](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38654092924). It is prior-head evidence and does not mean the stock-count browser suite reran on PR #59.
+- WP3.6.3 UI/mobile coverage remains partial: empty-state accessibility/disabled controls/360px overflow smoke exists, and authenticated count posting E2E exists on a prior head. Real-device, screen-reader, contrast, and manual recovery checks remain deferred.
+- **WP3.6.4 exit recommendation: conditional / not ready to close.** Keep PRs #58 and #59 Draft/unmerged. Re-run the blocked authorization workflow when image pulls are available; continue only with bounded missing acceptance evidence. No hosted resources, billing, secrets, or deployment were used.
