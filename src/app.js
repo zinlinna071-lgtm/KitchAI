@@ -89,6 +89,7 @@ const phase2ConflictList = /** @type {HTMLElement | null} */ (document.querySele
 let currentProfile = null;
 let currentOwnerProfile = null;
 let activeSession = null;
+let finishedStockRefreshSequence = 0;
 let syncRunning = false;
 let phase2SyncRunning = false;
 let retryTimer;
@@ -1646,6 +1647,11 @@ async function renderFinishedStockHistory() {
 }
 
 async function refreshFinishedStockView(refreshRemote = true) {
+  const refreshSequence = ++finishedStockRefreshSequence;
+  const requestedOwnerId = activeSession?.user?.id ?? null;
+  const isCurrentRefresh = () =>
+    refreshSequence === finishedStockRefreshSequence &&
+    requestedOwnerId === (activeSession?.user?.id ?? null);
   let scope = activeMenuScope();
   // Auth/workspace refreshes can overlap a user-triggered stock refresh. During that
   // transition currentOwnerProfile is temporarily null even though this account already
@@ -1654,6 +1660,9 @@ async function refreshFinishedStockView(refreshRemote = true) {
   if (!scope && activeSession?.user?.id) {
     const session = activeSession;
     const profiles = await listOwnerProfiles(session.user.id);
+    // A refresh started by the previous (signed-out/local) workspace must not overwrite
+    // the signed-in workspace if authentication changed while IndexedDB was being read.
+    if (!isCurrentRefresh()) return;
     // The in-memory value can be stale as well as temporarily null while auth and
     // workspace refreshes overlap. Prefer the persisted owner profile when the current
     // value cannot produce a valid business scope.
@@ -1665,6 +1674,7 @@ async function refreshFinishedStockView(refreshRemote = true) {
     }
     scope = activeMenuScope();
   }
+  if (!isCurrentRefresh()) return;
   if (!scope) {
     // Workspace loading temporarily clears currentOwnerProfile before the owner profile is reloaded.
     // Do not clear stock state during that transition; a truly profile-less account keeps the initial
@@ -1694,6 +1704,9 @@ async function refreshFinishedStockView(refreshRemote = true) {
       : activeSession ? "No finished-stock snapshot is cached yet. Connect to refresh stock." : "Sign in and sync the business profile to load server-authoritative finished stock.";
   }
   const menuItems = await listMenuItems(scope).catch(() => []);
+  // Never let an older request (or one started for a different auth state) overwrite
+  // the snapshot and status produced by a newer refresh.
+  if (!isCurrentRefresh()) return;
   currentFinishedMenuNames = new Map(menuItems.map(item => [item.id, item.name]));
   currentFinishedBalances = currentFinishedSnapshot
     ? projectFinishedLotBalances(currentFinishedSnapshot.lots, currentFinishedSnapshot.allocations)
