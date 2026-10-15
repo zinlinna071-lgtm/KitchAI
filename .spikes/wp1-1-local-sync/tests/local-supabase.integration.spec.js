@@ -673,7 +673,7 @@ test("authenticated purchase UI persists partial receipts and only confirmed rec
     if (!ingredient) throw new Error("Synced purchase ingredient could not be found.");
     return inventory.getInventoryItemSnapshot(profile.businessId, "ingredient", ingredient.id, session);
   }, ingredientName);
-  expect(firstSnapshot.systemQuantity).toBe("4");
+  expect(Number(firstSnapshot.systemQuantity)).toBe(4);
 
   await purchaseCard.locator(".purchase-receipt-form input[data-line-id]").fill("6");
   await purchaseCard.getByRole("button", { name: "Save receipt" }).click();
@@ -695,7 +695,7 @@ test("authenticated purchase UI persists partial receipts and only confirmed rec
     if (!ingredient) throw new Error("Synced purchase ingredient could not be found.");
     return inventory.getInventoryItemSnapshot(profile.businessId, "ingredient", ingredient.id, session);
   }, ingredientName);
-  expect(finalSnapshot.systemQuantity).toBe("10");
+  expect(Number(finalSnapshot.systemQuantity)).toBe(10);
   expect(finalSnapshot.version).not.toBe(firstSnapshot.version);
   expect(pageErrors).toEqual([]);
 });
