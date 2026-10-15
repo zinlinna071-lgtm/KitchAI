@@ -228,3 +228,8 @@ This addendum supersedes the earlier statements that PR #59 WP1.4 and PR #60 WP1
 - **WP1.4 passed:** [run 38661235589](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38661235589). All 200 pgTAP tests across 7 files passed, including the new giveaway + safe carry-forward + stock-count composition checks. The two-session concurrency regression passed.
 - **WP1.6 blocked before test execution:** [run 38661235561](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38661235561) could not pull the Supabase Postgres image due to Docker `toomanyrequests: Data limit exceeded`; DB tests, concurrency, build and Playwright were skipped. The failed job was requested for rerun. Do not classify this as a product/test assertion failure or claim WP1.6 passed on the updated head until the rerun completes.
 - WP3.6.4 remains conditional; PR #59 stays Draft/unmerged while this gate is pending.
+
+
+## Current test-head note — 2026-10-15
+
+PR #59 now points to `3aed4c9edf0f3250d9d9c5a61799d24669d72464`, a small test-fidelity correction aligning the synthetic receipt movement metadata with the purchase domain contract (`sourceType: purchase`, source ID representing the purchase draft). The prior head's WP1.4 pass (200 tests + concurrency) remains useful historical evidence, but it is **not** a green check on this newest head. The WP1.6 retry for the prior head was still running at last poll and had not completed; the newest head's required CI is pending. Do not close WP3.6.4 or treat PR #59 as ready until exact-head required checks are green.
