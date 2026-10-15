@@ -747,6 +747,10 @@ test("authenticated purchase UI persists partial receipts and only confirmed rec
 
 test("authenticated browser journey composes purchase, production, giveaway, and finished-stock count", async ({ page }) => {
   const pageErrors = [];
+  const finishedStockDebugLogs = [];
+  page.on("console", message => {
+    if (message.type() === "debug" && message.text().includes("[finished-stock-debug]")) finishedStockDebugLogs.push(message.text());
+  });
   page.on("pageerror", error => pageErrors.push(error.message));
   await createAccount(page);
 
