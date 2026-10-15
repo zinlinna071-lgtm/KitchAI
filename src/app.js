@@ -1690,6 +1690,17 @@ async function refreshFinishedStockView(refreshRemote = true) {
     refreshSequence === finishedStockRefreshSequence &&
     requestedOwnerId === (activeSession?.user?.id ?? null);
   let scope = activeMenuScope();
+  console.debug("[finished-stock-debug]", JSON.stringify({
+    refreshSequence,
+    requestedOwnerId,
+    activeOwnerId: activeSession?.user?.id ?? null,
+    profileId: currentOwnerProfile?.id ?? null,
+    profileOwnerId: currentOwnerProfile?.ownerId ?? null,
+    profileSyncState: currentOwnerProfile?.syncState ?? null,
+    profileBusinessId: currentOwnerProfile?.businessId ?? null,
+    scope,
+    snapshotBusinessId: currentFinishedSnapshot?.remoteBusinessId ?? null,
+  }));
   // Auth/workspace refreshes can overlap a user-triggered stock refresh. During that
   // transition currentOwnerProfile is temporarily null even though this account already
   // has a persisted owner profile. Rehydrate the in-memory selection before deciding that
