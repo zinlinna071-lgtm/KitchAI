@@ -586,7 +586,21 @@ test("authenticated stock-count UI creates a session, captures a server snapshot
   await page.getByRole("button", { name: "Add ingredient", exact: true }).click();
   await expect(page.locator("#ingredient-list")).toContainText(ingredientName);
   await page.getByRole("button", { name: "Sync now" }).click();
-  await expect(page.locator("#phase2-sync-state")).toContainText("acknowledged", { timeout: 15000 });
+  // The queue may be drained by automatic sync before this explicit action runs.
+  // Verify the durable server record instead of depending on a transient UI message.
+  await expect.poll(async () => page.evaluate(async (name) => {
+    const session = JSON.parse(sessionStorage.getItem("kitchai.auth.session"));
+    const profiles = await import("/src/sync-store.js");
+    const businessStore = await import("/src/business-data-store.js");
+    const ingredientsStore = await import("/src/ingredient-store.js");
+    const phase2 = await import("/src/phase2-sync-engine.js");
+    const profile = (await profiles.listOwnerProfiles(session.user.id))[0];
+    const scope = businessStore.scopeForBusinessProfile({ ownerId: session.user.id, profileId: profile.id });
+    const ingredient = (await ingredientsStore.listIngredients(scope)).find(item => item.name === name);
+    if (!ingredient) return false;
+    const remote = await phase2.readRemotePhase2Entity("ingredient", ingredient.id, session).catch(() => null);
+    return Boolean(remote && remote.id === ingredient.id && remote.owner_id === session.user.id);
+  }, ingredientName), { timeout: 15000 }).toBe(true);
   await expect(page.locator("#ingredient-list")).toContainText(ingredientName);
 
   await page.locator("#stock-count-session-note").fill("Authenticated browser E2E");
@@ -861,7 +875,47 @@ test("authenticated browser journey composes purchase, production, giveaway, and
   }, { businessId: itemIds.businessId });
   expect(serverFinishedStock.lots.map(lot => lot.menuItemId), JSON.stringify(serverFinishedStock.lots)).toContain(itemIds.menuItemId);
 
+  // Hold the next scoped IndexedDB menu lookup to prove the authoritative stock
+  // status and quantities render without waiting for presentation-only menu names.
+  await page.evaluate(() => {
+    const originalIndex = IDBObjectStore.prototype.index;
+    const hold = { used: false, gate: new Promise(resolve => { window.__releaseFinishedStockMenuLookup = resolve; }) };
+    window.__finishedStockMenuLookupHold = hold;
+    window.__restoreFinishedStockIndex = () => { IDBObjectStore.prototype.index = originalIndex; };
+    IDBObjectStore.prototype.index = function (name) {
+      const index = originalIndex.call(this, name);
+      if (name !== "byScope") return index;
+      return new Proxy(index, {
+        get(target, property) {
+          if (property !== "getAll") {
+            const value = Reflect.get(target, property, target);
+            return typeof value === "function" ? value.bind(target) : value;
+          }
+          return (...args) => {
+            const request = target.getAll(...args);
+            if (hold.used) return request;
+            hold.used = true;
+            return new Proxy(request, {
+              get: (requestTarget, key) => Reflect.get(requestTarget, key, requestTarget),
+              set(requestTarget, key, handler) {
+                if (key === "onsuccess" && typeof handler === "function") {
+                  requestTarget.onsuccess = async event => {
+                    await hold.gate;
+                    handler.call(requestTarget, event);
+                  };
+                } else {
+                  requestTarget[key] = handler;
+                }
+                return true;
+              },
+            });
+          };
+        },
+      });
+    };
+  });
   await page.getByRole("button", { name: "Refresh stock" }).click();
+  await expect.poll(() => page.evaluate(() => window.__finishedStockMenuLookupHold?.used), { timeout: 10000 }).toBe(true);
   const finishedStockDiagnostics = await page.evaluate(async ({ businessId }) => {
     const session = JSON.parse(sessionStorage.getItem("kitchai.auth.session"));
     const profiles = await import("/src/sync-store.js");
@@ -886,8 +940,12 @@ test("authenticated browser journey composes purchase, production, giveaway, and
   }, { businessId: itemIds.businessId });
   finishedStockDiagnostics.finishedStockDebugLogs = finishedStockDebugLogs;
   await expect(page.locator("#finished-stock-state"), JSON.stringify(finishedStockDiagnostics)).toContainText("Stock refreshed from the server", { timeout: 15000 });
+  await expect(page.locator("#finished-stock-list")).toContainText("Remaining 4 each", { timeout: 15000 });
+  await page.evaluate(() => {
+    window.__releaseFinishedStockMenuLookup?.();
+    window.__restoreFinishedStockIndex?.();
+  });
   await expect(page.locator("#finished-stock-list")).toContainText(menuItemName, { timeout: 15000 });
-  await expect(page.locator("#finished-stock-list")).toContainText("Remaining 4 each");
   const afterProduction = await page.evaluate(async ({ businessId, ingredientId, menuItemId }) => {
     const session = JSON.parse(sessionStorage.getItem("kitchai.auth.session"));
     const api = await import("/src/supabase-api.js");
