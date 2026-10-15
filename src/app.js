@@ -1648,9 +1648,10 @@ async function renderFinishedStockHistory() {
 async function refreshFinishedStockView(refreshRemote = true) {
   const scope = activeMenuScope();
   if (!scope) {
-    // Workspace loading temporarily clears currentOwnerProfile. Preserve a known server snapshot
-    // during that transition instead of replacing its successful refresh status with a no-profile message.
-    if (activeSession && !currentOwnerProfile && currentFinishedSnapshot?.remoteBusinessId) return;
+    // Workspace loading temporarily clears currentOwnerProfile before the owner profile is reloaded.
+    // Do not clear stock state during that transition; a truly profile-less account keeps the initial
+    // no-profile message, while any in-flight refresh can finish once the workspace is ready.
+    if (activeSession && !currentOwnerProfile) return;
     currentFinishedSnapshot = null;
     currentFinishedBalances = [];
     renderFinishedStockLists();
