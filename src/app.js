@@ -33,12 +33,18 @@ const workspaceViewLabels = {
   production: "Production · recipe-based batches",
   stock: "Stock & leftovers · counts, finished lots, and disposition history",
 };
-function showWorkspaceView(view) {
+const workspaceViewTargets = {
+  overview: "#profile-form",
+  ingredients: "#ingredient-panel",
+  menu: "#menu-panel",
+  purchases: "#purchase-panel",
+  production: "#production-panel",
+  stock: "#stock-count-panel",
+};
+function showWorkspaceView(view, shouldScroll = false) {
   if (!Object.hasOwn(workspaceViewLabels, view)) return;
-  document.querySelectorAll("[data-view]").forEach((node) => {
-    const panel = /** @type {HTMLElement} */ (node);
-    panel.hidden = panel.dataset.view !== view;
-  });
+  // Navigation is a set of section shortcuts, not exclusive tabs. Keeping all
+  // panels in the document preserves multi-section workflows and test access.
   workspaceNav?.querySelectorAll("[data-view-target]").forEach((node) => {
     const button = /** @type {HTMLButtonElement} */ (node);
     const active = button.dataset.viewTarget === view;
@@ -46,14 +52,16 @@ function showWorkspaceView(view) {
     button.setAttribute("aria-pressed", String(active));
   });
   if (workspaceViewStatus) workspaceViewStatus.textContent = workspaceViewLabels[view];
+  if (shouldScroll) {
+    document.querySelector(workspaceViewTargets[view])?.scrollIntoView({ behavior: "auto", block: "start" });
+  }
 }
 workspaceNav?.addEventListener("click", (event) => {
   const target = event.target;
   if (!(target instanceof Element)) return;
   const button = target.closest("[data-view-target]");
   if (!(button instanceof HTMLButtonElement)) return;
-  showWorkspaceView(button.dataset.viewTarget);
-  document.querySelector("#main")?.scrollIntoView({ behavior: "auto", block: "start" });
+  showWorkspaceView(button.dataset.viewTarget, true);
 });
 showWorkspaceView("overview");
 
