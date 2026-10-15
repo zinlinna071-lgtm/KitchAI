@@ -22,6 +22,37 @@ import { initializeStockCountUI } from "./stock-count-ui.js";
 const connectionStatus = /** @type {HTMLParagraphElement | null} */ (document.querySelector("#connection-status"));
 const installButton = /** @type {HTMLButtonElement | null} */ (document.querySelector("#install-button"));
 
+// Keep the long workspace usable on a phone: show one functional area at a time.
+const workspaceNav = document.querySelector(".workspace-nav");
+const workspaceViewStatus = document.querySelector("#workspace-view-status");
+const workspaceViewLabels = {
+  overview: "Overview · business profile and connection status",
+  ingredients: "Ingredients · catalog and account sync",
+  menu: "Menu & recipes · menu items and measured recipe lines",
+  purchases: "Purchases · drafts, receipts, and ingredient stock",
+  production: "Production · recipe-based batches",
+  stock: "Stock & leftovers · counts, finished lots, and disposition history",
+};
+function showWorkspaceView(view) {
+  if (!Object.hasOwn(workspaceViewLabels, view)) return;
+  document.querySelectorAll("[data-view]").forEach((panel) => {
+    panel.hidden = panel.dataset.view !== view;
+  });
+  workspaceNav?.querySelectorAll("[data-view-target]").forEach((button) => {
+    const active = button.dataset.viewTarget === view;
+    button.classList.toggle("is-active", active);
+    button.setAttribute("aria-pressed", String(active));
+  });
+  if (workspaceViewStatus) workspaceViewStatus.textContent = workspaceViewLabels[view];
+}
+workspaceNav?.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-view-target]");
+  if (!button) return;
+  showWorkspaceView(button.dataset.viewTarget);
+  document.querySelector("#main")?.scrollIntoView({ behavior: "auto", block: "start" });
+});
+showWorkspaceView("overview");
+
 function updateConnectionStatus() {
   if (!connectionStatus) return;
   const online = navigator.onLine;
