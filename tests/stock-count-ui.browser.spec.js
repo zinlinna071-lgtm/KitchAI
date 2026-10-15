@@ -23,6 +23,7 @@ test("stock-count review controls render accessibly and cannot post an empty dra
 test("stock-count review remains usable on a narrow mobile viewport", async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 800 });
   await page.goto("/");
+  await page.getByRole("button", { name: "Stock & leftovers" }).click();
   await expect(page.getByRole("heading", { name: "Review a physical stock count." })).toBeVisible();
   await expect(page.getByRole("button", { name: "Post selected reviewed lines" })).toBeDisabled();
 
