@@ -1,8 +1,15 @@
 # WP3.6 — Initial Test-Gap Matrix
 
-**Status:** Phase A reconnaissance draft; static repository inspection only. This is not test-execution evidence and does not authorize implementation beyond the approved WP3.6 scope.
+**Status:** Phase A reconnaissance completed; the first combined database integration test has now been exercised by the existing local-Supabase CI workflows on PR #59. Remaining gaps below are not all closed by this one test.
 
 **Repository baseline inspected:** `main` at `2c0e476e7d16594c9b797965e437159919427dcd` (PR #57 merge), 2026-10-15.
+
+## Verified implementation evidence (2026-10-15)
+
+- Added `supabase/tests/database/phase3_cross_workflow.test.sql` on PR [#59](https://github.com/zinlinna071-lgtm/KitchAI/pull/59), using synthetic fixtures and a transaction rollback.
+- The test composes accepted ingredient receipt (10,000 g) → production consumption (2,500 g) and 4-unit finished lot → giveaway of one finished unit with lot allocation → reviewed physical count correction (7,500 g to 7,400 g).
+- The PR-head SHA `7b8ec3a999a23b14ba26c8a3ba9bc4640e62790d` ran both existing local-Supabase workflows successfully: [WP1.6 run 38658086812](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38658086812) and [WP1.4 run 38658086810](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38658086810). Their database test steps execute `supabase test db`, which includes the new SQL test under `supabase/tests/database/`.
+- This is evidence for the combined server-side database path only. It does not prove UI/store orchestration, lost-acknowledgement fault injection across every command, real-device/mobile acceptance, or all Phase 3 exit criteria. Do not mark Phase 3 complete from this evidence alone.
 
 ## Purpose and method
 
