@@ -571,7 +571,7 @@ test("authenticated stock-count UI creates a session, captures a server snapshot
   const finishedStockDebugLogs = [];
   page.on("pageerror", error => pageErrors.push(error.message));
   page.on("console", message => {
-    if (message.type() === "debug" && message.text().includes("[finished-stock-debug]")) finishedStockDebugLogs.push(message.text());
+    if (message.type() === "debug" && (message.text().includes("[finished-stock-debug]") || message.text().includes("[finished-stock-debug-stage]"))) finishedStockDebugLogs.push(message.text());
   });
   await createAccount(page);
 
