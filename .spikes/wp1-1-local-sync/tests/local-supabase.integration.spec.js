@@ -565,9 +565,10 @@ test("legacy Phase 2 records migrate through the current runtime, queue once, an
 });
 
 
-test("authenticated stock-count UI creates a session, captures a server snapshot, reviews a variance, and posts atomically", async ({ page }) => {
+test("authenticated stock-count UI works at a 360px mobile viewport and posts atomically", async ({ page }) => {
   const pageErrors = [];
   page.on("pageerror", error => pageErrors.push(error.message));
+  await page.setViewportSize({ width: 360, height: 800 });
   await createAccount(page);
 
   await page.locator("#business-name").fill("Stock Count E2E Kitchen");
@@ -612,5 +613,11 @@ test("authenticated stock-count UI creates a session, captures a server snapshot
   await expect(page.locator("#stock-count-state")).toContainText("Server confirmed", { timeout: 20000 });
   await expect(page.locator("#stock-count-lines")).toContainText("posted", { timeout: 10000 });
   await expect(page.locator("#stock-count-state")).not.toContainText("uncertain");
+  const dimensions = await page.evaluate(() => ({
+    viewport: document.documentElement.clientWidth,
+    content: document.documentElement.scrollWidth,
+  }));
+  expect(dimensions.viewport).toBe(360);
+  expect(dimensions.content).toBeLessThanOrEqual(dimensions.viewport);
   expect(pageErrors).toEqual([]);
 });
