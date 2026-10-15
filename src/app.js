@@ -1238,7 +1238,7 @@ async function refreshProductionView() {
               setProductionState("Actual usage saved. Batch is ready to post when you are online and signed in; no inventory has changed yet.");
             }
             await refreshProductionView();
-            if (prepared && prepared.state === "ready_to_post") setFinishedStockMessage(finishedStockState, "Refresh stock after the production batch is posted.");
+            if (prepared && prepared.state === "ready_to_post" && !(activeSession && navigator.onLine && currentOwnerProfile?.businessId)) setFinishedStockMessage(finishedStockState, "Batch is ready to post when online and signed in; finished stock updates after server confirmation.");
           } catch (error) {
             setProductionState(error instanceof Error ? error.message : "Could not prepare production batch.", true);
             await refreshProductionView();
