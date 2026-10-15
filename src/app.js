@@ -1906,12 +1906,12 @@ document.querySelectorAll("[data-jump-to]").forEach((button) => {
     }
     if (target) {
       target.scrollIntoView({ behavior: "auto", block: "start" });
-      const viewButton = document.querySelector('[data-view-target="' + ({
+      const viewButton = /** @type {HTMLButtonElement | null} */ (document.querySelector('[data-view-target="' + ({
         "purchase-panel": "purchases",
         "production-panel": "production",
         "stock-count-panel": "stock",
         "profile-form": "overview",
-      }[targetId] ?? "") + '"]');
+      }[targetId] ?? "") + '"]'));
       viewButton?.click();
       target.scrollIntoView({ behavior: "auto", block: "start" });
     }
@@ -1934,7 +1934,7 @@ function applyDashboardLanguage(language) {
     if (key && dictionary[key]) node.setAttribute("placeholder", dictionary[key]);
   });
 }
-const dashboardLanguage = document.getElementById("dashboard-language");
+const dashboardLanguage = /** @type {HTMLSelectElement | null} */ (document.getElementById("dashboard-language"));
 dashboardLanguage?.addEventListener("change", () => applyDashboardLanguage(dashboardLanguage.value));
 if (dashboardLanguage) applyDashboardLanguage(dashboardLanguage.value);
 
@@ -1960,9 +1960,9 @@ Object.assign(dashboardTranslations.th, {
   promptProfit:"วันนี้ได้กำไรเท่าไร", promptIngredients:"ควรซื้ออะไรต่อ", promptProduction:"ช่วยวางแผนการผลิต", promptLeftovers:"จัดการอาหารที่ขายไม่หมด",
   aiSubmitUnavailable:"ยังไม่ได้เชื่อมต่อ AI จึงยังไม่ได้ส่งคำถาม และไม่มีการสร้างคำตอบจำลอง"
 });
-const dashboardAiForm = document.getElementById("dashboard-ai-form");
-const dashboardAiInput = document.getElementById("dashboard-ai-question");
-const dashboardAiStatus = document.getElementById("dashboard-ai-status");
+const dashboardAiForm = /** @type {HTMLFormElement | null} */ (document.getElementById("dashboard-ai-form"));
+const dashboardAiInput = /** @type {HTMLTextAreaElement | null} */ (document.getElementById("dashboard-ai-question"));
+const dashboardAiStatus = /** @type {HTMLParagraphElement | null} */ (document.getElementById("dashboard-ai-status"));
 const dashboardAiPromptQuestions = {
   en: ["How much profit did my business make today?","Which ingredients should I buy next?","Help me plan today's production.","How should I handle today's unsold food safely?"],
   my: ["ဒီနေ့ လုပ်ငန်းအမြတ် ဘယ်လောက်ရလဲ။","နောက်ထပ် ဘယ်ကုန်ကြမ်းတွေ ဝယ်သင့်လဲ။","ဒီနေ့ ထုတ်လုပ်မှုကို စီစဉ်ပေးပါ။","ဒီနေ့ မရောင်းရသေးတဲ့ အစားအစာတွေကို ဘေးကင်းစွာ ဘယ်လိုစီမံရမလဲ။"],
