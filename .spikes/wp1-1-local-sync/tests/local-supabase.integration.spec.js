@@ -870,7 +870,7 @@ test("authenticated browser journey composes purchase, production, giveaway, and
       status: document.querySelector("#finished-stock-state")?.textContent ?? "",
     };
   }, { businessId: itemIds.businessId });
-  expect(finishedStockDiagnostics.status, JSON.stringify(finishedStockDiagnostics)).toContain("Stock refreshed from the server");
+  await expect(page.locator("#finished-stock-state"), JSON.stringify(finishedStockDiagnostics)).toContainText("Stock refreshed from the server", { timeout: 15000 });
   await expect(page.locator("#finished-stock-list")).toContainText(menuItemName, { timeout: 15000 });
   await expect(page.locator("#finished-stock-list")).toContainText("Remaining 4 each");
   const afterProduction = await page.evaluate(async ({ businessId, ingredientId, menuItemId }) => {
