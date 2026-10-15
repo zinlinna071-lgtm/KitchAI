@@ -1690,6 +1690,7 @@ async function refreshFinishedStockView(refreshRemote = true) {
     refreshSequence === finishedStockRefreshSequence &&
     requestedOwnerId === (activeSession?.user?.id ?? null);
   let scope = activeMenuScope();
+  console.debug("[finished-stock-debug-stage]", "refresh-enter", refreshSequence, JSON.stringify({ refreshRemote, online: navigator.onLine, hasSession: Boolean(activeSession?.user?.id), scope }));
   console.debug("[finished-stock-debug]", JSON.stringify({
     refreshSequence,
     requestedOwnerId,
@@ -1710,7 +1711,7 @@ async function refreshFinishedStockView(refreshRemote = true) {
     const profiles = await listOwnerProfiles(session.user.id);
     // A refresh started by the previous (signed-out/local) workspace must not overwrite
     // the signed-in workspace if authentication changed while IndexedDB was being read.
-    if (!isCurrentRefresh()) return;
+    if (!isCurrentRefresh()) { console.debug("[finished-stock-debug-stage]", "refresh-stale-after-profile-read", refreshSequence, finishedStockRefreshSequence, requestedOwnerId, activeSession?.user?.id ?? null); return; }
     // The in-memory value can be stale as well as temporarily null while auth and
     // workspace refreshes overlap. Prefer the persisted owner profile when the current
     // value cannot produce a valid business scope.
@@ -1721,13 +1722,15 @@ async function refreshFinishedStockView(refreshRemote = true) {
       }
     }
     scope = activeMenuScope();
+    console.debug("[finished-stock-debug-stage]", "scope-rehydrated", refreshSequence, JSON.stringify({ scope, profileId: currentOwnerProfile?.id ?? null, profileOwnerId: currentOwnerProfile?.ownerId ?? null }));
   }
-  if (!isCurrentRefresh()) return;
+  if (!isCurrentRefresh()) { console.debug("[finished-stock-debug-stage]", "refresh-stale-before-scope-check", refreshSequence, finishedStockRefreshSequence, requestedOwnerId, activeSession?.user?.id ?? null); return; }
   if (!scope) {
     // Workspace loading temporarily clears currentOwnerProfile before the owner profile is reloaded.
     // Do not clear stock state during that transition; a truly profile-less account keeps the initial
     // no-profile message, while any in-flight refresh can finish once the workspace is ready.
-    if (currentFinishedSnapshot?.remoteBusinessId || (activeSession && (!currentOwnerProfile?.id || currentOwnerProfile.ownerId !== activeSession.user.id))) return;
+    if (currentFinishedSnapshot?.remoteBusinessId || (activeSession && (!currentOwnerProfile?.id || currentOwnerProfile.ownerId !== activeSession.user.id))) { console.debug("[finished-stock-debug-stage]", "no-scope-preserved-during-transition", refreshSequence, JSON.stringify({ snapshotBusinessId: currentFinishedSnapshot?.remoteBusinessId ?? null, hasSession: Boolean(activeSession), profileId: currentOwnerProfile?.id ?? null, profileOwnerId: currentOwnerProfile?.ownerId ?? null })); return; }
+    console.debug("[finished-stock-debug-stage]", "no-scope-cleared", refreshSequence);
     currentFinishedSnapshot = null;
     currentFinishedBalances = [];
     renderFinishedStockLists();
@@ -1736,6 +1739,7 @@ async function refreshFinishedStockView(refreshRemote = true) {
   }
   let message = "";
   let isError = false;
+  console.debug("[finished-stock-debug-stage]", "remote-refresh-eligibility", refreshSequence, JSON.stringify({ refreshRemote, hasSession: Boolean(activeSession?.user?.id), online: navigator.onLine, profileId: currentOwnerProfile?.id ?? null, profileOwnerId: currentOwnerProfile?.ownerId ?? null, syncState: currentOwnerProfile?.syncState ?? null, businessId: currentOwnerProfile?.businessId ?? null, scope }));
   if (refreshRemote && activeSession && navigator.onLine && currentOwnerProfile?.syncState === "synced" && currentOwnerProfile.businessId) {
     try {
       console.debug("[finished-stock-debug-stage]", "remote-refresh-start", refreshSequence, currentOwnerProfile.businessId);
