@@ -205,3 +205,8 @@ PR [#59](https://github.com/zinlinna071-lgtm/KitchAI/pull/59) was updated to hea
 - Existing authenticated stock-count E2E evidence is from PR #57's head `cd5e60a2ba50b0786500b58f1eab50f90f8b5cfe`, including [baseline run 38654092924](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38654092924). It is prior-head evidence and does not mean the stock-count browser suite reran on PR #59.
 - WP3.6.3 UI/mobile coverage remains partial: empty-state accessibility/disabled controls/360px overflow smoke exists, and authenticated count posting E2E exists on a prior head. Real-device, screen-reader, contrast, and manual recovery checks remain deferred.
 - **WP3.6.4 exit recommendation: conditional / not ready to close.** Keep PRs #58 and #59 Draft/unmerged. Re-run the blocked authorization workflow when image pulls are available; continue only with bounded missing acceptance evidence. No hosted resources, billing, secrets, or deployment were used.
+
+
+## WP3.6.3 mobile authenticated E2E follow-up — 2026-10-15
+
+Draft [PR #60](https://github.com/zinlinna071-lgtm/KitchAI/pull/60), head `e9c0560287d58065a385be22ddf727f5bff5f99b`, extends the authenticated local-Supabase stock-count browser E2E to run at 360 × 800 CSS pixels and assert no horizontal overflow after server-confirmed posting. This directly extends prior narrow-width smoke, which checked only the empty state. The required CI result is pending and must be verified on this exact head. PR #60 remains Draft/unmerged; manual device/accessibility checks remain deferred.
