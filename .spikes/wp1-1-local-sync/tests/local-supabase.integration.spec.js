@@ -632,6 +632,12 @@ test("authenticated purchase UI persists partial receipts and only confirmed rec
   await page.getByRole("button", { name: "Sync now" }).click();
   await expect(page.locator("#phase2-sync-state")).toContainText("acknowledged", { timeout: 15000 });
 
+  // The purchase workspace may have initialized before the profile/ingredient existed.
+  // Explicitly refresh so its cached ingredient list and first line are populated.
+  await page.getByRole("button", { name: "Refresh purchases" }).click();
+  await expect(page.locator("#purchase-line-entry-list .purchase-line-entry")).toHaveCount(1, { timeout: 10000 });
+  await expect(page.locator('#purchase-line-entry-list select[data-field="ingredient"] option')).toContainText(ingredientName);
+
   const supplierName = "E2E Supplier " + Date.now();
   await page.locator("#purchase-supplier").fill(supplierName);
   const purchaseLine = page.locator("#purchase-line-entry-list .purchase-line-entry").first();
