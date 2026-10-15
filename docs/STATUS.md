@@ -220,3 +220,11 @@ This addendum supersedes the earlier statements that PR #59 WP1.4 and PR #60 WP1
 - **PR #60 / WP1.6 Local Supabase Vertical Slice:** [run 38660630936](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38660630936) passed on exact head `e9c0560287d58065a385be22ddf727f5bff5f99b`. The DB suite passed 177 tests across 6 files; concurrency and app build passed; all 9 Playwright tests passed, including authenticated stock-count posting at 360 × 800 CSS pixels with no horizontal overflow or uncaught page errors.
 - The earlier WP1.4 image-pull rate-limit failure was transient and is superseded by the successful rerun above; retain it only as historical context.
 - **WP3.6.4 exit decision remains conditional / not ready to close.** Automated evidence improved, but real-device install/offline navigation, screen-reader and contrast checks, and manual recovery acceptance remain unperformed. The composed purchase → production → disposition → count scenario is DB-level rather than a single authenticated browser journey. PRs #58, #59 and #60 remain Draft/unmerged; no Phase 3 completion claim is made. No hosted provisioning, billing, production secrets, or deployment is authorized.
+
+
+## PR #59 updated-head CI — 2026-10-15
+
+- Current test head: `26ed3e336bf5bb322a32f343875a4a4b5bffa423`.
+- **WP1.4 passed:** [run 38661235589](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38661235589). All 200 pgTAP tests across 7 files passed, including the new giveaway + safe carry-forward + stock-count composition checks. The two-session concurrency regression passed.
+- **WP1.6 blocked before test execution:** [run 38661235561](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38661235561) could not pull the Supabase Postgres image due to Docker `toomanyrequests: Data limit exceeded`; DB tests, concurrency, build and Playwright were skipped. The failed job was requested for rerun. Do not classify this as a product/test assertion failure or claim WP1.6 passed on the updated head until the rerun completes.
+- WP3.6.4 remains conditional; PR #59 stays Draft/unmerged while this gate is pending.
