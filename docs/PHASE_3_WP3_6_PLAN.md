@@ -126,3 +126,15 @@ Stop and report instead of guessing if an operation is unsupported, unit semanti
 5. Keep all PRs Draft/unmerged until owner approval. No hosted provisioning, billing, secrets, or deployment is authorized.
 
 **Scope conclusion:** WP3.6.1 is evidenced for the server-side DB composition; WP3.6.2 has count-command replay/payload mismatch and stale concurrency evidence but remains partial across command types; WP3.6.3 has authenticated 360px automated E2E evidence but manual checks remain deferred. Therefore WP3.6.4 remains **conditional**, not pass/closed.
+
+
+### Authenticated purchase-store E2E evidence refresh — 2026-10-15
+
+PR #59 head `1d5d3aeb288094eb6f89eec1460c643a0073254c` passed:
+- [WP1.6 run 38697638766](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38697638766): local-Supabase database and concurrency tests, app build, and all 10 Playwright scenarios.
+- [WP1.4 run 38697638744](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38697638744): database migration/RLS and two-session stock-count concurrency tests.
+- [WP1.2 baseline run 38697638670](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38697638670): passed.
+
+The newly passing authenticated purchase scenario exercised the actual purchase UI/store/RPC path for a 10 kg draft, a 4 kg partial receipt, and a 6 kg remainder. It verified confirmed/outstanding projections, server-authoritative stock snapshots of 4 kg and 10 kg, and an inventory version change. This resolves the previously documented purchase-store integration test gap.
+
+**Exit review remains CONDITIONAL.** The database composition and purchase-store UI journey are separate scenarios; a single authenticated browser journey through purchase → production → finished-stock disposition → stock count is not yet evidenced. Manual real-device installation, on-device offline navigation, screen-reader/contrast and recovery checks remain deferred. PRs #58–#60 remain Draft/unmerged pending owner review; no hosted provisioning, billing, secrets, deployment, or Phase 3 completion claim is authorized.
