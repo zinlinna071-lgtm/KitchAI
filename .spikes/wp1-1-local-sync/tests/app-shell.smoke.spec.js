@@ -176,7 +176,7 @@ test("populated IndexedDB v2 upgrades additively, failed legacy mapping retries,
 
 test("shell is responsive and reports connection state at desktop and mobile widths", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Good work starts with a clear view." })).toBeVisible();
+  await expect(page.locator("#dashboard-title")).toBeVisible();
   await expect(page.locator("#connection-status")).toContainText("Online");
   await page.setViewportSize({ width: 1365, height: 900 });
   const desktopColumns = await page.locator(".status-grid").evaluate((element) => getComputedStyle(element).gridTemplateColumns.split(" ").length);
@@ -192,7 +192,7 @@ test("shell is responsive and reports connection state at desktop and mobile wid
 test("capture desktop and mobile UI previews for review", async ({ page }) => {
   await mkdir("artifacts", { recursive: true });
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Good work starts with a clear view." })).toBeVisible();
+  await expect(page.locator("#dashboard-title")).toBeVisible();
   await expect(page.getByRole("heading", { name: "Implemented for local testing" })).toBeVisible();
   await expect(page.getByText("Hosted sync is not configured", { exact: true })).toBeVisible();
   await expect(page.getByText("Cloud identity and sync will be introduced only after their security checks.")).toHaveCount(0);
@@ -210,7 +210,7 @@ test("service worker keeps the app shell navigable after going offline", async (
   await page.waitForFunction(() => Boolean(navigator.serviceWorker.controller));
   await context.setOffline(true);
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Good work starts with a clear view." })).toBeVisible();
+  await expect(page.locator("#dashboard-title")).toBeVisible();
   await expect(page.locator("#business-name")).toBeVisible();
   await expect(page.locator("#connection-status")).toContainText("Offline");
   await context.setOffline(false);
@@ -399,7 +399,7 @@ test("large text at narrow viewport does not introduce horizontal overflow", asy
     content: document.documentElement.scrollWidth,
   }));
   expect(dimensions.content).toBeLessThanOrEqual(dimensions.viewport);
-  await expect(page.getByRole("heading", { name: "Good work starts with a clear view." })).toBeVisible();
+  await expect(page.locator("#dashboard-title")).toBeVisible();
   await expect(page.getByRole("textbox", { name: "Business name" })).toBeVisible();
 });
 
