@@ -122,6 +122,36 @@ select is(
     and lot_id='b68b0000-0000-4000-8000-000000000001'),
   1::numeric,'giveaway is allocated to the produced lot');
 
+-- A second supported finished-lot handling decision records safe carry-forward
+-- of the remaining three units without creating revenue or changing stock.
+select is(
+ public.record_finished_lot_carry_forward(
+  'b68f0000-0000-4000-8000-000000000002',
+  (select business_id from public.business_profiles where owner_id='68111111-1111-4111-8111-111111111111'),
+  'b68b0000-0000-4000-8000-000000000001',
+  '3','each','2026-10-16','2026-10-15T17:00:00Z','Remaining units confirmed safe to carry forward'
+ ) ->> 'status',
+ 'accepted','safe carry-forward handling decision is persisted');
+select is(
+ public.record_finished_lot_carry_forward(
+  'b68f0000-0000-4000-8000-000000000002',
+  (select business_id from public.business_profiles where owner_id='68111111-1111-4111-8111-111111111111'),
+  'b68b0000-0000-4000-8000-000000000001',
+  '3','each','2026-10-16','2026-10-15T17:00:00Z','Remaining units confirmed safe to carry forward'
+ ) ->> 'inventoryEffect',
+ 'none','carry-forward handling does not change inventory');
+select is(
+ (select count(*)::integer from public.finished_lot_handling_events
+  where event_id='b68f0000-0000-4000-8000-000000000002'),
+  1,'carry-forward decision is persisted once');
+select is(
+ (select sum(case when direction='in' then quantity else -quantity end)
+  from public.stock_movements
+  where owner_id='68111111-1111-4111-8111-111111111111'
+    and stock_class='finished'
+    and stock_item_id='b6831111-1111-4111-8111-111111111111'),
+  3::numeric,'carry-forward handling leaves finished stock unchanged');
+
 -- 4. A physical count uses the current server version and atomically corrects
 -- ingredient stock from 7500 g to the observed 7400 g.
 select is(
