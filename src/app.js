@@ -1937,3 +1937,54 @@ function applyDashboardLanguage(language) {
 const dashboardLanguage = document.getElementById("dashboard-language");
 dashboardLanguage?.addEventListener("change", () => applyDashboardLanguage(dashboardLanguage.value));
 if (dashboardLanguage) applyDashboardLanguage(dashboardLanguage.value);
+
+/* AI quick chat interaction: collect a question honestly without fabricating an AI reply. */
+Object.assign(dashboardTranslations.en, {
+  aiEyebrow:"YOUR KITCHEN AI PARTNER", aiPreviewMode:"Preview mode",
+  aiHeroCopy:"Ask about your ingredients, production, stock, or daily business. Your assistant will be connected to real business data in a later step.",
+  aiInputLabel:"Your question", askKitchAI:"Ask KitchAI", tryAsking:"TRY ASKING", oneTapQuestions:"Quick questions",
+  promptProfit:"How much profit today?", promptIngredients:"What should I buy next?", promptProduction:"Help plan production", promptLeftovers:"Manage unsold food",
+  aiSubmitUnavailable:"AI is not connected yet, so your question has not been sent. Your message remains here; no answer has been invented."
+});
+Object.assign(dashboardTranslations.my, {
+  aiEyebrow:"သင့်မီးဖိုချောင်အတွက် AI အကူအညီ", aiPreviewMode:"Preview အဆင့်",
+  aiHeroCopy:"ကုန်ကြမ်း၊ ထုတ်လုပ်မှု၊ လက်ကျန်နဲ့ နေ့စဉ်လုပ်ငန်းအကြောင်း မေးနိုင်ပါတယ်။ နောက်တစ်ဆင့်မှာ သင့်လုပ်ငန်းမှတ်တမ်းအစစ်တွေနဲ့ ချိတ်ဆက်ပေးမယ်။",
+  aiInputLabel:"မေးခွန်း", askKitchAI:"KitchAI ကို မေးရန်", tryAsking:"ဒီလိုမေးကြည့်ပါ", oneTapQuestions:"အမြန်မေးခွန်းများ",
+  promptProfit:"ဒီနေ့ အမြတ်ဘယ်လောက်လဲ", promptIngredients:"နောက်ထပ် ဘာဝယ်ရမလဲ", promptProduction:"ထုတ်လုပ်မှု စီစဉ်ပေးပါ", promptLeftovers:"မရောင်းရသေးတာ စီမံရန်",
+  aiSubmitUnavailable:"AI ကို မချိတ်ဆက်ရသေးလို့ မေးခွန်းကို မပို့ရသေးပါ။ အဖြေတု မဖန်တီးထားပါဘူး။"
+});
+Object.assign(dashboardTranslations.th, {
+  aiEyebrow:"ผู้ช่วย AI สำหรับครัวของคุณ", aiPreviewMode:"โหมดตัวอย่าง",
+  aiHeroCopy:"ถามเกี่ยวกับวัตถุดิบ การผลิต สต็อก หรือธุรกิจประจำวันได้ ภายหลังจะเชื่อมผู้ช่วยกับข้อมูลธุรกิจจริงของคุณ",
+  aiInputLabel:"คำถามของคุณ", askKitchAI:"ถาม KitchAI", tryAsking:"ลองถาม", oneTapQuestions:"คำถามด่วน",
+  promptProfit:"วันนี้ได้กำไรเท่าไร", promptIngredients:"ควรซื้ออะไรต่อ", promptProduction:"ช่วยวางแผนการผลิต", promptLeftovers:"จัดการอาหารที่ขายไม่หมด",
+  aiSubmitUnavailable:"ยังไม่ได้เชื่อมต่อ AI จึงยังไม่ได้ส่งคำถาม และไม่มีการสร้างคำตอบจำลอง"
+});
+const dashboardAiForm = document.getElementById("dashboard-ai-form");
+const dashboardAiInput = document.getElementById("dashboard-ai-question");
+const dashboardAiStatus = document.getElementById("dashboard-ai-status");
+const dashboardAiPromptQuestions = {
+  en: ["How much profit did my business make today?","Which ingredients should I buy next?","Help me plan today's production.","How should I handle today's unsold food safely?"],
+  my: ["ဒီနေ့ လုပ်ငန်းအမြတ် ဘယ်လောက်ရလဲ။","နောက်ထပ် ဘယ်ကုန်ကြမ်းတွေ ဝယ်သင့်လဲ။","ဒီနေ့ ထုတ်လုပ်မှုကို စီစဉ်ပေးပါ။","ဒီနေ့ မရောင်းရသေးတဲ့ အစားအစာတွေကို ဘေးကင်းစွာ ဘယ်လိုစီမံရမလဲ။"],
+  th: ["วันนี้ธุรกิจของฉันได้กำไรเท่าไร","ควรซื้อวัตถุดิบอะไรเพิ่ม","ช่วยวางแผนการผลิตวันนี้","ควรจัดการอาหารที่ขายไม่หมดวันนี้อย่างปลอดภัยอย่างไร"]
+};
+document.querySelectorAll("[data-ai-prompt]").forEach((button, index) => {
+  button.addEventListener("click", () => {
+    if (!dashboardAiInput) return;
+    const language = dashboardLanguage?.value ?? "en";
+    dashboardAiInput.value = dashboardAiPromptQuestions[language]?.[index] ?? dashboardAiPromptQuestions.en[index];
+    dashboardAiInput.focus();
+    dashboardAiInput.scrollIntoView({ behavior: "auto", block: "center" });
+  });
+});
+dashboardAiForm?.addEventListener("submit", (event) => {
+  event.preventDefault();
+  if (!dashboardAiInput || !dashboardAiStatus) return;
+  if (!dashboardAiInput.value.trim()) {
+    dashboardAiInput.focus();
+    return;
+  }
+  const language = dashboardLanguage?.value ?? "en";
+  dashboardAiStatus.textContent = dashboardTranslations[language]?.aiSubmitUnavailable ?? dashboardTranslations.en.aiSubmitUnavailable;
+});
+applyDashboardLanguage(dashboardLanguage?.value ?? "en");
