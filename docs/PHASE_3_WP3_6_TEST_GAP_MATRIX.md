@@ -39,3 +39,19 @@ This matrix records visible existing coverage and candidate gaps for WP3.6. The 
 - No hosted provisioning, billing, production secrets, paid services, or deployment.
 - No direct edits to `main`; no merge without owner review and all required CI passing.
 - Do not claim test results based on static file inspection.
+
+## Source inspection refresh — 2026-10-15 (owner accepted the plan)
+
+The following source-level checks were performed against `main` at `2c0e476e7d16594c9b797965e437159919427dcd` after reviewing the actual file tree and relevant test/workflow files. This remains static inspection, not test execution.
+
+- **Purchasing:** `tests/purchase-domain.test.mjs` verifies draft validation, stable receipt-command construction, partial-receipt reservations, over-receipt rejection, and pending-versus-confirmed projection. `src/purchase-store.js` persists a receipt before delivery and calls the shared inventory command RPC; no combined browser scenario was found that starts from the purchase UI and later proves the final count result.
+- **Production:** `tests/production-batch-store.test.mjs` covers recipe snapshots, actual-usage decisions, supported output quantities, and inventory-command construction. `supabase/tests/database/phase3_inventory_commands.test.sql` covers server-side production command behavior, but that is not evidence that a preceding UI-created purchase receipt funds a production batch in the same end-to-end scenario.
+- **Finished stock:** `tests/finished-stock-domain.test.mjs` covers lot projections and disposition command construction. `src/finished-stock-workflow-store.js` persists immutable inventory commands for server delivery. Existing domain/SQL coverage does not itself prove the composed receipt → production → disposition → count path.
+- **Stock count:** `supabase/tests/database/phase3_inventory_item_versions.test.sql` and `supabase/tests/database/phase3_atomic_stock_count_posting.test.sql` cover server snapshots, versions, retry, stale rejection, append-only audit and atomic posting. The authenticated local-Supabase browser scenarios live in `.spikes/wp1-1-local-sync/tests/local-supabase.integration.spec.js` and are run by `.github/workflows/wp1-6-local-supabase.yml`. They validate a count-posting path independently, not the full purchasing/production/disposition composition.
+- **Browser smoke distinction:** `tests/stock-count-ui.browser.spec.js` checks the no-workspace/disabled-control state, page errors, and a 360px viewport. It should not be described as an authenticated posting test. `.github/workflows/wp3-5e-browser.yml` is the narrow stock-count UI smoke workflow.
+- **Workflow triggers:** `.github/workflows/supabase-local.yml` runs local Supabase database tests and the two-session count-concurrency script for matching paths; `.github/workflows/wp1-6-local-supabase.yml` runs database tests, concurrency regression, build and the authenticated local-Supabase browser suite. New integration test paths must be included by the workflow path filters or they may not execute on a PR.
+
+**Updated assessment:** the principal candidate gap remains a single synthetic local-Supabase test that composes receipt → production posting → at least one supported finished-stock disposition → physical count and asserts authoritative balances plus immutable ledger/audit history. Before implementation, the Coding AI must verify whether any scenario elsewhere in the latest checkout already covers this exact composition.
+
+**Execution limitation:** this review environment could inspect GitHub source, but a local checkout could not be created because outbound DNS access to `github.com` was unavailable. No tests were executed here and no test result is inferred from source inspection.
+
