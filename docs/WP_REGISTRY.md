@@ -279,3 +279,8 @@ This update supersedes the preceding pending/rate-limited CI notes where they de
 - Current head `26ed3e336bf5bb322a32f343875a4a4b5bffa423` extends the server-side composition with safe carry-forward handling. [WP1.4 run 38661235589](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38661235589) passed 200 pgTAP tests across 7 files and the two-session concurrency regression.
 - [WP1.6 run 38661235561](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38661235561) failed at Supabase Postgres image pull due to Docker `toomanyrequests: Data limit exceeded`; its database/concurrency/build/browser steps did not execute. Failed job rerun was requested; pending outcome.
 - Keep WP3.6.1 database composition evidence separate from full WP1.6 vertical-slice evidence. PR #59 remains Draft/unmerged; WP3.6.4 remains conditional.
+
+
+## Current test-head note — 2026-10-15
+
+PR #59 now points to `3aed4c9edf0f3250d9d9c5a61799d24669d72464`, a small test-fidelity correction aligning the synthetic receipt movement metadata with the purchase domain contract (`sourceType: purchase`, source ID representing the purchase draft). The prior head's WP1.4 pass (200 tests + concurrency) remains useful historical evidence, but it is **not** a green check on this newest head. The WP1.6 retry for the prior head was still running at last poll and had not completed; the newest head's required CI is pending. Do not close WP3.6.4 or treat PR #59 as ready until exact-head required checks are green.
