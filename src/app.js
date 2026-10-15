@@ -966,10 +966,7 @@ async function loadLocalProfile() {
   try {
     currentProfile = await readLocalProfile();
     // Startup's local read can overlap sign-in/sign-up. Do not render over the account workspace.
-    if (!isCurrentLocalLoad()) {
-      if (activeSession) await loadOwnerWorkspace(activeSession);
-      return;
-    }
+    if (!isCurrentLocalLoad()) return;
     if (activeSession) {
       await loadOwnerWorkspace(activeSession);
       return;
