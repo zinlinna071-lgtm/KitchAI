@@ -101,3 +101,28 @@ Run required workflows on the final PR head, not an earlier commit. Investigate 
 6. Review the full diff and update status/registry with exact evidence; open a draft PR and stop before merge.
 
 Stop and report instead of guessing if an operation is unsupported, unit semantics are ambiguous, migrations/tests conflict, a required gate cannot run, or any step requires hosted billing/secrets, paid services, real business data, or deployment.
+
+
+## 8. WP3.6.4 evidence-backed exit review — 2026-10-15
+
+**Recommendation: CONDITIONAL — do not close WP3.6 or declare Phase 3 complete yet.** This is an evidence review of the current draft implementation PRs, not owner acceptance or merge authorization.
+
+| Exit criterion | Evidence observed | Review result |
+|---|---|---|
+| Composed authoritative DB path | PR #59 test composes receipt → production consumption/output and finished lot → giveaway allocation → stock-count correction, with balance/ledger/audit assertions. [WP1.6 run 38659411117](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38659411117) passed on `031bf2798c29c55315898c2b3760959816d0a0aa). | Automated DB scenario passed; not an authenticated cross-workflow browser journey. |
+| Authorization and database regression | [WP1.4 run 38659411120](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38659411120) passed on the same PR #59 head. Logs report 196 tests across 7 files, all successful. | Passed for this local test suite/head. |
+| Stale-count concurrency | WP1.4 and WP1.6 logs show the two-session test passed: stock writer lock observed, writer receipt committed/version advanced, stale count rejected with SQLSTATE `40001`, and no accepted count audit left behind. | Passed for the tested concurrency case. |
+| Count command uncertain acknowledgement / idempotency | PR #59 adds exact replay returning the accepted result and changed-payload reuse rejection; WP1.6 passed on its exact head. | Partial: not fault-injection coverage for every command type. |
+| Authenticated narrow viewport | [PR #60 WP1.6 run 38660630936](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38660630936) passed on `e9c0560287d58065a385be22ddf727f5bff5f99b`: DB suite 177 tests across 6 files, concurrency, build, and all 9 Playwright scenarios passed. The authenticated count flow ran at 360 × 800 CSS pixels and asserted no horizontal overflow/no uncaught page errors through posting. | Automated mobile-viewport smoke passed; not real-device acceptance. |
+| Manual accessibility/device/recovery | No evidence that a human performed device installation, on-device offline navigation, screen-reader/contrast review, or manual recovery checks. | Deferred / unverified. |
+| Full phase-wide gates and final owner review | Relevant implementation workflow runs above are green on their exact PR heads. PRs #58–#60 remain Draft/unmerged; other phase-wide exit scope and the full diff have not been owner-accepted in this review. | Pending owner review; do not infer Phase 3 completion. |
+
+### Conditions before closure
+
+1. Owner reviews the complete diffs and decides whether the documented automated-only evidence and deferred manual checks are acceptable for this milestone.
+2. Confirm required checks and path-trigger coverage for the final heads before any later merge decision; do not treat docs-only PR #58 as implementation CI evidence.
+3. If full Phase 3 exit requires broader reliability coverage, add only specifically justified missing cases for disposition/production/receipt uncertain acknowledgement and multi-line atomic failure; current evidence does not claim these are all newly fault-injected here.
+4. Keep real-device/accessibility/manual recovery checks explicitly deferred until actually performed, or obtain owner acceptance of the deferral in the project’s acceptance record.
+5. Keep all PRs Draft/unmerged until owner approval. No hosted provisioning, billing, secrets, or deployment is authorized.
+
+**Scope conclusion:** WP3.6.1 is evidenced for the server-side DB composition; WP3.6.2 has count-command replay/payload mismatch and stale concurrency evidence but remains partial across command types; WP3.6.3 has authenticated 360px automated E2E evidence but manual checks remain deferred. Therefore WP3.6.4 remains **conditional**, not pass/closed.
