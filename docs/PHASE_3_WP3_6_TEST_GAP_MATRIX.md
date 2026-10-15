@@ -156,3 +156,12 @@ This section supersedes the earlier pending-state notes above where they describ
 - The new authenticated purchase UI scenario passed through the actual purchase UI/store/RPC path: save a 10 kg draft, accept a 4 kg partial receipt, verify the authoritative server snapshot is numerically 4 kg, accept the remaining 6 kg, verify confirmed quantity 10 kg and outstanding quantity 0 kg, verify the authoritative server snapshot is 10 kg and inventory version advanced. This resolves the earlier fixed-scale decimal assertion mismatch.
 - This is local/emulator automated evidence only. It does not prove a single authenticated browser journey spanning purchase → production → finished-stock disposition → stock count, nor real-device/offline/accessibility/manual-recovery acceptance.
 - Keep PRs #58–#60 Draft/unmerged. WP3.6.4 remains conditional pending owner review and acceptance of deferred manual checks; no Phase 3 completion claim, hosted provisioning, billing, secrets, or deployment.
+
+
+## Purchase receipt replay — exact-head CI passed (2026-10-15)
+
+- PR [#59](https://github.com/zinlinna071-lgtm/KitchAI/pull/59) head `1ab03e9ebacdc2c598e169cef4d313f60c0c3a16` passed [WP1.2 run 38703522847](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38703522847), [WP1.4 run 38703522765](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38703522765), and [WP1.6 run 38703522779](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38703522779).
+- The new authenticated purchase scenario replays the exact first immutable receipt command through the real inventory RPC after the 4 kg receipt was accepted. The authoritative quantity remains 4 kg and the inventory version remains unchanged; the later 6 kg receipt is accepted, final stock is 10 kg, and outstanding quantity is zero. All 10 Playwright scenarios passed.
+- WP1.4 passed 200 pgTAP tests across 7 files and the two-session count-concurrency regression. WP1.2 baseline checks passed.
+- This closes the purchase receipt lost-acknowledgement replay assertion for the tested command path. It does not establish equivalent fault injection for every production/disposition command, a single authenticated browser journey across purchase → production → disposition → count, or manual device/accessibility/recovery acceptance.
+- WP3.6.4 remains conditional/not ready to close. PRs #58–#60 remain Draft/unmerged; no Phase 3 completion claim or hosted-resource authorization.
