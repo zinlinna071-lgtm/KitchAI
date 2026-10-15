@@ -854,6 +854,23 @@ test("authenticated browser journey composes purchase, production, giveaway, and
   expect(serverFinishedStock.lots.map(lot => lot.menuItemId), JSON.stringify(serverFinishedStock.lots)).toContain(itemIds.menuItemId);
 
   await page.getByRole("button", { name: "Refresh stock" }).click();
+  const finishedStockDiagnostics = await page.evaluate(async ({ businessId }) => {
+    const session = JSON.parse(sessionStorage.getItem("kitchai.auth.session"));
+    const profiles = await import("/src/sync-store.js");
+    const businessStore = await import("/src/business-data-store.js");
+    const workflow = await import("/src/finished-stock-workflow-store.js");
+    const profile = (await profiles.listOwnerProfiles(session.user.id))[0];
+    const scope = businessStore.scopeForBusinessProfile({ ownerId: session.user.id, profileId: profile.id });
+    const snapshot = await workflow.getFinishedStockSnapshot(scope);
+    return {
+      profileSyncState: profile.syncState,
+      profileBusinessId: profile.businessId,
+      requestedBusinessId: businessId,
+      snapshot: snapshot ? { remoteBusinessId: snapshot.remoteBusinessId, lots: snapshot.lots, allocations: snapshot.allocations } : null,
+      status: document.querySelector("#finished-stock-state")?.textContent ?? "",
+    };
+  }, { businessId: itemIds.businessId });
+  expect(finishedStockDiagnostics.status, JSON.stringify(finishedStockDiagnostics)).toContain("Stock refreshed from the server");
   await expect(page.locator("#finished-stock-list")).toContainText(menuItemName, { timeout: 15000 });
   await expect(page.locator("#finished-stock-list")).toContainText("Remaining 4 each");
   const afterProduction = await page.evaluate(async ({ businessId, ingredientId, menuItemId }) => {
