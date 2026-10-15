@@ -1651,11 +1651,17 @@ async function refreshFinishedStockView(refreshRemote = true) {
   // transition currentOwnerProfile is temporarily null even though this account already
   // has a persisted owner profile. Rehydrate the in-memory selection before deciding that
   // finished stock has no business scope.
-  if (!scope && activeSession?.user?.id && !currentOwnerProfile) {
+  if (!scope && activeSession?.user?.id) {
     const session = activeSession;
     const profiles = await listOwnerProfiles(session.user.id);
-    if (activeSession?.user?.id === session.user.id && !currentOwnerProfile) {
-      currentOwnerProfile = profiles[0] ?? null;
+    // The in-memory value can be stale as well as temporarily null while auth and
+    // workspace refreshes overlap. Prefer the persisted owner profile when the current
+    // value cannot produce a valid business scope.
+    if (activeSession?.user?.id === session.user.id) {
+      const persistedProfile = profiles.find(profile => profile?.id) ?? null;
+      if (persistedProfile && (!currentOwnerProfile?.id || currentOwnerProfile.ownerId !== session.user.id)) {
+        currentOwnerProfile = persistedProfile;
+      }
     }
     scope = activeMenuScope();
   }
