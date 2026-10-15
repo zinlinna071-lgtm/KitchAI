@@ -34,7 +34,7 @@ select is(
    'eventId','b6860000-0000-4000-8000-000000000001',
    'stockClass','ingredient','stockItemId','b6821111-1111-4111-8111-111111111111',
    'kind','purchase_receipt','direction','in','quantity','10000','unit','g',
-   'sourceType','purchase_receipt','sourceId','b6870000-0000-4000-8000-000000000001'
+   'sourceType','purchase','sourceId','b6870000-0000-4000-8000-000000000001'
   )))
  ) ->> 'status',
  'accepted','purchase receipt is accepted');
