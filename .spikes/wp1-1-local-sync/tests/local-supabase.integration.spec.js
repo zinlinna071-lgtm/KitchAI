@@ -686,7 +686,7 @@ test("authenticated purchase UI persists partial receipts and only confirmed rec
     const inventory = await import("/src/supabase-api.js");
     const profile = (await profiles.listOwnerProfiles(session.user.id))[0];
     const scope = businessStore.scopeForBusinessProfile({ ownerId: session.user.id, profileId: profile.id });
-    const purchase = (await purchases.listPurchases(scope)).find(item => item.supplier === supplierName);
+    const purchase = (await purchases.listPurchases(scope)).find(item => item.supplierName === supplierName);
     if (!purchase) throw new Error("Purchase for idempotency replay was not found.");
     const receipt = purchase.receipts?.[0];
     if (!receipt?.command) throw new Error("First immutable receipt command was not found.");
