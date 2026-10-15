@@ -210,3 +210,13 @@ PR [#59](https://github.com/zinlinna071-lgtm/KitchAI/pull/59) was updated to hea
 ## WP3.6.3 mobile authenticated E2E follow-up — 2026-10-15
 
 Draft [PR #60](https://github.com/zinlinna071-lgtm/KitchAI/pull/60), head `e9c0560287d58065a385be22ddf727f5bff5f99b`, extends the authenticated local-Supabase stock-count browser E2E to run at 360 × 800 CSS pixels and assert no horizontal overflow after server-confirmed posting. This directly extends prior narrow-width smoke, which checked only the empty state. The required CI result is pending and must be verified on this exact head. PR #60 remains Draft/unmerged; manual device/accessibility checks remain deferred.
+
+
+## WP3.6 CI result refresh — 2026-10-15
+
+This addendum supersedes the earlier statements that PR #59 WP1.4 and PR #60 WP1.6 were pending.
+
+- **PR #59 / WP1.4 Local Supabase Authorization:** [run 38659411120](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38659411120) passed on exact head `031bf2798c29c55315898c2b3760959816d0a0aa`. The database suite completed successfully with 196 tests across 7 files. The two-session stock-count concurrency regression also passed, including rejection of a stale count with SQLSTATE `40001` and no accepted count audit.
+- **PR #60 / WP1.6 Local Supabase Vertical Slice:** [run 38660630936](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38660630936) passed on exact head `e9c0560287d58065a385be22ddf727f5bff5f99b`. The DB suite passed 177 tests across 6 files; concurrency and app build passed; all 9 Playwright tests passed, including authenticated stock-count posting at 360 × 800 CSS pixels with no horizontal overflow or uncaught page errors.
+- The earlier WP1.4 image-pull rate-limit failure was transient and is superseded by the successful rerun above; retain it only as historical context.
+- **WP3.6.4 exit decision remains conditional / not ready to close.** Automated evidence improved, but real-device install/offline navigation, screen-reader and contrast checks, and manual recovery acceptance remain unperformed. The composed purchase → production → disposition → count scenario is DB-level rather than a single authenticated browser journey. PRs #58, #59 and #60 remain Draft/unmerged; no Phase 3 completion claim is made. No hosted provisioning, billing, production secrets, or deployment is authorized.
