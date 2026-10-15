@@ -97,3 +97,8 @@ The following source-level checks were performed against `main` at `2c0e476e7d16
 ## Current test-head note — 2026-10-15
 
 PR #59 now points to `3aed4c9edf0f3250d9d9c5a61799d24669d72464`, a small test-fidelity correction aligning the synthetic receipt movement metadata with the purchase domain contract (`sourceType: purchase`, source ID representing the purchase draft). The prior head's WP1.4 pass (200 tests + concurrency) remains useful historical evidence, but it is **not** a green check on this newest head. The WP1.6 retry for the prior head was still running at last poll and had not completed; the newest head's required CI is pending. Do not close WP3.6.4 or treat PR #59 as ready until exact-head required checks are green.
+
+
+## Purchase workflow boundary clarified — 2026-10-15
+
+The WP3.6 cross-workflow SQL scenario submits a server `stock_receipt` inventory command with purchase-source metadata; it does **not** create a purchase draft through `purchase-store.js`, exercise partial-receipt reservation/projection, or drive `syncPurchaseReceipt` end to end. Treat the existing scenario as receipt-command → inventory ledger composition evidence, not proof of the entire purchasing workflow integration. If Phase 3 exit requires that stronger claim, add a bounded test using the existing purchase domain/store contract and authenticated local-Supabase path. This gap is another reason WP3.6.4 remains conditional.
