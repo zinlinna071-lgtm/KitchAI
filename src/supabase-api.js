@@ -353,7 +353,9 @@ export async function readFinishedStock(businessId, session) {
         menuItemId: row.menu_item_id,
         producedQuantity: String(row.produced_quantity),
         unit: row.unit,
-        producedAt: row.produced_at,
+        // Postgres/PostgREST may serialize UTC timestamptz values as
+        // "+00:00". Normalize remote timestamps to the domain's canonical Z form.
+        producedAt: row.produced_at ? new Date(row.produced_at).toISOString() : undefined,
       })),
       allocations: allocationRows.map((row) => ({
         eventId: row.event_id,
