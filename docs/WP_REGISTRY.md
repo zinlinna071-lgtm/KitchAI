@@ -262,3 +262,13 @@ This addendum supersedes the earlier WP3.6 paragraph that described all work as 
 ### WP3.6.3 focused mobile E2E follow-up — 2026-10-15
 
 Draft [PR #60](https://github.com/zinlinna071-lgtm/KitchAI/pull/60), head `e9c0560287d58065a385be22ddf727f5bff5f99b`, changes the authenticated stock-count local-Supabase E2E to a 360 × 800 CSS-pixel viewport and asserts no horizontal overflow after server-confirmed posting. This is test-only. CI is pending on the exact PR head; do not treat WP3.6.3 as passed until the workflow completes. Real-device, screen-reader, contrast and manual recovery checks remain deferred.
+
+
+### WP3.6 CI result refresh — 2026-10-15
+
+This update supersedes the preceding pending/rate-limited CI notes where they describe current state.
+
+- **WP3.6.1 — Cross-workflow DB integration:** [PR #59 WP1.4 run 38659411120](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38659411120) passed on head `031bf2798c29c55315898c2b3760959816d0a0aa`; 196 pgTAP tests across 7 files passed, as did the two-session stale-count concurrency regression. WP1.6 on the same head also passed: [run 38659411117](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38659411117).
+- **WP3.6.2 — Count retry/idempotency and concurrency:** same-command count replay and changed-payload rejection are in PR #59; the exact-head WP1.6 and WP1.4 runs passed. This does not establish fault-injection coverage for every command type.
+- **WP3.6.3 — Authenticated mobile E2E:** [PR #60 WP1.6 run 38660630936](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38660630936) passed on exact head `e9c0560287d58065a385be22ddf727f5bff5f99b`: 177 DB tests across 6 files, concurrency regression, build, and all 9 Playwright scenarios. The authenticated stock-count scenario ran at 360 × 800 CSS pixels and passed its no-horizontal-overflow and no-uncaught-page-error assertions through posting.
+- **WP3.6.4 — Phase 3 exit review:** still **conditional / not ready to close**. Automated evidence is stronger, but real-device install, offline navigation on device, screen-reader/contrast checks, and manual recovery acceptance remain deferred. The composed cross-workflow path is DB-level, not one authenticated browser journey across all workflows. PRs #58–#60 remain Draft/unmerged; Phase 3 is not declared complete. No hosted resources, billing, secrets, or deployment are authorized.
