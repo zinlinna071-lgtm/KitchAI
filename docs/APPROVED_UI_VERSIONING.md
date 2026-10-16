@@ -42,3 +42,4 @@ Each change must record: version, date, summary, affected UI areas, and validati
 | UI version | Status | Summary |
 |---|---|---|
 | `1.0.0` | Approved baseline | Approved AI-first KitchAI UI Preview at the reference URL above. Future integration must preserve this design and add functionality incrementally. |
+| `1.1.0` | Draft — pending validation | Production adapter reuses the approved preview styles and mounts existing production workflows. Must pass visual and regression validation before approval. |
