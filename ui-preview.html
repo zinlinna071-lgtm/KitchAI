@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#176B52"><meta name="description" content="KitchAI food business workspace UI preview">
+<title>KitchAI — Workspace Preview</title>
+<link rel="stylesheet" href="__KITCHAI_BASE_PATH__src/ui-preview.css">
+<script type="module" src="__KITCHAI_BASE_PATH__src/ui-preview.js"></script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<div class="app-layout">
+<aside class="sidebar" id="sidebar">
+<a class="brand" href="#/dashboard" aria-label="KitchAI Dashboard"><span class="brand-mark">K</span><span><b>KitchAI</b><small>Food business workspace</small></span></a>
+<div class="workspace-label">WORKSPACE</div>
+<nav id="primary-nav" aria-label="Main navigation">
+<a href="#/dashboard" data-route="dashboard"><span>⌂</span> Dashboard</a>
+<a href="#/business" data-route="business"><span>▦</span> Business</a>
+<a href="#/personal" data-route="personal"><span>◉</span> Personal</a>
+<a href="#/reports" data-route="reports"><span>▥</span> Reports</a>
+<a href="#/ai-assistant" data-route="ai-assistant"><span>✳</span> AI Assistant</a>
+<a href="#/tools" data-route="tools"><span>⌘</span> Tools</a>
+</nav>
+<div class="sidebar-bottom"><a href="#/settings/general" data-route="settings"><span>⚙</span> Settings</a><div class="local-note"><span class="status-dot"></span><span><b>UI prototype</b><small>Backend not connected</small></span></div></div>
+</aside>
+<div class="main-column">
+<header class="topbar"><button class="icon-button menu-toggle" id="menu-toggle" aria-label="Open navigation">☰</button><div class="breadcrumb" id="breadcrumb">Workspace <span>/</span> Dashboard</div><div class="topbar-actions"><span class="prototype-chip">PREVIEW</span><button class="icon-button" id="theme-toggle" aria-label="Toggle light and dark theme">◐</button><label class="language-label" for="language-select">Language</label><select id="language-select" aria-label="Language"><option value="en">EN</option><option value="my">မြန်မာ</option><option value="th">ไทย</option></select><div class="avatar" aria-label="Profile placeholder">K</div></div></header>
+<main id="main" tabindex="-1"><div id="page-content"></div></main>
+<footer class="footer"><span>KitchAI</span><span>UI structure preview · No live business data</span></footer>
+</div>
+</div>
+<div class="mobile-backdrop" id="mobile-backdrop"></div>
+</body>
+</html>
