@@ -25,10 +25,10 @@ Bring the approved AI-first / Manage Mode experience into the existing KitchAI a
 
 ## Recommended implementation sequence
 
-### UI-I1 — DOM and workflow inventory (read-only)
-- Map production sections, IDs, initialization functions, and existing tests to the new Manage Mode destinations.
-- Identify which screens already have working forms and which are placeholders.
-- No production behavior changes.
+### UI-I1 — DOM and workflow inventory (read-only) — complete
+- Completed in [UI_INTEGRATION_DOM_INVENTORY.md](./UI_INTEGRATION_DOM_INVENTORY.md): production sections, important IDs, initialization functions, and existing workflows are mapped to Manage Mode destinations.
+- Identified current workflows versus destinations with no production workflow yet; missing Sales, Business Expenses, Day Closing, Personal finance, and Reports remain honest Coming Soon placeholders.
+- No production behavior changes were made.
 
 ### UI-I2 — Shell foundation
 - Add the minimal AI Mode / Manage Mode shell to the production app through a dedicated module or small isolated changes.
@@ -62,4 +62,4 @@ Bring the approved AI-first / Manage Mode experience into the existing KitchAI a
 
 ## Immediate next task
 
-Complete UI-I1 by tracing the current production DOM sections and existing workflow initialization, then propose the smallest UI-I2 patch. Do not replace the production shell as a one-shot rewrite.
+UI-I1 is complete. Next is to prepare the smallest UI-I2 shell patch on a separate branch: preserve the existing production DOM and all IDs, add mode/drawer navigation without loading the preview controller, and verify selectors/build/tests. The standalone UI preview review gate still applies before production integration or release. Do not replace the production shell as a one-shot rewrite.
