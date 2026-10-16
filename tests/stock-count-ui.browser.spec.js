@@ -1,9 +1,16 @@
 import { test, expect } from "@playwright/test";
 
+async function openStockCount(page) {
+  await page.getByRole("button", { name: "Manage Mode" }).click();
+  await page.getByRole("button", { name: "Open Manage navigation" }).click();
+  await page.getByRole("button", { name: "Ingredients & Stock" }).click();
+}
+
 test("stock-count review controls render accessibly and cannot post an empty draft", async ({ page }) => {
   const pageErrors = [];
   page.on("pageerror", error => pageErrors.push(error.message));
   await page.goto("/");
+  await openStockCount(page);
   await expect(page.getByRole("heading", { name: "Review a physical stock count." })).toBeVisible();
 
   const sessionPicker = page.getByRole("combobox", { name: "Stock-count session" });
