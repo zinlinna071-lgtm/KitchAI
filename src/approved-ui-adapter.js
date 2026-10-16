@@ -14,7 +14,7 @@ if (main && topbar && topbarActions && !document.querySelector("#kitchai-mode-sw
         <button class="icon-button sidebar-close" id="sidebar-close" type="button" aria-label="Close navigation">×</button>
       </div>
       <div class="sidebar-content" id="sidebar-content"></div>
-      <div class="sidebar-bottom"><div class="sidebar-footnote"><span class="status-dot"></span><span><b>Local-first workspace</b><small>Business data stays in your workspace</small></span></div></div>
+      <div class="sidebar-bottom"><div class="sidebar-footnote"><span class="status-dot"></span><span><b>KitchAI UI v1.1.0</b><small>Draft · local-first workspace</small></span></div></div>
     </aside>
     <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
     <div class="main-column" id="kitchai-main-column"></div>`;
