@@ -8,7 +8,7 @@
 - Phase 3 inventory/production/finished-stock foundations: WP3.1, WP3.2, WP3.2.1 purchasing/receiving, WP3.3 production, finished-stock dispositions, and WP3.5 stock counts have merged implementation slices. See `WP_REGISTRY.md` for implementation reconciliation.
 - Cross-workflow stock integrity tests: PR #59 merged to main at `60d3b5351ed4aba3c8b6142882113124f811689d`.
 - Authenticated stock-count mobile viewport test: PR #63 merged to main at `e515873c046ab03a56d92aa7eb935c79e8703d34`. It adds a 360×800 viewport assertion, no-horizontal-overflow check, and uncaught-browser-error assertion while preserving the authenticated stock-count test.
-- PR #63 exact-head Baseline Checks [run 38897212177](https://github.com/zinlinna071-lgtgm/KitchAI/actions/runs/38897212177) and Local Supabase Vertical Slice [run 38897212658](https://github.com/zinlinna071-lgtgm/KitchAI/actions/runs/38897212658) passed. Main-head checks also passed on the documented commit `60d3b535`.
+- PR #63 exact-head Baseline Checks [run 38897212177](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38897212177) and Local Supabase Vertical Slice [run 38897212658](https://github.com/zinlinna071-lgtm/KitchAI/actions/runs/38897212658) passed. Main-head checks also passed on the documented commit `60d3b535`.
 - Approved UI design preview: PR #67 merged to main at `5b28f31cfe514472dc85a8411991a453815dafb0`. It adds a separate `ui-preview.html` route; it does not replace the production `index.html` or enable a production AI connection.
 - UI integration safety plan: PR #68 merged to main at `11094b147d9cc06496b6f812ba51c6493654003e`. It adds the production DOM/workflow inventory and staged UI integration guardrails. Vercel status for this merge commit was verified as **Success**.
 
