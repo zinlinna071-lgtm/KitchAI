@@ -29,6 +29,7 @@ const APP_SHELL = [
 	"src/styles.css",
 	"src/ui-preview.css",
 	"src/ui-preview-chat-composer.css",
+	"src/approved-ui-adapter.css",
 	"manifest.webmanifest",
 	"favicon.svg",
 ].map((asset) => new URL(asset, self.registration.scope).toString());
