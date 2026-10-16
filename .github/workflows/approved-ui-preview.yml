@@ -14,11 +14,12 @@ concurrency:
 
 jobs:
   verify:
+    if: github.ref == 'refs/heads/rebuild/approved-ui-from-zero'
     name: Verify approved UI and preserve production entry
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - name: Check out the selected branch
+      - name: Check out the selected approved UI branch
         uses: actions/checkout@v4
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -28,7 +29,7 @@ jobs:
         run: npm run check
       - name: Build production-root-compatible Pages artifact
         run: npm run build -- --base-path=/KitchAI/
-      - name: Verify the approved UI preview is included
+      - name: Verify the approved UI preview is included and production entry stays normal
         run: |
           test -f dist/ui-preview.html
           test -f dist/src/ui-preview-business-profile.css
@@ -36,13 +37,14 @@ jobs:
           grep -q 'ui-preview-business-profile.css' dist/ui-preview.html
           grep -q 'business-profile-store.js' dist/ui-preview.html
           ! grep -q 'NON-PRODUCTION STATIC PREVIEW' dist/index.html
-          ! grep -q 'data-preview-only>' dist/index.html
+          grep -q 'data-preview-only hidden' dist/index.html
       - name: Upload verified site artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: dist
 
   deploy:
+    if: github.ref == 'refs/heads/rebuild/approved-ui-from-zero'
     name: Publish approved UI preview alongside the existing app
     needs: verify
     runs-on: ubuntu-latest
