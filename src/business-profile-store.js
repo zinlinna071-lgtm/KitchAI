@@ -40,5 +40,7 @@
     localStorage.removeItem(STORAGE_KEY);
   }
 
-  window.KitchAIBusinessProfileStore = Object.freeze({ read, save, clear });
+  /** @type {Window & { KitchAIBusinessProfileStore?: { read: typeof read, save: typeof save, clear: typeof clear } }} */
+  const appWindow = window;
+  appWindow.KitchAIBusinessProfileStore = Object.freeze({ read, save, clear });
 })();
