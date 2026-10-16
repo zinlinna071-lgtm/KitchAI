@@ -202,12 +202,13 @@ test("Phase 2 ingredient, menu item, recipe, and recipe line sync end to end aga
 
   await page.locator("#recipe-line-recipe").selectOption({ label: "Integration Mushroom Soup Base · Draft" });
   await page.locator("#recipe-line-ingredient").selectOption({ label: "Integration Mushrooms" });
-  await page.locator("#recipe-line-quantity").fill("250");
-  await page.locator("#recipe-line-unit").selectOption("g");
+  // Inventory movement units must match the purchased stock unit; automatic conversion is not enabled.
+  await page.locator("#recipe-line-quantity").fill("0.25");
+  await page.locator("#recipe-line-unit").selectOption("kg");
   await page.locator("#recipe-line-position").fill("0");
   await page.locator("#recipe-line-note").fill("Integration test line");
   await page.getByRole("button", { name: "Add ingredient line" }).click();
-  await expect(page.locator("#recipe-line-list")).toContainText("250 g");
+  await expect(page.locator("#recipe-line-list")).toContainText("0.25 kg");
 
   await page.context().setOffline(false);
   await expect.poll(async () => page.evaluate(async () => {
@@ -239,7 +240,7 @@ test("Phase 2 ingredient, menu item, recipe, and recipe line sync end to end aga
   await expect(page.locator("#ingredient-list")).toContainText("Integration Mushrooms");
   await expect(page.locator("#menu-item-list")).toContainText("Integration Mushroom Soup");
   await expect(page.locator("#recipe-list")).toContainText("Integration Mushroom Soup Base");
-  await expect(page.locator("#recipe-line-list")).toContainText("250 g");
+  await expect(page.locator("#recipe-line-list")).toContainText("0.25 kg");
 });
 
 test("Phase 2 ingredient conflicts preserve both candidates and support explicit remote/local resolution", async ({ page, context, browser }) => {
@@ -567,7 +568,11 @@ test("legacy Phase 2 records migrate through the current runtime, queue once, an
 
 test("authenticated stock-count UI creates a session, captures a server snapshot, reviews a variance, and posts atomically", async ({ page }) => {
   const pageErrors = [];
+  const finishedStockDebugLogs = [];
   page.on("pageerror", error => pageErrors.push(error.message));
+  page.on("console", message => {
+    if (message.type() === "debug" && (message.text().includes("[finished-stock-debug]") || message.text().includes("[finished-stock-debug-stage]"))) finishedStockDebugLogs.push(message.text());
+  });
   await createAccount(page);
 
   await page.locator("#business-name").fill("Stock Count E2E Kitchen");
@@ -581,7 +586,21 @@ test("authenticated stock-count UI creates a session, captures a server snapshot
   await page.getByRole("button", { name: "Add ingredient", exact: true }).click();
   await expect(page.locator("#ingredient-list")).toContainText(ingredientName);
   await page.getByRole("button", { name: "Sync now" }).click();
-  await expect(page.locator("#phase2-sync-state")).toContainText("acknowledged", { timeout: 15000 });
+  // The queue may be drained by automatic sync before this explicit action runs.
+  // Verify the durable server record instead of depending on a transient UI message.
+  await expect.poll(async () => page.evaluate(async (name) => {
+    const session = JSON.parse(sessionStorage.getItem("kitchai.auth.session"));
+    const profiles = await import("/src/sync-store.js");
+    const businessStore = await import("/src/business-data-store.js");
+    const ingredientsStore = await import("/src/ingredient-store.js");
+    const phase2 = await import("/src/phase2-sync-engine.js");
+    const profile = (await profiles.listOwnerProfiles(session.user.id))[0];
+    const scope = businessStore.scopeForBusinessProfile({ ownerId: session.user.id, profileId: profile.id });
+    const ingredient = (await ingredientsStore.listIngredients(scope)).find(item => item.name === name);
+    if (!ingredient) return false;
+    const remote = await phase2.readRemotePhase2Entity("ingredient", ingredient.id, session).catch(() => null);
+    return Boolean(remote && remote.id === ingredient.id && remote.owner_id === session.user.id);
+  }, ingredientName), { timeout: 15000 }).toBe(true);
   await expect(page.locator("#ingredient-list")).toContainText(ingredientName);
 
   await page.locator("#stock-count-session-note").fill("Authenticated browser E2E");
@@ -612,5 +631,369 @@ test("authenticated stock-count UI creates a session, captures a server snapshot
   await expect(page.locator("#stock-count-state")).toContainText("Server confirmed", { timeout: 20000 });
   await expect(page.locator("#stock-count-lines")).toContainText("posted", { timeout: 10000 });
   await expect(page.locator("#stock-count-state")).not.toContainText("uncertain");
+  expect(pageErrors).toEqual([]);
+});
+
+
+test("authenticated purchase UI persists partial receipts and only confirmed receipts change server stock", async ({ page }) => {
+  const pageErrors = [];
+  page.on("pageerror", error => pageErrors.push(error.message));
+  await createAccount(page);
+
+  await page.locator("#business-name").fill("Purchase E2E Kitchen " + Date.now());
+  await page.getByRole("button", { name: "Save profile" }).click();
+  await expect(page.locator("#profile-state")).toContainText("Synced with your account · revision 1", { timeout: 15000 });
+
+  const ingredientName = "Purchase E2E Rice " + Date.now();
+  await page.locator("#ingredient-name").fill(ingredientName);
+  await page.getByRole("button", { name: "Add ingredient", exact: true }).click();
+  await expect(page.locator("#ingredient-list")).toContainText(ingredientName);
+  await page.getByRole("button", { name: "Sync now" }).click();
+  // Auto-sync may have acknowledged the ingredient before this manual check, leaving no due work.
+  await expect.poll(async () => page.evaluate(async (name) => {
+    const auth = JSON.parse(sessionStorage.getItem("kitchai.auth.session"));
+    const sync = await import("/src/phase2-sync-engine.js");
+    const profiles = await import("/src/sync-store.js");
+    const profile = (await profiles.listOwnerProfiles(auth.user.id))[0];
+    const operations = await sync.createPhase2SyncStore().listOperations(auth.user.id, profile.id);
+    return operations.some(item => item.entityType === "ingredient" && item.state === "synced");
+  }, ingredientName), { timeout: 15000 }).toBe(true);
+
+  // The purchase workspace may have initialized before the profile/ingredient existed.
+  // Explicitly refresh so its cached ingredient list and first line are populated.
+  await page.getByRole("button", { name: "Refresh purchases" }).click();
+  await expect(page.locator("#purchase-line-entry-list .purchase-line-entry")).toHaveCount(1, { timeout: 10000 });
+  await expect(page.locator('#purchase-line-entry-list select[data-field="ingredient"] option').filter({ hasText: ingredientName })).toHaveCount(1);
+
+  const supplierName = "E2E Supplier " + Date.now();
+  await page.locator("#purchase-supplier").fill(supplierName);
+  const purchaseLine = page.locator("#purchase-line-entry-list .purchase-line-entry").first();
+  await purchaseLine.locator('[data-field="ingredient"]').selectOption({ label: ingredientName });
+  await purchaseLine.locator('[data-field="quantity"]').fill("10");
+  await purchaseLine.locator('[data-field="unit"]').selectOption("kg");
+  await page.getByRole("button", { name: "Save purchase draft" }).click();
+  await expect(page.locator("#purchase-state")).toContainText("Purchase draft saved locally", { timeout: 10000 });
+
+  const purchaseCard = page.locator("#purchase-list .purchase-card").filter({ hasText: supplierName });
+  await expect(purchaseCard).toBeVisible();
+  await expect(purchaseCard).toContainText("ordered 10 kg");
+  await expect(purchaseCard).toContainText("confirmed 0 kg");
+  await expect(purchaseCard).toContainText("outstanding 10 kg");
+
+  await purchaseCard.locator(".purchase-receipt-form input[data-line-id]").fill("4");
+  await purchaseCard.getByRole("button", { name: "Save receipt" }).click();
+  await expect(page.locator("#purchase-state")).toContainText("Receipt accepted by the server", { timeout: 20000 });
+  await expect(purchaseCard).toContainText("partially received");
+  await expect(purchaseCard).toContainText("confirmed 4 kg");
+  await expect(purchaseCard).toContainText("pending/reserved 0 kg");
+  await expect(purchaseCard).toContainText("outstanding 6 kg");
+
+  const firstSnapshot = await page.evaluate(async (name) => {
+    const session = JSON.parse(sessionStorage.getItem("kitchai.auth.session"));
+    const profiles = await import("/src/sync-store.js");
+    const businessStore = await import("/src/business-data-store.js");
+    const ingredientsStore = await import("/src/ingredient-store.js");
+    const inventory = await import("/src/supabase-api.js");
+    const profile = (await profiles.listOwnerProfiles(session.user.id))[0];
+    const scope = businessStore.scopeForBusinessProfile({ ownerId: session.user.id, profileId: profile.id });
+    const ingredient = (await ingredientsStore.listIngredients(scope)).find(item => item.name === name);
+    if (!ingredient) throw new Error("Synced purchase ingredient could not be found.");
+    return inventory.getInventoryItemSnapshot(profile.businessId, "ingredient", ingredient.id, session);
+  }, ingredientName);
+  expect(Number(firstSnapshot.systemQuantity)).toBe(4);
+
+  // Simulate an uncertain acknowledgement: replay the immutable first receipt
+  // command directly through the real inventory RPC, then prove it does not
+  // duplicate stock or advance the server version.
+  await page.evaluate(async ({ supplierName }) => {
+    const session = JSON.parse(sessionStorage.getItem("kitchai.auth.session"));
+    const profiles = await import("/src/sync-store.js");
+    const businessStore = await import("/src/business-data-store.js");
+    const purchases = await import("/src/purchase-store.js");
+    const inventory = await import("/src/supabase-api.js");
+    const profile = (await profiles.listOwnerProfiles(session.user.id))[0];
+    const scope = businessStore.scopeForBusinessProfile({ ownerId: session.user.id, profileId: profile.id });
+    const purchase = (await purchases.listPurchases(scope)).find(item => item.supplierName === supplierName);
+    if (!purchase) throw new Error("Purchase for idempotency replay was not found.");
+    const receipt = purchase.receipts?.[0];
+    if (!receipt?.command) throw new Error("First immutable receipt command was not found.");
+    await inventory.applyInventoryCommand(receipt.command, session);
+  }, { supplierName });
+  const replayedSnapshot = await page.evaluate(async (name) => {
+    const session = JSON.parse(sessionStorage.getItem("kitchai.auth.session"));
+    const profiles = await import("/src/sync-store.js");
+    const businessStore = await import("/src/business-data-store.js");
+    const ingredientsStore = await import("/src/ingredient-store.js");
+    const inventory = await import("/src/supabase-api.js");
+    const profile = (await profiles.listOwnerProfiles(session.user.id))[0];
+    const scope = businessStore.scopeForBusinessProfile({ ownerId: session.user.id, profileId: profile.id });
+    const ingredient = (await ingredientsStore.listIngredients(scope)).find(item => item.name === name);
+    return inventory.getInventoryItemSnapshot(profile.businessId, "ingredient", ingredient.id, session);
+  }, ingredientName);
+  expect(Number(replayedSnapshot.systemQuantity)).toBe(4);
+  expect(replayedSnapshot.version).toBe(firstSnapshot.version);
+
+  await purchaseCard.locator(".purchase-receipt-form input[data-line-id]").fill("6");
+  await purchaseCard.getByRole("button", { name: "Save receipt" }).click();
+  await expect(page.locator("#purchase-state")).toContainText("Receipt accepted by the server", { timeout: 20000 });
+  await expect(purchaseCard).toContainText("received", { timeout: 10000 });
+  await expect(purchaseCard).toContainText("confirmed 10 kg");
+  await expect(purchaseCard).toContainText("pending/reserved 0 kg");
+  await expect(purchaseCard).toContainText("outstanding 0 kg");
+
+  const finalSnapshot = await page.evaluate(async (name) => {
+    const session = JSON.parse(sessionStorage.getItem("kitchai.auth.session"));
+    const profiles = await import("/src/sync-store.js");
+    const businessStore = await import("/src/business-data-store.js");
+    const ingredientsStore = await import("/src/ingredient-store.js");
+    const inventory = await import("/src/supabase-api.js");
+    const profile = (await profiles.listOwnerProfiles(session.user.id))[0];
+    const scope = businessStore.scopeForBusinessProfile({ ownerId: session.user.id, profileId: profile.id });
+    const ingredient = (await ingredientsStore.listIngredients(scope)).find(item => item.name === name);
+    if (!ingredient) throw new Error("Synced purchase ingredient could not be found.");
+    return inventory.getInventoryItemSnapshot(profile.businessId, "ingredient", ingredient.id, session);
+  }, ingredientName);
+  expect(Number(finalSnapshot.systemQuantity)).toBe(10);
+  expect(finalSnapshot.version).not.toBe(firstSnapshot.version);
+  expect(pageErrors).toEqual([]);
+});
+
+
+test("authenticated browser journey composes purchase, production, giveaway, and finished-stock count", async ({ page }) => {
+  const pageErrors = [];
+  const finishedStockDebugLogs = [];
+  page.on("console", message => {
+    if (message.type() === "debug" && (message.text().includes("[finished-stock-debug]") || message.text().includes("[finished-stock-debug-stage]"))) finishedStockDebugLogs.push(message.text());
+  });
+  page.on("pageerror", error => pageErrors.push(error.message));
+  await createAccount(page);
+
+  await page.locator("#business-name").fill("Cross Workflow Kitchen " + Date.now());
+  await page.getByRole("button", { name: "Save profile" }).click();
+  await expect(page.locator("#profile-state")).toContainText("Synced with your account · revision 1", { timeout: 15000 });
+
+  const suffix = Date.now();
+  const ingredientName = "Cross Workflow Rice " + suffix;
+  const menuItemName = "Cross Workflow Bowl " + suffix;
+  const recipeName = "Cross Workflow Bowl Recipe " + suffix;
+
+  await page.locator("#ingredient-name").fill(ingredientName);
+  await page.getByRole("button", { name: "Add ingredient", exact: true }).click();
+  await expect(page.locator("#ingredient-list")).toContainText(ingredientName);
+
+  await page.locator("#menu-item-name").fill(menuItemName);
+  await page.locator("#menu-item-description").fill("Synthetic cross-workflow integration test");
+  await page.getByRole("button", { name: "Add menu item" }).click();
+  await expect(page.locator("#menu-item-list")).toContainText(menuItemName);
+
+  await page.locator("#recipe-menu-item").selectOption({ label: menuItemName });
+  await page.locator("#recipe-name").fill(recipeName);
+  await page.locator("#recipe-yield").fill("4");
+  // Recipes must have a valid ingredient line before activation. Save the draft first.
+  await page.locator("#recipe-status").selectOption("draft");
+  await page.getByRole("button", { name: "Save recipe draft" }).click();
+  await expect(page.locator("#recipe-list")).toContainText(recipeName);
+
+  await page.locator("#recipe-line-recipe").selectOption({ label: recipeName + " · Draft" });
+  await page.locator("#recipe-line-ingredient").selectOption({ label: ingredientName });
+  // Match the purchased inventory unit; automatic kg-to-g conversion is not enabled.
+  await page.locator("#recipe-line-quantity").fill("0.25");
+  await page.locator("#recipe-line-unit").selectOption("kg");
+  await page.locator("#recipe-line-position").fill("0");
+  await page.getByRole("button", { name: "Add ingredient line" }).click();
+  await expect(page.locator("#recipe-line-list")).toContainText("0.25 kg");
+
+  const recipeCard = page.locator("#recipe-list li").filter({ hasText: recipeName });
+  await recipeCard.getByRole("button", { name: "Activate" }).click();
+  await expect(recipeCard).toContainText("Active");
+  await page.getByRole("button", { name: "Sync now" }).click();
+  await expect(page.locator("#phase2-sync-state")).toContainText("acknowledged", { timeout: 20000 });
+  await expect.poll(async () => page.evaluate(async () => {
+    const auth = JSON.parse(sessionStorage.getItem("kitchai.auth.session"));
+    const sync = await import("/src/phase2-sync-engine.js");
+    const profiles = await import("/src/sync-store.js");
+    const profile = (await profiles.listOwnerProfiles(auth.user.id))[0];
+    const operations = await sync.createPhase2SyncStore().listOperations(auth.user.id, profile.id);
+    return operations.filter(item => ["ingredient", "menuItem", "recipe", "recipeLine"].includes(item.entityType))
+      .every(item => item.state === "synced") && operations.length >= 4;
+  }), { timeout: 20000 }).toBe(true);
+
+  const supplierName = "Cross Workflow Supplier " + suffix;
+  await page.getByRole("button", { name: "Refresh purchases" }).click();
+  await expect(page.locator("#purchase-line-entry-list .purchase-line-entry")).toHaveCount(1, { timeout: 10000 });
+  const purchaseLine = page.locator("#purchase-line-entry-list .purchase-line-entry").first();
+  await page.locator("#purchase-supplier").fill(supplierName);
+  await purchaseLine.locator('[data-field="ingredient"]').selectOption({ label: ingredientName });
+  await purchaseLine.locator('[data-field="quantity"]').fill("10");
+  await purchaseLine.locator('[data-field="unit"]').selectOption("kg");
+  await page.getByRole("button", { name: "Save purchase draft" }).click();
+  const purchaseCard = page.locator("#purchase-list .purchase-card").filter({ hasText: supplierName });
+  await expect(purchaseCard).toBeVisible();
+  await purchaseCard.locator(".purchase-receipt-form input[data-line-id]").fill("10");
+  await purchaseCard.getByRole("button", { name: "Save receipt" }).click();
+  await expect(page.locator("#purchase-state")).toContainText("Receipt accepted by the server", { timeout: 20000 });
+  await expect(purchaseCard).toContainText("confirmed 10 kg");
+
+  const itemIds = await page.evaluate(async ({ ingredientName, menuItemName }) => {
+    const session = JSON.parse(sessionStorage.getItem("kitchai.auth.session"));
+    const profiles = await import("/src/sync-store.js");
+    const businessStore = await import("/src/business-data-store.js");
+    const ingredientsStore = await import("/src/ingredient-store.js");
+    const menus = await import("/src/menu-item-store.js");
+    const profile = (await profiles.listOwnerProfiles(session.user.id))[0];
+    const scope = businessStore.scopeForBusinessProfile({ ownerId: session.user.id, profileId: profile.id });
+    const ingredient = (await ingredientsStore.listIngredients(scope)).find(item => item.name === ingredientName);
+    const menuItem = (await menus.listMenuItems(scope)).find(item => item.name === menuItemName);
+    if (!ingredient || !menuItem) throw new Error("Synced ingredient or menu item was not found.");
+    const api = await import("/src/supabase-api.js");
+    return {
+      businessId: profile.businessId,
+      ingredientId: ingredient.id,
+      menuItemId: menuItem.id,
+      ingredientBefore: await api.getInventoryItemSnapshot(profile.businessId, "ingredient", ingredient.id, session),
+    };
+  }, { ingredientName, menuItemName });
+
+  await page.locator("#production-recipe").selectOption({ label: recipeName });
+  await page.getByRole("button", { name: "Start production batch" }).click();
+  const batch = page.locator("#production-batch-list .production-batch-card").filter({ hasText: recipeName });
+  await expect(batch).toBeVisible();
+  const usageLine = batch.locator("fieldset.production-usage-line").first();
+  await usageLine.locator('select[data-field="disposition"]').selectOption("measured");
+  await usageLine.locator('input[data-field="quantity"]').fill("0.25");
+  await batch.locator('input[data-field="outputQuantity"]').fill("4");
+  await batch.locator('select[data-field="outputUnit"]').selectOption("each");
+  await batch.getByRole("button", { name: "Save usage and prepare batch" }).click();
+  await expect(page.locator("#production-state")).toContainText("Production batch posted", { timeout: 20000 });
+  await expect(batch).toContainText("completed");
+
+  // Separate the server read path from UI refresh/rendering so a regression points to the right layer.
+  const serverFinishedStock = await page.evaluate(async ({ businessId }) => {
+    const session = JSON.parse(sessionStorage.getItem("kitchai.auth.session"));
+    const api = await import("/src/supabase-api.js");
+    return api.readFinishedStock(businessId, session);
+  }, { businessId: itemIds.businessId });
+  expect(serverFinishedStock.lots.map(lot => lot.menuItemId), JSON.stringify(serverFinishedStock.lots)).toContain(itemIds.menuItemId);
+
+  // Hold the next scoped IndexedDB menu lookup to prove the authoritative stock
+  // status and quantities render without waiting for presentation-only menu names.
+  await page.evaluate(() => {
+    const originalIndex = IDBObjectStore.prototype.index;
+    const hold = { used: false, gate: new Promise(resolve => { window.__releaseFinishedStockMenuLookup = resolve; }) };
+    window.__finishedStockMenuLookupHold = hold;
+    window.__restoreFinishedStockIndex = () => { IDBObjectStore.prototype.index = originalIndex; };
+    IDBObjectStore.prototype.index = function (name) {
+      const index = originalIndex.call(this, name);
+      if (name !== "byScope") return index;
+      return new Proxy(index, {
+        get(target, property) {
+          if (property !== "getAll") {
+            const value = Reflect.get(target, property, target);
+            return typeof value === "function" ? value.bind(target) : value;
+          }
+          return (...args) => {
+            const request = target.getAll(...args);
+            if (hold.used) return request;
+            hold.used = true;
+            return new Proxy(request, {
+              get: (requestTarget, key) => Reflect.get(requestTarget, key, requestTarget),
+              set(requestTarget, key, handler) {
+                if (key === "onsuccess" && typeof handler === "function") {
+                  requestTarget.onsuccess = async event => {
+                    await hold.gate;
+                    handler.call(requestTarget, event);
+                  };
+                } else {
+                  requestTarget[key] = handler;
+                }
+                return true;
+              },
+            });
+          };
+        },
+      });
+    };
+  });
+  await page.getByRole("button", { name: "Refresh stock" }).click();
+  await expect.poll(() => page.evaluate(() => window.__finishedStockMenuLookupHold?.used), { timeout: 10000 }).toBe(true);
+  const finishedStockDiagnostics = await page.evaluate(async ({ businessId }) => {
+    const session = JSON.parse(sessionStorage.getItem("kitchai.auth.session"));
+    const profiles = await import("/src/sync-store.js");
+    const businessStore = await import("/src/business-data-store.js");
+    const workflow = await import("/src/finished-stock-workflow-store.js");
+    const profile = (await profiles.listOwnerProfiles(session.user.id))[0];
+    const scope = businessStore.scopeForBusinessProfile({ ownerId: session.user.id, profileId: profile.id });
+    const snapshot = await workflow.getFinishedStockSnapshot(scope);
+    return {
+      profileSyncState: profile.syncState,
+      profileBusinessId: profile.businessId,
+      requestedBusinessId: businessId,
+      snapshot: snapshot ? { remoteBusinessId: snapshot.remoteBusinessId, lots: snapshot.lots, allocations: snapshot.allocations } : null,
+      status: document.querySelector("#finished-stock-state")?.textContent ?? "",
+      authStatus: document.querySelector("#auth-state")?.textContent ?? "",
+      profileStatus: document.querySelector("#profile-state")?.textContent ?? "",
+      signOutHidden: document.querySelector("#sign-out-button")?.hidden ?? null,
+      signUpHidden: document.querySelector("#sign-up-button")?.hidden ?? null,
+      storedSessionPresent: Boolean(sessionStorage.getItem("kitchai.auth.session")),
+      stockCountState: document.querySelector("#stock-count-state")?.textContent ?? "",
+    };
+  }, { businessId: itemIds.businessId });
+  finishedStockDiagnostics.finishedStockDebugLogs = finishedStockDebugLogs;
+  await expect(page.locator("#finished-stock-state"), JSON.stringify(finishedStockDiagnostics)).toContainText("Stock refreshed from the server", { timeout: 15000 });
+  await expect(page.locator("#finished-stock-list")).toContainText("Remaining 4 each", { timeout: 15000 });
+  await page.evaluate(() => {
+    window.__releaseFinishedStockMenuLookup?.();
+    window.__restoreFinishedStockIndex?.();
+  });
+  await expect(page.locator("#finished-stock-list")).toContainText(menuItemName, { timeout: 15000 });
+  const afterProduction = await page.evaluate(async ({ businessId, ingredientId, menuItemId }) => {
+    const session = JSON.parse(sessionStorage.getItem("kitchai.auth.session"));
+    const api = await import("/src/supabase-api.js");
+    return {
+      finished: await api.getInventoryItemSnapshot(businessId, "finished", menuItemId, session),
+      ingredient: await api.getInventoryItemSnapshot(businessId, "ingredient", ingredientId, session),
+    };
+  }, { businessId: itemIds.businessId, ingredientId: itemIds.ingredientId, menuItemId: itemIds.menuItemId });
+  expect(Number(afterProduction.finished.systemQuantity)).toBe(4);
+  expect(Number(afterProduction.ingredient.systemQuantity)).toBeLessThan(Number(itemIds.ingredientBefore.systemQuantity));
+
+  await page.locator("#finished-disposition-type").selectOption("giveaway");
+  await page.locator("#finished-disposition-lot").selectOption({ index: 1 });
+  await page.locator("#finished-disposition-quantity").fill("1");
+  await page.getByRole("button", { name: "Save stock disposition" }).click();
+  await expect(page.locator("#finished-disposition-state")).toContainText("Stock disposition synced", { timeout: 20000 });
+  await expect(page.locator("#finished-stock-list")).toContainText("Remaining 3 each", { timeout: 15000 });
+  const afterGiveaway = await page.evaluate(async ({ businessId, menuItemId }) => {
+    const session = JSON.parse(sessionStorage.getItem("kitchai.auth.session"));
+    const api = await import("/src/supabase-api.js");
+    return api.getInventoryItemSnapshot(businessId, "finished", menuItemId, session);
+  }, { businessId: itemIds.businessId, menuItemId: itemIds.menuItemId });
+  expect(Number(afterGiveaway.systemQuantity)).toBe(3);
+
+  await page.locator("#stock-count-create-form").getByRole("button", { name: "Create session" }).click();
+  await expect(page.locator("#stock-count-state")).toContainText("session created", { timeout: 10000 });
+  await page.locator("#stock-count-item-class").selectOption("finished");
+  await page.locator("#stock-count-item").selectOption({ label: menuItemName });
+  await page.getByRole("button", { name: "Add count line" }).click();
+  await expect(page.locator("#stock-count-lines")).toContainText(menuItemName, { timeout: 15000 });
+  await expect(page.locator("#stock-count-lines")).toContainText("expected 3");
+  const countLine = page.locator("#stock-count-lines li.stock-count-line").filter({ has: page.getByRole("heading", { name: menuItemName }) });
+  await countLine.getByLabel("Counted quantity").fill("2");
+  await countLine.getByRole("button", { name: "Save count" }).click();
+  await expect(countLine).toContainText("variance -1");
+  await countLine.getByLabel("Review reason (required for non-zero variance)").fill("Cross-workflow physical count regression");
+  await countLine.getByRole("button", { name: "Mark reviewed" }).click();
+  await expect(countLine).toContainText("reviewed");
+  await countLine.getByRole("checkbox", { name: "Select " + menuItemName + " for posting" }).check();
+  await page.getByRole("button", { name: "Post selected reviewed lines" }).click();
+  await expect(page.locator("#stock-count-state")).toContainText("Server confirmed", { timeout: 20000 });
+  await expect(countLine).toContainText("posted");
+  const finalSnapshot = await page.evaluate(async ({ businessId, menuItemId }) => {
+    const session = JSON.parse(sessionStorage.getItem("kitchai.auth.session"));
+    const api = await import("/src/supabase-api.js");
+    return api.getInventoryItemSnapshot(businessId, "finished", menuItemId, session);
+  }, { businessId: itemIds.businessId, menuItemId: itemIds.menuItemId });
+  expect(Number(finalSnapshot.systemQuantity)).toBe(2);
+  expect(finalSnapshot.version).not.toBe(afterGiveaway.version);
   expect(pageErrors).toEqual([]);
 });

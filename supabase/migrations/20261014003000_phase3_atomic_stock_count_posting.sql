@@ -127,6 +127,10 @@ declare
   v_posted_line_ids jsonb := '[]'::jsonb;
   v_event_ids jsonb := '[]'::jsonb;
   v_session_status text;
+  v_lot record;
+  v_lot_remaining numeric(24,6);
+  v_to_allocate numeric(24,6);
+  v_lot_take numeric(24,6);
 begin
   if v_owner is null then
     raise exception 'Authenticated owner required' using errcode = '42501';
@@ -322,6 +326,44 @@ begin
         case when v_variance > 0 then 'in' else 'out' end, pg_catalog.abs(v_variance), v_unit,
         'stock_count', p_session_id, null, v_reason, pg_catalog.now(), v_reviewed_at
       );
+
+      -- Finished-stock count reductions must be assigned to the actual lots,
+      -- oldest production first. This keeps the lot ledger aligned with the
+      -- aggregate stock count and prevents negative per-lot balances.
+      if v_stock_class = 'finished' and v_variance < 0 then
+        v_to_allocate := pg_catalog.abs(v_variance);
+        for v_lot in
+          select fl.lot_id,
+            fl.produced_quantity - coalesce(pg_catalog.sum(smla.quantity), 0) as remaining
+          from public.finished_lots fl
+          left join public.stock_movement_lot_allocations smla
+            on smla.owner_id = fl.owner_id
+           and smla.business_id = fl.business_id
+           and smla.lot_id = fl.lot_id
+          where fl.owner_id = v_owner
+            and fl.business_id = p_business_id
+            and fl.menu_item_id = v_stock_item_id
+            and fl.unit = v_unit
+          group by fl.lot_id, fl.produced_quantity, fl.produced_at
+          having fl.produced_quantity - coalesce(pg_catalog.sum(smla.quantity), 0) > 0
+          order by fl.produced_at, fl.lot_id
+        loop
+          exit when v_to_allocate = 0;
+          v_lot_remaining := v_lot.remaining;
+          v_lot_take := case when v_lot_remaining < v_to_allocate then v_lot_remaining else v_to_allocate end;
+          insert into public.stock_movement_lot_allocations(
+            owner_id, business_id, event_id, lot_id, quantity, unit
+          ) values (
+            v_owner, p_business_id, v_event_id, v_lot.lot_id, v_lot_take, v_unit
+          );
+          v_to_allocate := v_to_allocate - v_lot_take;
+        end loop;
+        if v_to_allocate <> 0 then
+          raise exception 'Finished-stock count reduction exceeds remaining production lots'
+            using errcode = '23514';
+        end if;
+      end if;
+
       v_movement_count := v_movement_count + 1;
       v_event_ids := v_event_ids || pg_catalog.jsonb_build_array(v_event_id);
     else

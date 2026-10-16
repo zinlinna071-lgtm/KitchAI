@@ -89,6 +89,9 @@ const phase2ConflictList = /** @type {HTMLElement | null} */ (document.querySele
 let currentProfile = null;
 let currentOwnerProfile = null;
 let activeSession = null;
+// Invalidates asynchronous work from a workspace superseded by an auth transition.
+let ownerWorkspaceSequence = 0;
+let finishedStockRefreshSequence = 0;
 let syncRunning = false;
 let phase2SyncRunning = false;
 let retryTimer;
@@ -807,10 +810,13 @@ function stateLabel(profile) {
   }
 }
 
-async function refreshOwnerView() {
+async function refreshOwnerView(expectedSequence = ownerWorkspaceSequence, expectedOwnerId = activeSession?.user?.id) {
   if (!activeSession || !businessNameInput) return;
   const ownerId = activeSession.user.id;
+  if (expectedOwnerId !== ownerId || expectedSequence !== ownerWorkspaceSequence) return;
   const profiles = await listOwnerProfiles(ownerId);
+  // IndexedDB reads can finish after another workspace load has already started.
+  if (expectedSequence !== ownerWorkspaceSequence || activeSession?.user?.id !== ownerId) return;
   currentOwnerProfile = profiles[0] ?? null;
   if (currentOwnerProfile) {
     businessNameInput.value = currentOwnerProfile.name;
@@ -824,9 +830,13 @@ async function refreshOwnerView() {
     if (adoptLocalButton) adoptLocalButton.hidden = !currentProfile;
   }
   await showUnresolvedConflict(ownerId);
+  if (expectedSequence !== ownerWorkspaceSequence || activeSession?.user?.id !== ownerId) return;
   await refreshIngredientView();
+  if (expectedSequence !== ownerWorkspaceSequence || activeSession?.user?.id !== ownerId) return;
   await refreshMenuView();
+  if (expectedSequence !== ownerWorkspaceSequence || activeSession?.user?.id !== ownerId) return;
   await refreshRecipeView();
+  if (expectedSequence !== ownerWorkspaceSequence || activeSession?.user?.id !== ownerId) return;
   await refreshPhase2ConflictView();
 }
 
@@ -848,10 +858,15 @@ async function scheduleRetryForOwner(ownerId) {
 
 async function runSync() {
   if (!activeSession || !navigator.onLine || syncRunning || !isSupabaseConfigured()) return;
+  const requestedOwnerId = activeSession.user.id;
+  const requestedWorkspaceSequence = ownerWorkspaceSequence;
   syncRunning = true;
   try {
     const session = await getSession();
-    if (!session) {
+    // A delayed session lookup must not sign out or replace a newer workspace.
+    if (requestedWorkspaceSequence !== ownerWorkspaceSequence || activeSession?.user?.id !== requestedOwnerId) return;
+    if (!session || session.user?.id !== requestedOwnerId) {
+      ownerWorkspaceSequence += 1;
       activeSession = null;
       currentOwnerProfile = null;
       updateAuthControls();
@@ -898,6 +913,7 @@ async function runSync() {
 }
 
 async function loadOwnerWorkspace(session) {
+  const workspaceSequence = ++ownerWorkspaceSequence;
   activeSession = session;
   currentOwnerProfile = null;
   updateAuthControls();
@@ -905,36 +921,52 @@ async function loadOwnerWorkspace(session) {
   businessNameInput.value = "";
   if (adoptLocalButton) adoptLocalButton.hidden = true;
   const ownerId = session.user.id;
+  const isCurrentWorkspace = () =>
+    workspaceSequence === ownerWorkspaceSequence && activeSession?.user?.id === ownerId;
   try {
     await recoverInterruptedOperations(ownerId);
+    if (!isCurrentWorkspace()) return;
     let profiles = await listOwnerProfiles(ownerId);
     const operations = await listOperations(ownerId);
+    if (!isCurrentWorkspace()) return;
     if (!profiles.length && !operations.length && navigator.onLine) {
       const remote = await readRemoteProfile(session);
+      if (!isCurrentWorkspace()) return;
       if (remote) await adoptRemoteProfile(ownerId, remote);
+      if (!isCurrentWorkspace()) return;
       profiles = await listOwnerProfiles(ownerId);
+      if (!isCurrentWorkspace()) return;
     }
-    await refreshOwnerView();
+    await refreshOwnerView(workspaceSequence, ownerId);
+    if (!isCurrentWorkspace()) return;
     if (currentOwnerProfile || operations.some(operation => ["pending", "retryable_error", "in_flight"].includes(operation.state))) {
       await runSync();
     } else {
       setPhase2SyncState("Create or load this account’s Business Profile before syncing Phase 2 records.");
       await refreshPhase2ConflictView();
     }
+    if (!isCurrentWorkspace()) return;
     await refreshFinishedStockView(true);
+    if (!isCurrentWorkspace()) return;
     await refreshProductionView();
+    if (!isCurrentWorkspace()) return;
     // The stock-count module may have initialized before the account workspace loaded.
     // Refresh it now so its scope and capture controls reflect the active owner profile.
     await stockCountUI.refresh();
   } catch (error) {
+    if (!isCurrentWorkspace()) return;
     setProfileState("Account workspace could not be loaded. Existing local data is preserved. " + (error instanceof Error ? error.message : ""), true);
   }
 }
 
 async function loadLocalProfile() {
   if (!profileForm || !businessNameInput || !profileState) return;
+  const workspaceSequence = ownerWorkspaceSequence;
+  const isCurrentLocalLoad = () => workspaceSequence === ownerWorkspaceSequence && !activeSession;
   try {
     currentProfile = await readLocalProfile();
+    // Startup's local read can overlap sign-in/sign-up. Do not render over the account workspace.
+    if (!isCurrentLocalLoad()) return;
     if (activeSession) {
       await loadOwnerWorkspace(activeSession);
       return;
@@ -948,10 +980,15 @@ async function loadLocalProfile() {
     }
     if (adoptLocalButton) adoptLocalButton.hidden = true;
     await refreshIngredientView();
+    if (!isCurrentLocalLoad()) return;
     await refreshMenuView();
+    if (!isCurrentLocalLoad()) return;
     await refreshRecipeView();
+    if (!isCurrentLocalLoad()) return;
     await refreshFinishedStockView(false);
+    if (!isCurrentLocalLoad()) return;
     await refreshProductionView();
+    if (!isCurrentLocalLoad()) return;
     await runPhase2EntitySync();
   } catch (error) {
     setProfileState(error instanceof Error
@@ -1238,7 +1275,7 @@ async function refreshProductionView() {
               setProductionState("Actual usage saved. Batch is ready to post when you are online and signed in; no inventory has changed yet.");
             }
             await refreshProductionView();
-            if (prepared && prepared.state === "ready_to_post") setFinishedStockMessage(finishedStockState, "Refresh stock after the production batch is posted.");
+            if (prepared && prepared.state === "ready_to_post" && !(activeSession && navigator.onLine && currentOwnerProfile?.businessId)) setFinishedStockMessage(finishedStockState, "Batch is ready to post when online and signed in; finished stock updates after server confirmation.");
           } catch (error) {
             setProductionState(error instanceof Error ? error.message : "Could not prepare production batch.", true);
             await refreshProductionView();
@@ -1436,6 +1473,7 @@ signUpButton?.addEventListener("click", async () => {
 
 signOutButton?.addEventListener("click", async () => {
   clearTimeout(retryTimer);
+  ownerWorkspaceSequence += 1;
   activeSession = null;
   currentOwnerProfile = null;
   updateAuthControls();
@@ -1646,8 +1684,60 @@ async function renderFinishedStockHistory() {
 }
 
 async function refreshFinishedStockView(refreshRemote = true) {
-  const scope = activeMenuScope();
+  const refreshSequence = ++finishedStockRefreshSequence;
+  const requestedOwnerId = activeSession?.user?.id ?? null;
+  const isCurrentRefresh = () => {
+    if (refreshSequence !== finishedStockRefreshSequence ||
+        requestedOwnerId !== (activeSession?.user?.id ?? null)) return false;
+    // A request is only allowed to publish results for the workspace it started with.
+    // A same-owner profile switch must invalidate the old workspace just like an auth change.
+    if (!scope) return true;
+    const activeScope = activeMenuScope();
+    return activeScope?.ownerId === scope.ownerId &&
+      activeScope?.businessId === scope.businessId;
+  };
+  let scope = activeMenuScope();
+  console.debug("[finished-stock-debug-stage]", "refresh-enter", refreshSequence, JSON.stringify({ refreshRemote, online: navigator.onLine, hasSession: Boolean(activeSession?.user?.id), scope }));
+  console.debug("[finished-stock-debug]", JSON.stringify({
+    refreshSequence,
+    requestedOwnerId,
+    activeOwnerId: activeSession?.user?.id ?? null,
+    profileId: currentOwnerProfile?.id ?? null,
+    profileOwnerId: currentOwnerProfile?.ownerId ?? null,
+    profileSyncState: currentOwnerProfile?.syncState ?? null,
+    profileBusinessId: currentOwnerProfile?.businessId ?? null,
+    scope,
+    snapshotBusinessId: currentFinishedSnapshot?.remoteBusinessId ?? null,
+  }));
+  // Auth/workspace refreshes can overlap a user-triggered stock refresh. During that
+  // transition currentOwnerProfile is temporarily null even though this account already
+  // has a persisted owner profile. Rehydrate the in-memory selection before deciding that
+  // finished stock has no business scope.
+  if (!scope && activeSession?.user?.id) {
+    const session = activeSession;
+    const profiles = await listOwnerProfiles(session.user.id);
+    // A refresh started by the previous (signed-out/local) workspace must not overwrite
+    // the signed-in workspace if authentication changed while IndexedDB was being read.
+    if (!isCurrentRefresh()) { console.debug("[finished-stock-debug-stage]", "refresh-stale-after-profile-read", refreshSequence, finishedStockRefreshSequence, requestedOwnerId, activeSession?.user?.id ?? null); return; }
+    // The in-memory value can be stale as well as temporarily null while auth and
+    // workspace refreshes overlap. Prefer the persisted owner profile when the current
+    // value cannot produce a valid business scope.
+    if (activeSession?.user?.id === session.user.id) {
+      const persistedProfile = profiles.find(profile => profile?.id) ?? null;
+      if (persistedProfile && (!currentOwnerProfile?.id || currentOwnerProfile.ownerId !== session.user.id)) {
+        currentOwnerProfile = persistedProfile;
+      }
+    }
+    scope = activeMenuScope();
+    console.debug("[finished-stock-debug-stage]", "scope-rehydrated", refreshSequence, JSON.stringify({ scope, profileId: currentOwnerProfile?.id ?? null, profileOwnerId: currentOwnerProfile?.ownerId ?? null }));
+  }
+  if (!isCurrentRefresh()) { console.debug("[finished-stock-debug-stage]", "refresh-stale-before-scope-check", refreshSequence, finishedStockRefreshSequence, requestedOwnerId, activeSession?.user?.id ?? null); return; }
   if (!scope) {
+    // Workspace loading temporarily clears currentOwnerProfile before the owner profile is reloaded.
+    // Do not clear stock state during that transition; a truly profile-less account keeps the initial
+    // no-profile message, while any in-flight refresh can finish once the workspace is ready.
+    if (currentFinishedSnapshot?.remoteBusinessId || (activeSession && (!currentOwnerProfile?.id || currentOwnerProfile.ownerId !== activeSession.user.id))) { console.debug("[finished-stock-debug-stage]", "no-scope-preserved-during-transition", refreshSequence, JSON.stringify({ snapshotBusinessId: currentFinishedSnapshot?.remoteBusinessId ?? null, hasSession: Boolean(activeSession), profileId: currentOwnerProfile?.id ?? null, profileOwnerId: currentOwnerProfile?.ownerId ?? null })); return; }
+    console.debug("[finished-stock-debug-stage]", "no-scope-cleared", refreshSequence);
     currentFinishedSnapshot = null;
     currentFinishedBalances = [];
     renderFinishedStockLists();
@@ -1656,22 +1746,58 @@ async function refreshFinishedStockView(refreshRemote = true) {
   }
   let message = "";
   let isError = false;
+  console.debug("[finished-stock-debug-stage]", "remote-refresh-eligibility", refreshSequence, JSON.stringify({ refreshRemote, hasSession: Boolean(activeSession?.user?.id), online: navigator.onLine, profileId: currentOwnerProfile?.id ?? null, profileOwnerId: currentOwnerProfile?.ownerId ?? null, syncState: currentOwnerProfile?.syncState ?? null, businessId: currentOwnerProfile?.businessId ?? null, scope }));
   if (refreshRemote && activeSession && navigator.onLine && currentOwnerProfile?.syncState === "synced" && currentOwnerProfile.businessId) {
     try {
-      currentFinishedSnapshot = await refreshFinishedStock(scope, currentOwnerProfile.businessId, activeSession);
+      console.debug("[finished-stock-debug-stage]", "remote-refresh-start", refreshSequence, currentOwnerProfile.businessId);
+      const requestedRemoteBusinessId = currentOwnerProfile.businessId;
+      const refreshedSnapshot = await refreshFinishedStock(scope, requestedRemoteBusinessId, activeSession);
+      if (!isCurrentRefresh() ||
+          currentOwnerProfile?.businessId !== requestedRemoteBusinessId ||
+          refreshedSnapshot?.remoteBusinessId !== requestedRemoteBusinessId) {
+        console.debug("[finished-stock-debug-stage]", "remote-refresh-stale", refreshSequence, JSON.stringify({
+          requestedRemoteBusinessId,
+          activeRemoteBusinessId: currentOwnerProfile?.businessId ?? null,
+          snapshotRemoteBusinessId: refreshedSnapshot?.remoteBusinessId ?? null,
+        }));
+        return;
+      }
+      currentFinishedSnapshot = refreshedSnapshot;
+      currentFinishedBalances = projectFinishedLotBalances(currentFinishedSnapshot.lots, currentFinishedSnapshot.allocations);
+      // Do not briefly label a new workspace's stock with names from the previous workspace.
+      currentFinishedMenuNames = new Map();
+      console.debug("[finished-stock-debug-stage]", "remote-refresh-success", refreshSequence, refreshedSnapshot?.remoteBusinessId, refreshedSnapshot?.lots?.length);
       message = "Stock refreshed from the server · " + new Date(currentFinishedSnapshot.fetchedAt).toLocaleString() + ".";
+      // Publish the authoritative snapshot immediately. Menu names are presentation-only
+      // data; waiting for their IndexedDB lookup must not leave the old no-profile status
+      // visible after the server has already confirmed this refresh.
+      renderFinishedStockLists();
+      setFinishedStockMessage(finishedStockState, message, false);
     } catch (error) {
-      currentFinishedSnapshot = await getFinishedStockSnapshot(scope).catch(() => null);
+      console.debug("[finished-stock-debug-stage]", "remote-refresh-error", refreshSequence, error instanceof Error ? error.message : String(error));
+      if (!isCurrentRefresh()) return;
+      const cachedSnapshot = await getFinishedStockSnapshot(scope).catch(() => null);
+      if (!isCurrentRefresh()) return;
+      currentFinishedSnapshot = cachedSnapshot;
       message = "Could not refresh stock. " + (currentFinishedSnapshot ? "Showing the last saved snapshot. " : "") + (error instanceof Error ? error.message : "Network or server error.");
       isError = true;
     }
   } else {
-    currentFinishedSnapshot = await getFinishedStockSnapshot(scope).catch(() => null);
+    const cachedSnapshot = await getFinishedStockSnapshot(scope).catch(() => null);
+    if (!isCurrentRefresh()) return;
+    currentFinishedSnapshot = cachedSnapshot;
     message = currentFinishedSnapshot
       ? (navigator.onLine ? "Showing the last saved stock snapshot · " : "Offline · showing the last saved stock snapshot · ") + new Date(currentFinishedSnapshot.fetchedAt).toLocaleString() + "."
       : activeSession ? "No finished-stock snapshot is cached yet. Connect to refresh stock." : "Sign in and sync the business profile to load server-authoritative finished stock.";
   }
+  console.debug("[finished-stock-debug-stage]", "menu-name-read-start", refreshSequence, JSON.stringify(scope));
   const menuItems = await listMenuItems(scope).catch(() => []);
+  // Never let an older request (or one started for a different auth state/workspace)
+  // overwrite the snapshot and status produced by a newer refresh.
+  if (!isCurrentRefresh()) {
+    console.debug("[finished-stock-debug-stage]", "refresh-stale-after-menu-read", refreshSequence, finishedStockRefreshSequence, JSON.stringify({ requestedOwnerId, activeOwnerId: activeSession?.user?.id ?? null, requestedScope: scope, activeScope: activeMenuScope() }));
+    return;
+  }
   currentFinishedMenuNames = new Map(menuItems.map(item => [item.id, item.name]));
   currentFinishedBalances = currentFinishedSnapshot
     ? projectFinishedLotBalances(currentFinishedSnapshot.lots, currentFinishedSnapshot.allocations)
