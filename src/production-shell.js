@@ -59,6 +59,14 @@ if (main && topbar && topbarActions && !document.querySelector("#kitchai-mode-sw
   const comingTitle = shell.querySelector("#kitchai-coming-title");
   const comingDescription = shell.querySelector("#kitchai-coming-description");
   const drawerTitle = shell.querySelector("#kitchai-drawer-title");
+  const aiIntro = shell.querySelector(".kitchai-ai-intro");
+  const aiComposer = shell.querySelector("#kitchai-chat-composer");
+  const aiDisclaimer = shell.querySelector(".kitchai-chat-disclaimer");
+  const aiPlaceholder = document.createElement("section");
+  aiPlaceholder.className = "kitchai-coming-soon";
+  aiPlaceholder.hidden = true;
+  aiPlaceholder.innerHTML = '<span aria-hidden="true">◷</span><p class="kitchai-eyebrow">COMING SOON</p><h2 id="kitchai-ai-placeholder-title">Chat History</h2><p id="kitchai-ai-placeholder-description">Chat history is not implemented yet; no conversations are stored by this interface.</p>';
+  aiScreen.append(aiPlaceholder);
   const modeButtons = [...switcher.querySelectorAll("[data-mode]")];
 
   const sections = [
@@ -107,50 +115,30 @@ if (main && topbar && topbarActions && !document.querySelector("#kitchai-mode-sw
 
   function buildNavigation() {
     nav.replaceChildren();
-    const items = mode === "ai"
-      ? [{ id: "new-chat", label: "＋ New Chat", action: "new-chat" }, { id: "search-chats", label: "Search Chats", action: "search-chats" }, sections.find((page) => page.id === "ai-history"), sections.find((page) => page.id === "ai-settings")]
-      : sections.filter((page) => page.mode === "manage" && !["business-profile", "data-sync", "general-settings", "appearance-settings", "language-settings", "ai-preferences", "security-settings", "about"].includes(page.id));
-    let lastGroup = "";
-    for (const item of items) {
-      if (!item) continue;
-      const group = item.group || (mode === "ai" ? "AI" : "Workspace");
-      if (group !== lastGroup) {
-        const heading = document.createElement("p");
-        heading.className = "kitchai-nav-group";
-        heading.textContent = group;
-        nav.append(heading);
-        lastGroup = group;
-      }
-      const button = document.createElement("button");
-      button.type = "button";
-      button.className = "kitchai-nav-item";
-      button.textContent = item.label;
-      button.dataset.page = item.id;
-      button.setAttribute("aria-current", mode === item.mode && activePage === item.id ? "page" : "false");
-      if (item.action) button.dataset.action = item.action;
-      nav.append(button);
-    }
-    if (mode === "manage") {
-      for (const [headingText, ids] of [
-        ["Business", ["ingredients", "purchases", "menu-recipes", "production", "finished-food", "sales", "business-expenses", "day-closing"]],
-        ["Personal", ["personal-overview", "personal-income", "personal-expenses", "personal-accounts", "personal-assets"]],
-        ["Reports", ["reports"]],
-        ["Settings", ["general-settings", "appearance-settings", "language-settings", "business-profile", "data-sync", "ai-preferences", "security-settings", "about"]]
-      ]) {
-        const heading = document.createElement("p");
-        heading.className = "kitchai-nav-group";
-        heading.textContent = headingText;
-        nav.append(heading);
-        for (const id of ids) {
-          const page = sections.find((candidate) => candidate.id === id);
-          const button = document.createElement("button");
-          button.type = "button";
-          button.className = "kitchai-nav-item";
-          button.textContent = page.label;
-          button.dataset.page = page.id;
-          button.setAttribute("aria-current", activePage === page.id ? "page" : "false");
-          nav.append(button);
-        }
+    const groups = mode === "ai"
+      ? [{ heading: "Chats", ids: ["new-chat", "search-chats", "ai-history"] }, { heading: "Preferences", ids: ["ai-settings"] }]
+      : [
+          { heading: "Workspace", ids: ["overview"] },
+          { heading: "Business", ids: ["ingredients", "purchases", "menu-recipes", "production", "finished-food", "sales", "business-expenses", "day-closing"] },
+          { heading: "Personal", ids: ["personal-overview", "personal-income", "personal-expenses", "personal-accounts", "personal-assets"] },
+          { heading: "Reports", ids: ["reports"] },
+          { heading: "Settings", ids: ["general-settings", "appearance-settings", "language-settings", "business-profile", "data-sync", "ai-preferences", "security-settings", "about"] }
+        ];
+    const labels = { "new-chat": "＋ New Chat", "search-chats": "Search Chats" };
+    for (const group of groups) {
+      const heading = document.createElement("p");
+      heading.className = "kitchai-nav-group";
+      heading.textContent = group.heading;
+      nav.append(heading);
+      for (const id of group.ids) {
+        const page = sections.find((candidate) => candidate.id === id);
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "kitchai-nav-item";
+        button.textContent = labels[id] || page?.label || id;
+        button.dataset.page = id;
+        button.setAttribute("aria-current", activePage === id && ((mode === "ai") === (id.startsWith("ai-") || id === "search-chats" || id === "new-chat")) ? "page" : "false");
+        nav.append(button);
       }
     }
   }
@@ -202,39 +190,26 @@ if (main && topbar && topbarActions && !document.querySelector("#kitchai-mode-sw
   nav.addEventListener("click", (event) => {
     const button = event.target.closest("button[data-page],button[data-action]");
     if (!button) return;
-    if (button.dataset.action === "new-chat") {
+    if (button.dataset.page === "new-chat") {
       shell.querySelector("#kitchai-chat-input").value = "";
+      aiIntro.hidden = false;
+      aiComposer.hidden = false;
+      aiDisclaimer.hidden = false;
+      aiPlaceholder.hidden = true;
       closeDrawer();
       return;
     }
-    if (button.dataset.action === "search-chats") {
-      activePage = "ai-history";
-      comingTitle.textContent = "Search Chats";
-      comingDescription.textContent = "Chat search is not implemented yet.";
-      comingSoon.hidden = false;
-      aiScreen.hidden = true;
-      manageScreen.hidden = false;
-      mode = "manage";
-      modeButtons.forEach((modeButton) => modeButton.setAttribute("aria-pressed", String(modeButton.dataset.mode === mode)));
-      manageTitle.textContent = "Search Chats";
-      manageDescription.textContent = "AI Mode · Coming Soon";
-      for (const element of originalNodes) element.hidden = true;
-      buildNavigation();
-      closeDrawer();
-      return;
-    }
-    if (button.dataset.page === "ai-history" || button.dataset.page === "ai-settings") {
-      comingTitle.textContent = sections.find((page) => page.id === button.dataset.page).label;
-      comingDescription.textContent = sections.find((page) => page.id === button.dataset.page).description;
-      comingSoon.hidden = false;
-      aiScreen.hidden = true;
-      manageScreen.hidden = false;
-      mode = "manage";
-      modeButtons.forEach((modeButton) => modeButton.setAttribute("aria-pressed", String(modeButton.dataset.mode === mode)));
-      manageTitle.textContent = comingTitle.textContent;
-      manageDescription.textContent = "AI Mode · Coming Soon";
-      for (const element of originalNodes) element.hidden = true;
-      buildNavigation();
+    if (button.dataset.page === "search-chats" || button.dataset.page === "ai-history" || button.dataset.page === "ai-settings") {
+      const title = button.dataset.page === "search-chats" ? "Search Chats" : sections.find((page) => page.id === button.dataset.page).label;
+      const description = button.dataset.page === "search-chats"
+        ? "Chat search is not implemented yet."
+        : sections.find((page) => page.id === button.dataset.page).description;
+      aiIntro.hidden = true;
+      aiComposer.hidden = true;
+      aiDisclaimer.hidden = true;
+      aiPlaceholder.querySelector("#kitchai-ai-placeholder-title").textContent = title;
+      aiPlaceholder.querySelector("#kitchai-ai-placeholder-description").textContent = description;
+      aiPlaceholder.hidden = false;
       closeDrawer();
       return;
     }
