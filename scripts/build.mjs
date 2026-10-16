@@ -26,7 +26,7 @@ if (output === root || !output.startsWith(root + path.sep)) {
 
 await rm(output, { recursive: true, force: true });
 await mkdir(output, { recursive: true });
-await cp(path.join(root, "index.html"), path.join(output, "index.html"));
+await cp(path.join(root, "index.html"), path.join(output, "index.html"));\nawait cp(path.join(root, "ui-preview.html"), path.join(output, "ui-preview.html"));
 await cp(path.join(root, "src"), path.join(output, "src"), { recursive: true });
 await cp(path.join(root, "public"), output, { recursive: true });
 
@@ -37,7 +37,7 @@ if (!html.includes("__KITCHAI_BASE_PATH__") || !html.includes("data-preview-only
 }
 html = html.replaceAll("__KITCHAI_BASE_PATH__", basePath);
 if (isPreview) html = html.replace("data-preview-only hidden", "data-preview-only");
-await writeFile(indexPath, html);
+await writeFile(indexPath, html);\n\nconst uiPreviewPath = path.join(output, "ui-preview.html");\nconst uiPreviewHtml = (await readFile(uiPreviewPath, "utf8")).replaceAll("__KITCHAI_BASE_PATH__", basePath);\nawait writeFile(uiPreviewPath, uiPreviewHtml);
 
 const manifestPath = path.join(output, "manifest.webmanifest");
 const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
