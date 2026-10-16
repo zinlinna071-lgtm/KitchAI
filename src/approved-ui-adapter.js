@@ -22,6 +22,7 @@ if (main && topbar && topbarActions && !document.querySelector("#kitchai-mode-sw
   const sidebarContent = appShell.querySelector("#sidebar-content");
   const backdrop = appShell.querySelector("#sidebar-backdrop");
   const mainColumn = appShell.querySelector("#kitchai-main-column");
+  const sidebarBottom = appShell.querySelector(".sidebar-bottom");
   const body = document.body;
   body.insertBefore(appShell, body.querySelector(".footer") || body.lastElementChild);
   mainColumn.append(topbar, main);
@@ -48,7 +49,19 @@ if (main && topbar && topbarActions && !document.querySelector("#kitchai-mode-sw
   themeButton.type = "button";
   themeButton.setAttribute("aria-label", "Toggle light and dark theme");
   themeButton.textContent = "◐";
-  topbarActions.prepend(themeButton);
+  const languageSelect = document.createElement("select");
+  languageSelect.id = "kitchai-language-select";
+  languageSelect.setAttribute("aria-label", "Interface language");
+  languageSelect.innerHTML = '<option value="en">EN</option><option value="my">မြန်မာ</option><option value="th">ไทย</option>';
+  const profileButton = document.createElement("button");
+  profileButton.id = "kitchai-profile-button";
+  profileButton.type = "button";
+  profileButton.setAttribute("aria-label", "User profile");
+  profileButton.title = "User profile";
+  profileButton.textContent = "K";
+  topbarActions.prepend(themeButton, languageSelect, profileButton);
+  const connectionStatus = document.querySelector("#connection-status");
+  if (connectionStatus) sidebarBottom.append(connectionStatus);
 
   const chatScreen = document.createElement("section");
   chatScreen.id = "kitchai-ai-screen";
@@ -145,8 +158,8 @@ if (main && topbar && topbarActions && !document.querySelector("#kitchai-mode-sw
       addGroup("Personal");
       for (const p of pageDefinitions.filter(x=>x.group==="Personal")) addItem(p.label,p.id,"♙",activeManagePage===p.id);
       addItem("Reports","reports","▥",activeManagePage==="reports");
-      addGroup("Settings");
-      for (const id of ["business-profile","data-sync","app-settings","about"]) {
+      addGroup("More");
+      for (const id of ["app-settings","data-sync","about"]) {
         const p = pageDefinitions.find(x=>x.id===id);
         addItem(p.label,p.id,"⚙",activeManagePage===p.id);
       }
@@ -218,6 +231,12 @@ if (main && topbar && topbarActions && !document.querySelector("#kitchai-mode-sw
   themeButton.addEventListener("click",()=>{
     document.body.classList.toggle("dark");
     localStorage.setItem("kitchai-ui-theme",document.body.classList.contains("dark")?"dark":"light");
+  });
+  languageSelect.addEventListener("change",()=>{
+    showToast("Full interface translation is not implemented yet.");
+  });
+  profileButton.addEventListener("click",()=>{
+    showToast("Profile and account controls are available in Business Profile and Data & Sync.");
   });
   if (localStorage.getItem("kitchai-ui-theme")==="dark") document.body.classList.add("dark");
   chatScreen.querySelector("#kitchai-chat-composer").addEventListener("submit",event=>{
