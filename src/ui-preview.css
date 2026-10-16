@@ -38,3 +38,9 @@
 .empty-panel{padding:20px}
 }
 @media(max-width:380px){.mobile-brand{display:none}.topbar-title{max-width:10px}.topbar-mode-switch .mode-button{padding:0 6px;font-size:.68rem}.topbar-mode-switch .mode-icon{display:none}.topbar-actions #language-select{max-width:43px}}
+
+/* Keep the primary navigation visible while the page scrolls. */
+.topbar{position:sticky;top:0;z-index:30;flex:none;background:var(--bg);isolation:isolate}
+/* Keep vertical scrolling native while allowing horizontal mode gestures across controls. */
+#main{touch-action:pan-y;overscroll-behavior-x:contain}
+.topbar-mode-switch{touch-action:pan-y}
