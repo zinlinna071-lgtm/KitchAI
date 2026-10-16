@@ -31,6 +31,7 @@ if (main && topbar && topbarActions && !document.querySelector("#kitchai-mode-sw
   const menuButton = document.createElement("button");
   menuButton.className = "icon-button menu-toggle";
   menuButton.id = "menu-toggle";
+  menuButton.dataset.kitchaiDrawerToggle = "true";
   menuButton.type = "button";
   menuButton.setAttribute("aria-label", "Open AI navigation");
   menuButton.textContent = "☰";
@@ -135,7 +136,7 @@ if (main && topbar && topbarActions && !document.querySelector("#kitchai-mode-sw
     const addItem = (label, id, icon, active) => {
       const button = document.createElement("button");
       button.type = "button";
-      button.className = "sidebar-link" + (active ? " active" : "");
+      button.className = "sidebar-link nav-item" + (active ? " active" : "");
       button.dataset.page = id;
       button.innerHTML = '<span class="nav-icon" aria-hidden="true">' + icon + '</span><span></span>';
       button.lastElementChild.textContent = label;
