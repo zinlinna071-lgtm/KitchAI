@@ -1,9 +1,9 @@
-const CACHE_NAME = "kitchai-shell-v14";
+const CACHE_NAME = "kitchai-shell-v15";
 const APP_SHELL = [
 	"",
 	"index.html",
 	"src/app.js",
-	"src/production-shell.js",
+	"src/approved-ui-adapter.js",
 	"src/stock-count-ui.js",
 	"src/stock-count-store.js",
 	"src/stock-count-domain.js",
@@ -27,7 +27,8 @@ const APP_SHELL = [
 	"src/supabase-api.js",
 	"runtime-config.js",
 	"src/styles.css",
-	"src/production-shell.css",
+	"src/ui-preview.css",
+	"src/ui-preview-chat-composer.css",
 	"manifest.webmanifest",
 	"favicon.svg",
 ].map((asset) => new URL(asset, self.registration.scope).toString());
