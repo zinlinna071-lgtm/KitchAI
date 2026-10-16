@@ -5,9 +5,16 @@
     "noEmit": true,
     "target": "ES2022",
     "module": "ESNext",
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "skipLibCheck": true,
     "strict": false
   },
-  "include": ["src/**/*.js"]
+  "include": [
+    "src/**/*.js",
+    "src/**/*.d.ts"
+  ]
 }
