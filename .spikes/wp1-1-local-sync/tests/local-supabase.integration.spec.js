@@ -566,10 +566,11 @@ test("legacy Phase 2 records migrate through the current runtime, queue once, an
 });
 
 
-test("authenticated stock-count UI creates a session, captures a server snapshot, reviews a variance, and posts atomically", async ({ page }) => {
+test("authenticated stock-count UI works at a 360px mobile viewport and posts atomically", async ({ page }) => {
   const pageErrors = [];
   const finishedStockDebugLogs = [];
   page.on("pageerror", error => pageErrors.push(error.message));
+  await page.setViewportSize({ width: 360, height: 800 });
   page.on("console", message => {
     if (message.type() === "debug" && (message.text().includes("[finished-stock-debug]") || message.text().includes("[finished-stock-debug-stage]"))) finishedStockDebugLogs.push(message.text());
   });
@@ -632,6 +633,13 @@ test("authenticated stock-count UI creates a session, captures a server snapshot
   await expect(page.locator("#stock-count-lines")).toContainText("posted", { timeout: 10000 });
   await expect(page.locator("#stock-count-state")).not.toContainText("uncertain");
   expect(pageErrors).toEqual([]);
+  const dimensions = await page.evaluate(() => ({
+    viewport: document.documentElement.clientWidth,
+    content: document.documentElement.scrollWidth,
+  }));
+  expect(dimensions.viewport).toBe(360);
+  expect(dimensions.content).toBeLessThanOrEqual(dimensions.viewport);
+
 });
 
 
