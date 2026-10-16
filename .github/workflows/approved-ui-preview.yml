@@ -2,6 +2,14 @@ name: Approved UI Preview (GitHub Pages)
 
 on:
   workflow_dispatch:
+    inputs:
+      preview_branch:
+        description: Branch containing the approved UI preview
+        required: true
+        type: choice
+        options:
+          - rebuild/approved-ui-from-zero
+        default: rebuild/approved-ui-from-zero
 
 permissions:
   contents: read
@@ -14,23 +22,44 @@ concurrency:
 
 jobs:
   verify:
-    if: github.ref == 'refs/heads/rebuild/approved-ui-from-zero'
-    name: Verify approved UI and preserve production entry
+    name: Build production app plus isolated approved UI preview
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - name: Check out the selected approved UI branch
+      - name: Check out production app from main
         uses: actions/checkout@v4
+        with:
+          ref: main
+          path: production-source
+      - name: Check out approved UI preview source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.preview_branch }}
+          path: preview-source
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 24
-      - name: Run syntax, type, regression, and production build checks
-        run: npm run check
-      - name: Build production-root-compatible Pages artifact
+      - name: Run production regression checks
+        working-directory: production-source
+        run: npm ci && npm run check
+      - name: Build the unchanged production app for GitHub Pages
+        working-directory: production-source
         run: npm run build -- --base-path=/KitchAI/
-      - name: Verify the approved UI preview is included and production entry stays normal
+      - name: Add only the approved UI preview page and its assets
         run: |
+          test -f preview-source/ui-preview.html
+          test -f preview-source/src/ui-preview-business-profile.css
+          test -f preview-source/src/business-profile-store.js
+          cp preview-source/ui-preview.html production-source/dist/ui-preview.html
+          cp preview-source/src/ui-preview*.css production-source/dist/src/
+          cp preview-source/src/ui-preview*.js production-source/dist/src/
+          cp preview-source/src/business-profile-store.js production-source/dist/src/
+          sed -i 's|__KITCHAI_BASE_PATH__|/KitchAI/|g' production-source/dist/ui-preview.html
+      - name: Verify production root and preview assets
+        working-directory: production-source
+        run: |
+          test -f dist/index.html
           test -f dist/ui-preview.html
           test -f dist/src/ui-preview-business-profile.css
           test -f dist/src/business-profile-store.js
@@ -41,11 +70,10 @@ jobs:
       - name: Upload verified site artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: dist
+          path: production-source/dist
 
   deploy:
-    if: github.ref == 'refs/heads/rebuild/approved-ui-from-zero'
-    name: Publish approved UI preview alongside the existing app
+    name: Publish production app with isolated preview route
     needs: verify
     runs-on: ubuntu-latest
     environment:
