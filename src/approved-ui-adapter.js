@@ -32,7 +32,7 @@ if (main && topbar && topbarActions && !document.querySelector("#kitchai-mode-sw
   menuButton.className = "icon-button menu-toggle";
   menuButton.id = "menu-toggle";
   menuButton.type = "button";
-  menuButton.setAttribute("aria-label", "Open navigation");
+  menuButton.setAttribute("aria-label", "Open AI navigation");
   menuButton.textContent = "☰";
 
   const switcher = document.createElement("div");
@@ -77,7 +77,7 @@ if (main && topbar && topbarActions && !document.querySelector("#kitchai-mode-sw
   manageScreen.id = "kitchai-manage-screen";
   manageScreen.className = "page-content";
   manageScreen.hidden = true;
-  manageScreen.innerHTML = '<div class="page-head"><div><p class="eyebrow">MANAGE MODE</p><h1 id="kitchai-manage-title">Overview</h1><p id="kitchai-manage-description" class="page-subtitle">Your workspace and existing business workflows.</p></div></div><div id="kitchai-manage-content"></div><section id="kitchai-coming-soon" class="empty-panel" hidden><span class="empty-symbol">◷</span><b id="kitchai-coming-title">Coming soon</b><p id="kitchai-coming-description">This workflow is not implemented yet. No sample records or totals are shown.</p></section>';
+  manageScreen.innerHTML = '<div class="page-head"><div><p class="eyebrow">MANAGE MODE</p><h1 id="kitchai-manage-title">Overview</h1><p id="kitchai-manage-description" class="page-subtitle">Your workspace and existing business workflows.</p></div></div><div id="kitchai-settings-home" class="settings-grid" hidden><button class="settings-row" type="button" data-settings-page="general-settings"><span class="settings-icon">⚙</span><span><b>General</b><small>Coming soon</small></span><span class="arrow">›</span></button><button class="settings-row" type="button" data-settings-page="appearance-settings"><span class="settings-icon">◐</span><span><b>Appearance</b><small>Use the theme control in the top bar</small></span><span class="arrow">›</span></button><button class="settings-row" type="button" data-settings-page="language-settings"><span class="settings-icon">文</span><span><b>Language</b><small>Full translation is not implemented yet</small></span><span class="arrow">›</span></button><button class="settings-row" type="button" data-settings-page="business-profile"><span class="settings-icon">▦</span><span><b>Business Profile</b><small>Edit your saved local business profile</small></span><span class="arrow">›</span></button><button class="settings-row" type="button" data-settings-page="data-sync"><span class="settings-icon">↻</span><span><b>Data &amp; Sync</b><small>Account connection and sync state</small></span><span class="arrow">›</span></button><button class="settings-row" type="button" data-settings-page="ai-preferences"><span class="settings-icon">✳</span><span><b>AI Preferences</b><small>Coming soon</small></span><span class="arrow">›</span></button><button class="settings-row" type="button" data-settings-page="security-settings"><span class="settings-icon">◇</span><span><b>Security</b><small>Coming soon</small></span><span class="arrow">›</span></button><button class="settings-row" type="button" data-settings-page="about"><span class="settings-icon">ⓘ</span><span><b>About KitchAI</b><small>Product information</small></span><span class="arrow">›</span></button></div><div id="kitchai-manage-content"></div><section id="kitchai-coming-soon" class="empty-panel" hidden><span class="empty-symbol">◷</span><b id="kitchai-coming-title">Coming soon</b><p id="kitchai-coming-description">This workflow is not implemented yet. No sample records or totals are shown.</p></section>';
   const manageContent = manageScreen.querySelector("#kitchai-manage-content");
   originalNodes.forEach(node => manageContent.append(node));
   main.replaceChildren(chatScreen, manageScreen);
@@ -104,7 +104,12 @@ if (main && topbar && topbarActions && !document.querySelector("#kitchai-mode-sw
     { id:"reports", label:"Reports", group:"Main", coming:true, description:"Reports will use real saved records when implemented." },
     { id:"business-profile", label:"Business Profile", group:"Settings", description:"Edit your local business profile.", selectors:[".profile-editor:has(#profile-form)"] },
     { id:"data-sync", label:"Data & Sync", group:"Settings", description:"Account connection, sync status, and conflict review.", selectors:["#auth-panel","#entity-sync-panel","#conflict-panel"] },
-    { id:"app-settings", label:"App Settings", group:"Settings", coming:true, description:"App settings are not implemented yet." },
+    { id:"app-settings", label:"App Settings", group:"Settings", description:"General app preferences and workspace settings." },
+    { id:"general-settings", label:"General", group:"Settings", coming:true, description:"General app settings are not implemented yet." },
+    { id:"appearance-settings", label:"Appearance", group:"Settings", description:"Theme can be changed using the top-bar theme control." },
+    { id:"language-settings", label:"Language", group:"Settings", coming:true, description:"Full interface translation is not implemented yet." },
+    { id:"ai-preferences", label:"AI Preferences", group:"Settings", coming:true, description:"AI preferences are not implemented yet." },
+    { id:"security-settings", label:"Security", group:"Settings", coming:true, description:"Additional security settings are not implemented yet." },
     { id:"about", label:"About KitchAI", group:"Settings", coming:true, description:"Product information is not implemented yet." },
     { id:"ai-settings", label:"AI Settings", group:"AI", coming:true, description:"AI settings are not implemented yet." },
     { id:"chat-history", label:"Chat History", group:"AI", coming:true, description:"Chat history is not implemented yet; no conversations are stored." }
@@ -178,6 +183,8 @@ if (main && topbar && topbarActions && !document.querySelector("#kitchai-mode-sw
     manageScreen.querySelector("#kitchai-coming-title").textContent = page.label + (page.coming ? " · Coming Soon" : "");
     manageScreen.querySelector("#kitchai-coming-description").textContent = page.description || "This workflow is not implemented yet.";
     hiddenOriginalNodes.forEach(node => { node.hidden = true; });
+    const settingsHome = manageScreen.querySelector("#kitchai-settings-home");
+    settingsHome.hidden = id !== "app-settings";
     for (const selector of page.selectors || []) {
       const element = manageContent.querySelector(selector);
       if (element) element.hidden = false;
@@ -194,10 +201,10 @@ if (main && topbar && topbarActions && !document.querySelector("#kitchai-mode-sw
       button.classList.toggle("active",active);
       button.setAttribute("aria-pressed",String(active));
     });
+    menuButton.setAttribute("aria-label", mode === "ai" ? "Open AI navigation" : "Open Manage navigation");
     if (mode === "ai") {
       chatScreen.hidden = false;
       manageScreen.hidden = true;
-      activeAIPage = "ai";
     } else showPage(activeManagePage);
     renderNavigation();
     if (mode === "ai") closeDrawer();
@@ -227,6 +234,10 @@ if (main && topbar && topbarActions && !document.querySelector("#kitchai-mode-sw
       renderNavigation(); closeDrawer(); return;
     }
     setMode("manage"); showPage(id);
+  });
+  manageScreen.querySelector("#kitchai-settings-home").addEventListener("click",event=>{
+    const button = event.target instanceof Element ? event.target.closest("[data-settings-page]") : null;
+    if (button) showPage(button.dataset.settingsPage);
   });
   themeButton.addEventListener("click",()=>{
     document.body.classList.toggle("dark");
