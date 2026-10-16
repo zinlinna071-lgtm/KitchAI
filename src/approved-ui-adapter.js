@@ -72,12 +72,13 @@ if (main && topbar && topbarActions && !document.querySelector("#kitchai-mode-sw
       <div class="prompt-chips"><button type="button" data-prompt="sales">Sales</button><button type="button" data-prompt="stock">Ingredients &amp; stock</button><button type="button" data-prompt="expenses">Expenses</button><button type="button" data-prompt="production">Production</button></div>
       <form id="kitchai-chat-composer" class="chat-composer"><textarea id="kitchai-chat-input" rows="1" placeholder="Ask about sales, stock, expenses, or production…" aria-label="Message KitchAI"></textarea><div class="composer-bottom"><span class="composer-hint">KitchAI · AI is not connected yet</span><button class="send-button" type="submit" aria-label="Send message">↑</button></div></form>
       <p class="disclaimer">Preview of the AI experience · Messages are not sent to an AI service.</p>
-    </div>`;
+    </div>
+    <section id="kitchai-ai-placeholder" class="page-content" hidden><div class="page-head"><div><p class="eyebrow">AI MODE</p><h1 id="kitchai-ai-placeholder-title">AI Settings</h1><p id="kitchai-ai-placeholder-description" class="page-subtitle">This page is not implemented yet.</p></div><span class="status">Coming soon</span></div><div class="empty-panel"><b>Coming soon</b><p>AI settings and chat history are not active yet. No messages or settings are saved by this screen.</p></div></section>`;
   const manageScreen = document.createElement("section");
   manageScreen.id = "kitchai-manage-screen";
   manageScreen.className = "page-content";
   manageScreen.hidden = true;
-  manageScreen.innerHTML = '<div class="page-head"><div><p class="eyebrow">MANAGE MODE</p><h1 id="kitchai-manage-title">Overview</h1><p id="kitchai-manage-description" class="page-subtitle">Your workspace and existing business workflows.</p></div></div><div id="kitchai-settings-home" class="settings-grid" hidden><button class="settings-row" type="button" data-settings-page="general-settings"><span class="settings-icon">⚙</span><span><b>General</b><small>Coming soon</small></span><span class="arrow">›</span></button><button class="settings-row" type="button" data-settings-page="appearance-settings"><span class="settings-icon">◐</span><span><b>Appearance</b><small>Use the theme control in the top bar</small></span><span class="arrow">›</span></button><button class="settings-row" type="button" data-settings-page="language-settings"><span class="settings-icon">文</span><span><b>Language</b><small>Full translation is not implemented yet</small></span><span class="arrow">›</span></button><button class="settings-row" type="button" data-settings-page="business-profile"><span class="settings-icon">▦</span><span><b>Business Profile</b><small>Edit your saved local business profile</small></span><span class="arrow">›</span></button><button class="settings-row" type="button" data-settings-page="data-sync"><span class="settings-icon">↻</span><span><b>Data &amp; Sync</b><small>Account connection and sync state</small></span><span class="arrow">›</span></button><button class="settings-row" type="button" data-settings-page="ai-preferences"><span class="settings-icon">✳</span><span><b>AI Preferences</b><small>Coming soon</small></span><span class="arrow">›</span></button><button class="settings-row" type="button" data-settings-page="security-settings"><span class="settings-icon">◇</span><span><b>Security</b><small>Coming soon</small></span><span class="arrow">›</span></button><button class="settings-row" type="button" data-settings-page="about"><span class="settings-icon">ⓘ</span><span><b>About KitchAI</b><small>Product information</small></span><span class="arrow">›</span></button></div><div id="kitchai-manage-content"></div><section id="kitchai-coming-soon" class="empty-panel" hidden><span class="empty-symbol">◷</span><b id="kitchai-coming-title">Coming soon</b><p id="kitchai-coming-description">This workflow is not implemented yet. No sample records or totals are shown.</p></section>';
+  manageScreen.innerHTML = '<div class="page-head"><div><p class="eyebrow">MANAGE MODE</p><h1 id="kitchai-manage-title">Overview</h1><p id="kitchai-manage-description" class="page-subtitle">Your workspace and existing business workflows.</p></div></div><div id="kitchai-settings-home" class="settings-grid" hidden><button class="settings-row" type="button" data-settings-page="general-settings"><span class="settings-icon">⚙</span><span><b>General</b><small>Coming soon</small></span><span class="arrow">›</span></button><button class="settings-row" type="button" data-settings-page="appearance-settings"><span class="settings-icon">◐</span><span><b>Appearance</b><small>Use the theme control in the top bar</small></span><span class="arrow">›</span></button><button class="settings-row" type="button" data-settings-page="language-settings"><span class="settings-icon">文</span><span><b>Language</b><small>Full translation is not implemented yet</small></span><span class="arrow">›</span></button><button class="settings-row" type="button" data-settings-page="business-profile"><span class="settings-icon">▦</span><span><b>Business Profile</b><small>Edit your saved local business profile</small></span><span class="arrow">›</span></button><button class="settings-row" type="button" data-settings-page="data-sync"><span class="settings-icon">↻</span><span><b>Data &amp; Sync</b><small>Account connection and sync state</small></span><span class="arrow">›</span></button><button class="settings-row" type="button" data-settings-page="ai-preferences"><span class="settings-icon">✳</span><span><b>AI Preferences</b><small>Coming soon</small></span><span class="arrow">›</span></button><button class="settings-row" type="button" data-settings-page="security-settings"><span class="settings-icon">◇</span><span><b>Security</b><small>Coming soon</small></span><span class="arrow">›</span></button><button class="settings-row" type="button" data-settings-page="about"><span class="settings-icon">ⓘ</span><span><b>About KitchAI</b><small>Product information</small></span><span class="arrow">›</span></button></div><div id="kitchai-manage-content"></div><section id="kitchai-settings-note" class="empty-panel" hidden><b></b><p></p></section><section id="kitchai-coming-soon" class="empty-panel" hidden><span class="empty-symbol">◷</span><b id="kitchai-coming-title">Coming soon</b><p id="kitchai-coming-description">This workflow is not implemented yet. No sample records or totals are shown.</p></section>';
   const manageContent = manageScreen.querySelector("#kitchai-manage-content");
   originalNodes.forEach(node => manageContent.append(node));
   main.replaceChildren(chatScreen, manageScreen);
@@ -170,6 +171,18 @@ if (main && topbar && topbarActions && !document.querySelector("#kitchai-mode-sw
       }
     }
   }
+  function showAIPage(id) {
+    activeAIPage = id;
+    const isChat = id === "ai";
+    chatScreen.querySelector(".chat-welcome").hidden = !isChat;
+    chatScreen.querySelector(".chat-bottom").hidden = !isChat;
+    const placeholder = chatScreen.querySelector("#kitchai-ai-placeholder");
+    placeholder.hidden = isChat;
+    const title = id === "search-chats" ? "Search Chats" : id === "chat-history" ? "Chat History" : "AI Settings";
+    chatScreen.querySelector("#kitchai-ai-placeholder-title").textContent = title;
+    chatScreen.querySelector("#kitchai-ai-placeholder-description").textContent = id === "search-chats" ? "Chat search is not implemented yet." : id === "chat-history" ? "Chat history is not implemented yet; no conversations are stored." : "AI settings are not implemented yet.";
+    renderNavigation();
+  }
   function showPage(id) {
     const page = pageDefinitions.find(p=>p.id===id);
     if (!page) return;
@@ -185,6 +198,10 @@ if (main && topbar && topbarActions && !document.querySelector("#kitchai-mode-sw
     hiddenOriginalNodes.forEach(node => { node.hidden = true; });
     const settingsHome = manageScreen.querySelector("#kitchai-settings-home");
     settingsHome.hidden = id !== "app-settings";
+    const settingsNote = manageScreen.querySelector("#kitchai-settings-note");
+    settingsNote.hidden = !(page.group === "Settings" && !page.coming && id !== "app-settings" && !(page.selectors || []).length);
+    settingsNote.querySelector("b").textContent = page.label;
+    settingsNote.querySelector("p").textContent = page.description || "Settings for this section will be added here.";
     for (const selector of page.selectors || []) {
       const element = manageContent.querySelector(selector);
       if (element) element.hidden = false;
@@ -205,6 +222,7 @@ if (main && topbar && topbarActions && !document.querySelector("#kitchai-mode-sw
     if (mode === "ai") {
       chatScreen.hidden = false;
       manageScreen.hidden = true;
+      showAIPage(activeAIPage);
     } else showPage(activeManagePage);
     renderNavigation();
     if (mode === "ai") closeDrawer();
@@ -222,17 +240,7 @@ if (main && topbar && topbarActions && !document.querySelector("#kitchai-mode-sw
     if (!button) return;
     const id = button.dataset.page;
     if (id==="new-chat") { activeAIPage="ai"; setMode("ai"); const input=chatScreen.querySelector("#kitchai-chat-input"); input.value=""; closeDrawer(); return; }
-    if (id==="search-chats" || id==="ai-settings" || id==="chat-history") {
-      activeAIPage=id;
-      chatScreen.hidden=true; manageScreen.hidden=false;
-      manageScreen.querySelector("#kitchai-manage-title").textContent=id==="search-chats"?"Search Chats":id==="ai-settings"?"AI Settings":"Chat History";
-      manageScreen.querySelector("#kitchai-manage-description").textContent="This page is not implemented yet.";
-      hiddenOriginalNodes.forEach(node=>{node.hidden=true;});
-      const coming=manageScreen.querySelector("#kitchai-coming-soon"); coming.hidden=false;
-      manageScreen.querySelector("#kitchai-coming-title").textContent=manageScreen.querySelector("#kitchai-manage-title").textContent+" · Coming Soon";
-      manageScreen.querySelector("#kitchai-coming-description").textContent="This feature is not implemented yet. No sample data is shown.";
-      renderNavigation(); closeDrawer(); return;
-    }
+    if (id==="search-chats" || id==="ai-settings" || id==="chat-history") { activeAIPage=id; setMode("ai"); closeDrawer(); return; }
     setMode("manage"); showPage(id);
   });
   manageScreen.querySelector("#kitchai-settings-home").addEventListener("click",event=>{
