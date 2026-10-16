@@ -39,6 +39,14 @@ html = html.replaceAll("__KITCHAI_BASE_PATH__", basePath);
 if (isPreview) html = html.replace("data-preview-only hidden", "data-preview-only");
 await writeFile(indexPath, html);
 
+const uiPreviewPath = path.join(root, "ui-preview.html");
+let uiPreviewHtml = await readFile(uiPreviewPath, "utf8");
+if (!uiPreviewHtml.includes("__KITCHAI_BASE_PATH__")) {
+	throw new Error("The UI preview is missing its required static-build placeholder.");
+}
+uiPreviewHtml = uiPreviewHtml.replaceAll("__KITCHAI_BASE_PATH__", basePath);
+await writeFile(path.join(output, "ui-preview.html"), uiPreviewHtml);
+
 const manifestPath = path.join(output, "manifest.webmanifest");
 const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
 manifest.id = basePath;
