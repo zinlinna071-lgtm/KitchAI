@@ -2,6 +2,21 @@ import { test, expect } from "@playwright/test";
 import { mkdir } from "node:fs/promises";
 import { resolve } from "node:path";
 
+async function openManageMode(page) {
+  await page.getByRole("button", { name: "Manage Mode" }).click();
+}
+
+async function openManagePage(page, label) {
+  await openManageMode(page);
+  await page.getByRole("button", { name: "Open Manage navigation" }).click();
+  if (label === "Business Profile") {
+    await page.getByRole("button", { name: "App Settings", exact: true }).click();
+    await page.getByRole("button", { name: "Business Profile", exact: true }).click();
+    return;
+  }
+  await page.getByRole("button", { name: label, exact: true }).click();
+}
+
 
 test("populated IndexedDB v2 upgrades additively, failed legacy mapping retries, and reopens idempotently", async ({ page }) => {
   await page.goto("/");
@@ -176,6 +191,7 @@ test("populated IndexedDB v2 upgrades additively, failed legacy mapping retries,
 
 test("shell is responsive and reports connection state at desktop and mobile widths", async ({ page }) => {
   await page.goto("/");
+  await openManageMode(page);
   await expect(page.getByRole("heading", { name: "Good work starts with a clear view." })).toBeVisible();
   await expect(page.locator("#connection-status")).toContainText("Online");
   await page.setViewportSize({ width: 1365, height: 900 });
@@ -192,6 +208,7 @@ test("shell is responsive and reports connection state at desktop and mobile wid
 test("capture desktop and mobile UI previews for review", async ({ page }) => {
   await mkdir("artifacts", { recursive: true });
   await page.goto("/");
+  await openManageMode(page);
   await expect(page.getByRole("heading", { name: "Good work starts with a clear view." })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Implemented for local testing" })).toBeVisible();
   await expect(page.getByText("Hosted sync is not configured", { exact: true })).toBeVisible();
@@ -210,9 +227,11 @@ test("service worker keeps the app shell navigable after going offline", async (
   await page.waitForFunction(() => Boolean(navigator.serviceWorker.controller));
   await context.setOffline(true);
   await page.goto("/");
+  await openManageMode(page);
   await expect(page.getByRole("heading", { name: "Good work starts with a clear view." })).toBeVisible();
-  await expect(page.locator("#business-name")).toBeVisible();
   await expect(page.locator("#connection-status")).toContainText("Offline");
+  await openManagePage(page, "Business Profile");
+  await expect(page.locator("#business-name")).toBeVisible();
   await context.setOffline(false);
 });
 
@@ -232,6 +251,7 @@ test("install prompt handler reveals the button and calls the prompt", async ({ 
 
 test("local business profile creates, trims, updates, and survives reload", async ({ page }) => {
   await page.goto("/");
+  await openManagePage(page, "Business Profile");
   const name = page.locator("#business-name");
   await name.fill("  Northside Kitchen  ");
   await page.getByRole("button", { name: "Save profile" }).click();
@@ -239,6 +259,7 @@ test("local business profile creates, trims, updates, and survives reload", asyn
   await expect(page.locator("#profile-state")).toContainText("Saved on this device");
   await expect(page.locator("#profile-state")).toContainText("local version 1");
   await page.reload();
+  await openManagePage(page, "Business Profile");
   await expect(name).toHaveValue("Northside Kitchen");
   await expect(page.locator("#profile-state")).toContainText("not synced");
   const original = await page.evaluate(() => new Promise((resolve, reject) => {
@@ -255,6 +276,7 @@ test("local business profile creates, trims, updates, and survives reload", asyn
   await page.getByRole("button", { name: "Save profile" }).click();
   await expect(page.locator("#profile-state")).toContainText("local version 2");
   await page.reload();
+  await openManagePage(page, "Business Profile");
   await expect(name).toHaveValue("Northside Kitchen Two");
   const record = await page.evaluate(() => new Promise((resolve, reject) => {
     const request = indexedDB.open("kitchai-local", 1);
@@ -287,11 +309,13 @@ test("local business profile creates, trims, updates, and survives reload", asyn
 
 test("invalid blank names and unavailable storage never report a successful save", async ({ page }) => {
   await page.goto("/");
+  await openManagePage(page, "Business Profile");
   await page.locator("#business-name").fill("    ");
   await page.getByRole("button", { name: "Save profile" }).click();
   await expect(page.locator("#profile-state")).toContainText("Enter a business name");
   await page.addInitScript(() => Object.defineProperty(window, "indexedDB", { configurable: true, value: undefined }));
   await page.reload();
+  await openManagePage(page, "Business Profile");
   await expect(page.locator("#profile-state")).toContainText("Local storage is unavailable");
   await page.locator("#business-name").fill("Storage Failure Kitchen");
   await page.getByRole("button", { name: "Save profile" }).click();
@@ -379,6 +403,7 @@ test("owner-scoped outbox persists atomically and conflict snapshots survive res
 
 test("keyboard skip link moves focus to main and primary controls have accessible names", async ({ page }) => {
   await page.goto("/");
+  await openManageMode(page);
   await page.keyboard.press("Tab");
   const skipLink = page.getByRole("link", { name: "Skip to content" });
   await expect(skipLink).toBeFocused();
@@ -393,6 +418,7 @@ test("keyboard skip link moves focus to main and primary controls have accessibl
 test("large text at narrow viewport does not introduce horizontal overflow", async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 720 });
   await page.goto("/");
+  await openManageMode(page);
   await page.evaluate(() => { document.documentElement.style.fontSize = "200%"; });
   const dimensions = await page.evaluate(() => ({
     viewport: document.documentElement.clientWidth,
@@ -405,6 +431,7 @@ test("large text at narrow viewport does not introduce horizontal overflow", asy
 
 test("local ingredient catalog creates, edits, archives, reloads, and stays in its business partition", async ({ page }) => {
   await page.goto("/");
+  await openManagePage(page, "Ingredients & Stock");
   await page.locator("#business-name").fill("Ingredient Test Kitchen");
   await page.getByRole("button", { name: "Save profile" }).click();
   await expect(page.locator("#profile-state")).toContainText("Saved on this device");
@@ -455,6 +482,7 @@ test("local ingredient catalog creates, edits, archives, reloads, and stays in i
 
 test("local menu workflow creates, edits, archives, reloads, and stays in its business partition", async ({ page }) => {
   await page.goto("/");
+  await openManagePage(page, "Menu & Recipes");
   await page.locator("#business-name").fill("Menu Test Kitchen");
   await page.getByRole("button", { name: "Save profile" }).click();
   await expect(page.locator("#profile-state")).toContainText("Saved on this device");
@@ -505,6 +533,7 @@ test("local menu workflow creates, edits, archives, reloads, and stays in its bu
 
 test("recipe workflow links menu items and ingredients, validates activation, and preserves edited lines", async ({ page }) => {
   await page.goto("/");
+  await openManagePage(page, "Menu & Recipes");
   await page.locator("#business-name").fill("Recipe Test Kitchen");
   await page.getByRole("button", { name: "Save profile" }).click();
   await expect(page.locator("#profile-state")).toContainText("Saved on this device");
@@ -1383,6 +1412,7 @@ test("carry-forward decisions persist offline, sync idempotently, and keep local
 
 test("finished stock UI is accessible and disposition records persist in the local outbox", async ({ page }) => {
   await page.goto("/");
+  await openManagePage(page, "Finished Food");
   await expect(page.getByRole("heading", { name: "Know what is still safe to sell." })).toBeVisible();
   await expect(page.getByRole("button", { name: "Refresh stock" })).toBeVisible();
   await expect(page.getByLabel("Disposition", { exact: true })).toBeVisible();
@@ -1411,6 +1441,7 @@ test("finished stock UI is accessible and disposition records persist in the loc
 
 test("production batch UI captures actual usage and keeps offline posting state honest", async ({ page }) => {
   await page.goto("/");
+  await openManagePage(page, "Production");
   await page.locator("#business-name").fill("Production UI Kitchen");
   await page.getByRole("button", { name: "Save profile" }).click();
 
@@ -1454,6 +1485,7 @@ test("production batch UI captures actual usage and keeps offline posting state 
 
 test("purchase drafts persist locally and do not change stock before server receipt acceptance", async ({ page }) => {
   await page.goto("/");
+  await openManagePage(page, "Purchases");
   await page.locator("#business-name").fill("Purchase Test Kitchen");
   await page.getByRole("button", { name: "Save profile" }).click();
   await expect(page.locator("#profile-state")).toContainText("Saved on this device");
