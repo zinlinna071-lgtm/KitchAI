@@ -36,7 +36,13 @@ if (!html.includes("__KITCHAI_BASE_PATH__") || !html.includes("data-preview-only
 	throw new Error("The app shell is missing a required static-build placeholder.");
 }
 html = html.replaceAll("__KITCHAI_BASE_PATH__", basePath);
-if (isPreview) html = html.replace("data-preview-only hidden", "data-preview-only");
+if (isPreview) {
+	html = html.replace("data-preview-only hidden", "data-preview-only");
+	// Keep the isolated Pages/offline test artifact on its legacy shell; the production shell
+	// is exercised by the normal build and its dedicated Vercel Preview deployment.
+	html = html.replace(/<link rel="stylesheet" href="[^"]*src\/production-shell\.css">/, "");
+	html = html.replace(/<script type="module" src="[^"]*src\/production-shell\.js"><\/script>/, "");
+}
 await writeFile(indexPath, html);
 
 const uiPreviewPath = path.join(root, "ui-preview.html");
