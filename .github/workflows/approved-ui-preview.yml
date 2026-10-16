@@ -42,7 +42,7 @@ jobs:
           node-version: 24
       - name: Run production regression checks
         working-directory: production-source
-        run: npm ci && npm run check
+        run: npm run check
       - name: Build the unchanged production app for GitHub Pages
         working-directory: production-source
         run: npm run build -- --base-path=/KitchAI/
