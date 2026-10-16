@@ -11,7 +11,7 @@
 .approved-ui-topbar .topbar-actions{display:flex;align-items:center;gap:8px;margin-left:auto;min-width:0}
 .approved-ui-topbar #connection-status{display:none}
 .approved-ui-topbar #install-button{white-space:nowrap}
-.approved-ui-main{flex:1;width:100%;max-width:none;margin:0;padding:0;min-width:0}
+.approved-ui-main{flex:1;width:100%;max-width:none;margin:0;padding:0;min-width:0}\n#main.approved-ui-main{width:100%;max-width:none;margin:0;padding:0;min-height:calc(100vh - 90px)}
 .approved-ui-main>.chat-screen{min-height:calc(100vh - 90px);padding:clamp(20px,4vw,48px)}
 .approved-ui-main>.page-content{width:100%;max-width:none;margin:0;padding:clamp(16px,3vw,32px)}
 #kitchai-manage-content{width:100%;max-width:100%;margin:0;padding:0}
