@@ -1,193 +1,51 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="kitchai-base-path" content="__KITCHAI_BASE_PATH__">
-<meta name="theme-color" content="#173d35"><meta name="description" content="KitchAI helps kitchen and food-business teams work reliably, even when offline.">
-<title>KitchAI — Kitchen workspace</title><link rel="icon" href="__KITCHAI_BASE_PATH__favicon.svg" type="image/svg+xml"><link rel="manifest" href="__KITCHAI_BASE_PATH__manifest.webmanifest"><link rel="stylesheet" href="__KITCHAI_BASE_PATH__src/styles.css"><script src="__KITCHAI_BASE_PATH__runtime-config.js"></script><script type="module" src="__KITCHAI_BASE_PATH__src/app.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="kitchai-base-path" content="__KITCHAI_BASE_PATH__">
+<meta name="theme-color" content="#ffffff">
+<meta name="description" content="KitchAI AI Mode and Manage Mode interface">
+<title>KitchAI — UI Preview</title>
+<link rel="icon" href="__KITCHAI_BASE_PATH__favicon.svg" type="image/svg+xml">
+<link rel="manifest" href="__KITCHAI_BASE_PATH__manifest.webmanifest">
+<link rel="stylesheet" href="__KITCHAI_BASE_PATH__src/ui-preview.css">
+<link rel="stylesheet" href="__KITCHAI_BASE_PATH__src/ui-preview-chat-composer.css">
+<script src="__KITCHAI_BASE_PATH__runtime-config.js"></script>
+<script defer src="__KITCHAI_BASE_PATH__src/ui-preview.js"></script>
+<script defer src="__KITCHAI_BASE_PATH__src/ui-preview-chat-composer.js"></script>
 </head>
 <body>
 <aside id="preview-notice" class="preview-notice" data-preview-only hidden><strong>NON-PRODUCTION STATIC PREVIEW</strong><span>Test build only. Hosted sign-in, account creation, and cloud sync are not configured.</span></aside>
 <a class="skip-link" href="#main">Skip to content</a>
-<header class="topbar"><a class="brand" href="__KITCHAI_BASE_PATH__" aria-label="KitchAI home"><span class="brand-mark" aria-hidden="true">K</span><span>KitchAI</span></a>
-<div class="topbar-actions"><p id="connection-status" class="connection-status" role="status" aria-live="polite"><span class="status-dot" aria-hidden="true"></span> Checking connection…</p><button id="install-button" class="button button-secondary" type="button" hidden>Install app</button></div></header>
-<main id="main" class="page-shell" tabindex="-1">
-<section class="welcome" aria-labelledby="welcome-title"><p class="eyebrow">YOUR KITCHEN WORKSPACE</p><h1 id="welcome-title">Good work starts with a clear view.</h1><p class="welcome-copy">An offline-first kitchen workspace for business records, recipe-based production batches, and finished-stock handling. Inventory changes are posted atomically and remain auditable.</p></section>
-<section class="status-grid" aria-label="Workspace readiness">
-<article class="status-card status-card-primary"><div class="card-icon" aria-hidden="true">✓</div><p class="card-label">APP SHELL</p><h2>Ready to open</h2><p>The core interface is available without needing a cloud connection.</p><span class="card-foot"><span class="status-dot" aria-hidden="true"></span>Local interface</span></article>
-<article class="status-card"><div class="card-icon card-icon-muted" aria-hidden="true">▤</div><p class="card-label">BUSINESS PROFILE</p><h2>Local-first record</h2><p>Create a profile locally or manage an account-scoped profile when local Supabase is configured.</p><span class="card-foot">Sync requires account connection</span></article>
-<article class="status-card"><div class="card-icon card-icon-muted" aria-hidden="true">↻</div><p class="card-label">SYNC FOUNDATION</p><h2>Implemented for local testing</h2><p>Account-scoped sync, safe retries, and conflict review are covered by local integration tests.</p><span class="card-foot">Hosted sync is not configured</span></article>
-</section>
-<section id="auth-panel" class="profile-editor auth-panel" aria-labelledby="auth-title" hidden>
-<div class="profile-editor-heading"><p class="eyebrow">ACCOUNT & SYNC</p><h2 id="auth-title">Connect your business workspace.</h2><p id="auth-help">Use the local Supabase Auth environment. Account creation and sign-in are unavailable when no runtime endpoint is configured.</p></div>
-<form id="auth-form" class="profile-form">
-<label for="auth-email">Email</label><input id="auth-email" name="email" type="email" autocomplete="username" required>
-<label for="auth-password">Password</label><input id="auth-password" name="password" type="password" minlength="8" autocomplete="current-password" required>
-<div id="auth-actions" class="auth-actions"><button id="sign-in-button" class="button button-primary" type="submit">Sign in</button><button id="sign-up-button" class="button button-secondary" type="button">Create account</button></div>
-<button id="sign-out-button" class="button button-secondary" type="button" hidden>Sign out</button>
-<p id="auth-state" class="profile-state" role="status" aria-live="polite">Local-only mode.</p>
-</form>
-</section>
-<section class="profile-editor" aria-labelledby="profile-editor-title">
-<div class="profile-editor-heading"><p class="eyebrow">LOCAL BUSINESS PROFILE</p><h2 id="profile-editor-title">Start with your business name.</h2><p id="profile-help">Without an account, this draft stays on this device. When signed in, your account workspace is separate; copying this draft into it requires an explicit action.</p></div>
-<form id="profile-form" class="profile-form">
-<label for="business-name">Business name</label>
-<input id="business-name" name="businessName" type="text" maxlength="80" autocomplete="organization" required aria-describedby="profile-help">
-<button id="save-profile-button" class="button button-primary" type="submit">Save profile</button>
-<button id="adopt-local-draft" class="button button-secondary" type="button" hidden>Copy local draft into my account</button>
-<p id="profile-state" class="profile-state" role="status" aria-live="polite">Checking local storage…</p>
-</form>
-<div id="conflict-panel" class="conflict-panel" hidden aria-labelledby="conflict-title"><p class="eyebrow">SYNC CONFLICT</p><h3 id="conflict-title">Review both versions.</h3><p id="conflict-base"></p><p id="conflict-local"></p><p id="conflict-remote"></p><div class="auth-actions"><button id="keep-local-button" class="button button-primary" type="button">Keep local</button><button id="use-remote-button" class="button button-secondary" type="button">Use remote</button></div></div>
-</section>
-<section class="offline-panel" aria-labelledby="offline-title"><div class="offline-panel-copy"><p class="eyebrow">BUILT FOR REAL KITCHENS</p><h2 id="offline-title">Keep the essentials close.</h2><p>Interface assets remain available offline after the first successful load. Business Profile, ingredient, menu, and recipe records are stored locally. Phase 2 entity sync requires a configured local Supabase account and remains local-first.</p></div><div class="offline-indicator" aria-hidden="true"><span class="offline-ring"></span><span class="offline-center">K</span></div></section>
-<section id="entity-sync-panel" class="profile-editor entity-sync-panel" aria-labelledby="entity-sync-title">
-<div class="profile-editor-heading"><p class="eyebrow">PHASE 2 · LOCAL SUPABASE SYNC</p><h2 id="entity-sync-title">Sync your business records.</h2><p>Ingredient, menu, recipe, and recipe-line changes stay in the local queue until an authenticated account and business profile are available. Conflicts are preserved for explicit review.</p></div>
-<div class="profile-form">
-<p id="phase2-sync-state" class="profile-state" role="status" aria-live="polite">Entity sync is waiting for an account workspace.</p>
-<div class="auth-actions"><button id="phase2-sync-now" class="button button-primary" type="button">Sync now</button></div>
+<div class="app-shell">
+<aside class="sidebar" id="sidebar" aria-label="KitchAI navigation">
+<div class="sidebar-top">
+<a class="brand" href="#ai" aria-label="KitchAI home"><span class="brand-mark">K</span><span class="brand-name">KitchAI</span></a>
+<button class="icon-button sidebar-close" id="sidebar-close" aria-label="Close navigation">×</button>
 </div>
-<div id="phase2-conflict-list" class="phase2-conflict-list" hidden aria-label="Phase 2 entity conflicts"></div>
-</section>
-<section id="ingredient-panel" class="profile-editor ingredient-editor" aria-labelledby="ingredient-title">
-<div class="profile-editor-heading"><p class="eyebrow">PHASE 2 · INGREDIENT CATALOG</p><h2 id="ingredient-title">Keep your ingredients organized.</h2><p id="ingredient-help">Create and maintain an ingredient catalog for the active business. Changes are saved locally first. When signed in to the configured local Supabase environment, queued changes can sync.</p></div>
-<div class="ingredient-workspace">
-<form id="ingredient-form" class="profile-form" aria-describedby="ingredient-help">
-<label for="ingredient-name">Ingredient name</label><input id="ingredient-name" name="ingredientName" type="text" maxlength="240" required autocomplete="off" aria-describedby="ingredient-state">
-<label for="ingredient-description">Description (optional)</label><textarea id="ingredient-description" name="ingredientDescription" rows="3" maxlength="4000"></textarea>
-<div class="auth-actions"><button id="save-ingredient-button" class="button button-primary" type="submit">Add ingredient</button><button id="cancel-ingredient-edit" class="button button-secondary" type="button" hidden>Cancel edit</button></div>
-<p id="ingredient-state" class="profile-state" role="status" aria-live="polite">Save a Business Profile first to start an ingredient catalog.</p>
-</form>
-<div class="ingredient-list-panel"><h3>Ingredients</h3><p id="ingredient-list-state" class="profile-state" role="status" aria-live="polite">No business workspace selected.</p><ul id="ingredient-list" class="ingredient-list" aria-label="Saved ingredients"></ul></div>
+<div class="sidebar-content" id="sidebar-content"></div>
+<div class="sidebar-bottom">
+<div class="sidebar-footnote"><span class="status-dot"></span><span><b>UI Preview</b><small>No live AI or business data</small></span></div>
 </div>
-</section>
-<section id="purchase-panel" class="profile-editor purchase-panel" aria-labelledby="purchase-title">
-<div class="profile-editor-heading"><p class="eyebrow">PHASE 3 · PURCHASING</p><h2 id="purchase-title">Record what you buy.</h2><p>Save purchase drafts and supplier details offline. Only an authenticated, server-accepted receipt changes ingredient stock. Partial receipts are supported; prices are purchase inputs, not official valuation or profit.</p></div>
-<div class="purchase-workspace">
-<form id="purchase-create-form" class="profile-form">
-<label for="purchase-supplier">Supplier (optional)</label><input id="purchase-supplier" type="text" maxlength="200" autocomplete="organization">
-<label for="purchase-currency">Currency</label><input id="purchase-currency" type="text" value="THB" minlength="3" maxlength="3" pattern="[A-Za-z]{3}" required>
-<label for="purchase-note">Purchase note (optional)</label><textarea id="purchase-note" rows="2" maxlength="1000"></textarea>
-<h3>Purchase lines</h3><p class="field-help">Use the same unit consistently for each ingredient. No automatic unit conversion is performed.</p>
-<div id="purchase-line-entry-list" class="purchase-line-entry-list"></div>
-<button id="purchase-add-line" class="button button-secondary" type="button">Add another ingredient</button>
-<button id="purchase-create-button" class="button button-primary" type="submit">Save purchase draft</button>
-<p id="purchase-state" class="profile-state" role="status" aria-live="polite">Purchase drafts stay local. Stock changes only after receipt posting is accepted by the server.</p>
-</form>
-<div class="purchase-list-panel"><div class="purchase-list-toolbar"><h3>Purchases and receipts</h3><button id="purchase-refresh" class="button button-secondary" type="button">Refresh purchases</button></div><p id="purchase-list-state" class="profile-state" role="status" aria-live="polite">Save a Business Profile first to manage purchases.</p><ul id="purchase-list" class="purchase-list" aria-label="Purchases and receipts"></ul></div>
+</aside>
+<div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+<div class="main-column">
+<header class="topbar">
+<button class="icon-button menu-toggle" id="menu-toggle" aria-label="Open navigation">☰</button>
+<div class="mode-switch topbar-mode-switch" role="group" aria-label="Choose mode"><button class="mode-button active" data-mode="ai" aria-pressed="true"><span class="mode-icon">✳</span><span>AI Mode</span></button><button class="mode-button" data-mode="manage" aria-pressed="false"><span class="mode-icon">▦</span><span>Manage Mode</span></button></div>
+<div class="topbar-actions">
+<button class="icon-button compact-theme" id="theme-toggle" aria-label="Toggle light and dark theme" title="Toggle theme">◐</button>
+<select id="language-select" aria-label="Interface language"><option value="en">EN</option><option value="my">မြန်မာ</option><option value="th">ไทย</option></select>
+<button class="profile-button" id="profile-button" aria-label="User profile" title="User profile">Z</button>
 </div>
-</section>
-<section id="menu-panel" class="profile-editor menu-editor" aria-labelledby="menu-title">
-<div class="profile-editor-heading"><p class="eyebrow">PHASE 2 · MENU ITEMS</p><h2 id="menu-title">Build your menu, one item at a time.</h2><p id="menu-help">Create and maintain menu items for the active business. Items are saved locally first and queued for account sync when signed in.</p></div>
-<div class="menu-workspace">
-<form id="menu-item-form" class="profile-form" aria-describedby="menu-help">
-<label for="menu-item-name">Menu item name</label><input id="menu-item-name" name="menuItemName" type="text" maxlength="240" required autocomplete="off" aria-describedby="menu-item-state">
-<label for="menu-item-description">Description (optional)</label><textarea id="menu-item-description" name="menuItemDescription" rows="3" maxlength="4000"></textarea>
-<div class="auth-actions"><button id="save-menu-item-button" class="button button-primary" type="submit">Add menu item</button><button id="cancel-menu-item-edit" class="button button-secondary" type="button" hidden>Cancel edit</button></div>
-<p id="menu-item-state" class="profile-state" role="status" aria-live="polite">Save a Business Profile first to start a menu.</p>
-</form>
-<div class="menu-list-panel"><h3>Menu items</h3><p id="menu-list-state" class="profile-state" role="status" aria-live="polite">No business workspace selected.</p><ul id="menu-item-list" class="ingredient-list" aria-label="Saved menu items"></ul></div>
-</div>
-</section>
-<section id="recipe-panel" class="profile-editor recipe-editor" aria-labelledby="recipe-title">
-<div class="profile-editor-heading"><p class="eyebrow">PHASE 2 · RECIPES</p><h2 id="recipe-title">Connect recipes to your menu.</h2><p id="recipe-help">Draft a recipe, add measured ingredient lines, and activate it when its yield and ingredients are valid. Changes are saved locally first and queued for account sync when signed in.</p></div>
-<div class="recipe-workspace">
-<form id="recipe-form" class="profile-form" aria-describedby="recipe-help">
-<label for="recipe-menu-item">Menu item</label><select id="recipe-menu-item" required><option value="">Choose a menu item</option></select>
-<label for="recipe-name">Recipe name</label><input id="recipe-name" type="text" maxlength="240" required autocomplete="off">
-<label for="recipe-description">Description (optional)</label><textarea id="recipe-description" rows="2" maxlength="4000"></textarea>
-<label for="recipe-instructions">Instructions (optional)</label><textarea id="recipe-instructions" rows="4" maxlength="12000"></textarea>
-<label for="recipe-yield">Yield / portions (required to activate)</label><input id="recipe-yield" type="number" min="0.000001" step="any" inputmode="decimal">
-<label for="recipe-status">Recipe status</label><select id="recipe-status"><option value="draft">Draft</option><option value="active">Active</option></select>
-<div class="auth-actions"><button id="save-recipe-button" class="button button-primary" type="submit">Save recipe draft</button><button id="cancel-recipe-edit" class="button button-secondary" type="button" hidden>Cancel edit</button></div>
-<p id="recipe-state" class="profile-state" role="status" aria-live="polite">Save a Business Profile and create a menu item first.</p>
-</form>
-<div class="recipe-list-panel"><h3>Recipes</h3><p id="recipe-list-state" class="profile-state" role="status" aria-live="polite">No business workspace selected.</p><ul id="recipe-list" class="ingredient-list" aria-label="Saved recipes"></ul></div>
-</div>
-<div class="recipe-lines-panel">
-<h3>Recipe ingredients</h3>
-<p id="recipe-lines-help">Select a draft or active recipe, then add ingredient quantities. Supported units: g, kg, ml, l, each. No automatic unit conversion is performed.</p>
-<form id="recipe-line-form" class="recipe-line-form" aria-describedby="recipe-lines-help">
-<label for="recipe-line-recipe">Recipe</label><select id="recipe-line-recipe" required><option value="">Choose a recipe</option></select>
-<label for="recipe-line-ingredient">Ingredient</label><select id="recipe-line-ingredient" required><option value="">Choose an ingredient</option></select>
-<label for="recipe-line-quantity">Quantity</label><input id="recipe-line-quantity" type="number" min="0.000001" step="any" inputmode="decimal" required>
-<label for="recipe-line-unit">Unit</label><select id="recipe-line-unit" required><option value="g">g · grams</option><option value="kg">kg · kilograms</option><option value="ml">ml · millilitres</option><option value="l">l · litres</option><option value="each">each · count</option></select>
-<label for="recipe-line-position">Position (zero-based)</label><input id="recipe-line-position" type="number" min="0" step="1" value="0" required>
-<label for="recipe-line-note">Note (optional)</label><input id="recipe-line-note" type="text" maxlength="1000">
-<div class="auth-actions"><button id="save-recipe-line-button" class="button button-primary" type="submit">Add ingredient line</button><button id="cancel-recipe-line-edit" class="button button-secondary" type="button" hidden>Cancel edit</button></div>
-<p id="recipe-line-state" class="profile-state" role="status" aria-live="polite">Select a recipe to manage its ingredient lines.</p>
-</form>
-<ul id="recipe-line-list" class="ingredient-list" aria-label="Recipe ingredient lines"></ul>
-</div>
-</section>
-<section id="production-panel" class="profile-editor production-panel" aria-labelledby="production-title">
-<div class="profile-editor-heading"><p class="eyebrow">PHASE 3 · PRODUCTION</p><h2 id="production-title">Make a batch from a recipe.</h2><p>Starting a batch captures an immutable recipe snapshot. Record actual usage for every line before preparing the output. Only a server-confirmed atomic post changes inventory.</p></div>
-<div class="production-workspace">
-<form id="production-start-form" class="profile-form">
-<label for="production-recipe">Active recipe</label><select id="production-recipe" required><option value="">Choose an active recipe</option></select>
-<button id="production-start-button" class="button button-primary" type="submit">Start production batch</button>
-<p id="production-state" class="profile-state" role="status" aria-live="polite">Save or load a business profile and activate a recipe to start a batch.</p>
-</form>
-<div class="production-batch-panel"><h3>Production batches</h3><p id="production-list-state" class="profile-state" role="status" aria-live="polite">No business workspace selected.</p><ul id="production-batch-list" class="production-batch-list" aria-label="Production batches"></ul></div>
-</div>
-</section>
-<section id="stock-count-panel" class="profile-editor stock-count-panel" aria-labelledby="stock-count-title">
-<div class="profile-editor-heading"><p class="eyebrow">PHASE 3 · INVENTORY CONTROL</p><h2 id="stock-count-title">Review a physical stock count.</h2><p>Review local count sessions, record observed quantities, document variances, and post reviewed lines as an authenticated owner. Saving or reviewing a draft does not change inventory; only a server-confirmed posting does.</p></div>
-<div class="stock-count-toolbar">
-<div class="stock-count-session-picker"><label for="stock-count-session">Stock-count session</label><select id="stock-count-session"><option value="">Choose a stock-count session</option></select></div>
-<button id="stock-count-refresh" class="button button-secondary" type="button">Refresh sessions</button>
-</div>
-<form id="stock-count-create-form" class="stock-count-create-form" aria-describedby="stock-count-create-help">
-<h3>Create a count session</h3>
-<label for="stock-count-session-note">Session note (optional)</label><input id="stock-count-session-note" type="text" maxlength="500" autocomplete="off">
-<p id="stock-count-create-help" class="field-help">Creating a draft does not change inventory. A synced business and authenticated owner are required.</p>
-<button id="stock-count-create" class="button button-secondary" type="submit">Create session</button>
-</form>
-<form id="stock-count-add-line-form" class="stock-count-add-line-form" aria-describedby="stock-count-add-line-help">
-<h3>Add an item to count</h3>
-<label for="stock-count-item-class">Stock class</label><select id="stock-count-item-class" required><option value="ingredient">Ingredient</option><option value="finished">Finished product</option></select>
-<label for="stock-count-item">Stock item</label><select id="stock-count-item" required><option value="">Choose an item</option></select>
-<label for="stock-count-item-unit">Unit (only needed if the server item has no unit)</label><select id="stock-count-item-unit"><option value="">Use recorded server unit</option><option value="g">g · grams</option><option value="kg">kg · kilograms</option><option value="ml">ml · millilitres</option><option value="l">l · litres</option><option value="each">each · count</option></select>
-<p id="stock-count-add-line-help" class="field-help">Adding a line captures the current server quantity and version. Connect and sign in before adding items; counting can continue offline after capture.</p>
-<button id="stock-count-add-line" class="button button-secondary" type="submit">Add count line</button>
-</form>
-<p id="stock-count-state" class="profile-state" role="status" aria-live="polite">Save or load a business profile to review stock counts.</p>
-<ul id="stock-count-lines" class="stock-count-lines" aria-label="Stock-count lines"><li>Select a session to view count lines.</li></ul>
-<div class="stock-count-actions"><button id="stock-count-post-selected" class="button button-primary" type="button" disabled>Post selected reviewed lines</button><button id="stock-count-cancel" class="button button-secondary" type="button" disabled>Cancel session</button></div>
-</section>
-
-<section id="finished-stock-panel" class="profile-editor finished-stock-panel" aria-labelledby="finished-stock-title">
-<div class="profile-editor-heading"><p class="eyebrow">PHASE 3 · FINISHED STOCK</p><h2 id="finished-stock-title">Know what is still safe to sell.</h2><p>Finished quantities come from immutable production lots minus recorded allocations. Refresh while online; the latest snapshot stays on this device for offline review. Every stock reduction is revalidated by the server when synced.</p></div>
-<div class="finished-stock-toolbar"><p id="finished-stock-state" class="profile-state" role="status" aria-live="polite">Sign in and load a synced business workspace to view finished stock.</p><button id="finished-stock-refresh" class="button button-secondary" type="button">Refresh stock</button></div>
-<ul id="finished-stock-list" class="finished-stock-list" aria-label="Finished stock lots"></ul>
-<div class="finished-stock-workflows">
-<section class="finished-stock-subpanel" aria-labelledby="finished-disposition-title">
-<h3 id="finished-disposition-title">Record a stock disposition</h3>
-<p>Choose a lot and quantity. Sales and discounted sales below post the stock reduction only; sale price and revenue accounting belong to the separate sales workflow.</p>
-<form id="finished-disposition-form" class="profile-form">
-<label for="finished-disposition-type">Disposition</label>
-<select id="finished-disposition-type" required><option value="sale">Sale · stock reduction only</option><option value="discounted_sale">Discounted sale · stock reduction only</option><option value="owner_consumption">Owner consumption</option><option value="giveaway">Giveaway</option><option value="waste">Waste / discard</option></select>
-<label for="finished-disposition-lot">Finished lot</label><select id="finished-disposition-lot" required><option value="">Refresh stock first</option></select>
-<label for="finished-disposition-quantity">Quantity</label><input id="finished-disposition-quantity" type="number" min="0.000001" step="any" inputmode="decimal" required>
-<p id="finished-disposition-unit" class="field-help">Select a lot to see its unit.</p>
-<label for="finished-disposition-reason">Reason (required for discounted sale and waste)</label><textarea id="finished-disposition-reason" rows="2" maxlength="1000"></textarea>
-<button id="finished-disposition-submit" class="button button-primary" type="submit">Save stock disposition</button>
-<p id="finished-disposition-state" class="profile-state" role="status" aria-live="polite">A disposition is saved locally before any network attempt.</p>
-</form>
-</section>
-<section class="finished-stock-subpanel" aria-labelledby="carry-forward-title">
-<h3 id="carry-forward-title">Carry safe stock into another day</h3>
-<p>Carry-forward is a safety/suitability decision only. It does not create stock or change the remaining quantity.</p>
-<form id="carry-forward-form" class="profile-form">
-<label for="carry-forward-lot">Finished lot</label><select id="carry-forward-lot" required><option value="">Refresh stock first</option></select>
-<label for="carry-forward-date">Carry-forward date</label><input id="carry-forward-date" type="date" required>
-<label class="check-label" for="carry-forward-safe"><input id="carry-forward-safe" type="checkbox" required> I confirm this remaining food is safe and suitable to keep.</label>
-<label for="carry-forward-reason">Handling note (optional)</label><textarea id="carry-forward-reason" rows="2" maxlength="1000"></textarea>
-<button id="carry-forward-submit" class="button button-primary" type="submit">Record carry-forward decision</button>
-<p id="carry-forward-state" class="profile-state" role="status" aria-live="polite">The decision is queued locally before cloud delivery.</p>
-</form>
-</section>
-</div>
-<section class="finished-stock-history" aria-labelledby="finished-stock-history-title"><h3 id="finished-stock-history-title">Recent stock dispositions</h3><ul id="finished-disposition-list" class="finished-stock-list" aria-label="Recent stock dispositions"></ul><h3>Carry-forward decisions</h3><ul id="carry-forward-list" class="finished-stock-list" aria-label="Carry-forward decisions"></ul></section>
-</section>
-<footer class="page-footer"><span>KitchAI · Early foundation</span><span id="app-version">Phase 2 · WP2.4</span></footer>
+</header>
+<main id="main" tabindex="-1">
+<div id="page-content"></div>
 </main>
-</body></html>
+<footer class="footer"><span>KitchAI</span><span>Interface preview · No live business data</span></footer>
+</div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
