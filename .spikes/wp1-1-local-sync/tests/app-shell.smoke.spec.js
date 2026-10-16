@@ -9,6 +9,11 @@ async function openManageMode(page) {
 async function openManagePage(page, label) {
   await openManageMode(page);
   await page.getByRole("button", { name: "Open Manage navigation" }).click();
+  if (label === "Business Profile") {
+    await page.getByRole("button", { name: "App Settings", exact: true }).click();
+    await page.getByRole("button", { name: "Business Profile", exact: true }).click();
+    return;
+  }
   await page.getByRole("button", { name: label, exact: true }).click();
 }
 
@@ -224,8 +229,9 @@ test("service worker keeps the app shell navigable after going offline", async (
   await page.goto("/");
   await openManageMode(page);
   await expect(page.getByRole("heading", { name: "Good work starts with a clear view." })).toBeVisible();
-  await expect(page.locator("#business-name")).toBeVisible();
   await expect(page.locator("#connection-status")).toContainText("Offline");
+  await openManagePage(page, "Business Profile");
+  await expect(page.locator("#business-name")).toBeVisible();
   await context.setOffline(false);
 });
 
