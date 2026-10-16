@@ -3,7 +3,8 @@ const topbar = document.querySelector(".topbar");
 const topbarActions = document.querySelector(".topbar-actions");
 
 if (main && topbar && topbarActions && !document.querySelector("#kitchai-mode-switcher")) {
-  const originalNodes = [...main.children];
+  /** @type {HTMLElement[]} */
+  const originalNodes = /** @type {HTMLElement[]} */ ([...main.children]);
   const shell = document.createElement("div");
   shell.className = "kitchai-shell";
   shell.innerHTML = `
@@ -29,7 +30,7 @@ if (main && topbar && topbarActions && !document.querySelector("#kitchai-mode-sw
         <section id="kitchai-coming-soon" class="kitchai-coming-soon" hidden><span aria-hidden="true">◷</span><p class="kitchai-eyebrow">COMING SOON</p><h2 id="kitchai-coming-title">Coming soon</h2><p id="kitchai-coming-description">This workflow is not implemented yet. No sample records or totals are shown.</p></section>
       </section>
     </div>`;
-  const manageContent = shell.querySelector("#kitchai-manage-content");
+  const manageContent = /** @type {HTMLDivElement} */ (shell.querySelector("#kitchai-manage-content"));
   originalNodes.forEach((node) => manageContent.append(node));
   main.append(shell);
   main.classList.add("kitchai-shell-root");
@@ -49,25 +50,25 @@ if (main && topbar && topbarActions && !document.querySelector("#kitchai-mode-sw
   drawerButton.textContent = "☰";
   topbarActions.prepend(switcher, drawerButton);
 
-  const nav = shell.querySelector("#kitchai-navigation");
-  const drawer = shell.querySelector("#kitchai-drawer");
-  const aiScreen = shell.querySelector("#kitchai-ai-screen");
-  const manageScreen = shell.querySelector("#kitchai-manage-screen");
-  const manageTitle = shell.querySelector("#kitchai-manage-title");
-  const manageDescription = shell.querySelector("#kitchai-manage-description");
-  const comingSoon = shell.querySelector("#kitchai-coming-soon");
-  const comingTitle = shell.querySelector("#kitchai-coming-title");
-  const comingDescription = shell.querySelector("#kitchai-coming-description");
-  const drawerTitle = shell.querySelector("#kitchai-drawer-title");
-  const aiIntro = shell.querySelector(".kitchai-ai-intro");
-  const aiComposer = shell.querySelector("#kitchai-chat-composer");
-  const aiDisclaimer = shell.querySelector(".kitchai-chat-disclaimer");
+  const nav = /** @type {HTMLElement} */ (shell.querySelector("#kitchai-navigation"));
+  const drawer = /** @type {HTMLElement} */ (shell.querySelector("#kitchai-drawer"));
+  const aiScreen = /** @type {HTMLElement} */ (shell.querySelector("#kitchai-ai-screen"));
+  const manageScreen = /** @type {HTMLElement} */ (shell.querySelector("#kitchai-manage-screen"));
+  const manageTitle = /** @type {HTMLHeadingElement} */ (shell.querySelector("#kitchai-manage-title"));
+  const manageDescription = /** @type {HTMLParagraphElement} */ (shell.querySelector("#kitchai-manage-description"));
+  const comingSoon = /** @type {HTMLElement} */ (shell.querySelector("#kitchai-coming-soon"));
+  const comingTitle = /** @type {HTMLHeadingElement} */ (shell.querySelector("#kitchai-coming-title"));
+  const comingDescription = /** @type {HTMLParagraphElement} */ (shell.querySelector("#kitchai-coming-description"));
+  const drawerTitle = /** @type {HTMLElement} */ (shell.querySelector("#kitchai-drawer-title"));
+  const aiIntro = /** @type {HTMLElement} */ (shell.querySelector(".kitchai-ai-intro"));
+  const aiComposer = /** @type {HTMLFormElement} */ (shell.querySelector("#kitchai-chat-composer"));
+  const aiDisclaimer = /** @type {HTMLElement} */ (shell.querySelector(".kitchai-chat-disclaimer"));
   const aiPlaceholder = document.createElement("section");
   aiPlaceholder.className = "kitchai-coming-soon";
   aiPlaceholder.hidden = true;
   aiPlaceholder.innerHTML = '<span aria-hidden="true">◷</span><p class="kitchai-eyebrow">COMING SOON</p><h2 id="kitchai-ai-placeholder-title">Chat History</h2><p id="kitchai-ai-placeholder-description">Chat history is not implemented yet; no conversations are stored by this interface.</p>';
   aiScreen.append(aiPlaceholder);
-  const modeButtons = [...switcher.querySelectorAll("[data-mode]")];
+  const modeButtons = /** @type {HTMLButtonElement[]} */ ([...switcher.querySelectorAll("[data-mode]")]);
 
   const sections = [
     { id: "overview", label: "Overview", mode: "manage", description: "Your workspace and existing business workflows.", selectors: [".welcome", ".status-grid", ".offline-panel"] },
@@ -102,7 +103,7 @@ if (main && topbar && topbarActions && !document.querySelector("#kitchai-mode-sw
   const elementBySelector = new Map();
   for (const page of sections) {
     page.elements = (page.selectors || []).map((selector) => {
-      const element = manageContent.querySelector(selector);
+      const element = /** @type {HTMLElement | null} */ (manageContent.querySelector(selector));
       if (element) elementBySelector.set(selector, element);
       return element;
     }).filter(Boolean);
@@ -111,7 +112,7 @@ if (main && topbar && topbarActions && !document.querySelector("#kitchai-mode-sw
   for (const page of sections) for (const element of page.elements) {
     if (!originalDisplay.has(element)) originalDisplay.set(element, element.hidden);
   }
-  const footer = manageContent.querySelector(".page-footer");
+  const footer = /** @type {HTMLElement | null} */ (manageContent.querySelector(".page-footer"));
 
   function buildNavigation() {
     nav.replaceChildren();
@@ -188,10 +189,12 @@ if (main && topbar && topbarActions && !document.querySelector("#kitchai-mode-sw
   }
 
   nav.addEventListener("click", (event) => {
-    const button = event.target.closest("button[data-page],button[data-action]");
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    const button = /** @type {HTMLButtonElement | null} */ (target.closest("button[data-page],button[data-action]"));
     if (!button) return;
     if (button.dataset.page === "new-chat") {
-      shell.querySelector("#kitchai-chat-input").value = "";
+      /** @type {HTMLTextAreaElement} */ (shell.querySelector("#kitchai-chat-input")).value = "";
       aiIntro.hidden = false;
       aiComposer.hidden = false;
       aiDisclaimer.hidden = false;
@@ -217,7 +220,9 @@ if (main && topbar && topbarActions && !document.querySelector("#kitchai-mode-sw
   });
 
   switcher.addEventListener("click", (event) => {
-    const button = event.target.closest("button[data-mode]");
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    const button = /** @type {HTMLButtonElement | null} */ (target.closest("button[data-mode]"));
     if (button) setMode(button.dataset.mode);
   });
   drawerButton.addEventListener("click", () => drawer.hidden ? openDrawer() : closeDrawer());
@@ -229,15 +234,17 @@ if (main && topbar && topbarActions && !document.querySelector("#kitchai-mode-sw
 
   let touchStart = null;
   main.addEventListener("touchstart", (event) => {
-    if (event.touches.length !== 1) { touchStart = null; return; }
+    const touchEvent = /** @type {TouchEvent} */ (event);
+    if (touchEvent.touches.length !== 1) { touchStart = null; return; }
     const target = event.target;
-    if (target.closest("input,textarea,select,button,a,[contenteditable=true],.kitchai-drawer")) { touchStart = null; return; }
-    const touch = event.touches[0];
+    if (!(target instanceof Element) || target.closest("input,textarea,select,button,a,[contenteditable=true],.kitchai-drawer")) { touchStart = null; return; }
+    const touch = touchEvent.touches[0];
     touchStart = { x: touch.clientX, y: touch.clientY };
   }, { passive: true });
   main.addEventListener("touchend", (event) => {
-    if (!touchStart || event.changedTouches.length !== 1) { touchStart = null; return; }
-    const touch = event.changedTouches[0];
+    const touchEvent = /** @type {TouchEvent} */ (event);
+    if (!touchStart || touchEvent.changedTouches.length !== 1) { touchStart = null; return; }
+    const touch = touchEvent.changedTouches[0];
     const dx = touch.clientX - touchStart.x;
     const dy = touch.clientY - touchStart.y;
     touchStart = null;
