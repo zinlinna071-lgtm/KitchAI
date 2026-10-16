@@ -44,3 +44,14 @@
 /* Keep vertical scrolling native while allowing horizontal mode gestures across controls. */
 #main{touch-action:pan-y;overscroll-behavior-x:contain}
 .topbar-mode-switch{touch-action:pan-y}
+
+/* Compact, left-aligned mode switch with utility controls grouped on the right. */
+.topbar{display:flex;justify-content:flex-start;gap:12px;padding:0 18px}
+.topbar-mode-switch{position:static;left:auto;top:auto;transform:none;order:0;flex:none;max-width:none;gap:3px;padding:3px;border-radius:10px}
+.topbar-mode-switch .mode-button{min-height:32px;padding:0 10px;font-size:.76rem;gap:6px}
+.topbar-actions{margin-left:auto;display:flex;align-items:center;gap:5px}
+.profile-button{width:29px;height:29px;display:grid;place-items:center;border:1px solid var(--line);border-radius:50%;background:var(--surface-2);color:var(--text);font-size:.75rem;font-weight:750;cursor:pointer}
+.profile-button:hover{border-color:var(--accent);color:var(--accent)}
+.topbar-actions #language-select{max-width:70px;padding:6px 5px}
+@media(max-width:680px){.topbar{padding:0 8px;gap:6px}.topbar-mode-switch{flex:0 1 auto;min-width:0;max-width:none;justify-content:flex-start}.topbar-mode-switch .mode-button{min-height:31px;padding:0 7px;font-size:.68rem;gap:4px}.topbar-mode-switch .mode-icon{display:inline;width:auto;font-size:.82rem}.topbar-actions{gap:2px}.topbar-actions .icon-button{width:29px;height:31px}.topbar-actions #language-select{max-width:47px;font-size:.68rem;padding:5px 2px}.profile-button{width:27px;height:27px;font-size:.7rem}}
+@media(max-width:360px){.topbar{gap:3px}.topbar-mode-switch .mode-button{padding:0 5px;font-size:.64rem}.topbar-mode-switch .mode-icon{display:none}.topbar-actions .icon-button{width:25px}.topbar-actions #language-select{max-width:40px}}
