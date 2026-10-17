@@ -128,5 +128,9 @@ document.addEventListener("submit",e=>{
 
 document.addEventListener("change",e=>{const target=e.target;if(!(target instanceof HTMLSelectElement))return;if(target.id==="settings-theme-select"){state.theme=target.value;localStorage.setItem("kitchai-preview-theme",state.theme);render();}if(target.id==="settings-language-select"||target.id==="language-select"){state.language=target.value;localStorage.setItem("kitchai-preview-language",state.language);render();}});
 window.addEventListener("hashchange",render);
+state.language=localStorage.getItem("kitchai-preview-language")||state.language;
 $("#language-select").value=state.language;
 render();
+// Re-render after the first paint so the initial AI shell is complete without a mode toggle.
+requestAnimationFrame(()=>render());
+window.addEventListener("pageshow",()=>requestAnimationFrame(render));
