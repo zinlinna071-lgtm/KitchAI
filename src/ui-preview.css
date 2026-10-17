@@ -473,3 +473,40 @@ body.dark .weekly-profit>b{color:#5eead4}
   .menu-list-page{padding:var(--page-top-space,24px) var(--page-gutter,16px) var(--page-bottom-space,32px)}
   .menu-list-row{min-height:46px;padding:var(--space-3,12px) 0}
 }
+\n
+/* Ingredients list and sub-page */
+.ingredient-page{max-width:920px;margin:0 auto}
+.ingredient-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:25px}
+.ingredient-heading h1,.ingredient-detail-heading h1{margin:0;font-size:clamp(1.8rem,3vw,2.25rem);letter-spacing:-.055em;line-height:1.16;font-weight:670}
+.ingredient-list{border-top:1px solid var(--line)}
+.ingredient-row{display:flex;align-items:center;gap:13px;width:100%;min-height:76px;padding:13px 7px;border:0;border-bottom:1px solid var(--line);background:transparent;text-align:left;cursor:pointer}
+.ingredient-row:hover{background:var(--surface-2)}
+.ingredient-mark{display:grid;place-items:center;width:39px;height:39px;flex:none;border:1px solid var(--line);border-radius:11px;background:var(--surface-2);color:var(--accent);font-size:1.1rem}
+.ingredient-mark.large{width:48px;height:48px;font-size:1.3rem}
+.ingredient-copy{display:block;min-width:0;flex:1}
+.ingredient-copy strong,.ingredient-copy small,.ingredient-stock strong,.ingredient-stock small{display:block}
+.ingredient-copy strong{font-size:.9rem;font-weight:670;overflow-wrap:anywhere}
+.ingredient-copy small,.ingredient-stock small{margin-top:5px;color:var(--muted);font-size:.75rem}
+.ingredient-stock{text-align:right;white-space:nowrap}
+.ingredient-stock strong{font-size:.82rem;font-weight:650}
+.ingredient-chevron{color:var(--muted);font-size:1.35rem;padding-left:3px}
+.ingredient-preview-note{margin:15px 0 0;color:var(--muted);font-size:.72rem;line-height:1.5}
+.ingredient-detail-heading{display:flex;align-items:center;gap:14px;margin:22px 0 25px}
+.ingredient-detail-heading>div{flex:1;min-width:0}
+.ingredient-detail-card{margin-top:15px;padding:21px;border:1px solid var(--line);border-radius:13px;background:var(--surface)}
+.ingredient-detail-card h2{margin:0 0 18px;font-size:1rem;font-weight:680}
+.ingredient-detail-stock{margin-bottom:20px;font-size:2rem;font-weight:700;letter-spacing:-.05em}
+.ingredient-detail-stock span{font-size:.95rem;font-weight:500;color:var(--muted)}
+.ingredient-detail-line{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;padding:12px 0;border-top:1px solid var(--line);font-size:.82rem}
+.ingredient-detail-line span{color:var(--muted)}
+.ingredient-detail-line strong{text-align:right;overflow-wrap:anywhere}
+.ingredient-history-copy{margin:0;color:var(--muted);font-size:.84rem;line-height:1.6}
+.ingredient-form{padding:20px;border:1px solid var(--line);border-radius:13px;background:var(--surface)}
+.ingredient-field{display:flex;flex-direction:column;gap:7px;min-width:0;margin-bottom:15px;color:var(--muted);font-size:.78rem}
+.ingredient-field input,.ingredient-field select{width:100%;min-height:42px;padding:10px 11px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--text)}
+.ingredient-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 14px}
+.ingredient-form-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:20px}
+.ui-button{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:39px;padding:0 13px;border:1px solid var(--line);border-radius:9px;background:var(--surface);font-size:.8rem;font-weight:650;cursor:pointer}
+.ui-button.primary{border-color:var(--accent);background:var(--accent);color:#fff}
+.ui-button.secondary{background:var(--surface);color:var(--text)}
+@media(max-width:680px){.ingredient-heading{align-items:flex-start}.ingredient-heading .ui-button{flex:none;padding:0 10px;font-size:.75rem}.ingredient-row{gap:10px;min-height:72px;padding:12px 3px}.ingredient-mark{width:35px;height:35px}.ingredient-copy strong{font-size:.84rem}.ingredient-stock strong{font-size:.76rem}.ingredient-stock small{font-size:.68rem}.ingredient-detail-heading{align-items:flex-start;gap:10px}.ingredient-detail-heading .ui-button{padding:0 9px}.ingredient-detail-card{padding:16px}.ingredient-form{padding:15px}.ingredient-form-grid{grid-template-columns:1fr}}
