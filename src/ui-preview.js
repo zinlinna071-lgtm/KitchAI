@@ -50,12 +50,25 @@ let menuDemoItems=[
 ];
 let menuCategoryFilter="all";
 let menuCategoryForm=null;
-function renderMenusPage(){return '<div class="manage-empty-page" aria-label="Menus" style="min-height:65vh"></div>';}
+function renderMenusPage(){
+ const categories=menuDemoCategories.filter(category=>menuDemoItems.some(menu=>menu.categoryId===category.id));
+ return '<div class="menu-list-page"><header class="menu-list-heading"><h1>Menus</h1></header>'+categories.map(category=>{
+  const items=menuDemoItems.filter(menu=>menu.categoryId===category.id);
+  return '<section class="menu-category-list" aria-labelledby="menu-category-'+esc(category.id)+'"><h2 class="menu-category-heading" id="menu-category-'+esc(category.id)+'">'+esc(category.name)+'</h2><div class="menu-list-rows">'+items.map(menu=>'<button type="button" class="menu-list-row" data-menu-open="'+esc(menu.id)+'" aria-label="Open '+esc(menu.name)+'"><span class="menu-list-name">'+esc(menu.name)+'</span><span class="menu-list-price">฿'+Number(menu.price).toLocaleString("en-US")+'</span><span class="menu-list-chevron" aria-hidden="true">›</span></button>').join("")+'</div></section>';
+ }).join("")+'</div>';
+}
+function renderMenuDetail(menuId){
+ const menu=menuDemoItems.find(item=>item.id===menuId);
+ if(!menu)return '<div class="menu-list-page"><button type="button" class="menu-back-link" data-menu-action="back-to-menu">‹ Menus</button><p>Menu item not found.</p></div>';
+ const category=menuDemoCategories.find(item=>item.id===menu.categoryId);
+ return '<div class="menu-list-page menu-detail-page"><button type="button" class="menu-back-link" data-menu-action="back-to-menu">‹ Menus</button><header class="menu-list-heading"><h1>'+esc(menu.name)+'</h1></header><section class="menu-detail-summary" aria-label="Menu item details"><div class="menu-detail-line"><span>Category</span><strong>'+esc(category?.name||"—")+'</strong></div><div class="menu-detail-line"><span>Price</span><strong>฿'+Number(menu.price).toLocaleString("en-US")+'</strong></div></section></div>';
+}
 function renderManagePage(){
  const parts=state.page.split("/");
  const key=parts[1]||"page-1";
  if(key==="page-1")return parts.length>2?'<div class="manage-empty-page" aria-label="'+esc(parts.slice(2).join("/"))+'" style="min-height:65vh"></div>':renderOverview();
  if(key==="page-2")return renderMenusPage();
+ if(key==="menu-detail")return renderMenuDetail(parts[2]);
  if(!/^page-[1-5]$/.test(key))return '<div class="manage-empty-page" aria-label="'+esc(key)+'" style="min-height:65vh"></div>';
  return '<div class="manage-empty-page" aria-label="Page '+key.slice(-1)+'" style="min-height:65vh"></div>';
 }
@@ -188,8 +201,10 @@ document.addEventListener("change",e=>{const target=e.target;if(!(target instanc
 window.addEventListener("hashchange",render);
 document.addEventListener("click",e=>{
  const target=e.target;if(!(target instanceof Element))return;
+ const menuRow=target.closest("[data-menu-open]");if(menuRow){location.hash="manage/menu-detail/"+encodeURIComponent(menuRow.getAttribute("data-menu-open"));return;}
  const btn=target.closest("[data-menu-action]");if(!btn)return;
  const action=btn.getAttribute("data-menu-action");
+ if(action==="back-to-menu"){location.hash="manage/page-2";return;}
  if(action==="filter"){menuCategoryFilter=btn.getAttribute("data-category-id")||"all";render();return;}
  if(action==="create-menu"){toast("Create Menu form will be added in a later step. No data was created.");return;}
  if(action==="quick-create-category"){menuCategoryForm={mode:"create",id:null,name:""};render();const input=$('#menu-category-form [name="categoryName"]');if(input)input.focus();return;}
