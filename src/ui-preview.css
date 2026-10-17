@@ -55,3 +55,63 @@
 .topbar-actions #language-select{max-width:70px;padding:6px 5px}
 @media(max-width:680px){.topbar{padding:0 8px;gap:6px}.topbar-mode-switch{flex:0 1 auto;min-width:0;max-width:none;justify-content:flex-start}.topbar-mode-switch .mode-button{min-height:31px;padding:0 7px;font-size:.68rem;gap:4px}.topbar-mode-switch .mode-icon{display:inline;width:auto;font-size:.82rem}.topbar-actions{gap:2px}.topbar-actions .icon-button{width:29px;height:31px}.topbar-actions #language-select{max-width:47px;font-size:.68rem;padding:5px 2px}.profile-button{width:27px;height:27px;font-size:.7rem}}
 @media(max-width:360px){.topbar{gap:3px}.topbar-mode-switch .mode-button{padding:0 5px;font-size:.64rem}.topbar-mode-switch .mode-icon{display:none}.topbar-actions .icon-button{width:25px}.topbar-actions #language-select{max-width:40px}}
+
+/* Business quick switcher and profile editor — v1.0.1 preview candidate */
+.business-switcher-wrap{position:relative;flex:0 1 auto;min-width:0;max-width:245px}
+.business-switcher-wrap[hidden],.business-switcher-menu[hidden]{display:none!important}
+.business-switcher-trigger{display:flex;align-items:center;gap:8px;max-width:100%;min-height:34px;padding:0 10px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--text);font-size:.78rem;font-weight:650;cursor:pointer}
+.business-switcher-trigger:hover,.business-switcher-trigger[aria-expanded=true]{border-color:var(--accent);background:var(--surface-2)}
+.business-switcher-store{color:var(--accent);font-size:1rem}
+#business-switcher-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.business-switcher-chevron{color:var(--muted);font-size:1rem}
+.business-switcher-menu{position:absolute;top:calc(100% + 8px);left:0;z-index:45;width:min(320px,calc(100vw - 24px));max-height:min(70vh,540px);overflow:auto;padding:7px;border:1px solid var(--line);border-radius:13px;background:var(--surface);box-shadow:var(--shadow)}
+.business-menu-heading{padding:9px 9px 6px;color:var(--muted);font-size:.62rem;font-weight:800;letter-spacing:.1em}
+.business-option{display:flex;align-items:center;gap:9px;width:100%;min-width:0;padding:10px;border:0;border-radius:9px;background:transparent;color:var(--text);text-align:left;cursor:pointer}
+.business-option:hover,.business-option.selected{background:var(--surface-2)}
+.business-option-mark{display:grid;place-items:center;width:30px;height:30px;flex:none;border-radius:8px;background:var(--surface-2);color:var(--accent)}
+.business-option-copy{display:block;flex:1;min-width:0}
+.business-option-copy b,.business-option-copy small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.business-option-copy b{font-size:.8rem;font-weight:650}
+.business-option-copy small{margin-top:3px;color:var(--muted);font-size:.68rem}
+.business-option-check{color:var(--accent);font-weight:800}
+.archived-heading{border-top:1px solid var(--line);margin-top:4px}
+.archived-option{cursor:default}
+.business-restore-button{padding:5px 7px;border:1px solid var(--line);border-radius:7px;background:var(--surface);color:var(--text);font-size:.68rem;cursor:pointer}
+.business-create-toggle{display:flex;align-items:center;gap:9px;width:100%;margin-top:5px;padding:11px 10px;border:0;border-top:1px solid var(--line);border-radius:0 0 8px 8px;background:transparent;color:var(--accent);font-size:.79rem;font-weight:700;text-align:left;cursor:pointer}
+.business-create-toggle span{font-size:1.1rem}
+.business-quick-create{display:grid;gap:7px;padding:12px 9px 9px;border-top:1px solid var(--line)}
+.business-quick-create label{color:var(--muted);font-size:.7rem;font-weight:650}
+.business-quick-create input,.business-quick-create select,.profile-field input,.profile-field select,.profile-field textarea{width:100%;min-width:0;padding:10px 11px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--text);font:inherit;font-size:.82rem}
+.business-quick-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:4px}
+.button-primary,.button-secondary{display:inline-flex;align-items:center;justify-content:center;min-height:36px;padding:0 13px;border:1px solid var(--line);border-radius:9px;font-size:.78rem;font-weight:700;cursor:pointer}
+.button-primary{border-color:var(--text);background:var(--text);color:var(--bg)}
+.button-secondary{background:var(--surface);color:var(--text)}
+.business-menu-empty{padding:9px;color:var(--muted);font-size:.8rem}
+.business-profile-form{display:grid;gap:14px}
+.profile-section{padding:20px;border:1px solid var(--line);border-radius:13px;background:var(--surface)}
+.profile-section-heading{display:flex;align-items:center;gap:11px;margin-bottom:18px}
+.profile-section-icon{display:grid;place-items:center;width:36px;height:36px;flex:none;border-radius:10px;background:var(--surface-2);color:var(--accent);font-size:1.1rem}
+.profile-section-heading h2,.profile-archive-section h2{margin:0;font-size:.98rem;font-weight:700}
+.profile-section-heading p,.profile-archive-section p{margin:5px 0 0;color:var(--muted);font-size:.78rem;line-height:1.5}
+.profile-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.profile-field{display:grid;align-content:start;gap:7px;min-width:0}
+.profile-field>span{font-size:.75rem;font-weight:650;color:var(--muted)}
+.profile-field-wide{grid-column:1/-1}
+.profile-field textarea{resize:vertical;line-height:1.5}
+.profile-save-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.profile-save-note{color:var(--muted);font-size:.72rem;line-height:1.5}
+.profile-archive-section{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:20px}
+.profile-archive-row{display:flex;align-items:center;gap:10px;flex:none}
+.status-active{border-color:#b7dfc4;color:#267342}
+@media(max-width:680px){
+ .business-switcher-wrap{flex:1;min-width:0;max-width:none}
+ .business-switcher-trigger{width:100%;min-width:0;min-height:32px;padding:0 7px;gap:5px;font-size:.7rem}
+ .business-switcher-store{display:none}
+ .business-switcher-menu{left:0;right:auto;width:min(310px,calc(100vw - 20px))}
+ .topbar{gap:6px}
+ .profile-form-grid{grid-template-columns:1fr;gap:12px}
+ .profile-field-wide{grid-column:auto}
+ .profile-section{padding:16px}
+ .profile-save-row,.profile-archive-section{align-items:stretch;flex-direction:column}
+ .profile-archive-row{justify-content:space-between}
+}
