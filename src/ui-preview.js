@@ -49,17 +49,18 @@ function renderBusinessSwitcher(){
   name.textContent=current?.name||"Choose business";
   trigger.setAttribute("aria-expanded",String(state.businessMenuOpen));
   menu.hidden=!state.businessMenuOpen;
+  createSlot.innerHTML="";
   if(state.businessMenuOpen){
     const list=readBusinesses();
     const active=list.filter(item=>item.status!=="archived");
     const archived=list.filter(item=>item.status==="archived");
-    menu.innerHTML='<div class="business-menu-heading">YOUR BUSINESSES</div>'+
-      (active.length?active.map(item=>'<button type="button" class="business-option '+(item.id===current?.id?'selected':'')+'" data-business-select="'+esc(item.id)+'"><span class="business-option-mark">▦</span><span class="business-option-copy"><b>'+esc(item.name)+'</b><small>'+esc(item.type||"Business")+'</small></span>'+(item.id===current?.id?'<span class="business-option-check">✓</span>':'')+'</button>').join(""):'<p class="business-menu-empty">No active businesses yet.</p>')+
-      (archived.length?'<div class="business-menu-heading archived-heading">ARCHIVED</div>'+archived.map(item=>'<div class="business-option archived-option"><span class="business-option-mark">▦</span><span class="business-option-copy"><b>'+esc(item.name)+'</b><small>Archived</small></span><button type="button" class="business-restore-button" data-business-restore="'+esc(item.id)+'">Restore</button></div>').join(""):'');
+    const activeRows=active.length?active.map(item=>'<button type="button" class="business-option '+(item.id===current?.id?'selected':'')+'" data-business-select="'+esc(item.id)+'"><span class="business-option-mark">▦</span><span class="business-option-copy"><b>'+esc(item.name)+'</b><small>'+esc(item.type||"Business")+'</small></span>'+(item.id===current?.id?'<span class="business-option-check">✓</span>':'')+'</button>').join(""):'<p class="business-menu-empty">No active businesses yet.</p>';
+    const archivedRows=archived.length?'<div class="business-menu-heading archived-heading">ARCHIVED</div>'+archived.map(item=>'<div class="business-option archived-option"><span class="business-option-mark">▦</span><span class="business-option-copy"><b>'+esc(item.name)+'</b><small>Archived</small></span><button type="button" class="business-restore-button" data-business-restore="'+esc(item.id)+'">Restore</button></div>').join(""):'';
+    const createControl=state.businessCreateOpen?
+      '<form id="business-quick-create-form" class="business-quick-create"><label for="business-quick-name">New business name</label><input id="business-quick-name" name="name" maxlength="80" required placeholder="Business name"><label for="business-quick-type">Business type</label><select id="business-quick-type" name="type">'+BUSINESS_TYPES.map(type=>'<option>'+esc(type)+'</option>').join("")+'</select><div class="business-quick-actions"><button type="button" class="button-secondary" data-business-create-cancel>Cancel</button><button type="submit" class="button-primary">Create</button></div></form>':
+      '<div class="business-create-row"><button type="button" class="business-create-link" data-business-create-toggle><span aria-hidden="true">＋</span> Create new</button></div>';
+    menu.innerHTML='<div class="business-menu-heading">YOUR BUSINESSES</div>'+activeRows+archivedRows+createControl;
   }else{menu.innerHTML="";}
-  createSlot.innerHTML=state.businessCreateOpen?
-    '<form id="business-quick-create-form" class="business-quick-create"><label for="business-quick-name">New business name</label><input id="business-quick-name" name="name" maxlength="80" required placeholder="Business name"><label for="business-quick-type">Business type</label><select id="business-quick-type" name="type">'+BUSINESS_TYPES.map(type=>'<option>'+esc(type)+'</option>').join("")+'</select><div class="business-quick-actions"><button type="button" class="button-secondary" data-business-create-cancel>Cancel</button><button type="submit" class="button-primary">Create</button></div></form>':
-    '<button type="button" class="business-create-toggle" data-business-create-toggle><span>＋</span> Quick Create</button>';
 }
 function renderBusinessProfile(){
   const business=activeBusiness();
