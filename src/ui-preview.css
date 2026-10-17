@@ -115,3 +115,6 @@
  .profile-save-row,.profile-archive-section{align-items:stretch;flex-direction:column}
  .profile-archive-row{justify-content:space-between}
 }
+
+/* v1.0.1 shared business context and preferences inside Settings */
+.ai-business-context{display:flex;flex-direction:column;gap:5px;width:min(100%,460px);margin:20px auto 0;padding:13px 15px;border:1px solid var(--line);border-radius:12px;background:var(--surface);text-align:left}.ai-context-label{font-size:.62rem;font-weight:800;letter-spacing:.09em;color:var(--muted)}.ai-business-context b{font-size:.88rem;font-weight:700;color:var(--text)}.ai-business-context small{font-size:.73rem;line-height:1.5;color:var(--muted)}.settings-control-section{max-width:560px}.settings-control-section .profile-field select{max-width:100%}
