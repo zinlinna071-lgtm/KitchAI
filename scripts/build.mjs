@@ -26,18 +26,9 @@ if (output === root || !output.startsWith(root + path.sep)) {
 
 await rm(output, { recursive: true, force: true });
 await mkdir(output, { recursive: true });
-await cp(path.join(root, "index.html"), path.join(output, "index.html"));
+
 await cp(path.join(root, "src"), path.join(output, "src"), { recursive: true });
 await cp(path.join(root, "public"), output, { recursive: true });
-
-const indexPath = path.join(output, "index.html");
-let html = await readFile(indexPath, "utf8");
-if (!html.includes("__KITCHAI_BASE_PATH__") || !html.includes("data-preview-only hidden")) {
-	throw new Error("The app shell is missing a required static-build placeholder.");
-}
-html = html.replaceAll("__KITCHAI_BASE_PATH__", basePath);
-if (isPreview) html = html.replace("data-preview-only hidden", "data-preview-only");
-await writeFile(indexPath, html);
 
 const uiPreviewPath = path.join(root, "ui-preview.html");
 let uiPreviewHtml = await readFile(uiPreviewPath, "utf8");
@@ -45,6 +36,8 @@ if (!uiPreviewHtml.includes("__KITCHAI_BASE_PATH__")) {
 	throw new Error("The UI preview is missing its required static-build placeholder.");
 }
 uiPreviewHtml = uiPreviewHtml.replaceAll("__KITCHAI_BASE_PATH__", basePath);
+const indexPath = path.join(output, "index.html");
+await writeFile(indexPath, uiPreviewHtml);
 await writeFile(path.join(output, "ui-preview.html"), uiPreviewHtml);
 
 const manifestPath = path.join(output, "manifest.webmanifest");
