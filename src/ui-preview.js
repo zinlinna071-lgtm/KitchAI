@@ -63,11 +63,42 @@ function renderMenuDetail(menuId){
  const category=menuDemoCategories.find(item=>item.id===menu.categoryId);
  return '<div class="menu-list-page menu-detail-page"><button type="button" class="menu-back-link" data-menu-action="back-to-menu">‹ Menus</button><header class="menu-list-heading"><h1>'+esc(menu.name)+'</h1></header><section class="menu-detail-summary" aria-label="Menu item details"><div class="menu-detail-line"><span>Category</span><strong>'+esc(category?.name||"—")+'</strong></div><div class="menu-detail-line"><span>Price</span><strong>฿'+Number(menu.price).toLocaleString("en-US")+'</strong></div></section></div>';
 }
-function renderManagePage(){
+
+const INGREDIENTS_STORAGE_KEY="kitchai-ingredients-preview-v1";
+const ingredientSeeds=[
+ {id:"ing-quail",name:"Raw Quail",category:"Main Ingredients",stock:24,unit:"piece",purchaseUnit:"piece",purchasePrice:30,usageUnit:"piece",conversion:1,history:"Last purchase price: ฿30 / piece"},
+ {id:"ing-rice",name:"Rice",category:"Main Ingredients",stock:5,unit:"kg",purchaseUnit:"kg",purchasePrice:42,usageUnit:"g",conversion:1000,history:"Purchase and usage history will appear here."},
+ {id:"ing-oil",name:"Cooking Oil",category:"Cooking Supplies",stock:1000,unit:"ml",purchaseUnit:"liter",purchasePrice:50,usageUnit:"ml",conversion:1000,history:"Last purchase: 1 liter for ฿50"},
+ {id:"ing-seaweed",name:"Seaweed",category:"Main Ingredients",stock:30,unit:"sheet",purchaseUnit:"pack",purchasePrice:60,usageUnit:"sheet",conversion:10,history:"Purchase and usage history will appear here."},
+ {id:"ing-eggs",name:"Eggs",category:"Main Ingredients",stock:12,unit:"piece",purchaseUnit:"piece",purchasePrice:5,usageUnit:"piece",conversion:1,history:"Purchase and usage history will appear here."},
+ {id:"ing-salt",name:"Salt",category:"Seasonings",stock:500,unit:"g",purchaseUnit:"kg",purchasePrice:20,usageUnit:"g",conversion:1000,history:"Purchase and usage history will appear here."}
+];
+function readIngredients(){
+ try{const raw=localStorage.getItem(INGREDIENTS_STORAGE_KEY);if(raw){const data=JSON.parse(raw);if(Array.isArray(data))return data;}}catch(error){console.warn("Could not read ingredient preview data",error);}
+ localStorage.setItem(INGREDIENTS_STORAGE_KEY,JSON.stringify(ingredientSeeds));return ingredientSeeds.map(item=>({...item}));
+}
+function writeIngredients(items){localStorage.setItem(INGREDIENTS_STORAGE_KEY,JSON.stringify(items));}
+function renderIngredientsPage(){
+ const items=readIngredients();
+ return '<div class="ingredient-page"><header class="ingredient-heading"><div><p class="eyebrow">MANAGE</p><h1>Ingredients</h1><p class="page-subtitle">Ingredients and supplies used by your business.</p></div><button class="ui-button primary" type="button" data-ingredient-action="add">＋ Add ingredient</button></header><div class="ingredient-list" role="list">'+(items.length?items.map(item=>'<button type="button" class="ingredient-row" role="listitem" data-ingredient-open="'+esc(item.id)+'"><span class="ingredient-mark" aria-hidden="true">◈</span><span class="ingredient-copy"><strong>'+esc(item.name)+'</strong><small>'+esc(item.category)+'</small></span><span class="ingredient-stock"><strong>'+Number(item.stock).toLocaleString("en-US")+' '+esc(item.unit)+'</strong><small>In stock</small></span><span class="ingredient-chevron" aria-hidden="true">›</span></button>').join(""):'<div class="empty-panel"><b>No ingredients yet</b><p>Add your first ingredient to get started.</p></div>')+'</div><p class="ingredient-preview-note">Preview data is saved in this browser only.</p></div>';
+}
+function renderIngredientDetail(id){
+ const item=readIngredients().find(row=>row.id===id);
+ if(!item)return '<div class="ingredient-page"><button class="menu-back-link" type="button" data-ingredient-action="back">‹ Ingredients</button><p>Ingredient not found.</p></div>';
+ const unitCost=Number(item.conversion)>0?Number(item.purchasePrice)/Number(item.conversion):null;
+ return '<div class="ingredient-page ingredient-detail-page"><button class="menu-back-link" type="button" data-ingredient-action="back">‹ Ingredients</button><header class="ingredient-detail-heading"><span class="ingredient-mark large" aria-hidden="true">◈</span><div><p class="eyebrow">INGREDIENT DETAILS</p><h1>'+esc(item.name)+'</h1><p class="page-subtitle">'+esc(item.category)+'</p></div><button class="ui-button secondary" type="button" data-ingredient-action="edit" data-ingredient-id="'+esc(item.id)+'">Edit</button></header><section class="ingredient-detail-card"><h2>Stock</h2><div class="ingredient-detail-stock">'+Number(item.stock).toLocaleString("en-US")+' <span>'+esc(item.unit)+'</span></div><div class="ingredient-detail-line"><span>Category</span><strong>'+esc(item.category)+'</strong></div><div class="ingredient-detail-line"><span>Purchase unit</span><strong>'+esc(item.purchaseUnit)+'</strong></div><div class="ingredient-detail-line"><span>Purchase price</span><strong>฿'+Number(item.purchasePrice).toLocaleString("en-US")+' / '+esc(item.purchaseUnit)+'</strong></div><div class="ingredient-detail-line"><span>Usage unit</span><strong>'+esc(item.usageUnit)+'</strong></div><div class="ingredient-detail-line"><span>Unit conversion</span><strong>1 '+esc(item.purchaseUnit)+' = '+Number(item.conversion).toLocaleString("en-US")+' '+esc(item.usageUnit)+'</strong></div><div class="ingredient-detail-line"><span>Cost per usage unit</span><strong>'+(unitCost===null?"Not set":"฿"+unitCost.toFixed(4))+'</strong></div></section><section class="ingredient-detail-card"><h2>History</h2><p class="ingredient-history-copy">'+esc(item.history||"No history recorded yet.")+'</p><p class="ingredient-preview-note">Purchase records, stock movements, and recipe usage will be connected in later steps.</p></section></div>';
+}
+function renderIngredientForm(id){
+ const existing=id?readIngredients().find(item=>item.id===id):null;
+ const item=existing||{name:"",category:"Main Ingredients",stock:0,unit:"piece",purchaseUnit:"piece",purchasePrice:0,usageUnit:"piece",conversion:1};
+ const field=(label,name,value,type="text",min="")=>'<label class="ingredient-field"><span>'+label+'</span><input name="'+name+'" type="'+type+'" value="'+esc(value)+'" '+(type==="number"?'min="'+min+'" step="any"':'')+' required></label>';
+ return '<div class="ingredient-page"><button class="menu-back-link" type="button" data-ingredient-action="cancel-form">‹ Cancel</button><header class="ingredient-heading"><div><p class="eyebrow">INGREDIENTS</p><h1>'+(existing?"Edit ingredient":"Add ingredient")+'</h1><p class="page-subtitle">Keep the details simple; you can add purchase and usage history later.</p></div></header><form class="ingredient-form" id="ingredient-form" data-ingredient-id="'+(existing?esc(existing.id):"")+'">'+field("Ingredient name","name",item.name)+ '<label class="ingredient-field"><span>Category</span><select name="category">'+["Main Ingredients","Vegetables & Others","Seasonings","Cooking Supplies","Packaging","Other"].map(c=>'<option '+(item.category===c?"selected":"")+'>'+c+'</option>').join("")+'</select></label><div class="ingredient-form-grid">'+field("Current stock","stock",item.stock,"number","0")+field("Stock unit","unit",item.unit)+field("Purchase unit","purchaseUnit",item.purchaseUnit)+field("Purchase price (฿)","purchasePrice",item.purchasePrice,"number","0")+field("Usage unit","usageUnit",item.usageUnit)+field("Conversion amount","conversion",item.conversion,"number","0")+'</div><p class="ingredient-preview-note">Example: 1 liter = 1000 ml. Enter conversion in usage units per purchase unit.</p><div class="ingredient-form-actions"><button class="ui-button secondary" type="button" data-ingredient-action="cancel-form">Cancel</button><button class="ui-button primary" type="submit">Save ingredient</button></div></form></div>';
+}
+\nfunction renderManagePage(){
  const parts=state.page.split("/");
  const key=parts[1]||"page-1";
  if(key==="page-1")return parts.length>2?'<div class="manage-empty-page" aria-label="'+esc(parts.slice(2).join("/"))+'" style="min-height:65vh"></div>':renderOverview();
- if(key==="page-2")return renderMenusPage();
+ if(key==="page-2")return renderMenusPage();\n if(key==="page-3")return renderIngredientsPage();\n if(key==="ingredient-detail")return renderIngredientDetail(parts[2]);\n if(key==="ingredient-form")return renderIngredientForm(parts[2]||null);
  if(key==="menu-detail")return renderMenuDetail(parts[2]);
  if(!/^page-[1-5]$/.test(key))return '<div class="manage-empty-page" aria-label="'+esc(key)+'" style="min-height:65vh"></div>';
  return '<div class="manage-empty-page" aria-label="Page '+key.slice(-1)+'" style="min-height:65vh"></div>';
