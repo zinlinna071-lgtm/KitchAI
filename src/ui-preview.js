@@ -189,6 +189,8 @@ document.addEventListener("submit",e=>{
 
 document.addEventListener("change",e=>{const target=e.target;if(!(target instanceof HTMLSelectElement))return;if(target.id==="settings-theme-select"){state.theme=target.value;localStorage.setItem("kitchai-preview-theme",state.theme);render();}if(target.id==="settings-language-select"||target.id==="language-select"){state.language=target.value;localStorage.setItem("kitchai-preview-language",state.language);render();}});
 window.addEventListener("hashchange",render);
+document.addEventListener("click",e=>{const target=e.target;if(!(target instanceof Element))return;const btn=target.closest("[data-ui-action]");if(!btn)return;const action=btn.getAttribute("data-ui-action");if(action==="clear-form"){const form=btn.closest("form");if(form)form.reset();return;}if(action==="toggle-filters"){const filters=$('[data-filter-panel]');if(filters)filters.hidden=!filters.hidden;return;}if(action==="preview-action")toast("UI preview only — no data was saved or changed.");});
+document.addEventListener("submit",e=>{const form=e.target;if(!(form instanceof HTMLFormElement)||!form.matches("[data-ui-preview-form]"))return;e.preventDefault();toast("Form layout preview only — data has not been saved.");});
 state.language=localStorage.getItem("kitchai-preview-language")||state.language;
 $("#language-select").value=state.language;
 render();
