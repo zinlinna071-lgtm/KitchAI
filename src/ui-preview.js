@@ -99,7 +99,10 @@ function renderManagePage(){
  const parts=state.page.split("/");
  const key=parts[1]||"page-1";
  if(key==="page-1")return parts.length>2?'<div class="manage-empty-page" aria-label="'+esc(parts.slice(2).join("/"))+'" style="min-height:65vh"></div>':renderOverview();
- if(key==="page-2")return renderMenusPage();\n if(key==="page-3")return renderIngredientsPage();\n if(key==="ingredient-detail")return renderIngredientDetail(parts[2]);\n if(key==="ingredient-form")return renderIngredientForm(parts[2]||null);
+ if(key==="page-2")return renderMenusPage();
+ if(key==="page-3")return renderIngredientsPage();
+ if(key==="ingredient-detail")return renderIngredientDetail(parts[2]);
+ if(key==="ingredient-form")return renderIngredientForm(parts[2]||null);
  if(key==="menu-detail")return renderMenuDetail(parts[2]);
  if(!/^page-[1-5]$/.test(key))return '<div class="manage-empty-page" aria-label="'+esc(key)+'" style="min-height:65vh"></div>';
  return '<div class="manage-empty-page" aria-label="Page '+key.slice(-1)+'" style="min-height:65vh"></div>';
