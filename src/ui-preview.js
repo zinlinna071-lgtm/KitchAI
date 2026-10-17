@@ -229,7 +229,41 @@ document.addEventListener("submit",e=>{
 });
 
 document.addEventListener("change",e=>{const target=e.target;if(!(target instanceof HTMLSelectElement))return;if(target.id==="settings-theme-select"){state.theme=target.value;localStorage.setItem("kitchai-preview-theme",state.theme);render();}if(target.id==="settings-language-select"||target.id==="language-select"){state.language=target.value;localStorage.setItem("kitchai-preview-language",state.language);render();}});
-window.addEventListener("hashchange",render);
+
+document.addEventListener("click",e=>{
+ const target=e.target;if(!(target instanceof Element))return;
+ const row=target.closest("[data-ingredient-open]");if(row){location.hash="manage/ingredient-detail/"+encodeURIComponent(row.getAttribute("data-ingredient-open"));return;}
+ const action=target.closest("[data-ingredient-action]");if(!action)return;
+ const kind=action.getAttribute("data-ingredient-action");
+ if(kind==="add"){location.hash="manage/ingredient-form";return;}
+ if(kind==="edit"){location.hash="manage/ingredient-form/"+encodeURIComponent(action.getAttribute("data-ingredient-id"));return;}
+ if(kind==="back"){location.hash="manage/page-3";return;}
+ if(kind==="cancel-form"){location.hash="manage/page-3";return;}
+});
+document.addEventListener("submit",e=>{
+ const form=e.target;if(!(form instanceof HTMLFormElement)||form.id!=="ingredient-form")return;
+ e.preventDefault();
+ const data=new FormData(form);
+ const name=String(data.get("name")||"").trim();
+ const category=String(data.get("category")||"Other");
+ const unit=String(data.get("unit")||"piece").trim();
+ const purchaseUnit=String(data.get("purchaseUnit")||unit).trim();
+ const purchasePrice=Number(data.get("purchasePrice"));
+ const stock=Number(data.get("stock"));
+ const usageUnit=String(data.get("usageUnit")||unit).trim();
+ const conversion=Number(data.get("conversion"));
+ if(!name||!unit||!purchaseUnit||!usageUnit||!Number.isFinite(stock)||stock<0||!Number.isFinite(purchasePrice)||purchasePrice<0||!Number.isFinite(conversion)||conversion<=0){toast("Check the ingredient details and conversion amount.");return;}
+ const list=readIngredients();
+ const oldId=form.getAttribute("data-ingredient-id");
+ if(list.some(item=>item.id!==oldId&&item.name.trim().toLowerCase()===name.toLowerCase())){toast("An ingredient with that name already exists.");return;}
+ const previous=list.find(item=>item.id===oldId);
+ const item={id:oldId||(typeof crypto!=="undefined"&&crypto.randomUUID?crypto.randomUUID():"ing-"+Date.now().toString(36)),name,category,stock,unit,purchaseUnit,purchasePrice,usageUnit,conversion,history:previous?.history||"No purchase or stock movement history recorded yet."};
+ if(previous)list[list.findIndex(row=>row.id===oldId)]=item;else list.push(item);
+ writeIngredients(list);
+ toast(previous?"Ingredient updated in this browser.":"Ingredient saved in this browser.");
+ location.hash="manage/ingredient-detail/"+encodeURIComponent(item.id);
+});
+\nwindow.addEventListener("hashchange",render);
 document.addEventListener("click",e=>{
  const target=e.target;if(!(target instanceof Element))return;
  const menuRow=target.closest("[data-menu-open]");if(menuRow){location.hash="manage/menu-detail/"+encodeURIComponent(menuRow.getAttribute("data-menu-open"));return;}
