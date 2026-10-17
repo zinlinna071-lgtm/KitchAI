@@ -23,17 +23,36 @@ const BUSINESS_CURRENCIES=[["THB","THB (฿)"],["MMK","MMK (Ks)"],["USD","USD ($
 function readBusinesses(){
   try{
     const raw=localStorage.getItem(BUSINESS_STORAGE_KEY);
-    if(raw){const parsed=JSON.parse(raw);if(Array.isArray(parsed)&&parsed.length)return parsed;}
+    if(raw){
+      const parsed=JSON.parse(raw);
+      if(Array.isArray(parsed)){
+        // Remove the legacy Night Market seed created automatically by earlier preview builds.
+        const migrated=parsed.filter(item=>item?.id!=="night-market");
+        if(migrated.length!==parsed.length)writeBusinesses(migrated);
+        return migrated;
+      }
+    }
   }catch(error){console.warn("Could not read KitchAI preview business profiles",error);}
-  const initial=[{id:"night-market",name:"Night Market",type:"Food Stall",logoUrl:"",phone:"",address:"",description:"",openingDate:"",currency:"THB",timeZone:"Asia/Bangkok",unitSystem:"metric",status:"active",createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()}];
-  writeBusinesses(initial);
-  return initial;
+  writeBusinesses([]);
+  return [];
 }
 function writeBusinesses(list){localStorage.setItem(BUSINESS_STORAGE_KEY,JSON.stringify(list));}
 function activeBusiness(){
   const list=readBusinesses();
   const selectedId=localStorage.getItem(ACTIVE_BUSINESS_KEY);
-  return list.find(item=>item.id===selectedId&&item.status!=="archived")||list.find(item=>item.status!=="archived")||list[0]||null;
+  const selected=list.find(item=>item.id===selectedId&&item.status!=="archived");
+  const firstActive=list.find(item=>item.status!=="archived");
+  const business=selected||firstActive||null;
+  if(business)localStorage.setItem(ACTIVE_BUSINESS_KEY,business.id);
+  else localStorage.removeItem(ACTIVE_BUSINESS_KEY);
+  return business;
+}
+function renderBusinessRequired(){
+  return '<div class="page-head"><div><p class="eyebrow">WELCOME TO KITCHAI</p><h1>Create your Business</h1><p class="page-subtitle">KitchAI will stay here until you enter a business name. No sample business is created automatically.</p></div></div>'+
+    '<section class="profile-section business-required-card"><div class="profile-section-heading"><span class="profile-section-icon">▦</span><div><h2>Your first business</h2><p>Enter the name you use for your food business. You can complete the other details later.</p></div></div>'+
+    '<form id="business-quick-create-form" class="business-profile-form"><label class="profile-field"><span>Business name (required)</span><input id="business-quick-name" name="name" maxlength="80" required autofocus placeholder="e.g. Night Market"></label>'+
+    '<label class="profile-field"><span>Business type</span><select id="business-quick-type" name="type">'+BUSINESS_TYPES.map(type=>'<option>'+esc(type)+'</option>').join("")+'</select></label>'+
+    '<div class="profile-save-row"><span class="profile-save-note">No business or business data will be created until you submit this form.</span><button type="submit" class="button-primary">Create Business</button></div></form></section>';
 }
 function selectBusiness(id){
   const item=readBusinesses().find(entry=>entry.id===id&&entry.status!=="archived");
@@ -81,7 +100,8 @@ function renderBusinessProfile(){
     '<label class="profile-field"><span>Time zone</span><select name="timeZone">'+[["Asia/Bangkok","Thailand (Bangkok)"],["Asia/Yangon","Myanmar (Yangon)"],["UTC","UTC"]].map(([value,label])=>'<option value="'+value+'" '+((business.timeZone||"Asia/Bangkok")===value?'selected':'')+'>'+label+'</option>').join("")+'</select></label>'+
     '<label class="profile-field"><span>Measurement units</span><select name="unitSystem"><option value="metric" '+((business.unitSystem||"metric")==="metric"?'selected':'')+'>Metric (g, kg, ml, L)</option><option value="imperial" '+(business.unitSystem==="imperial"?'selected':'')+'>Imperial (oz, lb, fl oz)</option></select></label></div></section>'+
     '<div class="profile-save-row"><span class="profile-save-note">Changes are saved in this browser only in this preview.</span><button type="submit" class="button-primary">Save changes</button></div></form>'+
-    '<section class="profile-section profile-archive-section"><div><h2>Business status</h2><p>Archived businesses are hidden from the active switch list and can be restored later.</p></div><div class="profile-archive-row"><span class="status '+(business.status==="archived"?"":"status-active")+'">'+(business.status==="archived"?"Archived":"Active")+'</span><button type="button" class="button-secondary" data-business-archive="'+esc(business.id)+'">Archive business</button></div></section>';
+    '<section class="profile-section profile-archive-section"><div><h2>Business status</h2><p>Archive hides this business but keeps its profile for restoration.</p></div><div class="profile-archive-row"><span class="status '+(business.status==="archived"?"":"status-active")+'">'+(business.status==="archived"?"Archived":"Active")+'</span><button type="button" class="button-secondary" data-business-archive="'+esc(business.id)+'">Archive business</button></div></section>'+
+    '<section class="profile-section business-danger-zone"><div><h2>Danger zone</h2><p>Permanently remove this Business profile from this device. This preview does not yet connect the business modules, cloud sync, or their records, so this is not a claim that future linked records are already being cascade-deleted.</p></div><div class="profile-archive-row"><button type="button" class="button-danger" data-business-delete="'+esc(business.id)+'">Permanently Delete Business</button></div></section>';
 }
 
 function renderSettings(which){
@@ -98,7 +118,7 @@ function renderSettings(which){
     (ai?'<section class="profile-section"><p>AI preferences will be available when the AI connection is implemented.</p></section>':'<section class="profile-section settings-control-section"><label class="profile-field"><span>Appearance</span><select id="settings-theme-select"><option value="light" '+(state.theme==="light"?"selected":"")+'>Light</option><option value="dark" '+(state.theme==="dark"?"selected":"")+'>Dark</option></select></label><label class="profile-field"><span>Language</span><select id="settings-language-select"><option value="en" '+(state.language==="en"?"selected":"")+'>English</option><option value="my" '+(state.language==="my"?"selected":"")+'>မြန်မာ</option><option value="th" '+(state.language==="th"?"selected":"")+'>ไทย</option></select></label></section>')+
     '<div class="settings-grid">'+options.map(([key,label])=>'<a class="settings-row" href="#'+prefix+'/'+key+'"><span class="settings-icon">⚙</span><span><b>'+esc(label)+'</b><small>Coming soon · '+esc(t("settingsHint"))+'</small></span><span class="arrow">›</span></a>').join("")+'</div>';
 }
-function render(){const rawHash=location.hash.replace(/^#+/,"")||"ai";const hash=rawHash.startsWith("/")?rawHash.slice(1):rawHash;if(hash==="ai"){state.mode="ai";state.page="ai";state.lastAIPage="ai"}else if(hash.startsWith("manage/")){state.mode="manage";state.page=hash;state.lastManagePage=hash}else if(hash.startsWith("ai-settings")){state.mode="ai";state.page=hash;state.lastAIPage=hash}else if(hash.startsWith("app-settings")){state.mode="manage";state.page=hash;state.lastManagePage=hash}else{state.mode="ai";state.page="ai";location.hash="ai"}document.body.classList.toggle("dark",state.theme==="dark");$$(".mode-button").forEach(b=>{const on=b.dataset.mode===state.mode;b.classList.toggle("active",on);b.setAttribute("aria-pressed",String(on))});renderSidebar();renderBusinessSwitcher();let content;if(state.page==="ai")content=renderAI();else if(state.page.startsWith("ai-settings"))content=renderSettings("ai-settings");else if(state.page.startsWith("app-settings"))content=renderSettings("app-settings");else content=renderManagePage();$("#page-content").innerHTML=state.page==="ai"?content:'<div class="page-content">'+content+'</div>';$("#sidebar").classList.remove("open");$("#sidebar-backdrop").classList.remove("visible");}
+function render(){const rawHash=location.hash.replace(/^#+/,"")||"ai";const hash=rawHash.startsWith("/")?rawHash.slice(1):rawHash;if(hash==="ai"){state.mode="ai";state.page="ai";state.lastAIPage="ai"}else if(hash.startsWith("manage/")){state.mode="manage";state.page=hash;state.lastManagePage=hash}else if(hash.startsWith("ai-settings")){state.mode="ai";state.page=hash;state.lastAIPage=hash}else if(hash.startsWith("app-settings")){state.mode="manage";state.page=hash;state.lastManagePage=hash}else{state.mode="ai";state.page="ai";location.hash="ai"}document.body.classList.toggle("dark",state.theme==="dark");$$(".mode-button").forEach(b=>{const on=b.dataset.mode===state.mode;b.classList.toggle("active",on);b.setAttribute("aria-pressed",String(on))});renderSidebar();renderBusinessSwitcher();let content;if(!activeBusiness())content=renderBusinessRequired();else if(state.page==="ai")content=renderAI();else if(state.page.startsWith("ai-settings"))content=renderSettings("ai-settings");else if(state.page.startsWith("app-settings"))content=renderSettings("app-settings");else content=renderManagePage();$("#page-content").innerHTML=state.page==="ai"&&activeBusiness()?content:'<div class="page-content">'+content+'</div>';$("#sidebar").classList.remove("open");$("#sidebar-backdrop").classList.remove("visible");}
 let toastTimeout;function toast(msg){const el=$("#toast");el.textContent=msg;el.classList.add("visible");clearTimeout(toastTimeout);toastTimeout=setTimeout(()=>el.classList.remove("visible"),2600)}
 $$(".mode-button").forEach(b=>b.addEventListener("click",()=>setMode(b.dataset.mode)));
 $("#profile-button").addEventListener("click",()=>toast("User profile and account controls are coming soon."));
@@ -119,7 +139,8 @@ document.addEventListener("click",e=>{
  const toggle=target.closest("[data-business-create-toggle]");if(toggle){state.businessCreateOpen=!state.businessCreateOpen;renderBusinessSwitcher();const input=$("#business-quick-name");if(input)input.focus();return;}
  if(target.closest("[data-business-create-cancel]")){state.businessCreateOpen=false;renderBusinessSwitcher();return;}
  const restore=target.closest("[data-business-restore]");if(restore){const id=restore.getAttribute("data-business-restore");const list=readBusinesses();const item=list.find(row=>row.id===id);if(item){item.status="active";item.updatedAt=new Date().toISOString();writeBusinesses(list);toast(item.name+" restored.");renderBusinessSwitcher();}return;}
- const archive=target.closest("[data-business-archive]");if(archive){const id=archive.getAttribute("data-business-archive");const list=readBusinesses();const item=list.find(row=>row.id===id);if(!item)return;if(list.filter(row=>row.status!=="archived").length<=1){toast("Keep at least one active business. Create another before archiving this one.");return;}if(!window.confirm("Archive "+item.name+"? You can restore it later."))return;item.status="archived";item.updatedAt=new Date().toISOString();writeBusinesses(list);if(localStorage.getItem(ACTIVE_BUSINESS_KEY)===id){const next=list.find(row=>row.status!=="archived");if(next)localStorage.setItem(ACTIVE_BUSINESS_KEY,next.id);}toast(item.name+" archived.");render();return;}
+ const remove=target.closest("[data-business-delete]");if(remove){const id=remove.getAttribute("data-business-delete");const list=readBusinesses();const item=list.find(row=>row.id===id);if(!item)return;const typed=window.prompt('Permanently delete "'+item.name+'"? Type the exact business name to confirm.');if(typed!==item.name){if(typed!==null)toast("Business name did not match. Nothing was deleted.");return;}if(!window.confirm("Final confirmation: remove the Business profile "+item.name+" from this device? This preview has no connected module records or cloud sync."))return;writeBusinesses(list.filter(row=>row.id!==id));if(localStorage.getItem(ACTIVE_BUSINESS_KEY)===id)localStorage.removeItem(ACTIVE_BUSINESS_KEY);state.businessMenuOpen=false;state.businessCreateOpen=false;toast(item.name+" business profile deleted from this device.");render();return;}
+const archive=target.closest("[data-business-archive]");if(archive){const id=archive.getAttribute("data-business-archive");const list=readBusinesses();const item=list.find(row=>row.id===id);if(!item)return;if(list.filter(row=>row.status!=="archived").length<=1){toast("Keep at least one active business. Create another before archiving this one.");return;}if(!window.confirm("Archive "+item.name+"? You can restore it later."))return;item.status="archived";item.updatedAt=new Date().toISOString();writeBusinesses(list);if(localStorage.getItem(ACTIVE_BUSINESS_KEY)===id){const next=list.find(row=>row.status!=="archived");if(next)localStorage.setItem(ACTIVE_BUSINESS_KEY,next.id);}toast(item.name+" archived.");render();return;}
 });
 document.addEventListener("submit",e=>{
  const form=e.target;if(!(form instanceof HTMLFormElement))return;
