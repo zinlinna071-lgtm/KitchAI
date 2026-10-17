@@ -333,3 +333,69 @@ body.dark .legend-expense,body.dark .expense-column{background:#fb923c}
 body.dark .weekly-profit>b{color:#5eead4}
 @media(max-width:760px){.page-content:has(.dashboard-page){padding:20px 14px 30px}.dashboard-heading{margin-bottom:13px;padding-bottom:13px}.weather-strip{margin-bottom:13px}.dashboard-chart-card{padding:14px 12px 10px}.clustered-chart{height:151px;grid-template-columns:29px minmax(0,1fr)}.chart-plot{height:128px}.chart-columns{gap:1px}.chart-day{font-size:.61rem}.chart-pair{gap:2px}.weekly-summary{gap:7px;margin-top:9px}.weekly-summary-item{display:flex;flex-direction:column;align-items:flex-start;gap:5px;padding:10px 8px}.weekly-summary-item>b{font-size:1.02rem}.weekly-summary-item>small{display:none}.weekly-summary-item>span{font-size:.65rem}.dashboard-section{margin-top:18px}.dashboard-quick-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.dashboard-quick-action{min-height:48px;padding:8px;font-size:.73rem}.dashboard-tools-grid{gap:8px}.dashboard-tool{gap:7px;padding:9px}.dashboard-tool-icon{width:30px;height:30px}}
 @media(max-width:370px){.weather-meta{display:none}.weather-divider{margin-left:auto}.dashboard-week-picker{gap:5px;padding:0 7px}.dashboard-quick-grid{gap:6px}.dashboard-quick-action{gap:7px}.dashboard-action-icon{width:28px;height:28px}.chart-pair i{width:31%}.dashboard-tools-grid{grid-template-columns:1fr}}
+
+
+/* KitchAI shared design foundation — spacing, page layout and component rhythm */
+:root{
+  --space-1:4px;
+  --space-2:8px;
+  --space-3:12px;
+  --space-4:16px;
+  --space-5:20px;
+  --space-6:24px;
+  --space-7:32px;
+  --space-8:40px;
+  --space-9:48px;
+  --page-gutter:32px;
+  --page-top-space:32px;
+  --page-bottom-space:48px;
+  --section-gap:24px;
+  --section-title-gap:12px;
+  --content-gap:16px;
+  --row-gap:8px;
+  --control-padding-x:12px;
+  --control-padding-y:10px;
+  --card-padding:20px;
+  --radius-sm:8px;
+  --radius-md:12px;
+  --radius-lg:16px;
+  --page-max-width:1280px;
+}
+.page-content{
+  width:100%;
+  max-width:var(--page-max-width);
+  margin:0 auto;
+  padding:var(--page-top-space) var(--page-gutter) var(--page-bottom-space);
+}
+.page-head{gap:var(--content-gap);margin-bottom:var(--section-gap)}
+.page-head h1{line-height:1.2}
+.section-head{gap:var(--content-gap);margin:var(--section-gap) 0 var(--section-title-gap)}
+.metrics-grid,.panels-grid,.settings-grid{gap:var(--content-gap)}
+.metric,.panel{padding:var(--card-padding);border-radius:var(--radius-md)}
+.quick-grid{gap:var(--row-gap)}
+.quick-action{gap:var(--space-3);padding:var(--space-4);border-radius:var(--radius-md)}
+.empty-panel{gap:var(--space-2);padding:var(--space-6);border-radius:var(--radius-md)}
+.settings-row{gap:var(--space-3);padding:var(--space-3);border-radius:var(--radius-sm)}
+.panel-top{gap:var(--space-3);margin-bottom:var(--space-4)}
+.metric-value{margin-top:var(--space-3)}
+.metric-foot{margin-top:var(--space-2)}
+.quick-action small,.settings-row small{margin-top:var(--space-1)}
+@media(max-width:680px){
+  :root{
+    --page-gutter:16px;
+    --page-top-space:24px;
+    --page-bottom-space:32px;
+    --section-gap:24px;
+    --section-title-gap:12px;
+    --content-gap:12px;
+    --row-gap:8px;
+    --card-padding:16px;
+  }
+  .page-head{margin-bottom:var(--section-gap)}
+  .metrics-grid,.panels-grid,.settings-grid{gap:var(--space-2)}
+  .quick-action{padding:var(--space-3)}
+  .empty-panel{padding:var(--space-4)}
+}
+@media(max-width:380px){
+  :root{--page-gutter:var(--space-3)}
+}
