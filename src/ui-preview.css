@@ -236,7 +236,7 @@ body.dark .ui-button:hover{background:#2a2c2f}
 .menu-demo-notice{display:flex;align-items:center;gap:12px;padding:12px 15px;border:1px solid var(--ui-border);border-radius:9px;background:var(--ui-soft);font-size:12px;line-height:1.5}
 .menu-demo-notice b{white-space:nowrap;font-size:12px}
 .menu-demo-notice span{color:var(--ui-muted)}
-.menu-filter-section{margin-top:16px}
+.menu-category-form-section{margin-top:16px}.menu-category-form-section .ui-form{max-width:560px}.menu-filter-section{margin-top:16px}
 .menu-filter-heading,.menu-list-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .menu-filter-heading h2,.menu-list-heading h2,.menu-category-heading h2{margin:0;font-size:16px;font-weight:650}
 .menu-category-filters{display:flex;flex-wrap:wrap;gap:8px}
