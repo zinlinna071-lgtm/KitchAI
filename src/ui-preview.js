@@ -36,6 +36,38 @@ function moduleForm(key){
  const c=config[key];if(!c)return "";
  return section(c.title,'<p class="ui-section-desc">'+c.desc+'</p><form class="ui-form" data-ui-preview-form><div class="ui-form-grid">'+c.fields+'</div><div class="ui-form-actions">'+actionButton("Cancel","secondary","clear-form")+'<button class="ui-button primary" type="submit">'+esc(c.submit)+'</button></div></form>');
 }
+function renderIngredientCatalogPanel(){
+ return section("Ingredient catalogue",'<p class="ui-muted">Save reusable ingredient names and notes for this business. Records are stored locally and remain available offline.</p>'+
+ '<form id="ingredient-record-form" class="ui-form-grid">'+
+ '<input type="hidden" id="ingredient-record-id" value="">'+
+ '<label class="ui-field"><span>Ingredient name</span><input id="ingredient-record-name" name="name" required maxlength="120" placeholder="e.g. Cooking oil"></label>'+
+ '<label class="ui-field"><span>Notes (optional)</span><input id="ingredient-record-description" name="description" maxlength="2000" placeholder="Brand, storage or other notes"></label>'+
+ '<div class="ui-form-actions"><button type="submit" class="ui-button primary">Save ingredient</button><button type="reset" class="ui-button secondary" id="ingredient-record-clear">Clear</button></div>'+
+ '<p id="ingredient-record-state" class="ui-muted" role="status" aria-live="polite"></p></form>')+
+ section("Saved ingredients",'<div id="ingredient-record-list" aria-live="polite"><p class="ui-muted">Loading ingredients…</p></div>');
+}
+async function loadIngredientCatalog(){
+ const host=$("#ingredient-record-list");if(!host)return;
+ const business=activeBusiness();if(!business){host.textContent="Create a business before adding ingredients.";return;}
+ host.replaceChildren();
+ try{
+  const [{listIngredients},{scopeForBusinessProfile}]=await Promise.all([import("./ingredient-store.js"),import("./business-data-store.js")]);
+  const scope=scopeForBusinessProfile({profileId:business.id,local:true});
+  const records=await listIngredients(scope);
+  if(!records.length){const empty=document.createElement("p");empty.className="ui-muted";empty.textContent="No ingredients yet. Add your first reusable ingredient above.";host.append(empty);return;}
+  const table=document.createElement("table");table.className="ui-table";const head=document.createElement("thead"),hr=document.createElement("tr");
+  for(const label of ["Ingredient","Notes","Status","Actions"]){const th=document.createElement("th");th.textContent=label;hr.append(th);}head.append(hr);table.append(head);
+  const body=document.createElement("tbody");
+  for(const record of records){const row=document.createElement("tr");
+   for(const value of [record.name,record.description||"—",record.status==="archived"?"Archived":"Active"]){const td=document.createElement("td");td.textContent=value;row.append(td);}
+   const actions=document.createElement("td"),edit=document.createElement("button"),status=document.createElement("button");
+   edit.type="button";edit.className="ui-button secondary";edit.textContent="Edit";edit.dataset.ingredientEdit=record.id;edit.disabled=record.status==="archived";
+   status.type="button";status.className="ui-button secondary";status.textContent=record.status==="archived"?"Restore":"Archive";status.dataset.ingredientStatus=record.id;status.dataset.nextStatus=record.status==="archived"?"active":"archived";
+   actions.append(edit,status);row.append(actions);body.append(row);
+  }
+  table.append(body);const wrap=document.createElement("div");wrap.className="ui-table-wrap";wrap.append(table);host.append(wrap);
+ }catch(error){host.textContent="Could not load ingredients: "+(error instanceof Error?error.message:"Unknown storage error");}
+}
 function renderManagePage(){
  const key=state.page.split("/")[1]||"overview";
  if(key==="overview")return renderOverview();
@@ -50,6 +82,7 @@ function renderManagePage(){
   const rows=key==="business-overview"?[["Today's sales","฿ —","Sales"],["Expenses","฿ —","Business expenses"],["Ingredients","—","Ingredients"],["Production batches","—","Production"]]:[["Income","฿ —","Income"],["Personal expenses","฿ —","Personal expenses"],["Accounts","—","Accounts"],["Assets & debts","—","Assets & debts"]];
   return header+'<div class="metrics-grid">'+rows.map(([a,b,c])=>'<a class="metric metric-link" href="#manage/'+({"Sales":"sales","Business expenses":"business-expenses","Ingredients":"ingredients","Production":"production","Income":"income","Personal expenses":"personal-expenses","Accounts":"accounts","Assets & debts":"assets-debts"}[c])+'"><div class="metric-label">'+a+'</div><div class="metric-value">'+b+'</div><div class="metric-foot">View '+c.toLowerCase()+'</div></a>').join("")+'</div>'+section("Recent activity",uiTable(["Date","Activity","Reference","Amount","Status"]));
  }
+ if(key==="ingredients")return header+renderIngredientCatalogPanel();
  const filters='<div class="ui-filter-bar" data-filter-panel hidden>'+field("Search","search","Search records")+field("Date range","select","",["All dates","Today","This week","This month"])+field("Status","select","",["All","Draft","Reviewed","Archived"])+'</div>';
  const form=moduleForm(key);
  const tableHeaders={sales:["Date","Menu item","Qty","Discount","Total","Payment","Actions"],purchases:["Date","Item","Quantity","Cost","Supplier","Actions"],ingredients:["Ingredient","Category","On hand","Unit","Reorder level","Actions"],recipes:["Menu product","Yield","Ingredient count","Selling price","Status","Actions"],production:["Date","Menu product","Planned","Actual","Variance","Status"],finished:["Menu product","Batch date","Available","Shelf-life","Disposition"],"business-expenses":["Date","Category","Description","Amount","Payment","Actions"],"day-closing":["Menu item","Produced","Sold","Disposition","Carry-over","Notes"],income:["Date","Source","Category","Amount","Account"],"personal-expenses":["Date","Category","Description","Amount","Account"],accounts:["Account","Type","Currency","Balance","Updated"],"assets-debts":["Name","Type","Value / balance","As of","Notes"]};
@@ -157,7 +190,7 @@ function renderSettings(which){
  (ai?'<section class="profile-section settings-control-section"><label class="profile-field"><span>Response style</span><select><option>Balanced</option><option>Concise</option><option>Detailed</option></select></label><label class="profile-field"><span>Confirmation preference</span><select><option>Confirm important actions</option><option>Confirm every action</option></select></label></section>':'<section class="profile-section settings-control-section"><label class="profile-field"><span>Appearance</span><select id="settings-theme-select"><option value="light" '+(state.theme==="light"?"selected":"")+'>Light</option><option value="dark" '+(state.theme==="dark"?"selected":"")+'>Dark</option></select></label><label class="profile-field"><span>Language</span><select id="settings-language-select"><option value="en" '+(state.language==="en"?"selected":"")+'>English</option><option value="my" '+(state.language==="my"?"selected":"")+'>မြန်မာ</option><option value="th" '+(state.language==="th"?"selected":"")+'>ไทย</option></select></label></section>')+
  '<div class="settings-grid">'+(ai?[["ai-preferences",t("aiPreferences"),"Adjust assistant tone and confirmation preferences."]]:[["data-sync",t("dataSync"),"Device connection and synchronization preferences."],["security",t("security"),"Session, privacy and destructive-action controls."],["about",t("about"),"Version and application information."]]).map(([key,label,desc])=>'<a class="settings-row" href="#'+prefix+'/'+key+'"><span class="settings-icon">⚙</span><span><b>'+esc(label)+'</b><small>'+esc(desc)+'</small></span><span class="arrow">›</span></a>').join("")+'</div>';
 }
-function render(){const rawHash=location.hash.replace(/^#+/,"")||"ai";const hash=rawHash.startsWith("/")?rawHash.slice(1):rawHash;if(hash==="ai"){state.mode="ai";state.page="ai";state.lastAIPage="ai"}else if(hash.startsWith("manage/")){state.mode="manage";state.page=hash;state.lastManagePage=hash}else if(hash.startsWith("ai-settings")){state.mode="ai";state.page=hash;state.lastAIPage=hash}else if(hash.startsWith("app-settings")){state.mode="manage";state.page=hash;state.lastManagePage=hash}else{state.mode="ai";state.page="ai";location.hash="ai"}document.body.classList.toggle("dark",state.theme==="dark");$$(".mode-button").forEach(b=>{const on=b.dataset.mode===state.mode;b.classList.toggle("active",on);b.setAttribute("aria-pressed",String(on))});renderSidebar();renderBusinessSwitcher();let content;if(!activeBusiness())content=renderBusinessRequired();else if(state.page==="ai")content=renderAI();else if(state.page.startsWith("ai-settings"))content=renderSettings("ai-settings");else if(state.page.startsWith("app-settings"))content=renderSettings("app-settings");else content=renderManagePage();$("#page-content").innerHTML=state.page==="ai"&&activeBusiness()?content:'<div class="page-content">'+content+'</div>';$("#sidebar").classList.remove("open");$("#sidebar-backdrop").classList.remove("visible");}
+function render(){const rawHash=location.hash.replace(/^#+/,"")||"ai";const hash=rawHash.startsWith("/")?rawHash.slice(1):rawHash;if(hash==="ai"){state.mode="ai";state.page="ai";state.lastAIPage="ai"}else if(hash.startsWith("manage/")){state.mode="manage";state.page=hash;state.lastManagePage=hash}else if(hash.startsWith("ai-settings")){state.mode="ai";state.page=hash;state.lastAIPage=hash}else if(hash.startsWith("app-settings")){state.mode="manage";state.page=hash;state.lastManagePage=hash}else{state.mode="ai";state.page="ai";location.hash="ai"}document.body.classList.toggle("dark",state.theme==="dark");$$(".mode-button").forEach(b=>{const on=b.dataset.mode===state.mode;b.classList.toggle("active",on);b.setAttribute("aria-pressed",String(on))});renderSidebar();renderBusinessSwitcher();let content;if(!activeBusiness())content=renderBusinessRequired();else if(state.page==="ai")content=renderAI();else if(state.page.startsWith("ai-settings"))content=renderSettings("ai-settings");else if(state.page.startsWith("app-settings"))content=renderSettings("app-settings");else content=renderManagePage();$("#page-content").innerHTML=state.page==="ai"&&activeBusiness()?content:'<div class="page-content">'+content+'</div>';if(state.mode==="manage"&&state.page==="manage/ingredients"&&activeBusiness())void loadIngredientCatalog();$("#sidebar").classList.remove("open");$("#sidebar-backdrop").classList.remove("visible");}
 let toastTimeout;function toast(msg){const el=$("#toast");el.textContent=msg;el.classList.add("visible");clearTimeout(toastTimeout);toastTimeout=setTimeout(()=>el.classList.remove("visible"),2600)}
 $$(".mode-button").forEach(b=>b.addEventListener("click",()=>setMode(b.dataset.mode)));
 $("#profile-button").addEventListener("click",()=>toast("Profile controls are preview-only in this UI stage."));
@@ -188,6 +221,30 @@ document.addEventListener("submit",e=>{
 });
 
 document.addEventListener("change",e=>{const target=e.target;if(!(target instanceof HTMLSelectElement))return;if(target.id==="settings-theme-select"){state.theme=target.value;localStorage.setItem("kitchai-preview-theme",state.theme);render();}if(target.id==="settings-language-select"||target.id==="language-select"){state.language=target.value;localStorage.setItem("kitchai-preview-language",state.language);render();}});
+document.addEventListener("submit",async e=>{
+ const form=e.target;if(!(form instanceof HTMLFormElement)||form.id!=="ingredient-record-form")return;e.preventDefault();
+ const stateNode=$("#ingredient-record-state"),save=form.querySelector('button[type="submit"]');if(save)save.disabled=true;if(stateNode)stateNode.textContent="Saving locally…";
+ try{const business=activeBusiness();if(!business)throw new Error("Create a business before adding ingredients.");
+  const [{saveIngredient},{scopeForBusinessProfile}]=await Promise.all([import("./ingredient-store.js"),import("./business-data-store.js")]);
+  const scope=scopeForBusinessProfile({profileId:business.id,local:true}),id=$("#ingredient-record-id").value.trim();
+  await saveIngredient(scope,{...(id?{id}:{}),name:$("#ingredient-record-name").value,description:$("#ingredient-record-description").value});
+  form.reset();$("#ingredient-record-id").value="";toast("Ingredient saved on this device.");render();
+ }catch(error){if(stateNode){stateNode.textContent=error instanceof Error?error.message:"Could not save ingredient.";stateNode.classList.add("is-error");}}
+ finally{if(save)save.disabled=false;}
+});
+document.addEventListener("click",async e=>{
+ const target=e.target;if(!(target instanceof Element))return;const edit=target.closest("[data-ingredient-edit]");
+ if(edit){try{const business=activeBusiness();if(!business)return;const [{listIngredients},{scopeForBusinessProfile}]=await Promise.all([import("./ingredient-store.js"),import("./business-data-store.js")]);
+  const records=await listIngredients(scopeForBusinessProfile({profileId:business.id,local:true})),record=records.find(item=>item.id===edit.dataset.ingredientEdit);if(!record)return;
+  $("#ingredient-record-id").value=record.id;$("#ingredient-record-name").value=record.name;$("#ingredient-record-description").value=record.description||"";$("#ingredient-record-name").focus();$("#ingredient-record-state").textContent="Editing "+record.name;
+ }catch(error){toast(error instanceof Error?error.message:"Could not edit ingredient.");}return;}
+ const status=target.closest("[data-ingredient-status]");if(status){try{const business=activeBusiness();if(!business)return;
+  const [{setIngredientStatus},{scopeForBusinessProfile}]=await Promise.all([import("./ingredient-store.js"),import("./business-data-store.js")]);
+  await setIngredientStatus(scopeForBusinessProfile({profileId:business.id,local:true}),status.dataset.ingredientStatus,status.dataset.nextStatus);
+  toast(status.dataset.nextStatus==="archived"?"Ingredient archived.":"Ingredient restored.");render();
+ }catch(error){toast(error instanceof Error?error.message:"Could not update ingredient.");}}
+});
+document.addEventListener("reset",e=>{if(e.target?.id==="ingredient-record-form"){const id=$("#ingredient-record-id");if(id)id.value="";const status=$("#ingredient-record-state");if(status){status.textContent="";status.classList.remove("is-error");}}});
 window.addEventListener("hashchange",render);
 document.addEventListener("click",e=>{const target=e.target;if(!(target instanceof Element))return;const btn=target.closest("[data-ui-action]");if(!btn)return;const action=btn.getAttribute("data-ui-action");if(action==="clear-form"){const form=btn.closest("form");if(form)form.reset();return;}if(action==="toggle-filters"){const filters=$('[data-filter-panel]');if(filters)filters.hidden=!filters.hidden;return;}if(action==="preview-action")toast("UI preview only — no data was saved or changed.");});
 document.addEventListener("submit",e=>{const form=e.target;if(!(form instanceof HTMLFormElement)||!form.matches("[data-ui-preview-form]"))return;e.preventDefault();toast("Form layout preview only — data has not been saved.");});
