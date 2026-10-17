@@ -270,3 +270,66 @@ body.dark .menu-delete-button{color:#fca5a5}
  .menu-row-actions .ui-button{padding:6px 8px}
  .menu-list-table{min-width:640px}
 }
+
+
+/* Compact Dashboard — uses the existing theme tokens for Light and Dark Mode. */
+.dashboard-page{width:100%;max-width:1040px;margin:0 auto}
+.dashboard-heading{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:0 0 17px;padding:0 0 16px;border-bottom:1px solid var(--line)}
+.dashboard-heading .eyebrow{margin-bottom:5px}
+.dashboard-heading h1{margin:0;color:var(--text);font-size:clamp(1.55rem,3vw,1.9rem);font-weight:680;letter-spacing:-.045em;line-height:1.2}
+.dashboard-subtitle{margin:5px 0 0;color:var(--muted);font-size:.82rem}
+.dashboard-week-picker{display:flex;align-items:center;gap:8px;min-height:35px;padding:0 10px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--text);font-size:.77rem;white-space:nowrap;cursor:pointer}
+.dashboard-week-picker:hover{background:var(--surface-2)}
+.weather-strip{display:flex;align-items:center;gap:10px;min-height:52px;margin:0 0 17px;padding:8px 12px;border:1px solid var(--line);border-radius:11px;background:var(--surface)}
+.weather-symbol{display:grid;place-items:center;width:32px;height:32px;flex:none;border-radius:9px;background:var(--surface-2);color:var(--accent);font-size:1.25rem}
+.weather-condition{display:flex;flex-direction:column;gap:2px;min-width:0}
+.weather-condition b{font-size:.8rem;font-weight:650}
+.weather-condition small,.weather-meta{color:var(--muted);font-size:.7rem}
+.weather-divider{height:25px;width:1px;flex:none;background:var(--line);margin-left:auto}
+.weather-meta{white-space:nowrap}
+.weather-refresh{display:grid;place-items:center;width:26px;height:26px;flex:none;border:0;border-radius:7px;background:transparent;color:var(--muted);font-size:1.25rem;cursor:pointer}
+.weather-refresh:hover{background:var(--surface-2);color:var(--text)}
+.dashboard-chart-card{padding:17px 18px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.dashboard-section-title{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.dashboard-section-title h2{margin:0;color:var(--text);font-size:.98rem;font-weight:680;letter-spacing:-.025em}
+.dashboard-section-title p{margin:4px 0 0;color:var(--muted);font-size:.73rem}
+.chart-badge{padding:5px 8px;border:1px solid var(--line);border-radius:7px;color:var(--muted);font-size:.68rem;white-space:nowrap}
+.dashboard-legend{display:flex;align-items:center;gap:15px;margin:15px 0 4px;color:var(--muted);font-size:.72rem}
+.dashboard-legend>span{display:flex;align-items:center;gap:6px}
+.dashboard-legend i{display:inline-block;width:9px;height:9px;border-radius:2px}
+.legend-income{background:#0d9488}.legend-expense{background:#ea580c}
+.clustered-chart{display:grid;grid-template-columns:35px minmax(0,1fr);height:166px;padding-top:6px}
+.chart-y-labels{display:flex;flex-direction:column;justify-content:space-between;padding:0 5px 24px 0;color:var(--muted);font-size:.61rem;text-align:right}
+.chart-plot{position:relative;min-width:0;height:142px}
+.chart-gridline{position:absolute;left:0;right:0;border-top:1px solid var(--line);pointer-events:none}
+.grid-high{top:0}.grid-mid{top:37%}.grid-zero{bottom:23px;border-color:var(--muted);opacity:.6}
+.chart-columns{position:absolute;inset:0 0 0;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}
+.chart-day{display:flex;min-width:0;flex-direction:column;align-items:center;justify-content:flex-end;gap:7px;color:var(--muted);font-size:.66rem}
+.chart-pair{display:flex;align-items:flex-end;justify-content:center;gap:3px;width:100%;height:calc(100% - 23px);padding:0 1px}
+.chart-pair i{display:block;width:min(34%,15px);min-width:4px;border-radius:3px 3px 0 0;height:var(--bar-height);z-index:1}
+.income-column{background:#0d9488}.expense-column{background:#ea580c}
+.chart-footnote{margin:9px 0 0;color:var(--muted);font-size:.66rem;line-height:1.45}
+.weekly-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:12px 0 0}
+.weekly-summary-item{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:4px 8px;min-width:0;padding:12px 13px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.weekly-summary-item>span{overflow:hidden;color:var(--muted);font-size:.71rem;text-overflow:ellipsis;white-space:nowrap}
+.weekly-summary-item>b{grid-row:2;font-size:1.18rem;font-weight:700;letter-spacing:-.035em;color:var(--text)}
+.weekly-summary-item>small{grid-column:2;grid-row:2;color:var(--muted);font-size:.62rem}
+.weekly-profit>b{color:var(--good)}
+.dashboard-section{margin-top:21px}
+.dashboard-quick-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin-top:11px}
+.dashboard-quick-action{display:flex;align-items:center;gap:9px;min-width:0;min-height:54px;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--text);font-size:.75rem;font-weight:620;transition:border-color .15s,background .15s}
+.dashboard-quick-action:hover,.dashboard-tool:hover{border-color:var(--accent);background:var(--surface-2)}
+.dashboard-action-icon,.dashboard-tool-icon{display:grid;place-items:center;width:31px;height:31px;flex:none;border-radius:8px;background:var(--surface-2);color:var(--accent);font-size:1rem}
+.dashboard-tools-section{margin-top:20px}
+.dashboard-tools-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:11px}
+.dashboard-tool{display:flex;align-items:center;gap:10px;min-width:0;min-height:57px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--text);text-align:left;cursor:pointer}
+.dashboard-tool-icon{width:34px;height:34px;font-size:1.15rem}
+.dashboard-tool>span:nth-child(2){display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}
+.dashboard-tool b{font-size:.77rem;font-weight:650}
+.dashboard-tool small{color:var(--muted);font-size:.68rem}
+.dashboard-tool-arrow{color:var(--muted);font-size:1.15rem}
+body.dark .legend-income,body.dark .income-column{background:#2dd4bf}
+body.dark .legend-expense,body.dark .expense-column{background:#fb923c}
+body.dark .weekly-profit>b{color:#5eead4}
+@media(max-width:760px){.page-content:has(.dashboard-page){padding:20px 14px 30px}.dashboard-heading{margin-bottom:13px;padding-bottom:13px}.weather-strip{margin-bottom:13px}.dashboard-chart-card{padding:14px 12px 10px}.clustered-chart{height:151px;grid-template-columns:29px minmax(0,1fr)}.chart-plot{height:128px}.chart-columns{gap:1px}.chart-day{font-size:.61rem}.chart-pair{gap:2px}.weekly-summary{gap:7px;margin-top:9px}.weekly-summary-item{display:flex;flex-direction:column;align-items:flex-start;gap:5px;padding:10px 8px}.weekly-summary-item>b{font-size:1.02rem}.weekly-summary-item>small{display:none}.weekly-summary-item>span{font-size:.65rem}.dashboard-section{margin-top:18px}.dashboard-quick-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.dashboard-quick-action{min-height:48px;padding:8px;font-size:.73rem}.dashboard-tools-grid{gap:8px}.dashboard-tool{gap:7px;padding:9px}.dashboard-tool-icon{width:30px;height:30px}}
+@media(max-width:370px){.weather-meta{display:none}.weather-divider{margin-left:auto}.dashboard-week-picker{gap:5px;padding:0 7px}.dashboard-quick-grid{gap:6px}.dashboard-quick-action{gap:7px}.dashboard-action-icon{width:28px;height:28px}.chart-pair i{width:31%}.dashboard-tools-grid{grid-template-columns:1fr}}
