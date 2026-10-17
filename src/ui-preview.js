@@ -52,10 +52,9 @@ let menuCategoryFilter="all";
 let menuCategoryForm=null;
 function renderMenusPage(){
  const categories=menuDemoCategories.filter(category=>menuDemoItems.some(menu=>menu.categoryId===category.id));
- const count=menuDemoItems.length;
- return '<div class="menu-list-page"><header class="menu-list-heading"><div><p class="eyebrow">MANAGE MODE</p><h1>Menus</h1><p class="menu-list-subtitle">Menus grouped by category</p></div><span class="menu-total-count">'+count+' items</span></header>'+categories.map(category=>{
+ return '<div class="menu-list-page"><header class="menu-list-heading"><h1>Menus</h1></header>'+categories.map(category=>{
   const items=menuDemoItems.filter(menu=>menu.categoryId===category.id);
-  return '<section class="menu-category-list" aria-labelledby="menu-category-'+esc(category.id)+'"><header class="menu-category-heading"><h2 id="menu-category-'+esc(category.id)+'">'+esc(category.name)+'</h2><span>'+items.length+' '+(items.length===1?'menu':'menus')+'</span></header><div class="menu-list-rows">'+items.map(menu=>'<article class="menu-list-row"><div class="menu-list-copy"><h3>'+esc(menu.name)+'</h3>'+(menu.description&&menu.description!=="Demo item"?'<p>'+esc(menu.description)+'</p>':'')+'<span class="menu-list-unit">'+esc(menu.unit||"")+'</span></div><div class="menu-list-price">฿'+Number(menu.price).toLocaleString("en-US")+'</div></article>').join("")+'</div></section>';
+  return '<section class="menu-category-list" aria-labelledby="menu-category-'+esc(category.id)+'"><h2 class="menu-category-heading" id="menu-category-'+esc(category.id)+'">'+esc(category.name)+'</h2><div class="menu-list-rows">'+items.map(menu=>'<div class="menu-list-row"><span class="menu-list-name">'+esc(menu.name)+'</span><span class="menu-list-price">฿'+Number(menu.price).toLocaleString("en-US")+'</span></div>').join("")+'</div></section>';
  }).join("")+'</div>';
 }
 function renderManagePage(){
