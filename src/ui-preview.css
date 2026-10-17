@@ -55,3 +55,30 @@
 .topbar-actions #language-select{max-width:70px;padding:6px 5px}
 @media(max-width:680px){.topbar{padding:0 8px;gap:6px}.topbar-mode-switch{flex:0 1 auto;min-width:0;max-width:none;justify-content:flex-start}.topbar-mode-switch .mode-button{min-height:31px;padding:0 7px;font-size:.68rem;gap:4px}.topbar-mode-switch .mode-icon{display:inline;width:auto;font-size:.82rem}.topbar-actions{gap:2px}.topbar-actions .icon-button{width:29px;height:31px}.topbar-actions #language-select{max-width:47px;font-size:.68rem;padding:5px 2px}.profile-button{width:27px;height:27px;font-size:.7rem}}
 @media(max-width:360px){.topbar{gap:3px}.topbar-mode-switch .mode-button{padding:0 5px;font-size:.64rem}.topbar-mode-switch .mode-icon{display:none}.topbar-actions .icon-button{width:25px}.topbar-actions #language-select{max-width:40px}}
+
+/* Business selector and profile management — follows the approved UI tokens. */
+.business-context-bar{display:flex;align-items:center;gap:8px;min-width:0;padding:0 12px;border-left:1px solid var(--line);font-size:.76rem}
+.business-context-label{font-size:.62rem;letter-spacing:.08em;font-weight:800;color:var(--muted)}
+.business-context-name{max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.business-context-bar select{max-width:145px;min-width:60px;padding:7px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--text);font-size:.74rem}
+.business-context-bar .secondary-button,.business-profile-layout .secondary-button,.business-profile-layout .primary-button{font-size:.72rem;padding:7px 9px}
+.business-profile-shortcut{color:var(--accent);font-size:.74rem;font-weight:650;text-decoration:none;white-space:nowrap}
+.business-profile-shortcut:hover{text-decoration:underline}
+.business-profile-layout{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:16px;align-items:start}
+.business-profile-layout>.empty-panel{min-width:0}
+.business-profile-layout h2{margin:0 0 12px;color:var(--text);font-size:1rem}
+.business-profile-layout .profile-form{width:100%;max-width:none}
+.business-profile-layout .profile-form input,.business-profile-layout .profile-form select{width:100%;padding:10px 11px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--text)}
+.business-profile-layout .profile-form label{margin:12px 0 5px;font-size:.8rem}
+.business-profile-layout .profile-form .primary-button{margin-top:12px}
+.business-profile-list{width:100%;display:flex;flex-direction:column;gap:8px}
+.business-profile-item{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.business-profile-item>div:first-child{min-width:0}
+.business-profile-item b,.business-profile-item small{display:block;overflow-wrap:anywhere}
+.business-profile-item b{font-size:.83rem;color:var(--text)}
+.business-profile-item small{margin-top:5px;font-size:.7rem;color:var(--muted)}
+.business-profile-item .status{margin-top:6px;padding:3px 6px}
+.business-profile-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:5px;flex:none}
+.archived-heading{margin-top:22px!important}
+@media(max-width:1000px){.business-profile-layout{grid-template-columns:1fr}.business-context-name{max-width:105px}}
+@media(max-width:680px){.business-context-bar{gap:4px;padding:0 3px;border-left:0;flex:1;min-width:0}.business-context-label{display:none}.business-context-name{display:none}.business-context-bar select{flex:1;min-width:40px;max-width:100px;padding:6px 4px;font-size:.68rem}.business-context-bar .secondary-button{padding:6px 7px;font-size:.68rem}.business-profile-shortcut{display:none}.business-profile-item{align-items:flex-start;flex-direction:column}.business-profile-actions{justify-content:flex-start}.business-profile-layout{gap:12px}}

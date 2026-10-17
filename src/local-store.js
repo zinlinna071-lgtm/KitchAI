@@ -59,23 +59,86 @@ function requestValue(request) {
   });
 }
 
-/** @param {string=} id */
+/** Read a single profile by its stable profile ID, or the most recently updated profile for legacy callers. */
 export async function readLocalProfile(id) {
   const database = await openDatabase();
   const transaction = database.transaction(PROFILE_STORE, "readonly");
   const store = transaction.objectStore(PROFILE_STORE);
-  if (id) {
-    const profile = await requestValue(store.get(id));
-    return profile ?? null;
-  }
+  if (id) return (await requestValue(store.get(id))) ?? null;
   const profiles = await requestValue(store.getAll());
   return profiles.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0] ?? null;
+}
+
+/** Return every profile without mixing business records; archived profiles are included for recovery. */
+export async function readLocalProfiles() {
+  const database = await openDatabase();
+  const profiles = await requestValue(database.transaction(PROFILE_STORE, "readonly").objectStore(PROFILE_STORE).getAll());
+  return profiles.sort((a, b) => Number(Boolean(a.archivedAt)) - Number(Boolean(b.archivedAt)) || a.name.localeCompare(b.name));
+}
+
+/** Persist the active profile separately from profile data so switching survives refresh and offline use. */
+export async function readActiveLocalProfile() {
+  const database = await openDatabase();
+  const transaction = database.transaction([PROFILE_STORE, METADATA_STORE], "readonly");
+  const metadata = await requestValue(transaction.objectStore(METADATA_STORE).get("activeProfileId"));
+  if (metadata?.value) {
+    const profile = await requestValue(transaction.objectStore(PROFILE_STORE).get(metadata.value));
+    if (profile && !profile.archivedAt) return profile;
+  }
+  const profiles = await requestValue(transaction.objectStore(PROFILE_STORE).getAll());
+  const active = profiles.filter(profile => !profile.archivedAt).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0] ?? null;
+  if (active) await setActiveLocalProfile(active.id);
+  return active;
+}
+
+export async function setActiveLocalProfile(id) {
+  const database = await openDatabase();
+  const transaction = database.transaction([PROFILE_STORE, METADATA_STORE], "readwrite");
+  const profile = await requestValue(transaction.objectStore(PROFILE_STORE).get(id));
+  if (!profile || profile.archivedAt) throw new Error("Choose an active, non-archived business.");
+  transaction.objectStore(METADATA_STORE).put({ key: "activeProfileId", value: id });
+  await new Promise((resolve, reject) => {
+    transaction.oncomplete = resolve;
+    transaction.onerror = () => reject(transaction.error ?? new Error("Could not save the active business."));
+    transaction.onabort = () => reject(transaction.error ?? new Error("Active business change was cancelled."));
+  });
+  return profile;
+}
+
+export async function archiveLocalProfile(id, archived = true) {
+  const database = await openDatabase();
+  const transaction = database.transaction([PROFILE_STORE, METADATA_STORE], "readwrite");
+  const profiles = transaction.objectStore(PROFILE_STORE);
+  const metadata = transaction.objectStore(METADATA_STORE);
+  const profile = await requestValue(profiles.get(id));
+  if (!profile) throw new Error("Business profile was not found.");
+  if (archived) {
+    const all = await requestValue(profiles.getAll());
+    if (all.filter(item => !item.archivedAt && item.id !== id).length === 0) throw new Error("Keep at least one active business. Create another business before archiving this one.");
+    profile.archivedAt = new Date().toISOString();
+  } else {
+    delete profile.archivedAt;
+  }
+  profile.updatedAt = new Date().toISOString();
+  profiles.put(profile);
+  const active = await requestValue(metadata.get("activeProfileId"));
+  if (archived && active?.value === id) {
+    const all = await requestValue(profiles.getAll());
+    const next = all.find(item => item.id !== id && !item.archivedAt);
+    metadata.put({ key: "activeProfileId", value: next.id });
+  }
+  await new Promise((resolve, reject) => {
+    transaction.oncomplete = resolve;
+    transaction.onerror = () => reject(transaction.error ?? new Error("Could not update business archive status."));
+    transaction.onabort = () => reject(transaction.error ?? new Error("Business archive change was cancelled."));
+  });
+  return profile;
 }
 
 /**
  * Saves the profile before returning. ownerId and server revision are intentionally
  * absent: authentication and server-authoritative fields belong to WP1.4.
- * @param {{id?:string,name:unknown}} input
+ * @param {{id?:string,name:unknown,businessType?:string,phone?:string,address?:string,currency?:string,timezone?:string,logo?:string,archivedAt?:string}} input
  * @returns {Promise<SavedLocalProfile>}
  */
 export async function saveLocalProfile(input) {
@@ -94,17 +157,25 @@ export async function saveLocalProfile(input) {
     const commit = (existing, localRevision, storedBusinessId) => {
       const now = new Date().toISOString();
       const id = existing?.id ?? input.id ?? crypto.randomUUID();
-      const businessId = existing?.businessId ?? storedBusinessId ?? crypto.randomUUID();
+      const businessId = existing?.businessId ?? crypto.randomUUID();
       const profile = {
+        ...existing,
         id,
         businessId,
         name,
+        businessType: input.businessType ?? existing?.businessType ?? "",
+        phone: input.phone ?? existing?.phone ?? "",
+        address: input.address ?? existing?.address ?? "",
+        currency: input.currency ?? existing?.currency ?? "THB",
+        timezone: input.timezone ?? existing?.timezone ?? "Asia/Bangkok",
+        logo: input.logo ?? existing?.logo ?? "",
+        archivedAt: input.archivedAt ?? existing?.archivedAt,
         createdAt: existing?.createdAt ?? now,
         updatedAt: now,
       };
       const revision = (localRevision ?? 0) + 1;
       profiles.put(profile);
-      metadata.put({ key: "businessId", value: businessId });
+      if (!existing) metadata.put({ key: "activeProfileId", value: id });
       metadata.put({ key: "localRevision:" + id, value: revision });
       saved = { profile, localRevision: revision, syncState: "local_only" };
     };
@@ -135,12 +206,8 @@ export async function saveLocalProfile(input) {
       existingRequest.onsuccess = () => loadRevision(existingRequest.result ?? null);
       existingRequest.onerror = () => fail(existingRequest.error ?? new Error("Could not read the local profile."));
     } else {
-      const existingRequest = profiles.getAll();
-      existingRequest.onsuccess = () => {
-        const existing = existingRequest.result.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0] ?? null;
-        loadRevision(existing);
-      };
-      existingRequest.onerror = () => fail(existingRequest.error ?? new Error("Could not read the local profile."));
+      // No ID always means create a new business. Never overwrite the most recently updated profile.
+      loadRevision(null);
     }
 
     transaction.oncomplete = () => {
