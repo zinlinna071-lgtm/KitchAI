@@ -36,8 +36,36 @@ function moduleForm(key){
  const c=config[key];if(!c)return "";
  return section(c.title,'<p class="ui-section-desc">'+c.desc+'</p><form class="ui-form" data-ui-preview-form><div class="ui-form-grid">'+c.fields+'</div><div class="ui-form-actions">'+actionButton("Cancel","secondary","clear-form")+'<button class="ui-button primary" type="submit">'+esc(c.submit)+'</button></div></form>');
 }
+let menuDemoCategories=[
+ {id:"hot-food",name:"Hot Food"},
+ {id:"rice-rolls",name:"Rice Rolls"},
+ {id:"drinks",name:"Drinks"}
+];
+let menuDemoItems=[
+ {id:"menu-1",name:"Quail Fry",categoryId:"hot-food",price:100,unit:"3 pieces",status:"Available",description:"Demo item"},
+ {id:"menu-2",name:"Crispy Chicken Bites",categoryId:"hot-food",price:80,unit:"portion",status:"Available",description:"Demo item"},
+ {id:"menu-3",name:"Seaweed Rice Roll",categoryId:"rice-rolls",price:35,unit:"roll",status:"Available",description:"Demo item"},
+ {id:"menu-4",name:"Vegetable Rice Roll",categoryId:"rice-rolls",price:30,unit:"roll",status:"Unavailable",description:"Demo item"},
+ {id:"menu-5",name:"Iced Tea",categoryId:"drinks",price:25,unit:"cup",status:"Available",description:"Demo item"}
+];
+let menuCategoryFilter="all";
+function renderMenusPage(){
+ const total=menuDemoItems.length;
+ const filterOptions='<button type="button" class="ui-button '+(menuCategoryFilter==="all"?"primary":"")+'" data-menu-action="filter" data-category-id="all">All menus <span class="menu-count">'+total+'</span></button>'+menuDemoCategories.map(c=>'<button type="button" class="ui-button '+(menuCategoryFilter===c.id?"primary":"")+'" data-menu-action="filter" data-category-id="'+esc(c.id)+'">'+esc(c.name)+' <span class="menu-count">'+menuDemoItems.filter(m=>m.categoryId===c.id).length+'</span></button>').join("");
+ const groups=menuDemoCategories.filter(c=>menuCategoryFilter==="all"||menuCategoryFilter===c.id).map(c=>{
+  const items=menuDemoItems.filter(m=>m.categoryId===c.id);
+  return '<section class="menu-category-group"><div class="menu-category-heading"><div><h2>'+esc(c.name)+'</h2><span class="ui-muted">'+items.length+' menu'+(items.length===1?"":"s")+'</span></div><div class="menu-row-actions"><button type="button" class="ui-button" data-menu-action="edit-category" data-category-id="'+esc(c.id)+'">Edit category</button><button type="button" class="ui-button" data-menu-action="delete-category" data-category-id="'+esc(c.id)+'">Delete</button></div></div>'+
+  (items.length?'<div class="ui-table-wrap"><table class="ui-table menu-list-table"><thead><tr><th>Menu</th><th>Price</th><th>Unit</th><th>Status</th><th>Actions</th></tr></thead><tbody>'+items.map(m=>'<tr><td><div class="menu-name-cell"><b>'+esc(m.name)+'</b><small>'+esc(m.description)+'</small></div></td><td>฿ '+Number(m.price).toFixed(2)+'</td><td>'+esc(m.unit)+'</td><td><span class="menu-status '+(m.status==="Available"?"is-available":"is-unavailable")+'">'+esc(m.status)+'</span></td><td><div class="menu-row-actions"><button type="button" class="ui-button" data-menu-action="edit-menu" data-menu-id="'+esc(m.id)+'">Edit</button><button type="button" class="ui-button" data-menu-action="toggle-menu" data-menu-id="'+esc(m.id)+'">'+(m.status==="Available"?"Disable":"Enable")+'</button><button type="button" class="ui-button menu-delete-button" data-menu-action="delete-menu" data-menu-id="'+esc(m.id)+'">Delete</button></div></td></tr>').join("")+'</tbody></table></div>':'<div class="menu-empty-category">No menus in this category yet.</div>')+'</section>';
+ }).join("");
+ return '<div class="page-head menu-page-head"><div><p class="eyebrow">MANAGE MODE</p><h1>Menus</h1><p class="page-subtitle">Browse menu items by category and manage your sample menu list.</p></div><div class="menu-page-actions"><button type="button" class="ui-button" data-menu-action="quick-create-category">＋ Quick Create Category</button><button type="button" class="ui-button primary" data-menu-action="create-menu">＋ Create Menu</button></div></div>'+
+ '<div class="menu-demo-notice"><b>Sample data only</b><span>These example menus are temporary UI demo data. Nothing is saved to your business records.</span></div>'+
+ '<section class="ui-section menu-filter-section"><div class="menu-filter-heading"><h2>Categories</h2><span class="ui-muted">'+menuDemoCategories.length+' categories</span></div><div class="menu-category-filters">'+filterOptions+'</div></section>'+
+ '<div class="menu-list-heading"><h2>Menu list</h2><span class="ui-muted">'+(menuCategoryFilter==="all"?"All categories":(menuDemoCategories.find(c=>c.id===menuCategoryFilter)?.name||"Category"))+'</span></div>'+
+ (groups||'<div class="menu-empty-category">No categories to display. Use Quick Create Category to add one.</div>');
+}
 function renderManagePage(){
  const key=state.page.split("/")[1]||"page-1";
+ if(key==="page-2")return renderMenusPage();
  if(!/^page-[1-5]$/.test(key))return '<div class="manage-empty-page" aria-label="'+esc(key)+'" style="min-height:65vh"></div>';
  return '<div class="manage-empty-page" aria-label="Page '+key.slice(-1)+'" style="min-height:65vh"></div>';
 }
@@ -168,6 +196,19 @@ document.addEventListener("submit",e=>{
 
 document.addEventListener("change",e=>{const target=e.target;if(!(target instanceof HTMLSelectElement))return;if(target.id==="settings-theme-select"){state.theme=target.value;localStorage.setItem("kitchai-preview-theme",state.theme);render();}if(target.id==="settings-language-select"||target.id==="language-select"){state.language=target.value;localStorage.setItem("kitchai-preview-language",state.language);render();}});
 window.addEventListener("hashchange",render);
+document.addEventListener("click",e=>{
+ const target=e.target;if(!(target instanceof Element))return;
+ const btn=target.closest("[data-menu-action]");if(!btn)return;
+ const action=btn.getAttribute("data-menu-action");
+ if(action==="filter"){menuCategoryFilter=btn.getAttribute("data-category-id")||"all";render();return;}
+ if(action==="create-menu"){toast("Create Menu form will be added in a later step. No data was created.");return;}
+ if(action==="quick-create-category"){toast("Quick Create Category is ready as an entry point. Category form will be added in a later step.");return;}
+ if(action==="edit-category"){toast("Category edit form will be added in a later step.");return;}
+ if(action==="edit-menu"){toast("Menu edit form will be added in a later step.");return;}
+ if(action==="toggle-menu"){const id=btn.getAttribute("data-menu-id");const menu=menuDemoItems.find(m=>m.id===id);if(menu){menu.status=menu.status==="Available"?"Unavailable":"Available";render();toast(menu.name+" marked "+menu.status.toLowerCase()+" in sample data.");}return;}
+ if(action==="delete-menu"){const id=btn.getAttribute("data-menu-id");const menu=menuDemoItems.find(m=>m.id===id);if(menu&&window.confirm("Remove "+menu.name+" from the temporary sample list?")){menuDemoItems=menuDemoItems.filter(m=>m.id!==id);render();toast("Sample menu removed. No real data was affected.");}return;}
+ if(action==="delete-category"){const id=btn.getAttribute("data-category-id");const category=menuDemoCategories.find(c=>c.id===id);if(!category)return;if(menuDemoItems.some(m=>m.categoryId===id)){toast("Move or remove the menus in this category before deleting it.");return;}if(window.confirm("Remove category "+category.name+" from the temporary sample list?")){menuDemoCategories=menuDemoCategories.filter(c=>c.id!==id);if(menuCategoryFilter===id)menuCategoryFilter="all";render();toast("Sample category removed. No real data was affected.");}return;}
+});
 document.addEventListener("click",e=>{const target=e.target;if(!(target instanceof Element))return;const btn=target.closest("[data-ui-action]");if(!btn)return;const action=btn.getAttribute("data-ui-action");if(action==="clear-form"){const form=btn.closest("form");if(form)form.reset();return;}if(action==="toggle-filters"){const filters=$('[data-filter-panel]');if(filters)filters.hidden=!filters.hidden;return;}if(action==="preview-action")toast("UI preview only — no data was saved or changed.");});
 document.addEventListener("submit",e=>{const form=e.target;if(!(form instanceof HTMLFormElement)||!form.matches("[data-ui-preview-form]"))return;e.preventDefault();toast("Form layout preview only — data has not been saved.");});
 state.language=localStorage.getItem("kitchai-preview-language")||state.language;
