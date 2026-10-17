@@ -249,3 +249,16 @@ test("stock-count UI allows retrying pending posting and refreshes state after r
   assert.ok(ui.includes("session.pendingPost.lineIds ?? session.pendingPost.command?.lines?.map(line => line.lineId)"));
   assert.ok(ui.includes("Always reload local state: a stale rejection clears the pending command and marks lines stale."));
 });
+
+test("approved UI ingredient catalogue is connected to the business-scoped local ingredient store", async () => {
+  const ui = await read("../src/ui-preview.js");
+  assert.match(ui, /function renderIngredientCatalogPanel\(/);
+  assert.match(ui, /import\("\.\/ingredient-store\.js"\)/);
+  assert.match(ui, /saveIngredient\(scope,/);
+  assert.match(ui, /listIngredients\(scope\)/);
+  assert.match(ui, /setIngredientStatus\(/);
+  assert.match(ui, /scopeForBusinessProfile\(\{profileId:business\.id,local:true\}\)/);
+  assert.match(ui, /id="ingredient-record-form"/);
+  assert.match(ui, /data-ingredient-edit/);
+  assert.match(ui, /data-ingredient-status/);
+});
