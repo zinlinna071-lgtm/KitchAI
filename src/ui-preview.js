@@ -201,8 +201,10 @@ document.addEventListener("change",e=>{const target=e.target;if(!(target instanc
 window.addEventListener("hashchange",render);
 document.addEventListener("click",e=>{
  const target=e.target;if(!(target instanceof Element))return;
+ const menuRow=target.closest("[data-menu-open]");if(menuRow){location.hash="manage/menu-detail/"+encodeURIComponent(menuRow.getAttribute("data-menu-open"));return;}
  const btn=target.closest("[data-menu-action]");if(!btn)return;
  const action=btn.getAttribute("data-menu-action");
+ if(action==="back-to-menu"){location.hash="manage/page-2";return;}
  if(action==="filter"){menuCategoryFilter=btn.getAttribute("data-category-id")||"all";render();return;}
  if(action==="create-menu"){toast("Create Menu form will be added in a later step. No data was created.");return;}
  if(action==="quick-create-category"){menuCategoryForm={mode:"create",id:null,name:""};render();const input=$('#menu-category-form [name="categoryName"]');if(input)input.focus();return;}
