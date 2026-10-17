@@ -1,7 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
-import { fileURLToPath } from "node:url";
 import vm from "node:vm";
 
 const sourceUrl = new URL("./business-profile-store.js", import.meta.url);
