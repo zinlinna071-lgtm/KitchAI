@@ -159,8 +159,6 @@ export async function saveLocalProfile(input) {
       const id = existing?.id ?? input.id ?? crypto.randomUUID();
       const businessId = existing?.businessId ?? crypto.randomUUID();
       const profile = {
-        id,
-        businessId,
         ...existing,
         id,
         businessId,
@@ -177,7 +175,6 @@ export async function saveLocalProfile(input) {
       };
       const revision = (localRevision ?? 0) + 1;
       profiles.put(profile);
-      metadata.put({ key: "businessId", value: businessId });
       if (!existing) metadata.put({ key: "activeProfileId", value: id });
       metadata.put({ key: "localRevision:" + id, value: revision });
       saved = { profile, localRevision: revision, syncState: "local_only" };
