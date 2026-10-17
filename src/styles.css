@@ -139,3 +139,24 @@
 .stock-count-session-summary{font-weight:700}
 .stock-count-actions button:disabled{opacity:.55;cursor:not-allowed}
 @media(max-width:560px){.stock-count-line-form{grid-template-columns:minmax(0,1fr)}.stock-count-toolbar,.stock-count-actions{align-items:stretch;flex-direction:column}.stock-count-actions button{width:100%}}
+
+/* Workspace dashboard: expose implemented workflows before the detailed management forms. */
+.workspace-nav{margin:0 0 1.5rem;padding:clamp(1.25rem,3vw,2rem);border:1px solid var(--line);border-radius:20px;background:#fff}
+.workspace-nav-heading{margin-bottom:1.1rem}
+.workspace-nav-heading h2{margin:.15rem 0 .5rem;color:var(--green);font-size:clamp(1.45rem,3vw,2rem);letter-spacing:-.04em}
+.workspace-nav-heading>p:last-child{margin:.3rem 0;color:var(--muted);line-height:1.6}
+.workspace-shortcuts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.8rem}
+.workspace-shortcut{display:flex;min-width:0;min-height:142px;flex-direction:column;align-items:flex-start;gap:.45rem;padding:1rem;border:1px solid var(--line);border-radius:14px;background:#fbfcfa;text-decoration:none;transition:border-color 150ms ease,transform 150ms ease}
+.workspace-shortcut:hover{border-color:#9bb9a5;transform:translateY(-2px)}
+.workspace-shortcut:focus-visible{outline:3px solid #e1a84b;outline-offset:3px}
+.workspace-shortcut-primary{background:#edf4ef;border-color:#cbded0}
+.shortcut-icon{display:grid;place-items:center;width:34px;height:34px;border-radius:10px;background:#e6eee8;color:var(--green);font-size:1.15rem}
+.workspace-shortcut strong{color:var(--green);font-size:.98rem}
+.workspace-shortcut>span:last-child{color:var(--muted);font-size:.82rem;line-height:1.45}
+.ai-direction-note{display:flex;align-items:flex-start;gap:.9rem;margin-top:1rem;padding:1rem;border:1px solid #dce7df;border-radius:14px;background:#f5f8f5}
+.ai-note-mark{display:grid;place-items:center;flex:0 0 42px;height:42px;border-radius:12px;background:var(--green);color:white;font-weight:800;font-size:.9rem}
+.ai-direction-note strong{color:var(--green)}
+.ai-direction-note p{margin:.35rem 0 0;color:var(--muted);font-size:.88rem;line-height:1.65}
+@media(max-width:850px){.workspace-shortcuts{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:480px){.workspace-nav{padding:1rem}.workspace-shortcuts{gap:.6rem}.workspace-shortcut{min-height:132px;padding:.8rem}.workspace-shortcut strong{font-size:.92rem}.workspace-shortcut>span:last-child{font-size:.78rem}.ai-direction-note{padding:.8rem}}
+@media(prefers-reduced-motion:reduce){.workspace-shortcut{transition:none}.workspace-shortcut:hover{transform:none}}
