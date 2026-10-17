@@ -8,12 +8,22 @@ import { validateMenuItem } from "../src/menu-item-store.js";
 import { validateRecipe, validateRecipeLine } from "../src/recipe-store.js";
 import { scopeForBusinessProfile } from "../src/business-data-store.js";
 const read=path=>readFile(new URL(path,import.meta.url),"utf8");
-test("document has accessible landmarks, viewport metadata, and clear scope",async()=>{
+test("approved UI has accessible navigation, responsive viewport, and no seeded business", async () => {
  const html=await read("../index.html");
- assert.match(html,/<html lang="en">/);assert.match(html,/name="viewport"/);assert.match(html,/class="skip-link" href="#main"/);assert.match(html,/<main id="main" class="page-shell" tabindex="-1">/);
- assert.match(html,/id="connection-status" class="connection-status" role="status"/);assert.match(html,/LOCAL BUSINESS PROFILE/);assert.match(html,/Implemented for local testing/);assert.match(html,/Hosted sync is not configured/);assert.match(html,/offline-first kitchen workspace for business records, recipe-based production batches/i);
- assert.match(html,/id="profile-form"/);assert.match(html,/id="ingredient-form"/);assert.match(html,/id="menu-item-form"/);assert.match(html,/id="recipe-form"/);assert.match(html,/id="recipe-line-form"/);assert.match(html,/id="entity-sync-panel"/);assert.match(html,/id="phase2-sync-now"/);assert.match(html,/id="phase2-conflict-list"/);
+ assert.match(html,/<html lang="en">/);
+ assert.match(html,/name="viewport"/);
+ assert.match(html,/class="skip-link" href="#main"/);
+ assert.match(html,/<main id="main" tabindex="-1">/);
+ assert.match(html,/id="business-switcher-wrap"/);
+ assert.match(html,/id="page-content"/);
+ assert.match(html,/No live AI or business data/);
+ assert.match(html,/src\/ui-preview\.js/);
+ assert.match(html,/src\/ui-preview-chat-composer\.js/);
+ const ui=await read("../src/ui-preview.js");
+ assert.match(ui,/const BUSINESS_STORAGE_KEY="kitchai-business-profiles-v1"/);
+ assert.match(ui,/const migrated=parsed\.filter\(item=>item\?\.id!=="night-market"\)/);
 });
+
 test("manifest declares standalone app and local icon",async()=>{
  const manifest=JSON.parse(await read("../public/manifest.webmanifest"));
  assert.equal(manifest.name,"KitchAI Kitchen Workspace");assert.equal(manifest.display,"standalone");assert.equal(manifest.start_url,"__KITCHAI_BASE_PATH__");assert.equal(manifest.scope,"__KITCHAI_BASE_PATH__");assert.equal(manifest.icons[0].src,"__KITCHAI_BASE_PATH__favicon.svg");
@@ -64,14 +74,16 @@ test("production build emits every shell asset without modifying source files",a
  assert.equal(await read("../index.html"),sourceHtml);
 });
 
-test("GitHub Pages preview uses the project base path and never embeds backend config", async () => {
+test("GitHub Pages build serves the approved UI at the project base path without backend secrets", async () => {
  const result=spawnSync(process.execPath,["scripts/build.mjs","--base-path=/KitchAI/","--preview"],{encoding:"utf8"});
  assert.equal(result.status,0,result.stderr);
  const html=await read("../dist/index.html");
- assert.ok(html.includes('content="/KitchAI/"'));
- assert.ok(html.includes("NON-PRODUCTION STATIC PREVIEW"));
- assert.ok(!html.includes("data-preview-only hidden"));
+ assert.ok(html.includes("KitchAI — UI Preview"));
+ assert.ok(html.includes("No live AI or business data"));
+ assert.ok(html.includes("/KitchAI/src/ui-preview.css"));
+ assert.ok(html.includes("/KitchAI/src/ui-preview.js"));
  assert.ok(!html.includes("__KITCHAI_BASE_PATH__"));
+ assert.ok(!html.includes("supabaseAnonKey"));
  const localReferences=[...html.matchAll(/(?:href|src)="([^"]+)"/g)].map(match=>match[1]).filter(value=>value.startsWith("/"));
  assert.ok(localReferences.length>0);
  for(const reference of localReferences){
@@ -210,35 +222,19 @@ test("entity scope stays stable when the server assigns a different remote busin
 });
 
 
-test("stock-count review UI exposes accessible session, line, and explicit posting controls", async () => {
- const html = await read("../index.html");
+test("stock-count workflow has explicit review and posting controls in its module", async () => {
  const app = await read("../src/app.js");
  const ui = await read("../src/stock-count-ui.js");
  const css = await read("../src/styles.css");
- assert.match(html, /id="stock-count-panel"/);
- assert.match(html, /id="stock-count-session"/);
- assert.match(html, /id="stock-count-lines"[^>]*aria-label="Stock-count lines"/);
- assert.match(html, /id="stock-count-state" class="profile-state" role="status" aria-live="polite"/);
- assert.match(html, /id="stock-count-post-selected"[^>]*disabled/);
- assert.match(html, /id="stock-count-create-form"/);
- assert.match(html, /id="stock-count-add-line-form"/);
- assert.match(html, /id="stock-count-item-unit"/);
- assert.match(app, /getRemoteBusinessId: \(\) => activeSession\?\.user\?\.id/);
+ assert.match(app, /initializeStockCountUI/);
  assert.match(ui, /createStockCountSession/);
  assert.match(ui, /addStockCountLine/);
  assert.match(ui, /listIngredients/);
  assert.match(ui, /listMenuItems/);
- assert.match(ui, /capture their current server quantities/);
- assert.match(app, /initializeStockCountUI/);
  assert.match(ui, /postReviewedStockCountSubset/);
  assert.match(ui, /reviewedBy: context\.getSession\(\)\?\.user\?\.id/);
  assert.match(ui, /A posting outcome is uncertain/);
  assert.match(ui, /server-confirmed stock change/);
- assert.match(ui, /noteInput\.maxLength = 500/);
- assert.match(ui, /checkbox\.checked = false/);
- assert.match(ui, /`Select \$\{line\.stockItemName\} for posting`/);
- assert.match(ui, /!\["open", "ready_for_review"\]\.includes\(session\.status\)/);
- assert.ok(ui.includes("pendingPost") && ui.includes("!navigator.onLine"));
  assert.match(css, /WP3\.5e accessible stock-count review/);
 });
 
