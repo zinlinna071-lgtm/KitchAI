@@ -36,7 +36,36 @@ function moduleForm(key){
  const c=config[key];if(!c)return "";
  return section(c.title,'<p class="ui-section-desc">'+c.desc+'</p><form class="ui-form" data-ui-preview-form><div class="ui-form-grid">'+c.fields+'</div><div class="ui-form-actions">'+actionButton("Cancel","secondary","clear-form")+'<button class="ui-button primary" type="submit">'+esc(c.submit)+'</button></div></form>');
 }
-function renderManagePage(){const key=state.page.split("/")[1]||"home";const titles={home:["ပင်မစာမျက်နှာ","Home"],menus:["Menu များ","Menus"],ingredients:["ပါဝင်ပစ္စည်းများ","Ingredients"],expenses:["အသုံးစရိတ်","Expenses"],settings:["ဆက်တင်များ","Settings"]};const pair=titles[key]||titles.home;const title=state.language==="my"?pair[0]:pair[1];return '<div class="page-head"><div><p class="eyebrow">MANAGE MODE</p><h1>'+esc(title)+'</h1></div></div><div class="empty-page-space" aria-label="'+esc(title)+'"></div>';}
+function manageHeader(title,subtitle,actionLabel="",action="preview-action"){return '<div class="page-head manage-page-head"><div><p class="eyebrow">MANAGE MODE</p><h1>'+title+'</h1><p class="page-subtitle">'+subtitle+'</p></div>'+(actionLabel?'<button class="ui-button primary manage-primary-action" type="button" data-ui-action="'+action+'">＋ '+actionLabel+'</button>':'')+'</div>';}
+function manageEmpty(icon,title,description,buttonLabel=""){return '<section class="manage-empty"><div class="manage-empty-icon" aria-hidden="true">'+icon+'</div><h2>'+title+'</h2><p>'+description+'</p>'+(buttonLabel?'<button class="ui-button secondary" type="button" data-ui-action="preview-action">＋ '+buttonLabel+'</button>':'')+'</section>';}
+function renderManagePage(){
+ const key=state.page.split("/")[1]||"home";
+ if(key==="home")return manageHeader("Home","A simple overview of your food business.")+
+ '<section class="manage-welcome"><div><span class="manage-welcome-kicker">YOUR WORKSPACE</span><h2>Everything in one place.</h2><p>Manage your menus, ingredients and expenses from one clear workspace.</p></div><span class="manage-welcome-mark" aria-hidden="true">K</span></section>'+
+ '<div class="manage-section-heading"><div><h2>Workspace</h2><p>Choose what you want to manage.</p></div></div>'+
+ '<div class="manage-card-grid">'+
+ '<a class="manage-feature-card" href="#manage/menus"><span class="manage-feature-icon menu-icon">▤</span><span class="manage-feature-copy"><b>Menus</b><small>Products and selling prices</small></span><span class="manage-card-arrow">›</span></a>'+
+ '<a class="manage-feature-card" href="#manage/ingredients"><span class="manage-feature-icon ingredient-icon">▦</span><span class="manage-feature-copy"><b>Ingredients</b><small>Food ingredients and supplies</small></span><span class="manage-card-arrow">›</span></a>'+
+ '<a class="manage-feature-card" href="#manage/expenses"><span class="manage-feature-icon expense-icon">−</span><span class="manage-feature-copy"><b>Expenses</b><small>Track business spending</small></span><span class="manage-card-arrow">›</span></a>'+
+ '<a class="manage-feature-card" href="#manage/settings"><span class="manage-feature-icon settings-icon">⚙</span><span class="manage-feature-copy"><b>Settings</b><small>Customize your workspace</small></span><span class="manage-card-arrow">›</span></a></div>'+
+ '<div class="manage-section-heading manage-lower-heading"><div><h2>Getting started</h2><p>Your workspace is ready for setup.</p></div></div>'+
+ '<section class="manage-getting-started"><span class="manage-checkmark">1</span><div><b>Add your menu items</b><p>Start with the food and drinks you sell, then add ingredients when you are ready.</p></div><a href="#manage/menus" aria-label="Open menus">›</a></section>';
+ if(key==="menus")return manageHeader("Menus","Create a clear catalogue of the food you sell.","Add menu item")+
+ '<div class="manage-toolbar"><span class="manage-record-count">Menu catalogue</span><span class="manage-soft-tag">No items yet</span></div>'+
+ manageEmpty("▤","Your menu starts here","Add your first menu item to organize product names, categories and selling prices.","Add menu item");
+ if(key==="ingredients")return manageHeader("Ingredients","Keep ingredients and supplies organized in one place.","Add ingredient")+
+ '<div class="manage-toolbar"><span class="manage-record-count">Ingredient catalogue</span><span class="manage-soft-tag">No items yet</span></div>'+
+ manageEmpty("▦","No ingredients yet","Add ingredients you use for cooking or supplies such as packaging and shared consumables.","Add ingredient");
+ if(key==="expenses")return manageHeader("Expenses","Keep track of the money spent on running your business.","Add expense")+
+ '<div class="manage-expense-summary"><div><span>Total recorded</span><b>฿ —</b><small>No expense records yet</small></div><span class="manage-expense-mark">−</span></div>'+
+ '<div class="manage-toolbar"><span class="manage-record-count">Expense history</span><span class="manage-soft-tag">No records yet</span></div>'+
+ manageEmpty("◷","Your expense history will appear here","Record business expenses to review them later. No sample transactions have been added.");
+ if(key==="settings")return manageHeader("Settings","Personalize how KitchAI looks and feels.")+
+ '<section class="manage-settings-card"><div class="manage-settings-symbol">◐</div><div class="manage-settings-copy"><b>Appearance</b><p>Switch between light and dark mode using the theme button at the top.</p></div><span class="manage-settings-value">'+(state.theme==="dark"?"Dark":"Light")+'</span></section>'+
+ '<section class="manage-settings-card"><div class="manage-settings-symbol">文</div><div class="manage-settings-copy"><b>Language</b><p>Choose English or Burmese from the language selector above.</p></div><span class="manage-settings-value">'+(state.language==="my"?"မြန်မာ":"English")+'</span></section>'+
+ '<section class="manage-settings-note"><span aria-hidden="true">ⓘ</span><p>These are interface settings for this preview. Business data and account settings are not connected in this UI stage.</p></section>';
+ return manageEmpty("K","Page not found","Choose a page from the Manage Mode menu.");
+}
 function readBusinesses(){
   try{
     const raw=localStorage.getItem(BUSINESS_STORAGE_KEY);
@@ -80,6 +109,8 @@ function selectBusiness(id){
 }
 function renderBusinessSwitcher(){
   const wrap=$("#business-switcher-wrap"),trigger=$("#business-switcher-trigger"),name=$("#business-switcher-name"),menu=$("#business-switcher-menu"),createSlot=$("#business-quick-create-slot");
+  const area=wrap?.closest(".drawer-business-area");
+  if(area)area.hidden=state.mode==="manage";
   if(!wrap||!trigger||!name||!menu||!createSlot)return;
   const current=activeBusiness();
   name.textContent=current?.name||"Choose business";
