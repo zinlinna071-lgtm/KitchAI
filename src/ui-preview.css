@@ -159,3 +159,17 @@ select option{background:var(--surface);color:var(--text)}
  .settings-control-section{padding:2px 14px}
  .settings-control-section .profile-field{grid-template-columns:minmax(90px,.85fr) minmax(0,1.15fr);gap:12px;padding:14px 0}
 }
+
+
+/* Business lifecycle: empty first-run state and explicit permanent-delete affordance. */
+.business-required-card{max-width:720px}
+.business-required-card .business-profile-form{display:grid;gap:16px}
+.business-danger-zone{border-color:#efb8b8;background:rgba(220,38,38,.035)}
+.business-danger-zone h2{color:#b42318}
+.business-danger-zone p{max-width:720px}
+.button-danger{border:1px solid #dc2626;background:#fff;color:#b91c1c;border-radius:10px;padding:10px 14px;font:inherit;font-weight:650;cursor:pointer}
+.button-danger:hover{background:#fef2f2}
+body.dark .business-danger-zone{border-color:#783b3b;background:rgba(220,38,38,.08)}
+body.dark .business-danger-zone h2{color:#fca5a5}
+body.dark .button-danger{background:#251719;color:#fca5a5;border-color:#8b3535}
+body.dark .button-danger:hover{background:#3b2022}
