@@ -21,7 +21,7 @@
 </div>
 <div class="sidebar-content" id="sidebar-content"></div>
 <div class="sidebar-bottom">
-<div class="sidebar-footnote"><span class="status-dot"></span><span><b>UI Preview</b><small>No live AI or business data</small></span></div>
+<div class="sidebar-footnote"><span class="status-dot"></span><span><b>UI Preview</b><small>Local preview data only</small></span></div>
 </div>
 </aside>
 <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
@@ -29,6 +29,10 @@
 <header class="topbar">
 <button class="icon-button menu-toggle" id="menu-toggle" aria-label="Open navigation">☰</button>
 <div class="mode-switch topbar-mode-switch" role="group" aria-label="Choose mode"><button class="mode-button active" data-mode="ai" aria-pressed="true"><span class="mode-icon">✳</span><span>AI Mode</span></button><button class="mode-button" data-mode="manage" aria-pressed="false"><span class="mode-icon">▦</span><span>Manage Mode</span></button></div>
+<div class="business-switcher-wrap" id="business-switcher-wrap" hidden>
+<button class="business-switcher-trigger" id="business-switcher-trigger" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Switch business"><span class="business-switcher-store" aria-hidden="true">▦</span><span id="business-switcher-name">Night Market</span><span class="business-switcher-chevron" aria-hidden="true">⌄</span></button>
+<div class="business-switcher-menu" id="business-switcher-menu" hidden></div>
+</div>
 <div class="topbar-actions">
 <button class="icon-button compact-theme" id="theme-toggle" aria-label="Toggle light and dark theme" title="Toggle theme">◐</button>
 <select id="language-select" aria-label="Interface language"><option value="en">EN</option><option value="my">မြန်မာ</option><option value="th">ไทย</option></select>
@@ -38,7 +42,7 @@
 <main id="main" tabindex="-1">
 <div id="page-content"></div>
 </main>
-<footer class="footer"><span>KitchAI</span><span>Interface preview · No live business data</span></footer>
+<footer class="footer"><span>KitchAI</span><span>Preview candidate v1.0.1 · Local data only</span></footer>
 </div>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
