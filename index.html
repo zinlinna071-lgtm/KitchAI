@@ -12,6 +12,20 @@
 <div class="topbar-actions"><p id="connection-status" class="connection-status" role="status" aria-live="polite"><span class="status-dot" aria-hidden="true"></span> Checking connection…</p><button id="install-button" class="button button-secondary" type="button" hidden>Install app</button></div></header>
 <main id="main" class="page-shell" tabindex="-1">
 <section class="welcome" aria-labelledby="welcome-title"><p class="eyebrow">YOUR KITCHEN WORKSPACE</p><h1 id="welcome-title">Good work starts with a clear view.</h1><p class="welcome-copy">An offline-first kitchen workspace for business records, recipe-based production batches, and finished-stock handling. Inventory changes are posted atomically and remain auditable.</p></section>
+<nav class="workspace-nav" aria-label="KitchAI workspace shortcuts">
+  <div class="workspace-nav-heading"><p class="eyebrow">YOUR WORKSPACE</p><h2>What would you like to do?</h2><p>Choose a task below. Your local records remain available offline; cloud sync needs account setup.</p></div>
+  <div class="workspace-shortcuts">
+    <a class="workspace-shortcut workspace-shortcut-primary" href="#profile-editor-title"><span class="shortcut-icon" aria-hidden="true">⌂</span><strong>Business profile</strong><span>Set up or update your business</span></a>
+    <a class="workspace-shortcut" href="#ingredient-title"><span class="shortcut-icon" aria-hidden="true">＋</span><strong>Ingredients</strong><span>Manage reusable ingredient records</span></a>
+    <a class="workspace-shortcut" href="#menu-title"><span class="shortcut-icon" aria-hidden="true">▤</span><strong>Menu & recipes</strong><span>Connect menu items to ingredients</span></a>
+    <a class="workspace-shortcut" href="#purchase-title"><span class="shortcut-icon" aria-hidden="true">🧾</span><strong>Purchases</strong><span>Save purchases and review receipts</span></a>
+    <a class="workspace-shortcut" href="#production-title"><span class="shortcut-icon" aria-hidden="true">♨</span><strong>Production</strong><span>Record planned batches and actual use</span></a>
+    <a class="workspace-shortcut" href="#stock-count-title"><span class="shortcut-icon" aria-hidden="true">☷</span><strong>Stock count</strong><span>Review quantities and differences</span></a>
+    <a class="workspace-shortcut" href="#finished-stock-title"><span class="shortcut-icon" aria-hidden="true">✓</span><strong>Finished food</strong><span>Track remaining stock and disposition</span></a>
+    <a class="workspace-shortcut" href="#entity-sync-title"><span class="shortcut-icon" aria-hidden="true">↻</span><strong>Sync & conflicts</strong><span>Review account sync status and conflicts</span></a>
+  </div>
+  <aside class="ai-direction-note" aria-label="AI assistant development status"><span class="ai-note-mark" aria-hidden="true">AI</span><div><strong>KitchAI AI Business Partner</strong><p>The current foundation already supports local business records, recipes, purchasing, production, stock counts, finished-stock handling, and offline use. AI-led receipt interpretation, conversational advice, and approval-before-saving will be added as a separate, clearly labelled workflow; this screen does not pretend those AI features are active yet.</p></div></aside>
+</nav>
 <section class="status-grid" aria-label="Workspace readiness">
 <article class="status-card status-card-primary"><div class="card-icon" aria-hidden="true">✓</div><p class="card-label">APP SHELL</p><h2>Ready to open</h2><p>The core interface is available without needing a cloud connection.</p><span class="card-foot"><span class="status-dot" aria-hidden="true"></span>Local interface</span></article>
 <article class="status-card"><div class="card-icon card-icon-muted" aria-hidden="true">▤</div><p class="card-label">BUSINESS PROFILE</p><h2>Local-first record</h2><p>Create a profile locally or manage an account-scoped profile when local Supabase is configured.</p><span class="card-foot">Sync requires account connection</span></article>
