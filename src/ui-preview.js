@@ -94,7 +94,8 @@ function renderIngredientForm(id){
  const field=(label,name,value,type="text",min="")=>'<label class="ingredient-field"><span>'+label+'</span><input name="'+name+'" type="'+type+'" value="'+esc(value)+'" '+(type==="number"?'min="'+min+'" step="any"':'')+' required></label>';
  return '<div class="ingredient-page"><button class="menu-back-link" type="button" data-ingredient-action="cancel-form">‹ Cancel</button><header class="ingredient-heading"><div><p class="eyebrow">INGREDIENTS</p><h1>'+(existing?"Edit ingredient":"Add ingredient")+'</h1><p class="page-subtitle">Keep the details simple; you can add purchase and usage history later.</p></div></header><form class="ingredient-form" id="ingredient-form" data-ingredient-id="'+(existing?esc(existing.id):"")+'">'+field("Ingredient name","name",item.name)+ '<label class="ingredient-field"><span>Category</span><select name="category">'+["Main Ingredients","Vegetables & Others","Seasonings","Cooking Supplies","Packaging","Other"].map(c=>'<option '+(item.category===c?"selected":"")+'>'+c+'</option>').join("")+'</select></label><div class="ingredient-form-grid">'+field("Current stock","stock",item.stock,"number","0")+field("Stock unit","unit",item.unit)+field("Purchase unit","purchaseUnit",item.purchaseUnit)+field("Purchase price (฿)","purchasePrice",item.purchasePrice,"number","0")+field("Usage unit","usageUnit",item.usageUnit)+field("Conversion amount","conversion",item.conversion,"number","0")+'</div><p class="ingredient-preview-note">Example: 1 liter = 1000 ml. Enter conversion in usage units per purchase unit.</p><div class="ingredient-form-actions"><button class="ui-button secondary" type="button" data-ingredient-action="cancel-form">Cancel</button><button class="ui-button primary" type="submit">Save ingredient</button></div></form></div>';
 }
-\nfunction renderManagePage(){
+
+function renderManagePage(){
  const parts=state.page.split("/");
  const key=parts[1]||"page-1";
  if(key==="page-1")return parts.length>2?'<div class="manage-empty-page" aria-label="'+esc(parts.slice(2).join("/"))+'" style="min-height:65vh"></div>':renderOverview();
@@ -263,7 +264,8 @@ document.addEventListener("submit",e=>{
  toast(previous?"Ingredient updated in this browser.":"Ingredient saved in this browser.");
  location.hash="manage/ingredient-detail/"+encodeURIComponent(item.id);
 });
-\nwindow.addEventListener("hashchange",render);
+
+window.addEventListener("hashchange",render);
 document.addEventListener("click",e=>{
  const target=e.target;if(!(target instanceof Element))return;
  const menuRow=target.closest("[data-menu-open]");if(menuRow){location.hash="manage/menu-detail/"+encodeURIComponent(menuRow.getAttribute("data-menu-open"));return;}
