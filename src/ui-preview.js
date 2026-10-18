@@ -48,23 +48,10 @@
     return '<div class="ui-empty-state"><div aria-hidden="true" style="font-size:32px;color:var(--color-primary)">+</div><h2>'+esc(title)+'</h2><p>'+esc(copy)+'</p>'+action+'</div>';
   }
   function renderIngredients() {
-    const actions=button(t("createCategory"),"new-ingredient-category")+button(t("createIngredient"),"new-ingredient",true);
-    let html=pageHeader(pageLabel(pages[2]),"Create and organize ingredient records.",actions);
-    html+='<div class="ui-stack">';
-    html+='<div class="ui-row"><span class="ui-label">'+esc(t("category"))+':</span>'+state.categories.ingredients.map(c=>'<span class="ui-chip">'+esc(c)+'</span>').join("")+'</div>';
-    if (!state.ingredients.length) html+=emptyState(t("emptyTitle"),t("emptyCopy"),button(t("create"),"new-ingredient",true));
-    else html+='<div class="ui-stack">'+state.ingredients.map(item=>'<article class="ui-card ui-row" style="justify-content:space-between"><div><h2 style="margin:0;font-size:18px">'+esc(item.name)+'</h2><p style="margin:4px 0 0;color:var(--color-text-muted)">'+esc(item.category)+' · '+esc(item.type==='reusable'?t("reusable"):t("oneTime"))+(item.type==='one-time'?' · '+esc(item.quantity)+' '+esc(item.unit)+' · '+esc(item.price):'')+'</p></div>'+button(t("details"),"ingredient-detail:"+item.id)+'</article>').join("")+'</div>';
-    html+='<p class="ui-hint">'+esc(t("savedInPreview"))+'</p></div></section>';
-    return html;
+    return '<section class="page-section page-title-only"><h1>'+esc(pageLabel(pages[2]))+'</h1></section>';
   }
   function renderMenus() {
-    const actions=button(t("createCategory"),"new-menu-category")+button(t("createMenu"),"new-menu",true);
-    let html=pageHeader(pageLabel(pages[1]),"Create menus and view their details.",actions);
-    html+='<div class="ui-stack"><div class="ui-row"><span class="ui-label">'+esc(t("category"))+':</span>'+state.categories.menu.map(c=>'<span class="ui-chip">'+esc(c)+'</span>').join("")+'</div>';
-    if (!state.menus.length) html+=emptyState(t("emptyTitle"),t("emptyCopy"),button(t("create"),"new-menu",true));
-    else html+='<div class="ui-stack">'+state.menus.map(item=>'<article class="ui-card ui-row" style="justify-content:space-between"><div><h2 style="margin:0;font-size:18px">'+esc(item.name)+'</h2><p style="margin:4px 0 0;color:var(--color-text-muted)">'+esc(item.category)+' · '+esc(item.price)+'</p></div>'+button(t("details"),"menu-detail:"+item.id)+'</article>').join("")+'</div>';
-    html+='<p class="ui-hint">'+esc(t("savedInPreview"))+'</p></div></section>';
-    return html;
+    return '<section class="page-section page-title-only"><h1>'+esc(pageLabel(pages[1]))+'</h1></section>';
   }
   function renderDetail() {
     const items=state.detailType==="ingredient"?state.ingredients:state.menus;
@@ -86,12 +73,7 @@
     return html;
   }
   function renderDashboard() {
-    const stats=[["Total sales","฿2,480","↑ 12% vs last week","↗"],["Expenses","฿850","This week","−"],["Net profit","฿1,630","Preview estimate","+"],["Low stock items","3","Needs attention","!"]];
-    let html=pageHeader("Dashboard","A clear view of your kitchen business at a glance.",'<span class="ui-chip">Preview data</span>');
-    html+='<div class="dashboard-grid">'+stats.map((s,i)=>'<article class="ui-card stat-card"><div class="stat-top"><span>'+s[0]+'</span><span class="stat-icon stat-icon-'+i+'">'+s[3]+'</span></div><strong>'+s[1]+'</strong><small class="'+(i===3?'stat-warning':'stat-positive')+'">'+s[2]+'</small></article>').join("")+'</div>';
-    html+='<div class="dashboard-main-grid"><section class="ui-card sales-card"><div class="section-card-heading"><div><h2>Sales overview</h2><p>Example activity · last 7 days</p></div><span class="ui-chip">7 days</span></div><div class="chart-wrap"><div class="chart-y-labels"><span>฿3k</span><span>฿2k</span><span>฿1k</span><span>฿0</span></div><svg class="sales-chart" viewBox="0 0 600 190" role="img" aria-label="Illustrative sales trend"><defs><linearGradient id="sales-fill" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="var(--accent)" stop-opacity=".18"/><stop offset="100%" stop-color="var(--accent)" stop-opacity="0"/></linearGradient></defs><path d="M0 154 L75 124 L150 137 L225 88 L300 102 L375 58 L450 77 L525 34 L600 48 L600 190 L0 190 Z" fill="url(#sales-fill)"/><path d="M0 154 L75 124 L150 137 L225 88 L300 102 L375 58 L450 77 L525 34 L600 48" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="chart-x-labels"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div></section><section class="ui-card quick-card"><div class="section-card-heading"><div><h2>Quick actions</h2><p>Common tasks</p></div></div><button class="quick-action" data-page="menu"><span>＋</span><span><b>Add menu item</b><small>Manage what you sell</small></span><i>›</i></button><button class="quick-action" data-page="ingredients"><span>◈</span><span><b>Add ingredient</b><small>Manage your ingredients</small></span><i>›</i></button><button class="quick-action" data-page="expenses"><span>−</span><span><b>Record expense</b><small>Track business costs</small></span><i>›</i></button><button class="quick-action" data-page="reports"><span>▤</span><span><b>View reports</b><small>Review business performance</small></span><i>›</i></button></section></div>';
-    html+='<div class="dashboard-bottom-grid"><section class="ui-card"><div class="section-card-heading"><div><h2>Top selling items</h2><p>Illustrative examples</p></div><button class="text-action" data-page="menu">View menu →</button></div><div class="top-item-list"><div class="top-item"><span class="food-emoji">🍢</span><span><b>Quail Fry</b><small>12 portions sold</small></span><strong>฿100</strong></div><div class="top-item"><span class="food-emoji">🍙</span><span><b>Seaweed Rice Roll</b><small>8 portions sold</small></span><strong>฿80</strong></div><div class="top-item"><span class="food-emoji">🥚</span><span><b>Chicken Sausage Roll</b><small>6 portions sold</small></span><strong>฿60</strong></div></div></section><section class="ui-card"><div class="section-card-heading"><div><h2>Stock to check</h2><p>Example levels only</p></div><button class="text-action" data-page="ingredients">View ingredients →</button></div><div class="stock-list"><div><span>Quail meat</span><b>25%</b><i><em style="width:25%"></em></i></div><div><span>Seaweed</span><b>60%</b><i><em style="width:60%"></em></i></div><div><span>Cooking oil</span><b>40%</b><i><em style="width:40%"></em></i></div></div></section></div><p class="ui-hint dashboard-note">These are illustrative UI values only. No records are being saved.</p></section>';
-    return html;
+    return '<section class="page-section page-title-only"><h1>'+esc(pageLabel(pages[0]))+'</h1></section>';
   }
   function renderPage() {
     if(!pageContent)return;
