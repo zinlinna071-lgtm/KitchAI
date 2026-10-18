@@ -210,6 +210,7 @@
     deferredInstallPrompt = null;
     if (installButton) installButton.hidden = true;
   });
+  closeDrawer();
   updateConnectionStatus();
   if ("serviceWorker" in navigator && location.protocol !== "file:") {
     const basePath = document.querySelector('meta[name="kitchai-base-path"]')?.getAttribute("content") || "/";
