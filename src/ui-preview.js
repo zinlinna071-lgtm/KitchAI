@@ -196,20 +196,40 @@
   document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeDrawer();if(state.dialog){state.dialog=null;render();}}});
   languageSelect?.addEventListener("change",render);
   themeToggle?.addEventListener("click",()=>{const dark=document.documentElement.dataset.theme!=="dark";document.documentElement.dataset.theme=dark?"dark":"light";document.body.classList.toggle("dark",dark);themeToggle.setAttribute("aria-pressed",String(dark));});
+  let desktopTouchStart = null;
+  const finishDesktopSwipe = (endX,endY) => {
+    if(!desktopTouchStart||!isDesktop())return;
+    const dx=endX-desktopTouchStart.x,dy=endY-desktopTouchStart.y;
+    desktopTouchStart=null;
+    if(Math.abs(dx)<60||Math.abs(dx)<Math.abs(dy)*1.25)return;
+    setMode(state.mode==="ai"?"manage":"ai");
+  };
   document.addEventListener("pointerdown",e=>{
+    if(e.pointerType==="touch"&&isDesktop())return;
     if(e.isPrimary===false||(e.pointerType==="mouse"&&e.button!==0)){state.tracking=false;return;}
     state.touchX=e.clientX;state.touchY=e.clientY;
     state.drawerGesture=drawerIsOpen();state.tracking=true;
-  },{passive:true});
+  },{passive:true,capture:true});
+  document.addEventListener("touchstart",e=>{
+    if(!isDesktop()||!e.changedTouches.length)return;
+    const touch=e.changedTouches[0];
+    desktopTouchStart={x:touch.clientX,y:touch.clientY};
+  },{passive:true,capture:true});
+  document.addEventListener("touchend",e=>{
+    if(!isDesktop()||!desktopTouchStart||!e.changedTouches.length)return;
+    const touch=e.changedTouches[0];
+    finishDesktopSwipe(touch.clientX,touch.clientY);
+  },{passive:true,capture:true});
+  document.addEventListener("touchcancel",()=>{desktopTouchStart=null;},{passive:true,capture:true});
   document.addEventListener("pointerup",e=>{
     if(!state.tracking)return;
     state.tracking=false;
     const dx=e.clientX-state.touchX,dy=e.clientY-state.touchY;
-    if(Math.abs(dx)<80||Math.abs(dx)<Math.abs(dy)*1.4)return;
+    if(Math.abs(dx)<60||Math.abs(dx)<Math.abs(dy)*1.25)return;
     if(state.drawerGesture&&!isDesktop()){if(dx<0)closeDrawer();return;}
     setMode(state.mode==="ai"?"manage":"ai");
-  },{passive:true});
-  document.addEventListener("pointercancel",()=>{state.tracking=false;},{passive:true});
+  },{passive:true,capture:true});
+  document.addEventListener("pointercancel",()=>{state.tracking=false;},{passive:true,capture:true});
   window.addEventListener("resize",()=>{
     if(isDesktop()){sidebar?.classList.remove("open");backdrop?.classList.remove("visible");}
     else appShell?.classList.remove("sidebar-collapsed");
