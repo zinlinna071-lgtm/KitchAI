@@ -34,16 +34,18 @@ test("project-path frontend preview loads scoped assets without backend credenti
 
 test("Manage Mode exposes the seven confirmed pages and the Ingredients form", async ({ page }) => {
   await page.goto("./");
-  await page.getByRole("button", { name: /Manage Mode/ }).click();
-  for (const label of ["Dashboard", "Menu", "Ingredients", "Equipment & Supplies", "Expenses", "Business Reports", "Settings"]) {
-    await expect(page.getByRole("button", { name: label })).toBeVisible();
+  await page.locator('[data-mode="manage"]').click();
+  await expect(page.locator("[data-page]")).toHaveCount(7);
+  for (const pageId of ["dashboard", "menu", "ingredients", "equipment", "expenses", "reports", "settings"]) {
+    await expect(page.locator('[data-page="' + pageId + '"]')).toBeVisible();
   }
-  await page.getByRole("button", { name: "Ingredients" }).click();
+  await page.locator('[data-page="ingredients"]').click();
+  await expect(page.getByRole("heading", { name: "Ingredients" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "No data yet" })).toBeVisible();
   await expect(page.getByText("Default", { exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "Create Ingredient" }).click();
-  await expect(page.getByLabel("Name *")).toBeVisible();
-  await expect(page.getByLabel("Type")).toBeVisible();
+  await page.locator('[data-action="new-ingredient"]').first().click();
+  await expect(page.locator('#record-form input[name="name"]')).toBeVisible();
+  await expect(page.locator('#record-form select[name="type"]')).toBeVisible();
 });
 
 test("unknown project paths load the Pages fallback with project-scoped assets", async ({ page }) => {
