@@ -210,6 +210,12 @@
     e.preventDefault();
     e.stopImmediatePropagation();
   },true);
+  // Any new physical touch means the next tap is intentional, regardless of
+  // whether it starts in #main, the header, or another control.
+  // Keep this in capture phase so it clears the guard before click dispatch.
+  document.addEventListener("touchstart",()=>{
+    swipeClickGuard=null;
+  },{passive:true,capture:true});
   // Bind mode-swipe recognition to the main content only, not the whole document.
   // This makes it structurally impossible for a gesture beginning on the drawer
   // or header to trigger a mode change.
