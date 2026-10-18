@@ -1,226 +1,98 @@
-const $=(s,root=document)=>root.querySelector(s);
-const $$=(s,root=document)=>[...root.querySelectorAll(s)];
-const state={mode:"ai",page:"ai",lastManagePage:"manage/page-1",lastAIPage:"ai",theme:localStorage.getItem("kitchai-preview-theme")||"light",language:"en",sidebarSearch:false,businessMenuOpen:false,businessCreateOpen:false};
-const labels={en:{ai:"AI Mode",manage:"Manage Mode",newChat:"New chat",search:"Search chats",recent:"Recent chats",noChats:"Your conversations will appear here.",aiSettings:"AI Settings",appSettings:"App Settings",overview:"Overview",business:"Business",personal:"Personal",reports:"Reports",more:"More",coming:"Coming soon",noData:"No saved data yet",quick:"Quick actions",recentActivity:"Recent activity",todaySales:"Today's sales",expenses:"Expenses",stock:"Low stock",production:"Production",sales:"Sales",purchases:"Purchases",ingredients:"Ingredients & stock",recipes:"Menu & recipes",finished:"Finished food",businessExpenses:"Business expenses",income:"Income",personalExpenses:"Expenses",accounts:"Accounts",assets:"Assets & debts",dayClosing:"Day closing",aiWelcome:"How can I help you today?",aiHint:"Ask about sales, stock, expenses, or production…",aiNote:"AI connections are not enabled in this preview.",settingsHint:"Settings controls will appear here when implemented.",purpose:"Page purpose",planned:"Planned workflow",status:"Implementation status",language:"Language",theme:"Appearance",light:"Light",dark:"Dark",system:"System default",dataSync:"Data & sync",businessProfile:"Business profile",security:"Security",aiPreferences:"AI preferences",about:"About KitchAI",save:"Save",send:"Send",searchPlaceholder:"Search chats"} ,my:{ai:"AI Mode",manage:"Manage Mode",newChat:"Chat အသစ်",search:"Chat ရှာရန်",recent:"လတ်တလော Chat များ",noChats:"စကားပြောမှတ်တမ်း မရှိသေးပါ။",aiSettings:"AI Settings",appSettings:"App Settings",overview:"အနှစ်ချုပ်",business:"လုပ်ငန်း",personal:"ကိုယ်ရေးကိုယ်တာ",reports:"အစီရင်ခံစာ",more:"အခြား",coming:"မကြာမီလာမည်",noData:"သိမ်းထားသောဒေတာ မရှိသေးပါ",quick:"အမြန်လုပ်ဆောင်ရန်",recentActivity:"နောက်ဆုံးလုပ်ဆောင်ချက်များ",todaySales:"ယနေ့ရောင်းအား",expenses:"အသုံးစရိတ်",stock:"ကုန်နည်းနေမှု",production:"ထုတ်လုပ်မှု",sales:"ရောင်းအား",purchases:"ဝယ်ယူမှု",ingredients:"ကုန်ကြမ်းနှင့် Stock",recipes:"Menu နှင့် Recipe",finished:"ကုန်ချောအစားအစာ",businessExpenses:"လုပ်ငန်းအသုံးစရိတ်",income:"ဝင်ငွေ",personalExpenses:"အသုံးစရိတ်",accounts:"အကောင့်များ",assets:"ပိုင်ဆိုင်မှုနှင့် အကြွေး",dayClosing:"နေ့စဉ်စာရင်းပိတ်ခြင်း",aiWelcome:"ဒီနေ့ ဘာကူညီပေးရမလဲ?",aiHint:"ရောင်းအား၊ Stock၊ အသုံးစရိတ်၊ ထုတ်လုပ်မှုတို့ကို မေးနိုင်ပါတယ်…",aiNote:"ဒီ Preview မှာ AI ချိတ်ဆက်မှု မဖွင့်ထားသေးပါ။",settingsHint:"အကောင်အထည်ဖော်ပြီးချိန်မှာ Setting များကို ဒီမှာပြပါမယ်။",purpose:"စာမျက်နှာရည်ရွယ်ချက်",planned:"စီစဉ်ထားသောလုပ်ဆောင်ချက်",status:"အကောင်အထည်ဖော်မှုအခြေအနေ",language:"ဘာသာစကား",theme:"အသွင်အပြင်",light:"အလင်း",dark:"အမှောင်",system:"စနစ်အတိုင်း",dataSync:"ဒေတာနှင့် Sync",businessProfile:"လုပ်ငန်းအချက်အလက်",security:"လုံခြုံရေး",aiPreferences:"AI ဦးစားပေးမှု",about:"KitchAI အကြောင်း",save:"သိမ်းရန်",send:"ပို့ရန်",searchPlaceholder:"Chat ရှာရန်"},th:{ai:"โหมด AI",manage:"โหมดจัดการ",newChat:"แชตใหม่",search:"ค้นหาแชต",recent:"แชตล่าสุด",noChats:"ประวัติแชตจะแสดงที่นี่",aiSettings:"ตั้งค่า AI",appSettings:"ตั้งค่าแอป",overview:"ภาพรวม",business:"ธุรกิจ",personal:"ส่วนตัว",reports:"รายงาน",more:"เพิ่มเติม",coming:"เร็ว ๆ นี้",noData:"ยังไม่มีข้อมูลที่บันทึกไว้",quick:"ทางลัด",recentActivity:"กิจกรรมล่าสุด",todaySales:"ยอดขายวันนี้",expenses:"ค่าใช้จ่าย",stock:"สินค้าใกล้หมด",production:"การผลิต",sales:"ยอดขาย",purchases:"การซื้อ",ingredients:"วัตถุดิบและสต็อก",recipes:"เมนูและสูตร",finished:"อาหารสำเร็จรูป",businessExpenses:"ค่าใช้จ่ายธุรกิจ",income:"รายรับ",personalExpenses:"ค่าใช้จ่าย",accounts:"บัญชี",assets:"ทรัพย์สินและหนี้สิน",dayClosing:"ปิดยอดประจำวัน",aiWelcome:"วันนี้ให้ช่วยอะไรดี?",aiHint:"ถามเรื่องยอดขาย สต็อก ค่าใช้จ่าย หรือการผลิต…",aiNote:"ยังไม่ได้เปิดใช้ AI ในตัวอย่างนี้",settingsHint:"การตั้งค่าจะแสดงเมื่อพัฒนาเสร็จ",purpose:"วัตถุประสงค์ของหน้า",planned:"ขั้นตอนที่วางแผนไว้",status:"สถานะการพัฒนา",language:"ภาษา",theme:"รูปลักษณ์",light:"สว่าง",dark:"มืด",system:"ตามระบบ",dataSync:"ข้อมูลและซิงก์",businessProfile:"ข้อมูลธุรกิจ",security:"ความปลอดภัย",aiPreferences:"การตั้งค่า AI",about:"เกี่ยวกับ KitchAI",save:"บันทึก",send:"ส่ง",searchPlaceholder:"ค้นหาแชต"}};
-const business=[["sales","sales","↗"],["purchases","purchases","＋"],["ingredients","ingredients","▦"],["recipes","recipes","◈"],["production","production","♨"],["finished","finished","□"],["business-expenses","businessExpenses","−"],["day-closing","dayClosing","✓"]];
-const personal=[["income","income","＋"],["personal-expenses","personalExpenses","−"],["accounts","accounts","▤"],["assets-debts","assets","◇"]];
-const appSettings=[["language","language"],["appearance","theme"],["business-profile","businessProfile"],["data-sync","dataSync"],["security","security"],["about","about"]];
-function t(k){return (labels[state.language]||labels.en)[k]||labels.en[k]||k}
-function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
-function setMode(mode){if(mode===state.mode)return;if(state.mode==="manage"&&(state.page.startsWith("manage/")||state.page.startsWith("app-settings")))state.lastManagePage=state.page;if(state.mode==="ai"&&(state.page==="ai"||state.page.startsWith("ai-settings")))state.lastAIPage=state.page;state.mode=mode;state.page=mode==="ai"?(state.lastAIPage||"ai"):(state.lastManagePage||"manage/page-1");location.hash=state.page;render();window.scrollTo({top:0,behavior:"smooth"})}
-function item(href,label,icon,active=false){const route=String(href).replace(/^#+/,"");return '<a class="nav-item '+(active?'active':'')+'" href="#'+route+'"><span class="nav-icon">'+icon+'</span><span>'+esc(label)+'</span></a>'}
-function renderSidebar(){const box=$("#sidebar-content");const common='<div class="nav-section-label">KITCHAI</div>'+item("#app-settings",t("appSettings"),"⚙",state.page==="app-settings")+item("#app-settings/data-sync",t("dataSync"),"↻",state.page==="app-settings/data-sync")+item("#app-settings/about",t("about"),"ⓘ",state.page==="app-settings/about");if(state.mode==="ai"){box.innerHTML='<button class="sidebar-link" data-action="new-chat"><span class="nav-icon">＋</span><span>'+t("newChat")+'</span></button><button class="sidebar-link" data-action="search-chats"><span class="nav-icon">⌕</span><span>'+t("search")+'</span></button>'+(state.sidebarSearch?'<input class="sidebar-search" id="chat-search" placeholder="'+t("searchPlaceholder")+'" aria-label="'+t("search")+'">':'')+'<div class="nav-section-label">'+t("recent")+'</div><div class="empty-history">'+t("noChats")+'</div>'+item("#ai-settings",t("aiSettings"),"⚙",state.page.startsWith("ai-settings"));}else{const p=state.page.split("/")[1]||"page-1";box.innerHTML='<div class="nav-section-label">'+t("manage")+'</div>'+[["Dashboard","<svg viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect x=\"3.5\" y=\"3.5\" width=\"7\" height=\"7\" rx=\"1.3\"/><rect x=\"13.5\" y=\"3.5\" width=\"7\" height=\"4\" rx=\"1.2\"/><rect x=\"13.5\" y=\"11.5\" width=\"7\" height=\"9\" rx=\"1.2\"/><rect x=\"3.5\" y=\"13.5\" width=\"7\" height=\"7\" rx=\"1.2\"/></svg>"],["Menus","<svg viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 4v6M7 4v6M5.5 4v16\"/><path d=\"M15 4c-2.1 2-3 4.3-3 7h5V4M14.5 11v9\"/></svg>"],["Ingredients","<svg viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M20 4C11 4 5 7 5 13a6 6 0 0 0 6 6c6 0 9-6 9-15Z\"/><path d=\"M4 21c3-5 7-8 12-11\"/></svg>"],["Expenses","<svg viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M6 3.5h9l4 4V20a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 5 20V5a1.5 1.5 0 0 1 1-1.5Z\"/><path d=\"M14.5 3.8V8H19M8 12h8M8 16h5\"/></svg>"],["Reports","<svg viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 20V10M10 20V4M16 20v-7M22 20H2\"/></svg>"]].map(([label,icon],index)=>item("#manage/page-"+(index+1),label,icon,p==="page-"+(index+1))).join("")+common;}}function renderAI(){return '<section class="chat-screen"><div class="chat-welcome"><div class="ai-orb" aria-hidden="true">✳</div><h1>'+t("aiWelcome")+'</h1><p>'+t("aiNote")+'</p></div><div class="chat-bottom"><div class="prompt-chips"><button data-prompt="sales">'+t("sales")+'</button><button data-prompt="stock">'+t("ingredients")+'</button><button data-prompt="expenses">'+t("expenses")+'</button><button data-prompt="production">'+t("production")+'</button></div><form id="chat-form" class="chat-composer"><textarea id="chat-input" rows="1" placeholder="'+t("aiHint")+'" aria-label="'+t("aiHint")+'"></textarea><div class="composer-bottom"><span class="composer-hint">KitchAI · AI actions will require confirmation</span><button class="send-button" type="submit" aria-label="'+t("send")+'">↑</button></div></form><p class="disclaimer">Preview only · Your message will not be sent to an AI service.</p></div></section>'}
-function panel(title,desc,icon,status=t("coming")){return '<section class="panel"><div class="panel-top"><span class="panel-icon">'+icon+'</span><span class="status">'+esc(status)+'</span></div><h2>'+esc(title)+'</h2><p>'+esc(desc)+'</p></section>'}
-function quickAction(title,desc,icon,route){return '<a class="quick-action" href="#manage/'+route+'"><span class="quick-icon">'+icon+'</span><span><b>'+esc(title)+'</b><small>'+esc(desc)+'</small></span><span class="arrow">›</span></a>'}
-function renderOverview(){return '<div class="dashboard-page"><div class="dashboard-heading"><div><p class="eyebrow">MANAGE MODE</p><h1>Dashboard</h1><p class="dashboard-subtitle">Your business at a glance.</p></div><button class="dashboard-week-picker" type="button" data-dashboard-tool="week"><span aria-hidden="true">▦</span><span>This week</span><span aria-hidden="true">⌄</span></button></div><section class="weather-strip" aria-label="Weather summary"><span class="weather-symbol" aria-hidden="true">☁</span><span class="weather-condition"><b>Weather</b><small>Forecast not connected</small></span><span class="weather-divider"></span><span class="weather-meta">Local forecast</span><button type="button" class="weather-refresh" data-dashboard-tool="weather" aria-label="Weather details">›</button></section><section class="dashboard-chart-card"><div class="dashboard-section-title"><div><h2>Weekly cash flow</h2><p>Monday – Sunday</p></div><span class="chart-badge">7 days</span></div><div class="dashboard-legend"><span><i class="legend-income"></i>Income</span><span><i class="legend-expense"></i>Expenses</span></div><div class="clustered-chart" role="img" aria-label="Clustered column chart comparing income and expenses for Monday through Sunday. Sample columns are illustrative; actual records are not connected yet."><div class="chart-y-labels"><span>High</span><span>Mid</span><span>0</span></div><div class="chart-plot"><div class="chart-gridline grid-high"></div><div class="chart-gridline grid-mid"></div><div class="chart-gridline grid-zero"></div><div class="chart-columns"><div class="chart-day"><div class="chart-pair"><i class="income-column" style="--bar-height:54%"></i><i class="expense-column" style="--bar-height:28%"></i></div><span>Mon</span></div><div class="chart-day"><div class="chart-pair"><i class="income-column" style="--bar-height:72%"></i><i class="expense-column" style="--bar-height:39%"></i></div><span>Tue</span></div><div class="chart-day"><div class="chart-pair"><i class="income-column" style="--bar-height:43%"></i><i class="expense-column" style="--bar-height:30%"></i></div><span>Wed</span></div><div class="chart-day"><div class="chart-pair"><i class="income-column" style="--bar-height:83%"></i><i class="expense-column" style="--bar-height:45%"></i></div><span>Thu</span></div><div class="chart-day"><div class="chart-pair"><i class="income-column" style="--bar-height:65%"></i><i class="expense-column" style="--bar-height:37%"></i></div><span>Fri</span></div><div class="chart-day"><div class="chart-pair"><i class="income-column" style="--bar-height:94%"></i><i class="expense-column" style="--bar-height:58%"></i></div><span>Sat</span></div><div class="chart-day"><div class="chart-pair"><i class="income-column" style="--bar-height:77%"></i><i class="expense-column" style="--bar-height:46%"></i></div><span>Sun</span></div></div></div></div><p class="chart-footnote">Illustrative chart only · real figures appear when records are connected.</p></section><section class="weekly-summary" aria-label="Weekly financial summary"><div class="weekly-summary-item"><span>Sales revenue</span><b>—</b><small>THB</small></div><div class="weekly-summary-item"><span>Expenses</span><b>—</b><small>THB</small></div><div class="weekly-summary-item weekly-profit"><span>Profit</span><b>—</b><small>THB</small></div></section><section class="dashboard-section"><div class="dashboard-section-title"><div><h2>Quick actions</h2><p>Common tasks</p></div></div><div class="dashboard-quick-grid"><a class="dashboard-quick-action" href="#manage/page-1/sales"><span class="dashboard-action-icon">↗</span><span>Record sale</span></a><a class="dashboard-quick-action" href="#manage/page-1/production"><span class="dashboard-action-icon">♨</span><span>Production</span></a><a class="dashboard-quick-action" href="#manage/page-1/business-expenses"><span class="dashboard-action-icon">−</span><span>Add expense</span></a><a class="dashboard-quick-action" href="#manage/page-1/finished"><span class="dashboard-action-icon">▦</span><span>Food stock</span></a></div></section><section class="dashboard-section dashboard-tools-section"><div class="dashboard-section-title"><div><h2>Tools</h2><p>Handy everyday utilities</p></div></div><div class="dashboard-tools-grid"><button type="button" class="dashboard-tool" data-dashboard-tool="calculator"><span class="dashboard-tool-icon">⌗</span><span><b>Calculator</b><small>Quick calculations</small></span><span class="dashboard-tool-arrow">›</span></button><button type="button" class="dashboard-tool" data-dashboard-tool="converter"><span class="dashboard-tool-icon">⇄</span><span><b>Unit converter</b><small>g, kg, ml, L</small></span><span class="dashboard-tool-arrow">›</span></button></div></section></div>'}
-function field(label,type="text",placeholder="",options=[]){const control=type==="select"?'<select><option value="">Choose '+esc(label.toLowerCase())+'</option>'+options.map(x=>'<option>'+esc(x)+'</option>').join("")+'</select>':type==="textarea"?'<textarea rows="3" placeholder="'+esc(placeholder)+'"></textarea>':'<input type="'+type+'" placeholder="'+esc(placeholder)+'">';return '<label class="ui-field"><span>'+esc(label)+'</span>'+control+'</label>'}
-function section(title,body,action=""){return '<section class="ui-section"><div class="ui-section-head"><h2>'+esc(title)+'</h2>'+action+'</div>'+body+'</section>'}
-function actionButton(label,kind="secondary",action="preview-action"){return '<button type="button" class="ui-button '+kind+'" data-ui-action="'+action+'">'+esc(label)+'</button>'}
-function uiTable(headers,empty="No records to display yet."){return '<div class="ui-table-wrap"><table class="ui-table"><thead><tr>'+headers.map(h=>'<th>'+esc(h)+'</th>').join("")+'</tr></thead><tbody><tr><td colspan="'+headers.length+'" class="ui-empty">'+esc(empty)+'</td></tr></tbody></table></div>'}
-function moduleForm(key){
- const commonDate=field("Date","date");
- const config={
- sales:{title:"New sale",desc:"Add the items sold, quantity, discount and payment details.",fields:field("Menu item","select","",["Quail fry","Seaweed rice roll"])+field("Quantity","number","Enter quantity")+field("Unit price","number","0.00")+field("Discount","number","0.00")+field("Payment method","select","",["Cash","Bank transfer","QR payment","Other"])+commonDate,submit:"Review sale"},
- purchases:{title:"New purchase",desc:"Choose an existing ingredient or supply and enter the purchased amount.",fields:field("Ingredient / supply","select","",["Raw quail","Seaweed","Rice","Cooking oil","Salt","Gas","Packaging"])+field("Quantity","number","Purchased quantity")+field("Unit","select","",["kg","g","L","ml","piece","pack","bottle"])+field("Total cost","number","0.00")+field("Supplier","text","Optional supplier")+commonDate,submit:"Review purchase"},
- ingredients:{title:"Ingredient details",desc:"Create a consistent ingredient record for purchases, recipes and stock.",fields:field("Ingredient name","text","e.g. Cooking oil")+field("Category","select","",["Meal ingredient","Packaging","Shared consumable"])+field("Base unit","select","",["kg","g","L","ml","piece","pack"])+field("Opening quantity","number","0")+field("Reorder level","number","0")+field("Notes","textarea","Optional notes"),submit:"Preview ingredient"},
- recipes:{title:"Menu product & recipe",desc:"Define the sellable product and list the ingredients used per batch or serving.",fields:field("Menu product name","text","Product name")+field("Selling price","number","0.00")+field("Recipe yield","number","Number of portions")+field("Ingredient","select","",["Raw quail","Seaweed","Rice","Chicken sausage","Carrot","Cucumber","Egg","Cooking oil"])+field("Ingredient quantity","number","Quantity per yield")+field("Unit","select","",["g","kg","ml","L","piece"]),submit:"Preview recipe"},
- production:{title:"Production batch",desc:"Record planned output first; actual ingredient usage and yield can be entered in the next workflow step.",fields:field("Menu product","select","",["Quail fry","Seaweed rice roll"])+field("Production type","select","",["Make to order","Make ahead"])+field("Planned quantity","number","Planned portions")+field("Actual quantity","number","Actual portions")+field("Batch date","date")+field("Notes","textarea","Preparation notes"),submit:"Review batch"},
- finished:{title:"Finished food stock",desc:"Review prepared items, batch dates, available quantity and safe carry-over status.",fields:field("Menu product","select","",["Quail fry","Seaweed rice roll"])+field("Batch","select","",["Today","Previous batch"])+field("Quantity on hand","number","Count quantity")+field("Shelf-life / safety note","textarea","Storage and safety notes"),submit:"Preview stock update"},
- "business-expenses":{title:"New business expense",desc:"Record operating costs separately from ingredient purchases and personal spending.",fields:field("Expense category","select","",["Rent","Transport","Utilities","Equipment","Fees","Other"])+field("Description","text","What was paid for")+field("Amount","number","0.00")+field("Payment method","select","",["Cash","Bank transfer","QR payment","Other"])+commonDate+field("Notes","textarea","Optional notes"),submit:"Review expense"},
- "day-closing":{title:"End-of-day disposition",desc:"Account for every unsold finished item. Carry-over is only for food that remains safe to sell.",fields:field("Menu product","select","",["Quail fry","Seaweed rice roll"])+field("Outcome","select","",["Discounted sale","Personal consumption","Waste / spoilage","Carry over to next day","Giveaway"])+field("Quantity","number","Units")+field("Sale price (if sold)","number","0.00")+field("Reason / safety note","textarea","Required for waste or carry-over")+commonDate,submit:"Review disposition"},
- income:{title:"Personal income",desc:"Keep personal income separate from business revenue.",fields:field("Income source","text","Source")+field("Category","select","",["Salary","Other income","Transfer in","Other"])+field("Amount","number","0.00")+commonDate+field("Notes","textarea","Optional notes"),submit:"Review income"},
- "personal-expenses":{title:"Personal expense",desc:"Record household and personal spending without mixing business expenses.",fields:field("Category","select","",["Food","Housing","Transport","Health","Shopping","Other"])+field("Description","text","Expense description")+field("Amount","number","0.00")+field("Payment account","select","",["Cash","Bank","Other"])+commonDate,submit:"Review expense"},
- accounts:{title:"Personal account",desc:"A visual setup for cash, bank accounts and other personal balances.",fields:field("Account name","text","e.g. Cash wallet")+field("Account type","select","",["Cash","Bank account","E-wallet","Other"])+field("Currency","select","",["THB","MMK","USD"])+field("Opening balance","number","0.00"),submit:"Preview account"},
- "assets-debts":{title:"Asset or debt",desc:"List personal assets and liabilities separately from business equipment and payables.",fields:field("Record type","select","",["Asset","Debt"])+field("Name","text","Record name")+field("Current value / balance","number","0.00")+field("As-of date","date")+field("Notes","textarea","Optional notes"),submit:"Preview record"}
- };
- const c=config[key];if(!c)return "";
- return section(c.title,'<p class="ui-section-desc">'+c.desc+'</p><form class="ui-form" data-ui-preview-form><div class="ui-form-grid">'+c.fields+'</div><div class="ui-form-actions">'+actionButton("Cancel","secondary","clear-form")+'<button class="ui-button primary" type="submit">'+esc(c.submit)+'</button></div></form>');
-}
-let menuDemoCategories=[
- {id:"hot-food",name:"Hot Food"},
- {id:"rice-rolls",name:"Rice Rolls"},
- {id:"drinks",name:"Drinks"}
-];
-let menuDemoItems=[
- {id:"menu-1",name:"Quail Fry",categoryId:"hot-food",price:100,unit:"3 pieces",status:"Available",description:"Demo item"},
- {id:"menu-2",name:"Crispy Chicken Bites",categoryId:"hot-food",price:80,unit:"portion",status:"Available",description:"Demo item"},
- {id:"menu-3",name:"Seaweed Rice Roll",categoryId:"rice-rolls",price:35,unit:"roll",status:"Available",description:"Demo item"},
- {id:"menu-4",name:"Vegetable Rice Roll",categoryId:"rice-rolls",price:30,unit:"roll",status:"Unavailable",description:"Demo item"},
- {id:"menu-5",name:"Iced Tea",categoryId:"drinks",price:25,unit:"cup",status:"Available",description:"Demo item"}
-];
-let menuCategoryFilter="all";
-let menuCategoryForm=null;
-function renderMenusPage(){
- const categories=menuDemoCategories.filter(category=>menuDemoItems.some(menu=>menu.categoryId===category.id));
- return '<div class="menu-list-page"><header class="menu-list-heading"><h1>Menus</h1></header>'+categories.map(category=>{
-  const items=menuDemoItems.filter(menu=>menu.categoryId===category.id);
-  return '<section class="menu-category-list" aria-labelledby="menu-category-'+esc(category.id)+'"><h2 class="menu-category-heading" id="menu-category-'+esc(category.id)+'">'+esc(category.name)+'</h2><div class="menu-list-rows">'+items.map(menu=>'<button type="button" class="menu-list-row" data-menu-open="'+esc(menu.id)+'" aria-label="Open '+esc(menu.name)+'"><span class="menu-list-name">'+esc(menu.name)+'</span><span class="menu-list-price">฿'+Number(menu.price).toLocaleString("en-US")+'</span><span class="menu-list-chevron" aria-hidden="true">›</span></button>').join("")+'</div></section>';
- }).join("")+'</div>';
-}
-function renderMenuDetail(menuId){
- const menu=menuDemoItems.find(item=>item.id===menuId);
- if(!menu)return '<div class="menu-list-page"><button type="button" class="menu-back-link" data-menu-action="back-to-menu">‹ Menus</button><p>Menu item not found.</p></div>';
- const category=menuDemoCategories.find(item=>item.id===menu.categoryId);
- return '<div class="menu-list-page menu-detail-page"><button type="button" class="menu-back-link" data-menu-action="back-to-menu">‹ Menus</button><header class="menu-list-heading"><h1>'+esc(menu.name)+'</h1></header><section class="menu-detail-summary" aria-label="Menu item details"><div class="menu-detail-line"><span>Category</span><strong>'+esc(category?.name||"—")+'</strong></div><div class="menu-detail-line"><span>Price</span><strong>฿'+Number(menu.price).toLocaleString("en-US")+'</strong></div></section></div>';
-}
-function renderManagePage(){
- const parts=state.page.split("/");
- const key=parts[1]||"page-1";
- if(key==="page-1")return parts.length>2?'<div class="manage-empty-page" aria-label="'+esc(parts.slice(2).join("/"))+'" style="min-height:65vh"></div>':renderOverview();
- if(key==="page-2")return renderMenusPage();
- if(key==="menu-detail")return renderMenuDetail(parts[2]);
- if(!/^page-[1-5]$/.test(key))return '<div class="manage-empty-page" aria-label="'+esc(key)+'" style="min-height:65vh"></div>';
- return '<div class="manage-empty-page" aria-label="Page '+key.slice(-1)+'" style="min-height:65vh"></div>';
-}
+/* Minimal mode shell only. Legacy preview pages and mock workflows retired. */
+(() => {
+  const modeButtons = [...document.querySelectorAll("[data-mode]")];
+  const pageContent = document.querySelector("#page-content");
+  const sidebar = document.querySelector("#sidebar-content");
+  const languageSelect = document.querySelector("#language-select");
+  const themeToggle = document.querySelector("#theme-toggle");
+  const state = { mode: "ai", startX: 0, startY: 0, tracking: false };
 
-// Business profile preview data is local to this browser and is not cloud-synced.
-const BUSINESS_STORAGE_KEY="kitchai-business-profiles-v1";
-const ACTIVE_BUSINESS_KEY="kitchai-active-business-v1";
-const BUSINESS_TYPES=["Food Stall","Restaurant","Cafe","Bakery","Catering","Other"];
-const BUSINESS_CURRENCIES=[["THB","THB (฿)"],["MMK","MMK (Ks)"],["USD","USD ($)"]];
-function readBusinesses(){
-  try{
-    const raw=localStorage.getItem(BUSINESS_STORAGE_KEY);
-    if(raw){
-      const parsed=JSON.parse(raw);
-      if(Array.isArray(parsed)){
-        // Remove the legacy Night Market seed created automatically by earlier preview builds.
-        const migrated=parsed.filter(item=>item?.id!=="night-market");
-        if(migrated.length!==parsed.length)writeBusinesses(migrated);
-        return migrated;
-      }
+  const labels = {
+    en: {
+      ai: "AI Mode", manage: "Manage Mode",
+      aiTitle: "AI workspace", manageTitle: "Manage workspace",
+      empty: "This workspace is being rebuilt around the confirmed KitchAI requirements.",
+      note: "Legacy preview screens and sample workflows have been cleared. Existing data and business logic are kept separate and have not been deleted.",
+      settings: "Settings", language: "Language", appearance: "Appearance",
+      light: "Light", dark: "Dark", system: "System default"
+    },
+    my: {
+      ai: "AI Mode", manage: "Manage Mode",
+      aiTitle: "AI လုပ်ငန်းခွင်", manageTitle: "လုပ်ငန်းစီမံခန့်ခွဲမှု",
+      empty: "အတည်ပြုထားသော KitchAI လိုအပ်ချက်များအတိုင်း ဒီနေရာကို ပြန်လည်တည်ဆောက်နေပါသည်။",
+      note: "အဟောင်း Preview စာမျက်နှာများနှင့် နမူနာလုပ်ဆောင်ချက်များကို ရှင်းထားပါသည်။ ရှိပြီးသား Data နှင့် အရေးကြီး Logic များကို မဖျက်ထားပါ။",
+      settings: "Settings", language: "ဘာသာစကား", appearance: "အသွင်အပြင်",
+      light: "အလင်း", dark: "အမှောင်", system: "စနစ်အတိုင်း"
+    },
+    th: {
+      ai: "โหมด AI", manage: "โหมดจัดการ",
+      aiTitle: "พื้นที่ AI", manageTitle: "พื้นที่จัดการ",
+      empty: "กำลังสร้างพื้นที่นี้ใหม่ตามข้อกำหนด KitchAI ที่ยืนยันแล้ว",
+      note: "ล้างหน้าตัวอย่างและขั้นตอนจำลองเดิมแล้ว โดยยังเก็บข้อมูลและตรรกะธุรกิจที่มีอยู่ไว้",
+      settings: "ตั้งค่า", language: "ภาษา", appearance: "รูปลักษณ์",
+      light: "สว่าง", dark: "มืด", system: "ตามระบบ"
     }
-  }catch(error){console.warn("Could not read KitchAI preview business profiles",error);}
-  writeBusinesses([]);
-  return [];
-}
-function writeBusinesses(list){localStorage.setItem(BUSINESS_STORAGE_KEY,JSON.stringify(list));}
-function activeBusiness(){
-  const list=readBusinesses();
-  const selectedId=localStorage.getItem(ACTIVE_BUSINESS_KEY);
-  const selected=list.find(item=>item.id===selectedId&&item.status!=="archived");
-  const firstActive=list.find(item=>item.status!=="archived");
-  const business=selected||firstActive||null;
-  if(business)localStorage.setItem(ACTIVE_BUSINESS_KEY,business.id);
-  else localStorage.removeItem(ACTIVE_BUSINESS_KEY);
-  return business;
-}
-function selectBusiness(id){
-  const item=readBusinesses().find(entry=>entry.id===id&&entry.status!=="archived");
-  if(!item)return;
-  localStorage.setItem(ACTIVE_BUSINESS_KEY,id);
-  state.businessMenuOpen=false;state.businessCreateOpen=false;
+  };
+
+  function t(key) {
+    const lang = languageSelect?.value || "en";
+    return (labels[lang] || labels.en)[key] || labels.en[key] || key;
+  }
+
+  function render() {
+    modeButtons.forEach(button => {
+      const active = button.dataset.mode === state.mode;
+      button.classList.toggle("active", active);
+      button.setAttribute("aria-pressed", String(active));
+    });
+    if (sidebar) {
+      sidebar.innerHTML = '<div class="nav-section-label">' + t("settings") +
+        '</div><p class="empty-history">' + t("note") + '</p>';
+    }
+    if (pageContent) {
+      pageContent.innerHTML = '<section class="page-section" aria-labelledby="workspace-title">' +
+        '<h1 id="workspace-title">' + t(state.mode === "ai" ? "aiTitle" : "manageTitle") + '</h1>' +
+        '<p>' + t("empty") + '</p></section>';
+    }
+    document.documentElement.lang = languageSelect?.value || "en";
+  }
+
+  function setMode(mode) {
+    if (mode !== "ai" && mode !== "manage") return;
+    if (state.mode === mode) return;
+    state.mode = mode;
+    render();
+  }
+
+  modeButtons.forEach(button => button.addEventListener("click", () => setMode(button.dataset.mode)));
+  languageSelect?.addEventListener("change", render);
+  themeToggle?.addEventListener("click", () => {
+    const dark = document.documentElement.dataset.theme !== "dark";
+    document.documentElement.dataset.theme = dark ? "dark" : "light";
+    document.body.classList.toggle("theme-dark", dark);
+    themeToggle.setAttribute("aria-pressed", String(dark));
+  });
+
+  document.addEventListener("touchstart", event => {
+    if (event.touches.length !== 1) { state.tracking = false; return; }
+    const target = event.target;
+    if (target instanceof Element && target.closest("input, textarea, select, button, a, [contenteditable=true]")) {
+      state.tracking = false;
+      return;
+    }
+    state.startX = event.touches[0].clientX;
+    state.startY = event.touches[0].clientY;
+    state.tracking = true;
+  }, { passive: true });
+
+  document.addEventListener("touchend", event => {
+    if (!state.tracking || !event.changedTouches.length) return;
+    state.tracking = false;
+    const dx = event.changedTouches[0].clientX - state.startX;
+    const dy = event.changedTouches[0].clientY - state.startY;
+    if (Math.abs(dx) < 80 || Math.abs(dx) < Math.abs(dy) * 1.4) return;
+    setMode(dx < 0 ? "manage" : "ai");
+  }, { passive: true });
+
   render();
-}
-function renderBusinessSwitcher(){
-  const wrap=$("#business-switcher-wrap"),trigger=$("#business-switcher-trigger"),name=$("#business-switcher-name"),menu=$("#business-switcher-menu"),createSlot=$("#business-quick-create-slot");
-  if(!wrap||!trigger||!name||!menu||!createSlot)return;
-  const current=activeBusiness();
-  name.textContent=current?.name||"Choose business";
-  trigger.setAttribute("aria-expanded",String(state.businessMenuOpen));
-  menu.hidden=!state.businessMenuOpen;
-  createSlot.innerHTML="";
-  if(state.businessMenuOpen){
-    const list=readBusinesses();
-    const active=list.filter(item=>item.status!=="archived");
-    const archived=list.filter(item=>item.status==="archived");
-    const activeRows=active.length?active.map(item=>'<button type="button" class="business-option '+(item.id===current?.id?'selected':'')+'" data-business-select="'+esc(item.id)+'"><span class="business-option-mark">▦</span><span class="business-option-copy"><b>'+esc(item.name)+'</b><small>'+esc(item.type||"Business")+'</small></span>'+(item.id===current?.id?'<span class="business-option-check">✓</span>':'')+'</button>').join(""):'<p class="business-menu-empty">No active businesses yet.</p>';
-    const archivedRows=archived.length?'<div class="business-menu-heading archived-heading">ARCHIVED</div>'+archived.map(item=>'<div class="business-option archived-option"><span class="business-option-mark">▦</span><span class="business-option-copy"><b>'+esc(item.name)+'</b><small>Archived</small></span><button type="button" class="business-restore-button" data-business-restore="'+esc(item.id)+'">Restore</button></div>').join(""):'';
-    const createControl=state.businessCreateOpen?
-      '<form id="business-quick-create-form" class="business-quick-create"><label for="business-quick-name">New business name</label><input id="business-quick-name" name="name" maxlength="80" required placeholder="Business name"><label for="business-quick-type">Business type</label><select id="business-quick-type" name="type">'+BUSINESS_TYPES.map(type=>'<option>'+esc(type)+'</option>').join("")+'</select><div class="business-quick-actions"><button type="button" class="button-secondary" data-business-create-cancel>Cancel</button><button type="submit" class="button-primary">Create</button></div></form>':
-      '<div class="business-create-row"><button type="button" class="business-create-link" data-business-create-toggle><span aria-hidden="true">＋</span> Create new</button></div>';
-    menu.innerHTML='<div class="business-menu-heading">YOUR BUSINESSES</div>'+activeRows+archivedRows+createControl;
-  }else{menu.innerHTML="";}
-}
-function renderBusinessProfile(){
-  const business=activeBusiness();
-  if(!business)return '<div class="page-head"><div><p class="eyebrow">BUSINESS</p><h1>Business profile</h1></div></div><div class="empty-panel">Create a business to get started.</div>';
-  const field=(label,key,placeholder="",type="text")=>'<label class="profile-field"><span>'+label+'</span><input name="'+key+'" type="'+type+'" value="'+esc(business[key]||"")+'" placeholder="'+placeholder+'" '+(key==="name"?"required maxlength=\"80\"":"maxlength=\"240\"")+'></label>';
-  return '<div class="page-head"><div><p class="eyebrow">BUSINESS SETTINGS</p><h1>Business profile</h1><p class="page-subtitle">Manage the details and defaults for the selected business.</p></div><span class="status">Local preview</span></div>'+
-    '<form id="business-profile-form" class="business-profile-form" data-business-id="'+esc(business.id)+'">'+
-    '<section class="profile-section"><div class="profile-section-heading"><span class="profile-section-icon">▦</span><div><h2>Basic information</h2><p>Details shown across your business workspace.</p></div></div><div class="profile-form-grid">'+field("Business name","name","e.g. Night Market")+
-    '<label class="profile-field"><span>Business type</span><select name="type">'+BUSINESS_TYPES.map(type=>'<option '+(business.type===type?'selected':'')+'>'+esc(type)+'</option>').join("")+'</select></label>'+
-    field("Phone number","phone","+66…")+
-    field("Logo / photo URL","logoUrl","https://…")+
-    '<label class="profile-field"><span>Business opening date</span><input name="openingDate" type="date" value="'+esc(business.openingDate||"")+'"></label>'+
-    
-    field("Address / location","address","Business address")+
-    '<label class="profile-field profile-field-wide"><span>Description (optional)</span><textarea name="description" rows="3" maxlength="500" placeholder="A short description of your business">'+esc(business.description||"")+'</textarea></label></div></section>'+
-    '<section class="profile-section"><div class="profile-section-heading"><span class="profile-section-icon">◷</span><div><h2>Business preferences</h2><p>Defaults used when recording dates, money and quantities.</p></div></div><div class="profile-form-grid">'+
-    '<label class="profile-field"><span>Currency</span><select name="currency">'+BUSINESS_CURRENCIES.map(([code,label])=>'<option value="'+code+'" '+(business.currency===code?'selected':'')+'>'+label+'</option>').join("")+'</select></label>'+
-    '<label class="profile-field"><span>Time zone</span><select name="timeZone">'+[["Asia/Bangkok","Thailand (Bangkok)"],["Asia/Yangon","Myanmar (Yangon)"],["UTC","UTC"]].map(([value,label])=>'<option value="'+value+'" '+((business.timeZone||"Asia/Bangkok")===value?'selected':'')+'>'+label+'</option>').join("")+'</select></label>'+
-    '<label class="profile-field"><span>Measurement units</span><select name="unitSystem"><option value="metric" '+((business.unitSystem||"metric")==="metric"?'selected':'')+'>Metric (g, kg, ml, L)</option><option value="imperial" '+(business.unitSystem==="imperial"?'selected':'')+'>Imperial (oz, lb, fl oz)</option></select></label></div></section>'+
-    '<div class="profile-save-row"><span class="profile-save-note">Changes are saved in this browser only in this preview.</span><button type="submit" class="button-primary">Save changes</button></div></form>'+
-    '<section class="profile-section profile-archive-section"><div><h2>Business status</h2><p>Archive hides this business but keeps its profile for restoration.</p></div><div class="profile-archive-row"><span class="status '+(business.status==="archived"?"":"status-active")+'">'+(business.status==="archived"?"Archived":"Active")+'</span><button type="button" class="button-secondary" data-business-archive="'+esc(business.id)+'">Archive business</button></div></section>'+
-    '<section class="profile-section business-danger-zone"><div><h2>Danger zone</h2><p>Permanently remove this Business profile from this device. This preview does not yet connect the business modules, cloud sync, or their records, so this is not a claim that future linked records are already being cascade-deleted.</p></div><div class="profile-archive-row"><button type="button" class="button-danger" data-business-delete="'+esc(business.id)+'">Permanently Delete Business</button></div></section>';
-}
-
-function renderSettings(which){
- const ai=which==="ai-settings",prefix=ai?"ai-settings":"app-settings";
- const path=state.page.split("/"),detail=path.length>1?path.slice(1).join("/"):"";
- if(!ai&&detail==="about")return '<div class="page-head"><div><p class="eyebrow">KITCHAI SETTINGS</p><h1>About KitchAI</h1><p class="page-subtitle">A focused workspace for food-business operations.</p></div></div>'+section("Application information",'<div class="ui-info-list"><div><span>Version</span><b>v1.1.0 · UI foundation preview</b></div><div><span>Interface</span><b>Responsive web app</b></div><div><span>Data services</span><b>Not connected in this UI stage</b></div></div>');
- if(!ai&&detail==="data-sync")return '<div class="page-head"><div><p class="eyebrow">KITCHAI SETTINGS</p><h1>Data & sync</h1><p class="page-subtitle">Review the planned sync controls and device status layout.</p></div></div>'+section("Connection status",'<div class="ui-info-list"><div><span>Device mode</span><b>Offline-capable UI</b></div><div><span>Cloud sync</span><b>Not connected</b></div><div><span>Pending changes</span><b>—</b></div></div>')+section("Sync preferences",'<div class="ui-form-grid">'+field("Sync behavior","select","",["Automatic when online","Manual only"])+field("Conflict handling","select","",["Review before applying","Keep newest change"])+'</div><div class="ui-form-actions">'+actionButton("Check connection","secondary")+'<button class="ui-button primary" data-ui-action="preview-action">Save preferences</button></div>');
- if(!ai&&detail==="security")return '<div class="page-head"><div><p class="eyebrow">KITCHAI SETTINGS</p><h1>Security</h1><p class="page-subtitle">Account and device security controls.</p></div></div>'+section("Session",'<div class="ui-info-list"><div><span>Signed-in account</span><b>Not connected</b></div><div><span>Device lock</span><b>Not configured</b></div></div>')+section("Privacy controls",'<div class="ui-form-grid">'+field("Automatic lock","select","",["Never","After 1 minute","After 5 minutes","After 15 minutes"])+field("Require confirmation for destructive actions","select","",["Always","Business delete only"])+'</div>'+actionButton("Save security preferences","primary"));
- if(ai&&detail==="ai-preferences")return '<div class="page-head"><div><p class="eyebrow">KITCHAI SETTINGS</p><h1>AI preferences</h1><p class="page-subtitle">Configure how the assistant should present information.</p></div></div>'+section("Response style",'<div class="ui-form-grid">'+field("Answer detail","select","",["Concise","Balanced","Detailed"])+field("Language","select","",["Follow app language","English","မြန်မာ","ไทย"])+field("Confirm before changes","select","",["Always","For important actions"])+'</div>')+section("Business context",'<div class="ui-info-list"><div><span>Current business</span><b>'+(activeBusiness()?esc(activeBusiness().name):"None selected")+'</b></div><div><span>External AI connection</span><b>Not connected</b></div></div>')+actionButton("Save AI preferences","primary");
- if(detail&&detail!=="appearance"&&detail!=="language")return '<div class="page-head"><div><p class="eyebrow">KITCHAI SETTINGS</p><h1>'+esc(detail.split("-").map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(" "))+'</h1><p class="page-subtitle">Configure your application preferences.</p></div></div>'+section("Preferences",'<div class="ui-info-list"><div><span>Current setting</span><b>Preview configuration</b></div></div>');
- return '<div class="page-head"><div><p class="eyebrow">KITCHAI SETTINGS</p><h1>'+(ai?t("aiSettings"):t("appSettings"))+'</h1><p class="page-subtitle">A consistent place to manage the app experience and account preferences.</p></div></div>'+
- (ai?'<section class="profile-section settings-control-section"><label class="profile-field"><span>Response style</span><select><option>Balanced</option><option>Concise</option><option>Detailed</option></select></label><label class="profile-field"><span>Confirmation preference</span><select><option>Confirm important actions</option><option>Confirm every action</option></select></label></section>':'<section class="profile-section settings-control-section"><label class="profile-field"><span>Appearance</span><select id="settings-theme-select"><option value="light" '+(state.theme==="light"?"selected":"")+'>Light</option><option value="dark" '+(state.theme==="dark"?"selected":"")+'>Dark</option></select></label><label class="profile-field"><span>Language</span><select id="settings-language-select"><option value="en" '+(state.language==="en"?"selected":"")+'>English</option><option value="my" '+(state.language==="my"?"selected":"")+'>မြန်မာ</option><option value="th" '+(state.language==="th"?"selected":"")+'>ไทย</option></select></label></section>')+
- '<div class="settings-grid">'+(ai?[["ai-preferences",t("aiPreferences"),"Adjust assistant tone and confirmation preferences."]]:[["data-sync",t("dataSync"),"Device connection and synchronization preferences."],["security",t("security"),"Session, privacy and destructive-action controls."],["about",t("about"),"Version and application information."]]).map(([key,label,desc])=>'<a class="settings-row" href="#'+prefix+'/'+key+'"><span class="settings-icon">⚙</span><span><b>'+esc(label)+'</b><small>'+esc(desc)+'</small></span><span class="arrow">›</span></a>').join("")+'</div>';
-}
-function render(){const rawHash=location.hash.replace(/^#+/,"")||"ai";const hash=rawHash.startsWith("/")?rawHash.slice(1):rawHash;if(hash==="ai"){state.mode="ai";state.page="ai";state.lastAIPage="ai"}else if(hash.startsWith("manage/")){state.mode="manage";state.page=hash;state.lastManagePage=hash}else if(hash.startsWith("ai-settings")){state.mode="ai";state.page=hash;state.lastAIPage=hash}else if(hash.startsWith("app-settings")){state.mode="manage";state.page=hash;state.lastManagePage=hash}else{state.mode="ai";state.page="ai";location.hash="ai"}document.body.classList.toggle("dark",state.theme==="dark");$$(".mode-button").forEach(b=>{const on=b.dataset.mode===state.mode;b.classList.toggle("active",on);b.setAttribute("aria-pressed",String(on))});renderSidebar();renderBusinessSwitcher();let content;if(state.page==="ai")content=renderAI();else if(state.page.startsWith("ai-settings"))content=renderSettings("ai-settings");else if(state.page.startsWith("app-settings"))content=renderSettings("app-settings");else content=renderManagePage();$("#page-content").innerHTML=state.page==="ai"?content:'<div class="page-content">'+content+'</div>';$("#sidebar").classList.remove("open");$("#sidebar-backdrop").classList.remove("visible");}
-let toastTimeout;function toast(msg){const el=$("#toast");el.textContent=msg;el.classList.add("visible");clearTimeout(toastTimeout);toastTimeout=setTimeout(()=>el.classList.remove("visible"),2600)}
-$$(".mode-button").forEach(b=>b.addEventListener("click",()=>setMode(b.dataset.mode)));
-$("#profile-button").addEventListener("click",()=>toast("Profile controls are preview-only in this UI stage."));
-$("#theme-toggle").addEventListener("click",()=>{state.theme=state.theme==="dark"?"light":"dark";localStorage.setItem("kitchai-preview-theme",state.theme);render();});
-$("#menu-toggle").addEventListener("click",()=>{$("#sidebar").classList.add("open");$("#sidebar-backdrop").classList.add("visible")});
-$("#sidebar-close").addEventListener("click",()=>{$("#sidebar").classList.remove("open");$("#sidebar-backdrop").classList.remove("visible")});
-$("#sidebar-backdrop").addEventListener("click",()=>{$("#sidebar").classList.remove("open");$("#sidebar-backdrop").classList.remove("visible")});
-document.addEventListener("click",e=>{const target=e.target;if(!(target instanceof Element))return;const a=target.closest("[data-action]");if(!a)return;if(a.getAttribute("data-action")==="new-chat"){location.hash="ai";toast("New chat preview — AI is not connected yet.");}if(a.getAttribute("data-action")==="search-chats"){state.sidebarSearch=!state.sidebarSearch;renderSidebar();}});
-document.addEventListener("click",e=>{const target=e.target;if(!(target instanceof Element))return;const p=target.closest("[data-prompt]");if(p){const input=$("#chat-input");if(input){input.value=p.getAttribute("data-prompt")==="sales"?"Please summarize today's sales.":p.getAttribute("data-prompt")==="stock"?"Please check ingredient stock.":p.getAttribute("data-prompt")==="expenses"?"Please summarize expenses.":"Please show production status.";input.focus()}}});
-document.addEventListener("submit",e=>{const form=e.target;if(!(form instanceof HTMLFormElement)||form.id!=="chat-form")return;e.preventDefault();const input=$("#chat-input");if(input.value.trim())toast("Preview only — message not sent. AI connection is not enabled.");});
-let touchX=0,touchY=0;let swipeCandidate=false,drawerSwipe=false;const swipeRoot=document;swipeRoot.addEventListener("touchstart",e=>{touchX=0;touchY=0;swipeCandidate=false;drawerSwipe=false;if(e.touches.length!==1)return;const target=e.target;if($("#sidebar").classList.contains("open")){if(target instanceof Element&&target.closest("#sidebar")){touchX=e.touches[0].clientX;touchY=e.touches[0].clientY;drawerSwipe=true;}return;}if(target instanceof Element&&target.closest("textarea,input,select,[contenteditable=true],.prompt-chips"))return;touchX=e.touches[0].clientX;touchY=e.touches[0].clientY;swipeCandidate=true},{passive:true,capture:true});swipeRoot.addEventListener("touchend",e=>{if(!e.changedTouches.length)return;const dx=e.changedTouches[0].clientX-touchX,dy=e.changedTouches[0].clientY-touchY;if(drawerSwipe){if(dx< -52&&Math.abs(dx)>Math.abs(dy)*1.12){$("#sidebar").classList.remove("open");$("#sidebar-backdrop").classList.remove("visible")}touchX=0;touchY=0;drawerSwipe=false;swipeCandidate=false;return}if($("#sidebar").classList.contains("open")){touchX=0;touchY=0;swipeCandidate=false;return}if(!swipeCandidate||!touchX){touchX=0;touchY=0;swipeCandidate=false;return}touchX=0;touchY=0;swipeCandidate=false;if(Math.abs(dx)<52||Math.abs(dx)<Math.abs(dy)*1.12)return;setMode(state.mode==="ai"?"manage":"ai")},{passive:true,capture:true});swipeRoot.addEventListener("touchcancel",()=>{touchX=0;touchY=0;swipeCandidate=false;drawerSwipe=false},{passive:true,capture:true});
-
-document.addEventListener("click",e=>{
- const target=e.target;if(!(target instanceof Element))return;
- if(target.closest("#business-switcher-trigger")){state.businessMenuOpen=!state.businessMenuOpen;state.businessCreateOpen=false;renderBusinessSwitcher();return;}
- if(!target.closest("#business-switcher-wrap")&&state.businessMenuOpen){state.businessMenuOpen=false;state.businessCreateOpen=false;renderBusinessSwitcher();return;}
- const select=target.closest("[data-business-select]");if(select){selectBusiness(select.getAttribute("data-business-select"));return;}
- const toggle=target.closest("[data-business-create-toggle]");if(toggle){state.businessCreateOpen=!state.businessCreateOpen;renderBusinessSwitcher();const input=$("#business-quick-name");if(input)input.focus();return;}
- if(target.closest("[data-business-create-cancel]")){state.businessCreateOpen=false;renderBusinessSwitcher();return;}
- const restore=target.closest("[data-business-restore]");if(restore){const id=restore.getAttribute("data-business-restore");const list=readBusinesses();const item=list.find(row=>row.id===id);if(item){item.status="active";item.updatedAt=new Date().toISOString();writeBusinesses(list);toast(item.name+" restored.");renderBusinessSwitcher();}return;}
- const remove=target.closest("[data-business-delete]");if(remove){const id=remove.getAttribute("data-business-delete");const list=readBusinesses();const item=list.find(row=>row.id===id);if(!item)return;const typed=window.prompt('Permanently delete "'+item.name+'"? Type the exact business name to confirm.');if(typed!==item.name){if(typed!==null)toast("Business name did not match. Nothing was deleted.");return;}if(!window.confirm("Final confirmation: remove the Business profile "+item.name+" from this device? This preview has no connected module records or cloud sync."))return;writeBusinesses(list.filter(row=>row.id!==id));if(localStorage.getItem(ACTIVE_BUSINESS_KEY)===id)localStorage.removeItem(ACTIVE_BUSINESS_KEY);state.businessMenuOpen=false;state.businessCreateOpen=false;toast(item.name+" business profile deleted from this device.");render();return;}
-const archive=target.closest("[data-business-archive]");if(archive){const id=archive.getAttribute("data-business-archive");const list=readBusinesses();const item=list.find(row=>row.id===id);if(!item)return;if(list.filter(row=>row.status!=="archived").length<=1){toast("Keep at least one active business. Create another before archiving this one.");return;}if(!window.confirm("Archive "+item.name+"? You can restore it later."))return;item.status="archived";item.updatedAt=new Date().toISOString();writeBusinesses(list);if(localStorage.getItem(ACTIVE_BUSINESS_KEY)===id){const next=list.find(row=>row.status!=="archived");if(next)localStorage.setItem(ACTIVE_BUSINESS_KEY,next.id);}toast(item.name+" archived.");render();return;}
-});
-document.addEventListener("submit",e=>{
- const form=e.target;if(!(form instanceof HTMLFormElement))return;
- if(form.id==="business-quick-create-form"){e.preventDefault();const data=new FormData(form);const name=String(data.get("name")||"").trim();const type=String(data.get("type")||"Other");if(!name){toast("Enter a business name.");return;}const list=readBusinesses();if(list.some(row=>row.status!=="archived"&&row.name.trim().toLowerCase()===name.toLowerCase())){toast("A business with that name already exists.");return;}const now=new Date().toISOString();const item={id:"biz-"+(typeof crypto!=="undefined"&&crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)),name,type,logoUrl:"",phone:"",address:"",description:"",openingDate:"",currency:"THB",timeZone:"Asia/Bangkok",unitSystem:"metric",status:"active",createdAt:now,updatedAt:now};list.push(item);writeBusinesses(list);localStorage.setItem(ACTIVE_BUSINESS_KEY,item.id);state.businessMenuOpen=false;state.businessCreateOpen=false;location.hash="manage/business-profile";toast("Business created. Complete its profile.");return;}
- if(form.id==="business-profile-form"){e.preventDefault();const id=form.getAttribute("data-business-id");const list=readBusinesses();const item=list.find(row=>row.id===id);if(!item)return;const data=new FormData(form);const name=String(data.get("name")||"").trim();if(!name){toast("Business name is required.");return;}if(list.some(row=>row.id!==id&&row.status!=="archived"&&row.name.trim().toLowerCase()===name.toLowerCase())){toast("Another active business already uses that name.");return;}for(const key of ["name","type","phone","logoUrl","address","description","openingDate","currency","timeZone","unitSystem"]){item[key]=String(data.get(key)||"").trim();}item.updatedAt=new Date().toISOString();writeBusinesses(list);toast("Business profile saved on this device.");render();return;}
-});
-
-document.addEventListener("change",e=>{const target=e.target;if(!(target instanceof HTMLSelectElement))return;if(target.id==="settings-theme-select"){state.theme=target.value;localStorage.setItem("kitchai-preview-theme",state.theme);render();}if(target.id==="settings-language-select"||target.id==="language-select"){state.language=target.value;localStorage.setItem("kitchai-preview-language",state.language);render();}});
-window.addEventListener("hashchange",render);
-document.addEventListener("click",e=>{
- const target=e.target;if(!(target instanceof Element))return;
- const menuRow=target.closest("[data-menu-open]");if(menuRow){location.hash="manage/menu-detail/"+encodeURIComponent(menuRow.getAttribute("data-menu-open"));return;}
- const btn=target.closest("[data-menu-action]");if(!btn)return;
- const action=btn.getAttribute("data-menu-action");
- if(action==="back-to-menu"){location.hash="manage/page-2";return;}
- if(action==="filter"){menuCategoryFilter=btn.getAttribute("data-category-id")||"all";render();return;}
- if(action==="create-menu"){toast("Create Menu form will be added in a later step. No data was created.");return;}
- if(action==="quick-create-category"){menuCategoryForm={mode:"create",id:null,name:""};render();const input=$('#menu-category-form [name="categoryName"]');if(input)input.focus();return;}
- if(action==="cancel-category-form"){menuCategoryForm=null;render();return;}
- if(action==="edit-category"){const id=btn.getAttribute("data-category-id");const category=menuDemoCategories.find(c=>c.id===id);if(category){menuCategoryForm={mode:"edit",id:category.id,name:category.name};render();const input=$('#menu-category-form [name="categoryName"]');if(input)input.focus();}return;}
- if(action==="edit-menu"){toast("Menu edit form will be added in a later step.");return;}
- if(action==="toggle-menu"){const id=btn.getAttribute("data-menu-id");const menu=menuDemoItems.find(m=>m.id===id);if(menu){menu.status=menu.status==="Available"?"Unavailable":"Available";render();toast(menu.name+" marked "+menu.status.toLowerCase()+" in sample data.");}return;}
- if(action==="delete-menu"){const id=btn.getAttribute("data-menu-id");const menu=menuDemoItems.find(m=>m.id===id);if(menu&&window.confirm("Remove "+menu.name+" from the temporary sample list?")){menuDemoItems=menuDemoItems.filter(m=>m.id!==id);render();toast("Sample menu removed. No real data was affected.");}return;}
- if(action==="delete-category"){const id=btn.getAttribute("data-category-id");const category=menuDemoCategories.find(c=>c.id===id);if(!category)return;const count=menuDemoItems.filter(m=>m.categoryId===id).length;const detail=count?" and its "+count+" sample menu"+(count===1?"":"s"):"";if(window.confirm("Delete category "+category.name+detail+"? This only changes temporary sample data.")){menuDemoCategories=menuDemoCategories.filter(c=>c.id!==id);menuDemoItems=menuDemoItems.filter(m=>m.categoryId!==id);if(menuCategoryFilter===id)menuCategoryFilter="all";if(menuCategoryForm&&menuCategoryForm.id===id)menuCategoryForm=null;render();toast("Sample category deleted. No real data was affected.");}return;}
-});
-document.addEventListener("click",e=>{const target=e.target;if(!(target instanceof Element))return;const dash=target.closest("[data-dashboard-tool]");if(dash){const tool=dash.getAttribute("data-dashboard-tool");const messages={calculator:"Calculator tool will be implemented in a later step.",converter:"Unit converter will be implemented in a later step.",weather:"Live weather is not connected in this preview.",week:"Week selection will be connected when reporting data is available."};toast(messages[tool]||"Preview only.");return;}});
-document.addEventListener("click",e=>{const target=e.target;if(!(target instanceof Element))return;const btn=target.closest("[data-ui-action]");if(!btn)return;const action=btn.getAttribute("data-ui-action");if(action==="clear-form"){const form=btn.closest("form");if(form)form.reset();return;}if(action==="toggle-filters"){const filters=$('[data-filter-panel]');if(filters)filters.hidden=!filters.hidden;return;}if(action==="preview-action")toast("UI preview only — no data was saved or changed.");});
-document.addEventListener("submit",e=>{const form=e.target;if(!(form instanceof HTMLFormElement))return;if(form.id==="menu-category-form"){e.preventDefault();const name=String(new FormData(form).get("categoryName")||"").trim();if(!name){const input=form.elements.namedItem("categoryName");if(input instanceof HTMLElement)input.focus();return;}if(menuDemoCategories.some(c=>c.name.trim().toLowerCase()===name.toLowerCase()&&c.id!==menuCategoryForm?.id)){toast("A category with this name already exists.");return;}if(menuCategoryForm?.mode==="edit"){const category=menuDemoCategories.find(c=>c.id===menuCategoryForm.id);if(category){category.name=name;toast("Sample category updated.");}}else{let base=name.toLowerCase().normalize("NFKD").replace(/[\\u0300-\\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")||"category";let id=base;let suffix=2;while(menuDemoCategories.some(c=>c.id===id)){id=base+"-"+suffix++;}menuDemoCategories.push({id,name});menuCategoryFilter=id;toast("Sample category created.");}menuCategoryForm=null;render();return;}if(!form.matches("[data-ui-preview-form]"))return;e.preventDefault();toast("Form layout preview only — data has not been saved.");});
-state.language=localStorage.getItem("kitchai-preview-language")||state.language;
-$("#language-select").value=state.language;
-render();
-// Re-render after the first paint so the initial AI shell is complete without a mode toggle.
-requestAnimationFrame(()=>render());
-window.addEventListener("pageshow",()=>requestAnimationFrame(render));
+})();
