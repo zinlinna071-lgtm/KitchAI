@@ -163,5 +163,41 @@
   themeToggle?.addEventListener("click",()=>{const dark=document.documentElement.dataset.theme!=="dark";document.documentElement.dataset.theme=dark?"dark":"light";document.body.classList.toggle("dark",dark);themeToggle.setAttribute("aria-pressed",String(dark));});
   document.addEventListener("touchstart",e=>{if(e.touches.length!==1){state.tracking=false;return;}state.touchX=e.touches[0].clientX;state.touchY=e.touches[0].clientY;state.drawerGesture=Boolean(sidebar?.classList.contains("open"));state.tracking=true;},{passive:true});
   document.addEventListener("touchend",e=>{if(!state.tracking||!e.changedTouches.length)return;state.tracking=false;const dx=e.changedTouches[0].clientX-state.touchX,dy=e.changedTouches[0].clientY-state.touchY;if(Math.abs(dx)<80||Math.abs(dx)<Math.abs(dy)*1.4)return;if(state.drawerGesture){closeDrawer();return;}setMode(dx<0?"manage":"ai");},{passive:true});
+  let deferredInstallPrompt = null;
+  const connectionStatus = $("#connection-status");
+  const installButton = $("#install-button");
+  function updateConnectionStatus() {
+    if (!connectionStatus) return;
+    const online = navigator.onLine;
+    connectionStatus.textContent = online ? "Online" : "Offline";
+    connectionStatus.dataset.state = online ? "online" : "offline";
+    connectionStatus.setAttribute("aria-label", online ? "Connection status: Online" : "Connection status: Offline");
+  }
+  window.addEventListener("online", updateConnectionStatus);
+  window.addEventListener("offline", updateConnectionStatus);
+  window.addEventListener("beforeinstallprompt", event => {
+    event.preventDefault();
+    deferredInstallPrompt = event;
+    if (installButton) installButton.hidden = false;
+  });
+  installButton?.addEventListener("click", async () => {
+    if (!deferredInstallPrompt) return;
+    deferredInstallPrompt.prompt();
+    await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt = null;
+    installButton.hidden = true;
+  });
+  window.addEventListener("appinstalled", () => {
+    deferredInstallPrompt = null;
+    if (installButton) installButton.hidden = true;
+  });
+  updateConnectionStatus();
+  if ("serviceWorker" in navigator && location.protocol !== "file:") {
+    const basePath = document.querySelector('meta[name="kitchai-base-path"]')?.content || "/";
+    navigator.serviceWorker.register(basePath + "sw.js", { scope: basePath }).catch(error => {
+      console.error("KitchAI service worker registration failed", error);
+    });
+  }
+
   render();
 })();
