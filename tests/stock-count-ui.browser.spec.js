@@ -93,3 +93,21 @@ test("Menu form supports default category, ingredient selection, note and sellin
   await expect(page.getByText("Preview test")).toBeVisible();
   expect(pageErrors).toEqual([]);
 });
+
+
+test("AI Mode renders a chat composer and keeps its preview conversation when switching modes", async ({ page }) => {
+  const pageErrors = [];
+  page.on("pageerror", error => pageErrors.push(error.message));
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "Ask KitchAI about your kitchen" })).toBeVisible();
+  await page.getByLabel("Message").fill("How should I organize ingredients?");
+  await page.getByRole("button", { name: /Send/ }).click();
+  await expect(page.getByText("How should I organize ingredients?")).toBeVisible();
+  await expect(page.getByText(/AI is not connected yet/)).toBeVisible();
+
+  await page.getByRole("button", { name: /Manage Mode/ }).click();
+  await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
+  await page.getByRole("button", { name: /AI Mode/ }).click();
+  await expect(page.getByText("How should I organize ingredients?")).toBeVisible();
+  expect(pageErrors).toEqual([]);
+});
