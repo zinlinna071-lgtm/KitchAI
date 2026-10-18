@@ -23,12 +23,14 @@ This is a foundational app-wide interaction rule and applies to all pages and UI
 - Preserve each mode's own current context independently. For example, returning to Manage Mode should return to its previous page/working location, and returning to AI Mode should return to its previous working location; do not reset either mode to its starting screen merely because the user switched modes.
 - This is a navigation/continuity requirement, not permission to invent extra pages or other features. Details of what context must be retained within a page can be clarified as the owner explains the flows.
 
-## App entry and switching modes
+## App launch and mode switching
 
-1. When a user opens the app, **AI Mode** is the first view shown.
-2. The user can swipe left or right to move easily between AI Mode and Manage Mode, subject to the global horizontal-swipe rule above.
-3. A new user starts with no business data entered yet.
-4. Manage Mode currently has seven pages in the user's described experience. The owner will explain each page and its behavior separately. Do not infer the functions of the other six pages from older plans.
+1. **Whenever the app is opened/launched, show AI Mode first.** This describes app startup; it does **not** mean the user is a new user.
+2. When the user first swipes from AI Mode into Manage Mode and there is no existing Manage Mode position to restore for the current session, show the **Manage Mode Dashboard page first**.
+3. After the user has entered Manage Mode and then switches away, preserve its current working place. Switching back to Manage Mode must restore that place rather than reset to Dashboard. Apply the same independent position-preservation rule to AI Mode.
+4. The user can swipe left or right to move between AI Mode and Manage Mode, subject to the global horizontal-swipe rule above.
+5. A **new user** starts with no business data entered yet. This is separate from the app-launch behavior above.
+6. Manage Mode currently has seven pages in the user's described experience. The owner will explain each page and its behavior separately. Do not infer the functions of the other six pages from older plans.
 
 ## Menu Page — confirmed behavior
 
