@@ -50,8 +50,9 @@ export function buildSaleDraft(input, options = {}) {
   if (typeof createdAt !== "string" || !Number.isFinite(Date.parse(createdAt))) {
     throw new TypeError("Sale date must be valid.");
   }
-  const currency = requiredText(input.currency ?? "THB", "Currency", 3).toUpperCase();
-  if (!/^[A-Z]{3}$/.test(currency)) throw new TypeError("Currency must be a three-letter code.");
+  const rawCurrency = input.currency ?? "THB";
+  if (typeof rawCurrency !== "string" || !/^[A-Za-z]{3}$/.test(rawCurrency.trim())) throw new TypeError("Currency must be a three-letter code.");
+  const currency = rawCurrency.trim().toUpperCase();
 
   const lines = input.lines.map((line, index) => {
     if (!line || typeof line !== "object") throw new TypeError("Sale line " + (index + 1) + " is required.");
