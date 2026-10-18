@@ -197,43 +197,26 @@
   languageSelect?.addEventListener("change",render);
   themeToggle?.addEventListener("click",()=>{const dark=document.documentElement.dataset.theme!=="dark";document.documentElement.dataset.theme=dark?"dark":"light";document.body.classList.toggle("dark",dark);themeToggle.setAttribute("aria-pressed",String(dark));});
   let touchGestureStart = null;
-  // Suppress only the synthetic click that belongs to a completed swipe.
-  // A new touchstart clears the guard so the user's next real tap is never blocked.
+  // Suppress only the synthetic click belonging to a completed swipe.
+  // Any new physical touch clears this guard before its click is dispatched.
   let swipeClickGuard = null;
   document.addEventListener("click",e=>{
     const guard=swipeClickGuard;
     if(!guard)return;
     if(Date.now()>guard.expiresAt){swipeClickGuard=null;return;}
-    if(e.detail===0)return; // Keep keyboard/assistive-technology activation intact.
+    if(e.detail===0)return; // Preserve keyboard and assistive-technology activation.
     if(Math.abs(e.clientX-guard.x)>32||Math.abs(e.clientY-guard.y)>32)return;
     swipeClickGuard=null;
     e.preventDefault();
     e.stopImmediatePropagation();
   },true);
-  // Any new physical touch means the next tap is intentional, regardless of
-  // whether it starts in #main, the header, or another control.
-  // Keep this in capture phase so it clears the guard before click dispatch.
-  document.addEventListener("touchstart",()=>{
-    swipeClickGuard=null;
-  },{passive:true,capture:true});
-  // Bind mode-swipe recognition to the main content only, not the whole document.
-  // This makes it structurally impossible for a gesture beginning on the drawer
-  // or header to trigger a mode change.
-  const mainScreen = $("#main");
-  mainScreen?.addEventListener("pointerdown",e=>{
-    if(e.pointerType==="touch")return;
-    if(e.isPrimary===false||(e.pointerType==="mouse"&&e.button!==0)){state.tracking=false;return;}
-    state.touchX=e.clientX;state.touchY=e.clientY;state.tracking=true;
-  },{passive:true});
-  // Only touches that begin inside #main can switch modes.
-  // Drawer-close gestures are handled separately on the sidebar itself.
-  mainScreen?.addEventListener("touchstart",e=>{
+  document.addEventListener("touchstart",e=>{
     swipeClickGuard=null;
     if(!e.changedTouches.length)return;
     const touch=e.changedTouches[0];
     touchGestureStart={x:touch.clientX,y:touch.clientY};
-  },{passive:true});
-  mainScreen?.addEventListener("touchend",e=>{
+  },{passive:true,capture:true});
+  document.addEventListener("touchend",e=>{
     if(!touchGestureStart||!e.changedTouches.length)return;
     const start=touchGestureStart;
     touchGestureStart=null;
@@ -246,29 +229,22 @@
     },710);
     const nextMode=state.mode==="ai"?"manage":"ai";
     window.setTimeout(()=>setMode(nextMode),0);
-  },{passive:true});
-  sidebar?.addEventListener("touchstart",e=>{
-    if(!e.changedTouches.length)return;
-    const touch=e.changedTouches[0];
-    touchGestureStart={x:touch.clientX,y:touch.clientY};
-  },{passive:true});
-  sidebar?.addEventListener("touchend",e=>{
-    if(!touchGestureStart||!e.changedTouches.length)return;
-    const start=touchGestureStart;
-    touchGestureStart=null;
-    const touch=e.changedTouches[0];
-    const dx=touch.clientX-start.x,dy=touch.clientY-start.y;
-    if(!isDesktop()&&drawerIsOpen()&&dx<=-60&&Math.abs(dx)>=Math.abs(dy)*1.25)closeDrawer();
-  },{passive:true});
+  },{passive:true,capture:true});
   document.addEventListener("touchcancel",()=>{touchGestureStart=null;},{passive:true,capture:true});
-  mainScreen?.addEventListener("pointerup",e=>{
+  // Desktop mouse/pen swipes work across the entire app, including the drawer.
+  document.addEventListener("pointerdown",e=>{
+    if(e.pointerType==="touch")return; // Touch is handled by touchstart/touchend.
+    if(e.isPrimary===false||(e.pointerType==="mouse"&&e.button!==0)){state.tracking=false;return;}
+    state.touchX=e.clientX;state.touchY=e.clientY;state.tracking=true;
+  },{passive:true,capture:true});
+  document.addEventListener("pointerup",e=>{
     if(!state.tracking)return;
     state.tracking=false;
     const dx=e.clientX-state.touchX,dy=e.clientY-state.touchY;
     if(Math.abs(dx)<60||Math.abs(dx)<Math.abs(dy)*1.25)return;
     const nextMode=state.mode==="ai"?"manage":"ai";
     window.setTimeout(()=>setMode(nextMode),0);
-  },{passive:true});
+  },{passive:true,capture:true});
   document.addEventListener("pointercancel",()=>{state.tracking=false;},{passive:true,capture:true});
   window.addEventListener("resize",()=>{
     if(isDesktop()){sidebar?.classList.remove("open");backdrop?.classList.remove("visible");}
