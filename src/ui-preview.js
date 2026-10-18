@@ -6,6 +6,7 @@
   const pageContent = $("#page-content");
   const sidebarContent = $("#sidebar-content");
   const sidebar = $("#sidebar");
+  const appShell = $(".app-shell");
   const backdrop = $("#sidebar-backdrop");
   const languageSelect = $("#language-select");
   const themeToggle = $("#theme-toggle");
@@ -30,8 +31,32 @@
   const language = () => labels[languageSelect?.value] ? languageSelect.value : "en";
   const t = key => labels[language()][key] || labels.en[key] || key;
   const pageLabel = page => page[language()] || page.en;
-  const openDrawer = () => { sidebar?.classList.add("open"); backdrop?.classList.add("visible"); menuToggle?.setAttribute("aria-expanded","true"); };
-  const closeDrawer = () => { sidebar?.classList.remove("open"); backdrop?.classList.remove("visible"); menuToggle?.setAttribute("aria-expanded","false"); };
+  const isDesktop = () => window.matchMedia("(min-width: 761px)").matches;
+  const openDrawer = () => {
+    if (isDesktop()) {
+      appShell?.classList.remove("sidebar-collapsed");
+      menuToggle?.setAttribute("aria-label", t("closeNavigation"));
+      menuToggle?.setAttribute("aria-expanded", "true");
+      return;
+    }
+    sidebar?.classList.add("open"); backdrop?.classList.add("visible");
+    menuToggle?.setAttribute("aria-label", t("closeNavigation"));
+    menuToggle?.setAttribute("aria-expanded","true");
+  };
+  const closeDrawer = () => {
+    if (isDesktop()) {
+      appShell?.classList.add("sidebar-collapsed");
+      menuToggle?.setAttribute("aria-label", t("openNavigation"));
+      menuToggle?.setAttribute("aria-expanded", "false");
+      return;
+    }
+    sidebar?.classList.remove("open"); backdrop?.classList.remove("visible");
+    menuToggle?.setAttribute("aria-label", t("openNavigation"));
+    menuToggle?.setAttribute("aria-expanded","false");
+  };
+  const drawerIsOpen = () => isDesktop()
+    ? !appShell?.classList.contains("sidebar-collapsed")
+    : Boolean(sidebar?.classList.contains("open"));
   const button = (label, action, primary=false) => '<button type="button" class="ui-button '+(primary?'ui-button--primary':'ui-button--secondary')+'" data-action="'+action+'">'+esc(label)+'</button>';
   const field = (label, name, type="text", value="", required=false, extra="") => '<label class="ui-field"><span class="ui-label">'+esc(label)+(required?' *':'')+'</span><input class="ui-input" name="'+esc(name)+'" type="'+type+'" value="'+esc(value)+'" '+(required?'required':'')+' '+extra+'></label>';
   const selectField = (label,name,options,selected="") => '<label class="ui-field"><span class="ui-label">'+esc(label)+'</span><select class="ui-select" name="'+esc(name)+'">'+options.map(o=>'<option value="'+esc(o)+'" '+(o===selected?'selected':'')+'>'+esc(o)+'</option>').join("")+'</select></label>';
@@ -167,12 +192,27 @@
   });
   sidebarContent?.addEventListener("click",event=>{const b=event.target instanceof Element?event.target.closest("[data-page]"):null;if(!b)return;const id=b.getAttribute("data-page");if(!pages.some(p=>p.id===id))return;state.managePage=id;state.detailId=null;state.dialog=null;closeDrawer();render();window.scrollTo({top:0,behavior:"auto"});});
   modeButtons.forEach(b=>b.addEventListener("click",()=>setMode(b.dataset.mode)));
-  menuToggle?.addEventListener("click",openDrawer);sidebarClose?.addEventListener("click",closeDrawer);backdrop?.addEventListener("click",closeDrawer);
+  menuToggle?.addEventListener("click",()=>drawerIsOpen()?closeDrawer():openDrawer());sidebarClose?.addEventListener("click",closeDrawer);backdrop?.addEventListener("click",closeDrawer);
   document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeDrawer();if(state.dialog){state.dialog=null;render();}}});
   languageSelect?.addEventListener("change",render);
   themeToggle?.addEventListener("click",()=>{const dark=document.documentElement.dataset.theme!=="dark";document.documentElement.dataset.theme=dark?"dark":"light";document.body.classList.toggle("dark",dark);themeToggle.setAttribute("aria-pressed",String(dark));});
-  document.addEventListener("touchstart",e=>{if(e.touches.length!==1){state.tracking=false;return;}state.touchX=e.touches[0].clientX;state.touchY=e.touches[0].clientY;state.drawerGesture=Boolean(sidebar?.classList.contains("open"));state.tracking=true;},{passive:true});
-  document.addEventListener("touchend",e=>{if(!state.tracking||!e.changedTouches.length)return;state.tracking=false;const dx=e.changedTouches[0].clientX-state.touchX,dy=e.changedTouches[0].clientY-state.touchY;if(Math.abs(dx)<80||Math.abs(dx)<Math.abs(dy)*1.4)return;if(state.drawerGesture){closeDrawer();return;}setMode(dx<0?"manage":"ai");},{passive:true});
+  document.addEventListener("touchstart",e=>{
+    if(e.touches.length!==1){state.tracking=false;return;}
+    state.touchX=e.touches[0].clientX;state.touchY=e.touches[0].clientY;
+    state.drawerGesture=drawerIsOpen();state.tracking=true;
+  },{passive:true});
+  document.addEventListener("touchend",e=>{
+    if(!state.tracking||!e.changedTouches.length)return;
+    state.tracking=false;
+    const dx=e.changedTouches[0].clientX-state.touchX,dy=e.changedTouches[0].clientY-state.touchY;
+    if(Math.abs(dx)<80||Math.abs(dx)<Math.abs(dy)*1.4)return;
+    if(state.drawerGesture){if(dx<0)closeDrawer();return;}
+    if(Math.abs(dx)>=80)setMode(state.mode==="ai"?"manage":"ai");
+  },{passive:true});
+  window.addEventListener("resize",()=>{
+    if(isDesktop()){sidebar?.classList.remove("open");backdrop?.classList.remove("visible");}
+    else appShell?.classList.remove("sidebar-collapsed");
+  });
   let deferredInstallPrompt = null;
   const connectionStatus = $("#connection-status");
   const installButton = $("#install-button");
