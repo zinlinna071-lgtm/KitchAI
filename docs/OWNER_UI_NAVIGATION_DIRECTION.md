@@ -17,19 +17,21 @@ KitchAI has two primary modes:
 
 Keep both modes. Neither mode replaces the other. Preserve the existing app shell and business workflows when implementing UI changes.
 
-## 3. Mode-switching UX/UI logic — important
+## 3. Mode-switching UX/UI logic — global gesture rule
 
-The owner has specifically chosen a **swipe-friendly way to move between AI Mode and Manage Mode**. Mode switching should feel natural and easy on a phone, not like navigating through a complicated settings menu.
+The owner has specifically chosen horizontal swiping as a way to switch between AI Mode and Manage Mode. **Horizontal swipe gestures are reserved exclusively for switching between these two modes across the app.** This is a global interaction rule, not just a rule for the home screen.
 
 ### Required interaction direction
 
-- Support an intuitive horizontal swipe gesture to switch between AI Mode and Manage Mode.
+- A horizontal swipe in either direction (left or right) switches between AI Mode and Manage Mode. The user should not need to remember which direction means which mode.
+- **Do not add any other left/right swipe interactions anywhere inside KitchAI pages or components.** In particular, no horizontal swipe to change tabs, pages, cards, carousel items, records, images, or lists. Do not add nested or competing horizontal swipe gestures.
+- If users need to change tabs, pages, cards, records, or other content within a page, provide a visible tap-based control or another non-horizontal-swipe interaction instead.
 - Make the two modes feel like neighboring views in one app, so the user can move between them with minimal effort.
 - Provide a clear, visible mode indicator or switch control as an alternative to swiping. Users must not be forced to discover or use gestures.
 - The visible control must clearly identify which mode is active and make the other mode easy to reach.
 - Keep mode switching consistent in both directions: AI Mode → Manage Mode and Manage Mode → AI Mode.
 - Make the interaction comfortable on mobile and avoid accidental switches while the user is scrolling, typing, selecting text, or interacting with forms.
-- Where horizontal swipe is used, distinguish deliberate horizontal gestures from vertical page scrolling. Do not hijack ordinary vertical scrolling.
+- Distinguish deliberate horizontal gestures from vertical page scrolling. Do not hijack ordinary vertical scrolling.
 - Respect accessibility and different input methods: provide a tappable alternative, visible focus behavior for keyboard users where applicable, and accessible labels for mode controls.
 - Switching modes is navigation only. It must not silently clear, reset, submit, duplicate, or modify business data or an unfinished form.
 - Keep the active mode visually obvious. Avoid making users guess where they are.
@@ -39,9 +41,10 @@ The owner has specifically chosen a **swipe-friendly way to move between AI Mode
 
 - Before changing mode navigation, inspect and preserve the current mode-switching behavior and app shell.
 - Use one coherent mode state as the source of truth for swipe gestures and the visible switch control, so the two cannot disagree.
-- Prevent gesture handlers from conflicting with existing navigation, form inputs, scrolling, or other touch interactions.
+- Ensure no child component registers a competing left/right swipe handler. Avoid horizontal swipe libraries or carousel behavior in page content.
+- Prevent gesture handlers from conflicting with form inputs, text selection, scrolling, and other touch interactions. Do not switch modes merely because the user is typing or interacting with a control.
 - Do not load a separate preview controller into production as a shortcut, and do not replace existing production DOM or workflows without a reviewed migration.
-- Verify on a phone-sized viewport that both swipe directions work, the tap control works, vertical scrolling still works, and changing modes does not lose entered data.
+- Verify on a phone-sized viewport that swiping left and right switches modes, the tap control works, vertical scrolling still works, no in-page horizontal swipe changes content, and changing modes does not lose entered data.
 - This document describes the owner’s UX direction; implementation details may be chosen by developers as long as they meet these behaviors and preserve existing functionality.
 
 ## 4. Manage Mode — exactly seven agreed main pages
@@ -72,7 +75,7 @@ The owner has said that previous subpage proposals were too numerous and include
 When planning, coding, reviewing, or generating implementation prompts for KitchAI:
 
 1. Follow the two-mode structure: AI Mode and Manage Mode.
-2. Follow the swipe-friendly, bidirectional mode-switching UX direction above.
+2. Reserve all horizontal left/right swipe gestures exclusively for switching between AI Mode and Manage Mode. Never add competing horizontal swipe interactions inside pages or components.
 3. Keep exactly the seven agreed Manage Mode main pages.
 4. Prioritize simplicity for non-technical users and mobile use.
 5. Do not invent extra main pages, features, or finalized subpages.
