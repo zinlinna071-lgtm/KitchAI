@@ -37,7 +37,7 @@ test("Manage Mode exposes seven pages and Dashboard, Menu, Ingredients are title
   await page.locator('[data-mode="manage"]').click();
   await expect(page.locator("#sidebar-content [data-page]")).toHaveCount(7);
   for (const [pageId, title] of [["dashboard", "Dashboard"], ["menu", "Menu"], ["ingredients", "Ingredients"]]) {
-    await page.locator('#sidebar-content [data-page="' + pageId + '"]').click({ force: true });
+    await page.locator('#sidebar-content [data-page="' + pageId + '"]').click();
     const section = page.locator("#page-content .page-title-only");
     await expect(section.getByRole("heading", { name: title })).toBeVisible();
     await expect(section.locator("button, input, select, textarea, .ui-card, p")).toHaveCount(0);
