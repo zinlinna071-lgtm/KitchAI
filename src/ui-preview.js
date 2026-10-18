@@ -217,12 +217,13 @@
     const touch=e.changedTouches[0];
     const dx=touch.clientX-start.x,dy=touch.clientY-start.y;
     if(Math.abs(dx)<60||Math.abs(dx)<Math.abs(dy)*1.25)return;
+    // A horizontal swipe is a handled gesture, not a tap. Cancel the browser's
+    // synthetic click for this gesture so it cannot hit newly-rendered mode DOM.
+    e.preventDefault();
     if(!isDesktop()&&start.drawerGesture){if(dx<0)closeDrawer();return;}
-    // Let the browser finish the touch-to-click sequence before replacing the page DOM.
-    // Re-rendering synchronously inside touchend can swallow the first tap on mobile.
     const nextMode=state.mode==="ai"?"manage":"ai";
     window.setTimeout(()=>setMode(nextMode),0);
-  },{passive:true,capture:true});
+  },{passive:false,capture:true});
   document.addEventListener("touchcancel",()=>{touchGestureStart=null;},{passive:true,capture:true});
   document.addEventListener("pointerup",e=>{
     if(!state.tracking)return;
