@@ -45,7 +45,7 @@
     return '<section class="page-section"><div class="ui-row ui-row--mobile-stack" style="justify-content:space-between;align-items:flex-start"><div><p class="eyebrow">'+esc(t("manage"))+'</p><h1>'+esc(title)+'</h1><p>'+esc(intro)+'</p></div><div class="ui-row">'+actions+'</div></div>';
   }
   function emptyState(title, copy, action) {
-    return '<div class="ui-empty-state"><div aria-hidden="true" style="font-size:32px;color:var(--color-primary)">＋</div><h2>'+esc(title)+'</h2><p>'+esc(copy)+'</p>'+action+'</div>';
+    return '<div class="ui-empty-state"><div aria-hidden="true" style="font-size:32px;color:var(--color-primary)">+</div><h2>'+esc(title)+'</h2><p>'+esc(copy)+'</p>'+action+'</div>';
   }
   function renderIngredients() {
     const actions=button(t("createCategory"),"new-ingredient-category")+button(t("createIngredient"),"new-ingredient",true);
