@@ -41,3 +41,26 @@ test("AI Mode keeps its frontend-only chat composer", async ({ page }) => {
   await expect(page.getByText(/AI is not connected yet/)).toBeVisible();
   expect(pageErrors).toEqual([]);
 });
+
+test("desktop swipe switches mode only when started on the main screen", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto("/");
+  const aiMode = page.getByRole("button", { name: /AI Mode/ });
+  const manageMode = page.getByRole("button", { name: /Manage Mode/ });
+  await expect(aiMode).toHaveAttribute("aria-pressed", "true");
+
+  // A horizontal drag starting in the drawer must not switch modes.
+  await page.mouse.move(80, 260);
+  await page.mouse.down();
+  await page.mouse.move(200, 260, { steps: 6 });
+  await page.mouse.up();
+  await expect(aiMode).toHaveAttribute("aria-pressed", "true");
+  await expect(manageMode).toHaveAttribute("aria-pressed", "false");
+
+  // The same gesture starting in the main screen should switch modes.
+  await page.mouse.move(700, 300);
+  await page.mouse.down();
+  await page.mouse.move(580, 300, { steps: 6 });
+  await page.mouse.up();
+  await expect(manageMode).toHaveAttribute("aria-pressed", "true");
+});
