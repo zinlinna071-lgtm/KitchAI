@@ -197,14 +197,13 @@
   languageSelect?.addEventListener("change",render);
   themeToggle?.addEventListener("click",()=>{const dark=document.documentElement.dataset.theme!=="dark";document.documentElement.dataset.theme=dark?"dark":"light";document.body.classList.toggle("dark",dark);themeToggle.setAttribute("aria-pressed",String(dark));});
   let touchGestureStart = null;
-  // A horizontal swipe can still produce a synthetic click on some mobile browsers.
-  // Suppress only that immediate click at the swipe's release point, not the next tap.
+  // Suppress only a click synthesized as part of the same swipe event sequence.
+  // Clear the marker on the next task so a real follow-up tap can never be consumed.
   let swipeClickToSuppress = null;
   document.addEventListener("click",event=>{
     const pending=swipeClickToSuppress;
-    if(!pending)return;
-    if(Date.now()>pending.expiresAt){swipeClickToSuppress=null;return;}
-    if(event.detail===0||Math.abs(event.clientX-pending.x)>32||Math.abs(event.clientY-pending.y)>32)return;
+    if(!pending||event.detail===0)return;
+    if(Math.abs(event.clientX-pending.x)>32||Math.abs(event.clientY-pending.y)>32)return;
     swipeClickToSuppress=null;
     event.preventDefault();
     event.stopImmediatePropagation();
@@ -230,9 +229,9 @@
     if(Math.abs(dx)<60||Math.abs(dx)<Math.abs(dy)*1.25)return;
     // Some browsers synthesize a click after touchend. Mark its release point briefly
     // so that click cannot activate a control under the swipe; never cancel touchend itself.
-    const pending={x:touch.clientX,y:touch.clientY,expiresAt:Date.now()+120};
+    const pending={x:touch.clientX,y:touch.clientY};
     swipeClickToSuppress=pending;
-    window.setTimeout(()=>{if(swipeClickToSuppress===pending)swipeClickToSuppress=null;},120);
+    window.setTimeout(()=>{if(swipeClickToSuppress===pending)swipeClickToSuppress=null;},0);
     if(!isDesktop()&&start.drawerGesture){if(dx<0)closeDrawer();return;}
     const nextMode=state.mode==="ai"?"manage":"ai";
     window.setTimeout(()=>setMode(nextMode),0);
