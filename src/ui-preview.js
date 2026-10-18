@@ -210,57 +210,59 @@
     e.preventDefault();
     e.stopImmediatePropagation();
   },true);
-  document.addEventListener("pointerdown",e=>{
-    // Mode swipes are allowed only when the gesture starts in the main screen.
-    // A drag/swipe on the drawer, header, or other shell area must never switch modes.
+  // Bind mode-swipe recognition to the main content only, not the whole document.
+  // This makes it structurally impossible for a gesture beginning on the drawer
+  // or header to trigger a mode change.
+  const mainScreen = $("#main");
+  mainScreen?.addEventListener("pointerdown",e=>{
     if(e.pointerType==="touch")return;
     if(e.isPrimary===false||(e.pointerType==="mouse"&&e.button!==0)){state.tracking=false;return;}
-    const target=e.target instanceof Element?e.target:null;
-    if(!target?.closest("#main")){state.tracking=false;return;}
     state.touchX=e.clientX;state.touchY=e.clientY;state.tracking=true;
-  },{passive:true,capture:true});
-  document.addEventListener("touchstart",e=>{
-    // A new physical touch means any pending swipe-click guard is stale.
+  },{passive:true});
+  // Only touches that begin inside #main can switch modes.
+  // Drawer-close gestures are handled separately on the sidebar itself.
+  mainScreen?.addEventListener("touchstart",e=>{
     swipeClickGuard=null;
     if(!e.changedTouches.length)return;
     const touch=e.changedTouches[0];
-    const target=e.target instanceof Element?e.target:null;
-    touchGestureStart={
-      x:touch.clientX,y:touch.clientY,
-      mainGesture:Boolean(target?.closest("#main")),
-      drawerGesture:Boolean(target?.closest("#sidebar"))&&drawerIsOpen()
-    };
-  },{passive:true,capture:true});
-  document.addEventListener("touchend",e=>{
+    touchGestureStart={x:touch.clientX,y:touch.clientY};
+  },{passive:true});
+  mainScreen?.addEventListener("touchend",e=>{
     if(!touchGestureStart||!e.changedTouches.length)return;
     const start=touchGestureStart;
     touchGestureStart=null;
     const touch=e.changedTouches[0];
     const dx=touch.clientX-start.x,dy=touch.clientY-start.y;
     if(Math.abs(dx)<60||Math.abs(dx)<Math.abs(dy)*1.25)return;
-    // Do not cancel touchend: that can poison the next tap on mobile browsers.
-    // Instead, ignore only a coordinate-matched synthetic click from this swipe.
     swipeClickGuard={x:touch.clientX,y:touch.clientY,expiresAt:Date.now()+700};
     window.setTimeout(()=>{
       if(swipeClickGuard&&swipeClickGuard.expiresAt<=Date.now())swipeClickGuard=null;
     },710);
-    // Drawer swipes may close the mobile drawer, but never switch modes.
-    if(!start.mainGesture){
-      if(!isDesktop()&&start.drawerGesture&&dx<0)closeDrawer();
-      return;
-    }
     const nextMode=state.mode==="ai"?"manage":"ai";
     window.setTimeout(()=>setMode(nextMode),0);
-  },{passive:true,capture:true});
+  },{passive:true});
+  sidebar?.addEventListener("touchstart",e=>{
+    if(!e.changedTouches.length)return;
+    const touch=e.changedTouches[0];
+    touchGestureStart={x:touch.clientX,y:touch.clientY};
+  },{passive:true});
+  sidebar?.addEventListener("touchend",e=>{
+    if(!touchGestureStart||!e.changedTouches.length)return;
+    const start=touchGestureStart;
+    touchGestureStart=null;
+    const touch=e.changedTouches[0];
+    const dx=touch.clientX-start.x,dy=touch.clientY-start.y;
+    if(!isDesktop()&&drawerIsOpen()&&dx<=-60&&Math.abs(dx)>=Math.abs(dy)*1.25)closeDrawer();
+  },{passive:true});
   document.addEventListener("touchcancel",()=>{touchGestureStart=null;},{passive:true,capture:true});
-  document.addEventListener("pointerup",e=>{
+  mainScreen?.addEventListener("pointerup",e=>{
     if(!state.tracking)return;
     state.tracking=false;
     const dx=e.clientX-state.touchX,dy=e.clientY-state.touchY;
     if(Math.abs(dx)<60||Math.abs(dx)<Math.abs(dy)*1.25)return;
     const nextMode=state.mode==="ai"?"manage":"ai";
     window.setTimeout(()=>setMode(nextMode),0);
-  },{passive:true,capture:true});
+  },{passive:true});
   document.addEventListener("pointercancel",()=>{state.tracking=false;},{passive:true,capture:true});
   window.addEventListener("resize",()=>{
     if(isDesktop()){sidebar?.classList.remove("open");backdrop?.classList.remove("visible");}
