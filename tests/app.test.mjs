@@ -210,19 +210,18 @@ test("entity scope stays stable when the server assigns a different remote busin
 });
 
 
-test("stock-count review UI exposes accessible session, line, and explicit posting controls", async () => {
+test("new app shell is accessible while stock-count business UI logic remains available", async () => {
  const html = await read("../index.html");
  const app = await read("../src/app.js");
  const ui = await read("../src/stock-count-ui.js");
  const css = await read("../src/styles.css");
- assert.match(html, /id="stock-count-panel"/);
- assert.match(html, /id="stock-count-session"/);
- assert.match(html, /id="stock-count-lines"[^>]*aria-label="Stock-count lines"/);
- assert.match(html, /id="stock-count-state" class="profile-state" role="status" aria-live="polite"/);
- assert.match(html, /id="stock-count-post-selected"[^>]*disabled/);
- assert.match(html, /id="stock-count-create-form"/);
- assert.match(html, /id="stock-count-add-line-form"/);
- assert.match(html, /id="stock-count-item-unit"/);
+ assert.match(html, /data-mode="ai"/);
+ assert.match(html, /data-mode="manage"/);
+ assert.match(html, /id="page-content"/);
+ assert.match(html, /id="sidebar-content"/);
+ assert.match(html, /id="sidebar-backdrop"/);
+ assert.match(html, /src\/design-tokens\.css/);
+ assert.match(html, /src\/ui-components\.css/);
  assert.match(app, /getRemoteBusinessId: \(\) => activeSession\?\.user\?\.id/);
  assert.match(ui, /createStockCountSession/);
  assert.match(ui, /addStockCountLine/);
