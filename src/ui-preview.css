@@ -475,6 +475,7 @@ body.dark .weekly-profit>b{color:#5eead4}
 }
 \n
 /* Ingredients list and sub-page */
+/* Keep preview-only styles isolated from production screens. */
 .ingredient-page{max-width:920px;margin:0 auto}
 .ingredient-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:25px}
 .ingredient-heading h1,.ingredient-detail-heading h1{margin:0;font-size:clamp(1.8rem,3vw,2.25rem);letter-spacing:-.055em;line-height:1.16;font-weight:670}
