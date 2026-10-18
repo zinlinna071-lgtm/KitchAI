@@ -205,7 +205,7 @@
     setMode(state.mode==="ai"?"manage":"ai");
   };
   document.addEventListener("pointerdown",e=>{
-    if(e.pointerType==="touch")return;
+    if(e.pointerType==="touch"&&isDesktop())return;
     if(e.isPrimary===false||(e.pointerType==="mouse"&&e.button!==0)){state.tracking=false;return;}
     state.touchX=e.clientX;state.touchY=e.clientY;
     state.drawerGesture=drawerIsOpen();state.tracking=true;
