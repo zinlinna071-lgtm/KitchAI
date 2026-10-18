@@ -85,6 +85,6 @@ test("Menu form supports default category, ingredient selection, note and sellin
   await expect(page.getByText("Default", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Details" }).click();
   await expect(page.getByText("Preview test")).toBeVisible();
-  await expect(page.getByText("100", { exact: true })).toBeVisible();
+  await expect(page.getByText(/Selling price: 100/)).toBeVisible();
   expect(pageErrors).toEqual([]);
 });
