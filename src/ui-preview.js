@@ -197,9 +197,24 @@
   languageSelect?.addEventListener("change",render);
   themeToggle?.addEventListener("click",()=>{const dark=document.documentElement.dataset.theme!=="dark";document.documentElement.dataset.theme=dark?"dark":"light";document.body.classList.toggle("dark",dark);themeToggle.setAttribute("aria-pressed",String(dark));});
   document.addEventListener("pointerdown",e=>{
+    if(e.pointerType==="touch")return;
     if(e.isPrimary===false||(e.pointerType==="mouse"&&e.button!==0)){state.tracking=false;return;}
     state.touchX=e.clientX;state.touchY=e.clientY;
     state.drawerGesture=drawerIsOpen();state.tracking=true;
+  },{passive:true});
+  document.addEventListener("touchstart",e=>{
+    if(!isDesktop()||!e.changedTouches.length)return;
+    const touch=e.changedTouches[0];
+    state.touchX=touch.clientX;state.touchY=touch.clientY;
+    state.drawerGesture=drawerIsOpen();state.tracking=true;
+  },{passive:true});
+  document.addEventListener("touchend",e=>{
+    if(!isDesktop()||!state.tracking||!e.changedTouches.length)return;
+    state.tracking=false;
+    const touch=e.changedTouches[0];
+    const dx=touch.clientX-state.touchX,dy=touch.clientY-state.touchY;
+    if(Math.abs(dx)<80||Math.abs(dx)<Math.abs(dy)*1.4)return;
+    setMode(state.mode==="ai"?"manage":"ai");
   },{passive:true});
   document.addEventListener("pointerup",e=>{
     if(!state.tracking)return;
