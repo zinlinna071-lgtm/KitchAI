@@ -41,7 +41,7 @@ test("Manage Mode exposes eight pages, preserves the Dashboard shell, and opens 
   await expect(dashboard.getByRole("heading", { name: "Dashboard" })).toBeVisible();
   await expect(dashboard.locator("button, input, select, textarea, .ui-card, p")).toHaveCount(0);
   await page.locator('#sidebar-content [data-page="personal-expenses"]').evaluate(element => element.click());
-  await expect(page.getByRole("heading", { name: "Personal Expenses" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Personal Expenses", exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: /Add personal expense/ })).toBeVisible();
   await expect(page.getByText("No personal expenses yet.")).toBeVisible();
 });
