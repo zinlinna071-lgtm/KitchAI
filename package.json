@@ -5,6 +5,7 @@
   "description": "Offline-first KitchAI web/PWA application shell",
   "type": "module",
   "scripts": {
+    "dev": "npm run build && node scripts/serve.mjs",
     "build": "node scripts/build.mjs",
     "build:pages-preview": "node scripts/build.mjs --base-path=/KitchAI/ --preview",
     "check:pages-preview": "npm run build:pages-preview && node scripts/check-pages-build.mjs",

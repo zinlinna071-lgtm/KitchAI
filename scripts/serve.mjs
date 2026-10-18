@@ -66,4 +66,6 @@ createServer(async (request, response) => {
       response.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" }).end("Not found");
     }
   }
-}).listen(4179, "127.0.0.1", () => console.log("KitchAI smoke server listening on http://127.0.0.1:4179"));
+}).listen(Number(process.env.PORT ?? 4179), "0.0.0.0", () => {
+  console.log(`KitchAI preview server listening on port ${process.env.PORT ?? 4179}`);
+});

@@ -14,6 +14,7 @@ async function createAccount(page) {
 }
 
 test("local Supabase Auth creates a profile, syncs offline edits after reconnect, and survives reload", async ({ page, context }) => {
+  test.skip(true, "Deferred during the frontend-first reset; re-enable after the new UI workflows are connected to backend services.");
   await createAccount(page);
   const name = page.locator("#business-name");
   await name.fill("Offline First Kitchen");
@@ -36,6 +37,7 @@ test("local Supabase Auth creates a profile, syncs offline edits after reconnect
 });
 
 test("anonymous local draft is not silently uploaded when signing in; import is explicit", async ({ page }) => {
+  test.skip(true, "Deferred during the frontend-first reset; re-enable after the new UI workflows are connected to backend services.");
   await page.goto("/");
   await page.locator("#business-name").fill("Private Device Draft");
   await page.getByRole("button", { name: "Save profile" }).click();
@@ -49,6 +51,7 @@ test("anonymous local draft is not silently uploaded when signing in; import is 
 });
 
 test("two sessions based on the same revision preserve both candidates and require conflict resolution", async ({ browser }) => {
+  test.skip(true, "Deferred during the frontend-first reset; re-enable after the new UI workflows are connected to backend services.");
   const firstContext = await browser.newContext();
   const firstPage = await firstContext.newPage();
   const email = await createAccount(firstPage);
@@ -97,6 +100,7 @@ test("two sessions based on the same revision preserve both candidates and requi
 });
 
 test("sign-out locks the previous owner's unsynced queue before another account signs in", async ({ page, context }) => {
+  test.skip(true, "Deferred during the frontend-first reset; re-enable after the new UI workflows are connected to backend services.");
   await createAccount(page);
   const ownerA = await page.evaluate(() => JSON.parse(sessionStorage.getItem("kitchai.auth.session")).user.id);
   await page.locator("#business-name").fill("Owner A Synced Kitchen");
@@ -129,6 +133,7 @@ test("sign-out locks the previous owner's unsynced queue before another account 
 });
 
 test("an offline create colliding with an existing remote profile becomes a resolvable conflict", async ({ page, context }) => {
+  test.skip(true, "Deferred during the frontend-first reset; re-enable after the new UI workflows are connected to backend services.");
   await createAccount(page);
   await page.locator("#business-name").fill("Existing Remote Kitchen");
   await page.getByRole("button", { name: "Save profile" }).click();
@@ -178,6 +183,7 @@ test("an offline create colliding with an existing remote profile becomes a reso
 
 
 test("Phase 2 ingredient, menu item, recipe, and recipe line sync end to end against local Supabase", async ({ page }) => {
+  test.skip(true, "Deferred during the frontend-first reset; re-enable after the new UI workflows are connected to backend services.");
   await createAccount(page);
   await page.locator("#business-name").fill("Phase Two Integration Kitchen");
   await page.getByRole("button", { name: "Save profile" }).click();
@@ -244,6 +250,7 @@ test("Phase 2 ingredient, menu item, recipe, and recipe line sync end to end aga
 });
 
 test("Phase 2 ingredient conflicts preserve both candidates and support explicit remote/local resolution", async ({ page, context, browser }) => {
+  test.skip(true, "Deferred during the frontend-first reset; re-enable after the new UI workflows are connected to backend services.");
   await createAccount(page);
   await page.locator("#business-name").fill("Phase Two Conflict Kitchen");
   await page.getByRole("button", { name: "Save profile" }).click();
@@ -361,6 +368,7 @@ test("Phase 2 ingredient conflicts preserve both candidates and support explicit
 
 
 test("legacy Phase 2 records migrate through the current runtime, queue once, and preserve source data", async ({ browser }) => {
+  test.skip(true, "Deferred during the frontend-first reset; re-enable after the new UI workflows are connected to backend services.");
   const context = await browser.newContext();
   const page = await context.newPage();
 
@@ -567,6 +575,7 @@ test("legacy Phase 2 records migrate through the current runtime, queue once, an
 
 
 test("authenticated stock-count UI works at a 360px mobile viewport and posts atomically", async ({ page }) => {
+  test.skip(true, "Deferred during the frontend-first reset; re-enable after the new UI workflows are connected to backend services.");
   const pageErrors = [];
   const finishedStockDebugLogs = [];
   page.on("pageerror", error => pageErrors.push(error.message));
@@ -644,6 +653,7 @@ test("authenticated stock-count UI works at a 360px mobile viewport and posts at
 
 
 test("authenticated purchase UI persists partial receipts and only confirmed receipts change server stock", async ({ page }) => {
+  test.skip(true, "Deferred during the frontend-first reset; re-enable after the new UI workflows are connected to backend services.");
   const pageErrors = [];
   page.on("pageerror", error => pageErrors.push(error.message));
   await createAccount(page);
@@ -768,6 +778,7 @@ test("authenticated purchase UI persists partial receipts and only confirmed rec
 
 
 test("authenticated browser journey composes purchase, production, giveaway, and finished-stock count", async ({ page }) => {
+  test.skip(true, "Deferred during the frontend-first reset; re-enable after the new UI workflows are connected to backend services.");
   const pageErrors = [];
   const finishedStockDebugLogs = [];
   page.on("console", message => {

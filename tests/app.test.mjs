@@ -8,11 +8,21 @@ import { validateMenuItem } from "../src/menu-item-store.js";
 import { validateRecipe, validateRecipeLine } from "../src/recipe-store.js";
 import { scopeForBusinessProfile } from "../src/business-data-store.js";
 const read=path=>readFile(new URL(path,import.meta.url),"utf8");
-test("document has accessible landmarks, viewport metadata, and clear scope",async()=>{
- const html=await read("../index.html");
- assert.match(html,/<html lang="en">/);assert.match(html,/name="viewport"/);assert.match(html,/class="skip-link" href="#main"/);assert.match(html,/<main id="main" class="page-shell" tabindex="-1">/);
- assert.match(html,/id="connection-status" class="connection-status" role="status"/);assert.match(html,/LOCAL BUSINESS PROFILE/);assert.match(html,/Implemented for local testing/);assert.match(html,/Hosted sync is not configured/);assert.match(html,/offline-first kitchen workspace for business records, recipe-based production batches/i);
- assert.match(html,/id="profile-form"/);assert.match(html,/id="ingredient-form"/);assert.match(html,/id="menu-item-form"/);assert.match(html,/id="recipe-form"/);assert.match(html,/id="recipe-line-form"/);assert.match(html,/id="entity-sync-panel"/);assert.match(html,/id="phase2-sync-now"/);assert.match(html,/id="phase2-conflict-list"/);
+test("document has accessible landmarks and the rebuilt two-mode shell", async () => {
+ const html = await read("../index.html");
+ assert.match(html, /<html lang="en">/);
+ assert.match(html, /name="viewport"/);
+ assert.match(html, /class="skip-link" href="#main"/);
+ assert.match(html, /<main id="main" class="page-shell" tabindex="-1">/);
+ assert.match(html, /data-mode="ai"/);
+ assert.match(html, /data-mode="manage"/);
+ assert.match(html, /id="sidebar-content"/);
+ assert.match(html, /id="sidebar-backdrop"/);
+ assert.match(html, /id="page-content"/);
+ assert.match(html, /id="language-select"/);
+ assert.match(html, /id="theme-toggle"/);
+ assert.match(html, /src\/design-tokens\.css/);
+ assert.match(html, /src\/ui-components\.css/);
 });
 test("manifest declares standalone app and local icon",async()=>{
  const manifest=JSON.parse(await read("../public/manifest.webmanifest"));
@@ -23,7 +33,7 @@ test("service worker caches shell assets and falls back for offline navigation",
  const assetsMatch=worker.match(/const APP_SHELL = \[([\s\S]*?)\]\.map/);
  assert.ok(assetsMatch,"service worker declares a shell asset list");
  const assets=JSON.parse(`[${assetsMatch[1].replace(/,\s*$/,"")}]`);
- for(const asset of ["","index.html","src/app.js","src/stock-count-ui.js","src/stock-count-store.js","src/stock-count-domain.js","src/local-store.js","src/ingredient-store.js","src/menu-item-store.js","src/recipe-store.js","src/phase2-sync-engine.js","src/sync-store.js","src/sync-engine.js","src/supabase-api.js","runtime-config.js","src/styles.css","manifest.webmanifest","favicon.svg"])assert.ok(assets.includes(asset),"missing app-shell asset: "+asset);
+ for(const asset of ["","index.html","src/ui-preview.css","src/design-tokens.css","src/ui-components.css","src/ui-preview.js","src/app.js","src/stock-count-ui.js","src/stock-count-store.js","src/stock-count-domain.js","src/local-store.js","src/ingredient-store.js","src/menu-item-store.js","src/recipe-store.js","src/phase2-sync-engine.js","src/sync-store.js","src/sync-engine.js","src/supabase-api.js","runtime-config.js","src/styles.css","manifest.webmanifest","favicon.svg"])assert.ok(assets.includes(asset),"missing app-shell asset: "+asset);
  assert.match(worker,/new URL\(asset, self\.registration\.scope\)/);assert.match(worker,/new URL\("index\.html", self\.registration\.scope\)/);
  assert.match(worker,/request\.mode === "navigate"/);assert.match(worker,/caches\.match\(INDEX_URL\)/);assert.match(worker,/request\.method !== "GET"/);
 });
@@ -210,19 +220,18 @@ test("entity scope stays stable when the server assigns a different remote busin
 });
 
 
-test("stock-count review UI exposes accessible session, line, and explicit posting controls", async () => {
+test("new app shell is accessible while stock-count business UI logic remains available", async () => {
  const html = await read("../index.html");
  const app = await read("../src/app.js");
  const ui = await read("../src/stock-count-ui.js");
  const css = await read("../src/styles.css");
- assert.match(html, /id="stock-count-panel"/);
- assert.match(html, /id="stock-count-session"/);
- assert.match(html, /id="stock-count-lines"[^>]*aria-label="Stock-count lines"/);
- assert.match(html, /id="stock-count-state" class="profile-state" role="status" aria-live="polite"/);
- assert.match(html, /id="stock-count-post-selected"[^>]*disabled/);
- assert.match(html, /id="stock-count-create-form"/);
- assert.match(html, /id="stock-count-add-line-form"/);
- assert.match(html, /id="stock-count-item-unit"/);
+ assert.match(html, /data-mode="ai"/);
+ assert.match(html, /data-mode="manage"/);
+ assert.match(html, /id="page-content"/);
+ assert.match(html, /id="sidebar-content"/);
+ assert.match(html, /id="sidebar-backdrop"/);
+ assert.match(html, /src\/design-tokens\.css/);
+ assert.match(html, /src\/ui-components\.css/);
  assert.match(app, /getRemoteBusinessId: \(\) => activeSession\?\.user\?\.id/);
  assert.match(ui, /createStockCountSession/);
  assert.match(ui, /addStockCountLine/);
