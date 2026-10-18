@@ -35,6 +35,7 @@ test("project-path frontend preview loads scoped assets without backend credenti
 test("Manage Mode exposes the seven confirmed pages and the Ingredients form", async ({ page }) => {
   await page.goto("./");
   await page.locator('[data-mode="manage"]').click();
+  await page.getByRole("button", { name: "Open navigation" }).click();
   await expect(page.locator("[data-page]")).toHaveCount(7);
   for (const pageId of ["dashboard", "menu", "ingredients", "equipment", "expenses", "reports", "settings"]) {
     await expect(page.locator('[data-page="' + pageId + '"]')).toBeVisible();
