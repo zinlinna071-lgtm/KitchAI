@@ -211,18 +211,25 @@
     e.stopImmediatePropagation();
   },true);
   document.addEventListener("pointerdown",e=>{
-    // Touch gestures are handled by touchstart/touchend below.
+    // Mode swipes are allowed only when the gesture starts in the main screen.
+    // A drag/swipe on the drawer, header, or other shell area must never switch modes.
     if(e.pointerType==="touch")return;
     if(e.isPrimary===false||(e.pointerType==="mouse"&&e.button!==0)){state.tracking=false;return;}
-    state.touchX=e.clientX;state.touchY=e.clientY;
-    state.drawerGesture=drawerIsOpen();state.tracking=true;
+    const target=e.target instanceof Element?e.target:null;
+    if(!target?.closest("#main")){state.tracking=false;return;}
+    state.touchX=e.clientX;state.touchY=e.clientY;state.tracking=true;
   },{passive:true,capture:true});
   document.addEventListener("touchstart",e=>{
     // A new physical touch means any pending swipe-click guard is stale.
     swipeClickGuard=null;
     if(!e.changedTouches.length)return;
     const touch=e.changedTouches[0];
-    touchGestureStart={x:touch.clientX,y:touch.clientY,drawerGesture:drawerIsOpen()};
+    const target=e.target instanceof Element?e.target:null;
+    touchGestureStart={
+      x:touch.clientX,y:touch.clientY,
+      mainGesture:Boolean(target?.closest("#main")),
+      drawerGesture:Boolean(target?.closest("#sidebar"))&&drawerIsOpen()
+    };
   },{passive:true,capture:true});
   document.addEventListener("touchend",e=>{
     if(!touchGestureStart||!e.changedTouches.length)return;
@@ -237,7 +244,11 @@
     window.setTimeout(()=>{
       if(swipeClickGuard&&swipeClickGuard.expiresAt<=Date.now())swipeClickGuard=null;
     },710);
-    if(!isDesktop()&&start.drawerGesture){if(dx<0)closeDrawer();return;}
+    // Drawer swipes may close the mobile drawer, but never switch modes.
+    if(!start.mainGesture){
+      if(!isDesktop()&&start.drawerGesture&&dx<0)closeDrawer();
+      return;
+    }
     const nextMode=state.mode==="ai"?"manage":"ai";
     window.setTimeout(()=>setMode(nextMode),0);
   },{passive:true,capture:true});
