@@ -32,16 +32,18 @@ test("project-path frontend preview loads scoped assets without backend credenti
   expect(outOfScopeRequests).toEqual([]);
 });
 
-test("Manage Mode exposes seven pages and Dashboard, Menu, Ingredients are title-only", async ({ page }) => {
+test("Manage Mode exposes eight pages, preserves the Dashboard shell, and opens Personal Expenses", async ({ page }) => {
   await page.goto("./");
   await page.locator('[data-mode="manage"]').click();
-  await expect(page.locator("#sidebar-content [data-page]")).toHaveCount(7);
-  for (const [pageId, title] of [["dashboard", "Dashboard"], ["menu", "Menu"], ["ingredients", "Ingredients"]]) {
-    await page.locator('#sidebar-content [data-page="' + pageId + '"]').evaluate(element => element.click());
-    const section = page.locator("#page-content .page-title-only");
-    await expect(section.getByRole("heading", { name: title })).toBeVisible();
-    await expect(section.locator("button, input, select, textarea, .ui-card, p")).toHaveCount(0);
-  }
+  await expect(page.locator("#sidebar-content [data-page]")).toHaveCount(8);
+  await page.locator('#sidebar-content [data-page="dashboard"]').evaluate(element => element.click());
+  const dashboard = page.locator("#page-content .page-title-only");
+  await expect(dashboard.getByRole("heading", { name: "Dashboard" })).toBeVisible();
+  await expect(dashboard.locator("button, input, select, textarea, .ui-card, p")).toHaveCount(0);
+  await page.locator('#sidebar-content [data-page="personal-expenses"]').evaluate(element => element.click());
+  await expect(page.getByRole("heading", { name: "Personal Expenses" })).toBeVisible();
+  await expect(page.getByRole("button", { name: /Add personal expense/ })).toBeVisible();
+  await expect(page.getByText("No personal expenses yet.")).toBeVisible();
 });
 
 test("unknown project paths load the Pages fallback with project-scoped assets", async ({ page }) => {
