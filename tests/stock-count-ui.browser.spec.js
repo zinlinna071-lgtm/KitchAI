@@ -86,5 +86,10 @@ test("Menu form supports default category, ingredient selection, note and sellin
   await page.getByRole("button", { name: "Details" }).click();
   await expect(page.getByText("Preview test")).toBeVisible();
   await expect(page.getByText(/Selling price: 100/)).toBeVisible();
+  await page.getByRole("button", { name: /AI Mode/ }).click();
+  await expect(page.getByRole("heading", { name: "AI workspace" })).toBeVisible();
+  await page.getByRole("button", { name: /Manage Mode/ }).click();
+  await expect(page.getByRole("heading", { name: "Seaweed rice roll" })).toBeVisible();
+  await expect(page.getByText("Preview test")).toBeVisible();
   expect(pageErrors).toEqual([]);
 });
