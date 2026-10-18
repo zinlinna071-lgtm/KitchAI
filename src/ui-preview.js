@@ -26,7 +26,7 @@
     my: { ai:"AI Mode", manage:"Manage Mode", aiTitle:"AI လုပ်ငန်းခွင်", aiDescription:"ဒီနေရာမှာ မီးဖိုချောင်နဲ့ပတ်သက်တဲ့ မေးခွန်းတွေ စတင်မေးနိုင်ပါတယ်။ Frontend အတည်ပြုပြီးမှ AI အဖြေဝန်ဆောင်မှုကို ချိတ်ဆက်မယ်။", aiWelcome:"KitchAI ကို မီးဖိုချောင်အကြောင်း မေးမြန်းပါ", aiStart:"ဒီနေရာမှာ စကားဝိုင်း စတင်နိုင်ပါတယ်။ Frontend အတည်ပြုပြီးမှ AI အဖြေဝန်ဆောင်မှု ချိတ်ဆက်ပါမယ်။", aiMessage:"စာတို", aiPlaceholder:"မီးဖိုချောင်အကြောင်း မေးပါ...", aiPreviewOnly:"Frontend စမ်းသပ်ဗားရှင်းသာဖြစ်ပြီး AI ဝန်ဆောင်မှု မချိတ်ဆက်ရသေးပါ", aiSend:"ပို့ရန်", aiMessageNotice:"ဒီစာတိုကို Preview ထဲမှာသာ ပြထားပါတယ်။ AI မချိတ်ဆက်ရသေးပါ။", manageIntro:"လုပ်ငန်းကို တစ်နေရာတည်းမှာ စီမံခန့်ခွဲပါ။", building:"ဒီစာမျက်နှာကို အတည်ပြုထားတဲ့ လိုအပ်ချက်တွေအတိုင်း တည်ဆောက်သွားမယ်။", navigation:"Manage Mode", workspace:"Frontend စမ်းသပ်ဗားရှင်း", openNavigation:"Navigation ဖွင့်ရန်", closeNavigation:"Navigation ပိတ်ရန်", appearance:"Theme ပြောင်းရန်", language:"ဘာသာစကား", emptyTitle:"အချက်အလက် မရှိသေးပါ", emptyCopy:"ပထမဆုံးအချက်အလက်ကို စတင်ထည့်သွင်းပါ။", create:"အသစ်ထည့်ရန်", createCategory:"Category အသစ်", createIngredient:"Ingredient အသစ်", createMenu:"Menu အသစ်", category:"Category", name:"အမည်", cancel:"မလုပ်တော့ပါ", save:"ထည့်သွင်းရန်", default:"Default", reusable:"Reusable", oneTime:"One time", type:"အမျိုးအစား", quantity:"အရေအတွက်", unit:"ယူနစ်", price:"ဈေးနှုန်း", note:"မှတ်ချက် (မဖြစ်မနေမဟုတ်)", sellingPrice:"ရောင်းဈေး", ingredients:"Ingredients", noIngredients:"Ingredient မရှိသေးပါ။ နောက်မှထည့်နိုင်ပါတယ်။", notNow:"အခု Ingredients မထည့်သေးပါ", back:"နောက်သို့", edit:"ပြင်ရန်", delete:"ဖျက်ရန်", update:"ပြင်ဆင်ချက်သိမ်းရန်", confirmDelete:"ဒီအချက်အလက်ကို ဖျက်မှာသေချာပါသလား။", details:"အသေးစိတ်", chooseCategory:"Category ရွေးရန် သို့မဟုတ် အသစ်ရိုက်ရန်", required:"ဒီအကွက်ကို ဖြည့်ရန်လိုပါတယ်။", aiOnly:"ဒီအဆင့်မှာ AI Mode UI ကို နမူနာအဖြစ်သာ ပြထားပါတယ်။", savedInPreview:"ဒီ preview ထဲမှာသာ ထည့်ထားတာဖြစ်ပြီး database ထဲ မသိမ်းရသေးပါ။" },
     th: { ai:"โหมด AI", manage:"โหมดจัดการ", aiTitle:"พื้นที่ AI", aiDescription:"เริ่มถามคำถามเกี่ยวกับครัวของคุณได้ที่นี่ ระบบ AI จะเชื่อมต่อหลังจากยืนยันส่วนหน้าแล้ว", aiWelcome:"ถาม KitchAI เกี่ยวกับครัวของคุณ", aiStart:"เริ่มบทสนทนาได้ที่นี่ ระบบ AI จะเชื่อมต่อหลังจากยืนยันส่วนหน้าแล้ว", aiMessage:"ข้อความ", aiPlaceholder:"ถามเกี่ยวกับครัวของคุณ...", aiPreviewOnly:"ตัวอย่างส่วนหน้าเท่านั้น ยังไม่ได้เชื่อมต่อบริการ AI", aiSend:"ส่ง", aiMessageNotice:"แสดงข้อความนี้ในตัวอย่างเท่านั้น ยังไม่ได้เชื่อมต่อ AI", manageIntro:"จัดการธุรกิจของคุณในที่เดียว", building:"หน้านี้จะสร้างตามข้อกำหนดที่ยืนยัน", navigation:"โหมดจัดการ", workspace:"ต้นแบบส่วนหน้า", openNavigation:"เปิดเมนูนำทาง", closeNavigation:"ปิดเมนูนำทาง", appearance:"สลับธีม", language:"ภาษา", emptyTitle:"ยังไม่มีข้อมูล", emptyCopy:"เริ่มต้นด้วยการเพิ่มรายการแรก", create:"สร้าง", createCategory:"สร้างหมวดหมู่", createIngredient:"สร้างวัตถุดิบ", createMenu:"สร้างเมนู", category:"หมวดหมู่", name:"ชื่อ", cancel:"ยกเลิก", save:"สร้าง", default:"Default", reusable:"ใช้ซ้ำ", oneTime:"ครั้งเดียว", type:"ประเภท", quantity:"จำนวน", unit:"หน่วย", price:"ราคา", note:"หมายเหตุ (ไม่บังคับ)", sellingPrice:"ราคาขาย", ingredients:"วัตถุดิบ", noIngredients:"ยังไม่มีวัตถุดิบ เพิ่มภายหลังได้", notNow:"ยังไม่เพิ่มวัตถุดิบตอนนี้", back:"กลับ", edit:"แก้ไข", delete:"ลบ", update:"บันทึก", confirmDelete:"ต้องการลบรายการนี้หรือไม่", details:"รายละเอียด", chooseCategory:"เลือกหรือพิมพ์หมวดหมู่", required:"จำเป็นต้องกรอกข้อมูลนี้", aiOnly:"พื้นที่ AI เป็นตัวอย่างในขั้นตอนนี้", savedInPreview:"เพิ่มในตัวอย่างนี้เท่านั้น ยังไม่ได้บันทึกลงฐานข้อมูล" }
   };
-  const state = { mode:"ai", aiPage:"ai", managePage:"dashboard", touchX:0, touchY:0, tracking:false, drawerGesture:false, swipeClick:null, dialog:null, categoryTarget:null, detailId:null, detailType:null, editId:null, categories:{ingredients:["Default"],menu:["Default"]}, ingredients:[], menus:[], aiMessages:[] };
+  const state = { mode:"ai", aiPage:"ai", managePage:"dashboard", touchX:0, touchY:0, tracking:false, drawerGesture:false, dialog:null, categoryTarget:null, detailId:null, detailType:null, editId:null, categories:{ingredients:["Default"],menu:["Default"]}, ingredients:[], menus:[], aiMessages:[] };
   const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   const language = () => labels[languageSelect?.value] ? languageSelect.value : "en";
   const t = key => labels[language()][key] || labels.en[key] || key;
@@ -190,48 +190,48 @@
       state.dialog=null;state.editId=null;render();toast(t("savedInPreview"));
     }
   });
-  sidebarContent?.addEventListener("click",event=>{const b=event.target instanceof Element?event.target.closest("[data-page]"):null;if(!b)return;const id=b.getAttribute("data-page");if(!pages.some(p=>p.id===id))return;state.managePage=id;state.detailId=null;state.dialog=null;closeDrawer();render();window.scrollTo({top:0,behavior:"auto"});});
+  sidebarContent?.addEventListener("click",event=>{const b=event.target instanceof Element?event.target.closest("[data-page]"):null;if(!b)return;const id=b.getAttribute("data-page");if(!pages.some(p=>p.id===id))return;state.managePage=id;state.detailId=null;state.dialog=null;if(!isDesktop())closeDrawer();render();window.scrollTo({top:0,behavior:"auto"});});
   modeButtons.forEach(b=>b.addEventListener("click",()=>setMode(b.dataset.mode)));
   menuToggle?.addEventListener("click",()=>drawerIsOpen()?closeDrawer():openDrawer());sidebarClose?.addEventListener("click",closeDrawer);backdrop?.addEventListener("click",closeDrawer);
   document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeDrawer();if(state.dialog){state.dialog=null;render();}}});
   languageSelect?.addEventListener("change",render);
   themeToggle?.addEventListener("click",()=>{const dark=document.documentElement.dataset.theme!=="dark";document.documentElement.dataset.theme=dark?"dark":"light";document.body.classList.toggle("dark",dark);themeToggle.setAttribute("aria-pressed",String(dark));});
-  // Use Pointer Events as the single gesture path for touch, pen, and mouse.
-  // Mixing touchend with pointerup can leave mobile browsers with a stale click target
-  // when the mode's DOM is replaced immediately after a swipe.
+  let touchGestureStart = null;
   document.addEventListener("pointerdown",e=>{
+    // Touch gestures are handled by touchstart/touchend below.
+    if(e.pointerType==="touch")return;
     if(e.isPrimary===false||(e.pointerType==="mouse"&&e.button!==0)){state.tracking=false;return;}
-    state.touchX=e.clientX;
-    state.touchY=e.clientY;
-    state.drawerGesture=drawerIsOpen();
-    state.tracking=true;
+    state.touchX=e.clientX;state.touchY=e.clientY;
+    state.drawerGesture=drawerIsOpen();state.tracking=true;
   },{passive:true,capture:true});
+  document.addEventListener("touchstart",e=>{
+    if(!e.changedTouches.length)return;
+    const touch=e.changedTouches[0];
+    touchGestureStart={x:touch.clientX,y:touch.clientY,drawerGesture:drawerIsOpen()};
+  },{passive:true,capture:true});
+  document.addEventListener("touchend",e=>{
+    if(!touchGestureStart||!e.changedTouches.length)return;
+    const start=touchGestureStart;
+    touchGestureStart=null;
+    const touch=e.changedTouches[0];
+    const dx=touch.clientX-start.x,dy=touch.clientY-start.y;
+    if(Math.abs(dx)<60||Math.abs(dx)<Math.abs(dy)*1.25)return;
+    // Cancel the synthetic click generated by the horizontal swipe.
+    e.preventDefault();
+    if(!isDesktop()&&start.drawerGesture){if(dx<0)closeDrawer();return;}
+    const nextMode=state.mode==="ai"?"manage":"ai";
+    window.setTimeout(()=>setMode(nextMode),0);
+  },{passive:false,capture:true});
+  document.addEventListener("touchcancel",()=>{touchGestureStart=null;},{passive:true,capture:true});
   document.addEventListener("pointerup",e=>{
     if(!state.tracking)return;
     state.tracking=false;
     const dx=e.clientX-state.touchX,dy=e.clientY-state.touchY;
     if(Math.abs(dx)<60||Math.abs(dx)<Math.abs(dy)*1.25)return;
-    // A swipe can still produce a compatibility click on mobile browsers.
-    // Remember its coordinates so only that click is swallowed, not the next tap.
-    e.preventDefault();
-    state.swipeClick={x:e.clientX,y:e.clientY,until:Date.now()+180};
-    if(!isDesktop()&&state.drawerGesture){if(dx<0)closeDrawer();return;}
     const nextMode=state.mode==="ai"?"manage":"ai";
-    // Let the browser finish dispatching the swipe's click before replacing page DOM.
-    window.setTimeout(()=>setMode(nextMode),120);
-  },{passive:false,capture:true});
-  document.addEventListener("click",e=>{
-    const swipeClick=state.swipeClick;
-    if(!swipeClick)return;
-    if(Date.now()>swipeClick.until){state.swipeClick=null;return;}
-    if(Math.abs(e.clientX-swipeClick.x)<=3&&Math.abs(e.clientY-swipeClick.y)<=3){
-      state.swipeClick=null;
-      e.preventDefault();
-      e.stopPropagation();
-      e.stopImmediatePropagation();
-    }
-  },{capture:true});
-  document.addEventListener("pointercancel",()=>{state.tracking=false;state.swipeClick=null;},{passive:true,capture:true});
+    window.setTimeout(()=>setMode(nextMode),0);
+  },{passive:true,capture:true});
+  document.addEventListener("pointercancel",()=>{state.tracking=false;},{passive:true,capture:true});
   window.addEventListener("resize",()=>{
     if(isDesktop()){sidebar?.classList.remove("open");backdrop?.classList.remove("visible");}
     else appShell?.classList.remove("sidebar-collapsed");
