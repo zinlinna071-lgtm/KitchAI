@@ -199,6 +199,7 @@ test("capture desktop and mobile UI previews for review", async ({ page }) => {
   await page.screenshot({ path: "artifacts/kitchai-ui-preview-desktop.png", fullPage: true });
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(page.locator("#sidebar")).not.toHaveClass(/open/);
+  await page.waitForTimeout(250);
   await page.screenshot({ path: "artifacts/kitchai-ui-preview-mobile.png", fullPage: true });
 });
 
