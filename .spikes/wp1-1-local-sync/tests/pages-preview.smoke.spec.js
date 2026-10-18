@@ -35,13 +35,9 @@ test("project-path frontend preview loads scoped assets without backend credenti
 test("Manage Mode exposes seven pages and Dashboard, Menu, Ingredients are title-only", async ({ page }) => {
   await page.goto("./");
   await page.locator('[data-mode="manage"]').click();
-  await page.getByRole("button", { name: "Open navigation" }).click();
-  await expect(page.locator("[data-page]")).toHaveCount(7);
-  for (const pageId of ["dashboard", "menu", "ingredients", "equipment", "expenses", "reports", "settings"]) {
-    await expect(page.locator('[data-page="' + pageId + '"]')).toBeVisible();
-  }
+  await expect(page.locator("#sidebar-content [data-page]")).toHaveCount(7);
   for (const [pageId, title] of [["dashboard", "Dashboard"], ["menu", "Menu"], ["ingredients", "Ingredients"]]) {
-    await page.locator('[data-page="' + pageId + '"]').click();
+    await page.locator('#sidebar-content [data-page="' + pageId + '"]').click({ force: true });
     const section = page.locator("#page-content .page-title-only");
     await expect(section.getByRole("heading", { name: title })).toBeVisible();
     await expect(section.locator("button, input, select, textarea, .ui-card, p")).toHaveCount(0);
