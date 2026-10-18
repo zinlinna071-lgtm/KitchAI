@@ -197,6 +197,19 @@
   languageSelect?.addEventListener("change",render);
   themeToggle?.addEventListener("click",()=>{const dark=document.documentElement.dataset.theme!=="dark";document.documentElement.dataset.theme=dark?"dark":"light";document.body.classList.toggle("dark",dark);themeToggle.setAttribute("aria-pressed",String(dark));});
   let touchGestureStart = null;
+  // Suppress only the synthetic click that belongs to a completed swipe.
+  // A new touchstart clears the guard so the user's next real tap is never blocked.
+  let swipeClickGuard = null;
+  document.addEventListener("click",e=>{
+    const guard=swipeClickGuard;
+    if(!guard)return;
+    if(Date.now()>guard.expiresAt){swipeClickGuard=null;return;}
+    if(e.detail===0)return; // Keep keyboard/assistive-technology activation intact.
+    if(Math.abs(e.clientX-guard.x)>32||Math.abs(e.clientY-guard.y)>32)return;
+    swipeClickGuard=null;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+  },true);
   document.addEventListener("pointerdown",e=>{
     // Touch gestures are handled by touchstart/touchend below.
     if(e.pointerType==="touch")return;
@@ -205,6 +218,8 @@
     state.drawerGesture=drawerIsOpen();state.tracking=true;
   },{passive:true,capture:true});
   document.addEventListener("touchstart",e=>{
+    // A new physical touch means any pending swipe-click guard is stale.
+    swipeClickGuard=null;
     if(!e.changedTouches.length)return;
     const touch=e.changedTouches[0];
     touchGestureStart={x:touch.clientX,y:touch.clientY,drawerGesture:drawerIsOpen()};
@@ -216,13 +231,16 @@
     const touch=e.changedTouches[0];
     const dx=touch.clientX-start.x,dy=touch.clientY-start.y;
     if(Math.abs(dx)<60||Math.abs(dx)<Math.abs(dy)*1.25)return;
-    // A horizontal swipe is navigation, not a tap. Cancel the click the browser
-    // may synthesize from this same touch sequence instead of suppressing a later real tap.
-    e.preventDefault();
+    // Do not cancel touchend: that can poison the next tap on mobile browsers.
+    // Instead, ignore only a coordinate-matched synthetic click from this swipe.
+    swipeClickGuard={x:touch.clientX,y:touch.clientY,expiresAt:Date.now()+700};
+    window.setTimeout(()=>{
+      if(swipeClickGuard&&swipeClickGuard.expiresAt<=Date.now())swipeClickGuard=null;
+    },710);
     if(!isDesktop()&&start.drawerGesture){if(dx<0)closeDrawer();return;}
     const nextMode=state.mode==="ai"?"manage":"ai";
     window.setTimeout(()=>setMode(nextMode),0);
-  },{passive:false,capture:true});
+  },{passive:true,capture:true});
   document.addEventListener("touchcancel",()=>{touchGestureStart=null;},{passive:true,capture:true});
   document.addEventListener("pointerup",e=>{
     if(!state.tracking)return;
