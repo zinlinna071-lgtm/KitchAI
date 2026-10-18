@@ -1,8 +1,0 @@
-/* Chat composer refinement: preserve rounded shell without a square focus ring. */
-.chat-composer:focus-within{border-color:var(--line);outline:none;box-shadow:0 3px 18px rgba(0,0,0,.035)}
-.chat-composer textarea,
-.chat-composer textarea:focus,
-.chat-composer textarea:focus-visible{outline:none!important;box-shadow:none!important;border:0;resize:none;overflow-y:hidden;field-sizing:content}
-.chat-composer textarea{height:auto;min-height:39px;max-height:160px;overflow-wrap:anywhere}
-.chat-composer textarea.is-scrollable{overflow-y:auto}
-body.dark .chat-composer:focus-within{box-shadow:none}
