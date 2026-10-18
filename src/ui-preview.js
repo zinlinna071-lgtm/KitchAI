@@ -197,42 +197,65 @@
   languageSelect?.addEventListener("change",render);
   themeToggle?.addEventListener("click",()=>{const dark=document.documentElement.dataset.theme!=="dark";document.documentElement.dataset.theme=dark?"dark":"light";document.body.classList.toggle("dark",dark);themeToggle.setAttribute("aria-pressed",String(dark));});
   let touchGestureStart = null;
-  document.addEventListener("pointerdown",e=>{
-    // Touch gestures are handled by touchstart/touchend below.
-    if(e.pointerType==="touch")return;
-    if(e.isPrimary===false||(e.pointerType==="mouse"&&e.button!==0)){state.tracking=false;return;}
-    state.touchX=e.clientX;state.touchY=e.clientY;
-    state.drawerGesture=drawerIsOpen();state.tracking=true;
-  },{passive:true,capture:true});
-  document.addEventListener("touchstart",e=>{
-    if(!e.changedTouches.length)return;
-    const touch=e.changedTouches[0];
-    touchGestureStart={x:touch.clientX,y:touch.clientY,drawerGesture:drawerIsOpen()};
-  },{passive:true,capture:true});
-  document.addEventListener("touchend",e=>{
-    if(!touchGestureStart||!e.changedTouches.length)return;
-    const start=touchGestureStart;
-    touchGestureStart=null;
-    const touch=e.changedTouches[0];
-    const dx=touch.clientX-start.x,dy=touch.clientY-start.y;
-    if(Math.abs(dx)<60||Math.abs(dx)<Math.abs(dy)*1.25)return;
-    // A horizontal swipe is navigation, not a tap. Cancel the click the browser
-    // may synthesize from this same touch sequence instead of suppressing a later real tap.
+  // Suppress a swipe-generated click only when it lands near either end
+  // of that swipe. Browsers differ on whether the click uses start or release coordinates.
+  let swipeClickGuard = null;
+  const clearSwipeClickGuard = () => { swipeClickGuard = null; };
+  const setSwipeClickGuard = (start, end) => {
+    swipeClickGuard = { start, end, expiresAt: Date.now() + 500 };
+    window.setTimeout(() => {
+      if (swipeClickGuard && swipeClickGuard.expiresAt <= Date.now()) swipeClickGuard = null;
+    }, 510);
+  };
+  document.addEventListener("click", e => {
+    const guard = swipeClickGuard;
+    if (!guard) return;
+    if (Date.now() > guard.expiresAt) { swipeClickGuard = null; return; }
+    if (e.detail === 0) return; // Preserve keyboard and assistive-technology activation.
+    const near = point => Math.abs(e.clientX - point.x) <= 32 && Math.abs(e.clientY - point.y) <= 32;
+    if (!near(guard.start) && !near(guard.end)) return;
+    swipeClickGuard = null;
     e.preventDefault();
-    if(!isDesktop()&&start.drawerGesture){if(dx<0)closeDrawer();return;}
-    const nextMode=state.mode==="ai"?"manage":"ai";
-    window.setTimeout(()=>setMode(nextMode),0);
-  },{passive:false,capture:true});
-  document.addEventListener("touchcancel",()=>{touchGestureStart=null;},{passive:true,capture:true});
-  document.addEventListener("pointerup",e=>{
-    if(!state.tracking)return;
-    state.tracking=false;
-    const dx=e.clientX-state.touchX,dy=e.clientY-state.touchY;
-    if(Math.abs(dx)<60||Math.abs(dx)<Math.abs(dy)*1.25)return;
-    const nextMode=state.mode==="ai"?"manage":"ai";
-    window.setTimeout(()=>setMode(nextMode),0);
-  },{passive:true,capture:true});
-  document.addEventListener("pointercancel",()=>{state.tracking=false;},{passive:true,capture:true});
+    e.stopImmediatePropagation();
+  }, true);
+  document.addEventListener("touchstart", e => {
+    clearSwipeClickGuard();
+    if (!e.changedTouches.length) return;
+    const touch = e.changedTouches[0];
+    touchGestureStart = { x: touch.clientX, y: touch.clientY };
+  }, { passive: true, capture: true });
+  document.addEventListener("touchend", e => {
+    if (!touchGestureStart || !e.changedTouches.length) return;
+    const start = touchGestureStart;
+    touchGestureStart = null;
+    const touch = e.changedTouches[0];
+    const end = { x: touch.clientX, y: touch.clientY };
+    const dx = end.x - start.x, dy = end.y - start.y;
+    if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.25) return;
+    setSwipeClickGuard(start, end);
+    const nextMode = state.mode === "ai" ? "manage" : "ai";
+    window.setTimeout(() => setMode(nextMode), 0);
+  }, { passive: true, capture: true });
+  document.addEventListener("touchcancel", () => { touchGestureStart = null; }, { passive: true, capture: true });
+  // Mouse and pen use the same swipe guard; touch is handled above.
+  document.addEventListener("pointerdown", e => {
+    if (e.pointerType === "touch") return;
+    clearSwipeClickGuard();
+    if (e.isPrimary === false || (e.pointerType === "mouse" && e.button !== 0)) { state.tracking = false; return; }
+    state.touchX = e.clientX; state.touchY = e.clientY; state.tracking = true;
+  }, { passive: true, capture: true });
+  document.addEventListener("pointerup", e => {
+    if (!state.tracking) return;
+    state.tracking = false;
+    const start = { x: state.touchX, y: state.touchY };
+    const end = { x: e.clientX, y: e.clientY };
+    const dx = end.x - start.x, dy = end.y - start.y;
+    if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.25) return;
+    setSwipeClickGuard(start, end);
+    const nextMode = state.mode === "ai" ? "manage" : "ai";
+    window.setTimeout(() => setMode(nextMode), 0);
+  }, { passive: true, capture: true });
+  document.addEventListener("pointercancel", () => { state.tracking = false; }, { passive: true, capture: true });
   window.addEventListener("resize",()=>{
     if(isDesktop()){sidebar?.classList.remove("open");backdrop?.classList.remove("visible");}
     else appShell?.classList.remove("sidebar-collapsed");
