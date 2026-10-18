@@ -1,10 +1,10 @@
 /* Minimal mode shell only. Legacy preview pages and mock workflows retired. */
 (() => {
-  const modeButtons = [...document.querySelectorAll("[data-mode]")];
+  const modeButtons = /** @type {HTMLButtonElement[]} */ ([...document.querySelectorAll("[data-mode]")]);
   const pageContent = document.querySelector("#page-content");
   const sidebar = document.querySelector("#sidebar-content");
-  const languageSelect = document.querySelector("#language-select");
-  const themeToggle = document.querySelector("#theme-toggle");
+  const languageSelect = /** @type {HTMLSelectElement|null} */ (document.querySelector("#language-select"));
+  const themeToggle = /** @type {HTMLButtonElement|null} */ (document.querySelector("#theme-toggle"));
   const state = { mode: "ai", startX: 0, startY: 0, tracking: false };
 
   const labels = {
