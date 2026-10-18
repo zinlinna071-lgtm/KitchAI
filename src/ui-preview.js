@@ -205,7 +205,9 @@
     if(!guard)return;
     if(Date.now()>guard.expiresAt){swipeClickGuard=null;return;}
     if(e.detail===0)return; // Preserve keyboard and assistive-technology activation.
-    if(Math.abs(e.clientX-guard.x)>32||Math.abs(e.clientY-guard.y)>32)return;
+    // Browsers can synthesize the swipe's click at either its start or end
+    // point, depending on direction. Suppress the first click after a swipe
+    // regardless of coordinates; the next physical touch clears this guard.
     swipeClickGuard=null;
     e.preventDefault();
     e.stopImmediatePropagation();
