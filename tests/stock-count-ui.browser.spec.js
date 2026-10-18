@@ -63,3 +63,32 @@ test("desktop swipe switches mode from both drawer and main screen", async ({ pa
   await page.mouse.up();
   await expect(aiMode).toHaveAttribute("aria-pressed", "true");
 });
+
+test.describe("swipe then tap regression", () => {
+  test.use({ hasTouch: true, isMobile: true, viewport: { width: 390, height: 800 } });
+
+  test("tap still works immediately after either horizontal swipe", async ({ page }) => {
+    await page.goto("/");
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    const cdp = await page.context().newCDPSession(page);
+    const theme = page.locator("#theme-toggle");
+    const ai = page.getByRole("button", { name: /AI Mode/ });
+    const manage = page.getByRole("button", { name: /Manage Mode/ });
+    for (const [fromX, toX, expected] of [[60, 300, manage], [300, 60, ai]]) {
+      await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: fromX, y: 400 }] });
+      for (let step = 1; step <= 6; step += 1) {
+        await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: fromX + (toX - fromX) * step / 6, y: 400 }] });
+      }
+      await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+      const box = await theme.boundingBox();
+      const point = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+      await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [point] });
+      await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+      await expect(expected).toHaveAttribute("aria-pressed", "true");
+      await expect(theme).toHaveAttribute("aria-pressed", "true");
+      await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [point] });
+      await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+      await expect(theme).toHaveAttribute("aria-pressed", "false");
+    }
+  });
+});
