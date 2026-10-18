@@ -32,7 +32,7 @@ test("project-path frontend preview loads scoped assets without backend credenti
   expect(outOfScopeRequests).toEqual([]);
 });
 
-test("Manage Mode exposes the seven confirmed pages and the Ingredients form", async ({ page }) => {
+test("Manage Mode exposes seven pages and Dashboard, Menu, Ingredients are title-only", async ({ page }) => {
   await page.goto("./");
   await page.locator('[data-mode="manage"]').click();
   await page.getByRole("button", { name: "Open navigation" }).click();
@@ -40,13 +40,12 @@ test("Manage Mode exposes the seven confirmed pages and the Ingredients form", a
   for (const pageId of ["dashboard", "menu", "ingredients", "equipment", "expenses", "reports", "settings"]) {
     await expect(page.locator('[data-page="' + pageId + '"]')).toBeVisible();
   }
-  await page.locator('[data-page="ingredients"]').click();
-  await expect(page.getByRole("heading", { name: "Ingredients" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "No data yet" })).toBeVisible();
-  await expect(page.getByText("Default", { exact: true })).toBeVisible();
-  await page.locator('[data-action="new-ingredient"]').first().click();
-  await expect(page.locator('#record-form input[name="name"]')).toBeVisible();
-  await expect(page.locator('#record-form select[name="type"]')).toBeVisible();
+  for (const [pageId, title] of [["dashboard", "Dashboard"], ["menu", "Menu"], ["ingredients", "Ingredients"]]) {
+    await page.locator('[data-page="' + pageId + '"]').click();
+    const section = page.locator("#page-content .page-title-only");
+    await expect(section.getByRole("heading", { name: title })).toBeVisible();
+    await expect(section.locator("button, input, select, textarea, .ui-card, p")).toHaveCount(0);
+  }
 });
 
 test("unknown project paths load the Pages fallback with project-scoped assets", async ({ page }) => {
