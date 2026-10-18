@@ -23,6 +23,28 @@ test("shared shell and mobile drawer remain usable without horizontal overflow",
   await page.setViewportSize({ width: 360, height: 800 });
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "AI workspace" })).toBeVisible();
+  const headerLayout = await page.evaluate(() => {
+    const rect = selector => {
+      const box = document.querySelector(selector).getBoundingClientRect();
+      return { left: box.left, right: box.right, top: box.top, bottom: box.bottom };
+    };
+    const modeButtons = [...document.querySelectorAll(".mode-button")].map(button => {
+      const box = button.getBoundingClientRect();
+      return { left: box.left, right: box.right, top: box.top, bottom: box.bottom };
+    });
+    return {
+      menu: rect(".menu-toggle"),
+      modes: rect(".topbar-mode-switch"),
+      actions: rect(".topbar-actions"),
+      modeButtons,
+      viewport: document.documentElement.clientWidth,
+      content: document.documentElement.scrollWidth,
+    };
+  });
+  expect(headerLayout.modes.left).toBeGreaterThanOrEqual(headerLayout.menu.right - 1);
+  expect(headerLayout.actions.top).toBeGreaterThanOrEqual(headerLayout.modes.bottom - 1);
+  expect(headerLayout.modeButtons[0].right).toBeLessThanOrEqual(headerLayout.modeButtons[1].left + 1);
+  expect(headerLayout.content).toBeLessThanOrEqual(headerLayout.viewport);
   await page.getByRole("button", { name: "Open navigation" }).click();
   await expect(page.locator("#sidebar")).toHaveClass(/open/);
   await page.getByRole("button", { name: "Close navigation" }).click();
