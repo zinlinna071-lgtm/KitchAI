@@ -17,7 +17,7 @@ KitchAI has two primary modes:
 
 Keep both modes. Neither mode replaces the other. Preserve the existing app shell and business workflows when implementing UI changes.
 
-## 3. Mode-switching UX/UI logic — global gesture rule
+## 3. Mode-switching UX/UI logic — global gesture and work-state rules
 
 The owner has specifically chosen horizontal swiping as a way to switch between AI Mode and Manage Mode. **Horizontal swipe gestures are reserved exclusively for switching between these two modes across the app.** This is a global interaction rule, not just a rule for the home screen.
 
@@ -30,22 +30,27 @@ The owner has specifically chosen horizontal swiping as a way to switch between 
 - Provide a clear, visible mode indicator or switch control as an alternative to swiping. Users must not be forced to discover or use gestures.
 - The visible control must clearly identify which mode is active and make the other mode easy to reach.
 - Keep mode switching consistent in both directions: AI Mode → Manage Mode and Manage Mode → AI Mode.
+- **Preserve the exact in-progress work context in BOTH modes when switching away and back.** Mode switching must not reset either mode or create a fresh screen in place of the user's existing work.
+- **Manage Mode example:** If the user is filling in a form, enters some values, then swipes to AI Mode, returning to Manage Mode must reopen that same form with all entered values intact and restore the current position—such as the same field/focus or scroll location—as closely as practical. Do not return to a blank form or merely to the top of the page.
+- **AI Mode example:** If the user has opened an AI settings screen or is midway through an AI workflow, then switches to Manage Mode and later returns to AI Mode, restore that same AI settings/workflow screen and its unfinished state. Do not send them back to the AI home screen or reset their in-progress configuration.
+- Preserve context such as the active page or nested screen, unsent text, selected options, partially completed form values, scroll position, and other temporary state where relevant. Switching modes is navigation only; it must not silently clear, reset, submit, duplicate, or modify the user's work.
+- Keep the active mode visually obvious. Avoid making users guess where they are.
 - Make the interaction comfortable on mobile and avoid accidental switches while the user is scrolling, typing, selecting text, or interacting with forms.
 - Distinguish deliberate horizontal gestures from vertical page scrolling. Do not hijack ordinary vertical scrolling.
 - Respect accessibility and different input methods: provide a tappable alternative, visible focus behavior for keyboard users where applicable, and accessible labels for mode controls.
-- Switching modes is navigation only. It must not silently clear, reset, submit, duplicate, or modify business data or an unfinished form.
-- Keep the active mode visually obvious. Avoid making users guess where they are.
 - Keep the interaction responsive and lightweight; do not introduce a separate loading step just to change modes unless genuinely required by the underlying system.
 
 ### Implementation guardrails
 
 - Before changing mode navigation, inspect and preserve the current mode-switching behavior and app shell.
 - Use one coherent mode state as the source of truth for swipe gestures and the visible switch control, so the two cannot disagree.
+- Store/preserve each mode's navigation and unfinished-work state independently enough that switching away does not unmount/reset it; use an appropriate state-preservation approach compatible with the current app architecture.
 - Ensure no child component registers a competing left/right swipe handler. Avoid horizontal swipe libraries or carousel behavior in page content.
 - Prevent gesture handlers from conflicting with form inputs, text selection, scrolling, and other touch interactions. Do not switch modes merely because the user is typing or interacting with a control.
 - Do not load a separate preview controller into production as a shortcut, and do not replace existing production DOM or workflows without a reviewed migration.
-- Verify on a phone-sized viewport that swiping left and right switches modes, the tap control works, vertical scrolling still works, no in-page horizontal swipe changes content, and changing modes does not lose entered data.
-- This document describes the owner’s UX direction; implementation details may be chosen by developers as long as they meet these behaviors and preserve existing functionality.
+- Verify on a phone-sized viewport that swiping left and right switches modes, the tap control works, vertical scrolling still works, no in-page horizontal swipe changes content, and in-progress work survives repeated mode switches in both directions.
+- Specifically test: (1) enter data in a Manage Mode form → switch to AI Mode → return and confirm same form values/current position; (2) open AI Mode settings and make partial changes → switch to Manage Mode → return and confirm the same settings screen and unfinished changes; (3) verify neither mode unexpectedly resets the other.
+- This document describes the owner's UX direction; implementation details may be chosen by developers as long as they meet these behaviors and preserve existing functionality.
 
 ## 4. Manage Mode — exactly seven agreed main pages
 
@@ -76,8 +81,9 @@ When planning, coding, reviewing, or generating implementation prompts for Kitch
 
 1. Follow the two-mode structure: AI Mode and Manage Mode.
 2. Reserve all horizontal left/right swipe gestures exclusively for switching between AI Mode and Manage Mode. Never add competing horizontal swipe interactions inside pages or components.
-3. Keep exactly the seven agreed Manage Mode main pages.
-4. Prioritize simplicity for non-technical users and mobile use.
-5. Do not invent extra main pages, features, or finalized subpages.
-6. Treat this document as the current owner-confirmed high-level UI direction when older proposals conflict with it.
-7. This is a documentation decision, not permission to change production UI or business logic by itself.
+3. Preserve each mode's unfinished work and navigation context independently. Returning to a mode must restore the same screen and in-progress state, including partially filled forms and AI settings/workflows.
+4. Keep exactly the seven agreed Manage Mode main pages.
+5. Prioritize simplicity for non-technical users and mobile use.
+6. Do not invent extra main pages, features, or finalized subpages.
+7. Treat this document as the current owner-confirmed high-level UI direction when older proposals conflict with it.
+8. This is a documentation decision, not permission to change production UI or business logic by itself.
