@@ -30,7 +30,21 @@ This is a foundational app-wide interaction rule and applies to all pages and UI
 3. After the user has entered Manage Mode and then switches away, preserve its current working place. Switching back to Manage Mode must restore that place rather than reset to Dashboard. Apply the same independent position-preservation rule to AI Mode.
 4. The user can swipe left or right to move between AI Mode and Manage Mode, subject to the global horizontal-swipe rule above.
 5. A **new user** starts with no business data entered yet. This is separate from the app-launch behavior above.
-6. Manage Mode currently has seven pages in the user's described experience. The owner will explain each page and its behavior separately. Do not infer the functions of the other six pages from older plans.
+6. The seven confirmed Manage Mode main pages are listed in the section **Manage Mode — confirmed main-page list** below. The owner will explain each page and its behavior separately. Do not infer unconfirmed behavior from older plans.
+
+## Manage Mode — confirmed main-page list
+
+The owner confirmed these seven main pages for Manage Mode:
+
+1. **Dashboard**
+2. **Menu** — detailed behavior has been described and recorded below.
+3. **Ingredients** — behavior not yet described; wait for the owner's explanation.
+4. **Equipment & Supplies** — behavior not yet described; wait for the owner's explanation.
+5. **Expenses** — behavior not yet described; wait for the owner's explanation.
+6. **Business Reports** — behavior not yet described; wait for the owner's explanation.
+7. **Settings** — behavior not yet described; wait for the owner's explanation.
+
+This list records page names only where detailed behavior has not yet been explained. Do not invent their content, controls, or subpages.
 
 ## Menu Page — confirmed behavior
 
