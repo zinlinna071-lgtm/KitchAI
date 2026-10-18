@@ -89,3 +89,20 @@
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
 }
+
+
+/* Small page-level primitives shared by the UI-only prototype forms. */
+.eyebrow { margin: 0 0 var(--space-2) !important; color: var(--color-primary) !important; font-size: var(--font-size-xs) !important; font-weight: 750; letter-spacing: .06em; text-transform: uppercase; }
+.ui-chip { display: inline-flex; align-items: center; min-height: 28px; padding: 4px 10px; border: 1px solid var(--color-border); border-radius: var(--radius-pill); background: var(--color-surface); color: var(--color-text-muted); font-size: var(--font-size-xs); }
+.ui-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-3); }
+.ui-check { display: flex; align-items: center; gap: var(--space-2); min-height: 36px; color: var(--color-text); font-size: var(--font-size-sm); }
+.ui-check input { width: 18px; height: 18px; accent-color: var(--color-primary); }
+.ui-dialog-wrap { width: min(100%, 720px); margin-inline: auto; }
+.ui-dialog { gap: var(--space-4); }
+.ui-dialog h1 { margin: 0; }
+.ui-dialog .ui-row { justify-content: flex-start; }
+#toast.visible { display: block; }
+@media (max-width: 680px) {
+  .ui-grid { grid-template-columns: 1fr; }
+  .ui-dialog-wrap { width: 100%; }
+}
