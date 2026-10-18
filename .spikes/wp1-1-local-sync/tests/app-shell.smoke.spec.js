@@ -201,6 +201,18 @@ test("capture desktop and mobile UI previews for review", async ({ page }) => {
   await expect(page.locator("#sidebar")).not.toHaveClass(/open/);
   await page.waitForTimeout(250);
   await page.screenshot({ path: "artifacts/kitchai-ui-preview-mobile.png", fullPage: true });
+
+  await page.setViewportSize({ width: 1365, height: 900 });
+  await page.waitForTimeout(250);
+  await page.locator('[data-mode="manage"]').click();
+  await page.locator('[data-page="ingredients"]').click();
+  await page.screenshot({ path: "artifacts/kitchai-ui-preview-ingredients.png", fullPage: true });
+  await page.locator('[data-action="new-ingredient"]').first().click();
+  await page.screenshot({ path: "artifacts/kitchai-ui-preview-ingredient-form.png", fullPage: true });
+  await page.locator('[data-page="menu"]').click();
+  await page.screenshot({ path: "artifacts/kitchai-ui-preview-menu.png", fullPage: true });
+  await page.locator('[data-action="new-menu"]').first().click();
+  await page.screenshot({ path: "artifacts/kitchai-ui-preview-menu-form.png", fullPage: true });
 });
 
 test("service worker keeps the new UI shell navigable while offline", async ({ page, context }) => {
