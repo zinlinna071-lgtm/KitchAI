@@ -1,7 +1,7 @@
 /* KitchAI shared application shell. Page workflows are added only from confirmed requirements. */
 (() => {
   const $ = (selector) => document.querySelector(selector);
-  const modeButtons = [...document.querySelectorAll("[data-mode]")];
+  const modeButtons = /** @type {HTMLButtonElement[]} */ ([...document.querySelectorAll("[data-mode]")]);
   const pageContent = $("#page-content");
   const sidebarContent = $("#sidebar-content");
   const sidebar = $("#sidebar");
