@@ -95,7 +95,7 @@
       title=d==="edit-ingredient"?t("edit")+" "+t("createIngredient"):t("createIngredient");
       body=field(t("name"),"name","text",item?.name||"",true,'maxlength="100"')+categoryField("ingredients",item?.category||"Default")+
         selectField(t("type"),"type",[t("reusable"),t("oneTime")],item?.type==="one-time"?t("oneTime"):t("reusable"));
-      body+='<div id="one-time-fields" class="ui-grid">'+field(t("quantity"),"quantity","number",item?.quantity||"",false,'min="0" step="any"')+field(t("unit"),"unit","text",item?.unit||"",false,'maxlength="30"')+field(t("price"),"price","number",item?.price||"",false,'min="0" step="any"')+'</div>';
+      body+='<div id="one-time-fields" class="ui-grid" style="display:'+(item?.type==="one-time"?"grid":"none")+'">'+field(t("quantity"),"quantity","number",item?.quantity||"",false,'min="0" step="any"')+field(t("unit"),"unit","text",item?.unit||"",false,'maxlength="30"')+field(t("price"),"price","number",item?.price||"",false,'min="0" step="any"')+'</div>';
       submit=d==="edit-ingredient"?t("update"):t("save");
     } else if(d==="menu"||d==="edit-menu"){
       const item=d==="edit-menu"?state.menus.find(x=>x.id===state.editId):{};
