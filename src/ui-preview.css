@@ -31,6 +31,7 @@ button,input,textarea,select { font: inherit; } button,a,select { -webkit-tap-hi
 .menu-toggle { display:grid; flex:none; }
 .sidebar-close { display:grid; visibility:visible; opacity:1; position:relative; z-index:2; flex:none; }
 @media (min-width:761px) {
+ .sidebar { touch-action:pan-y; }
  .app-shell.sidebar-collapsed { grid-template-columns:minmax(0,1fr); }
  .app-shell.sidebar-collapsed > .sidebar { display:none; }
 }
