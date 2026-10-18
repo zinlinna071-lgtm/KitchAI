@@ -197,20 +197,6 @@
   languageSelect?.addEventListener("change",render);
   themeToggle?.addEventListener("click",()=>{const dark=document.documentElement.dataset.theme!=="dark";document.documentElement.dataset.theme=dark?"dark":"light";document.body.classList.toggle("dark",dark);themeToggle.setAttribute("aria-pressed",String(dark));});
   let touchGestureStart = null;
-  // Suppress only a click synthesized as part of the same swipe event sequence.
-  // Clear the marker on the next task so a real follow-up tap can never be consumed.
-  let swipeClickToSuppress = null;
-  document.addEventListener("click",event=>{
-    const pending=swipeClickToSuppress;
-    if(!pending)return;
-    // Consume the marker on the very next click, even when its coordinates differ.
-    // Otherwise a delayed swipe click can leave stale state and swallow a later real tap.
-    swipeClickToSuppress=null;
-    if(event.detail===0)return;
-    if(Math.abs(event.clientX-pending.x)>32||Math.abs(event.clientY-pending.y)>32)return;
-    event.preventDefault();
-    event.stopImmediatePropagation();
-  },true);
   document.addEventListener("pointerdown",e=>{
     // Touch gestures are handled by touchstart/touchend below.
     if(e.pointerType==="touch")return;
@@ -230,11 +216,9 @@
     const touch=e.changedTouches[0];
     const dx=touch.clientX-start.x,dy=touch.clientY-start.y;
     if(Math.abs(dx)<60||Math.abs(dx)<Math.abs(dy)*1.25)return;
-    // Some browsers synthesize a click after touchend. Mark its release point briefly
-    // so that click cannot activate a control under the swipe; never cancel touchend itself.
-    const pending={x:touch.clientX,y:touch.clientY};
-    swipeClickToSuppress=pending;
-    window.setTimeout(()=>{if(swipeClickToSuppress===pending)swipeClickToSuppress=null;},0);
+    // A horizontal swipe is navigation, not a tap. Cancel the click the browser
+    // may synthesize from this same touch sequence instead of suppressing a later real tap.
+    e.preventDefault();
     if(!isDesktop()&&start.drawerGesture){if(dx<0)closeDrawer();return;}
     const nextMode=state.mode==="ai"?"manage":"ai";
     window.setTimeout(()=>setMode(nextMode),0);
