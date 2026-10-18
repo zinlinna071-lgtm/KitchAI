@@ -33,7 +33,7 @@ test("service worker caches shell assets and falls back for offline navigation",
  const assetsMatch=worker.match(/const APP_SHELL = \[([\s\S]*?)\]\.map/);
  assert.ok(assetsMatch,"service worker declares a shell asset list");
  const assets=JSON.parse(`[${assetsMatch[1].replace(/,\s*$/,"")}]`);
- for(const asset of ["","index.html","src/app.js","src/stock-count-ui.js","src/stock-count-store.js","src/stock-count-domain.js","src/local-store.js","src/ingredient-store.js","src/menu-item-store.js","src/recipe-store.js","src/phase2-sync-engine.js","src/sync-store.js","src/sync-engine.js","src/supabase-api.js","runtime-config.js","src/styles.css","manifest.webmanifest","favicon.svg"])assert.ok(assets.includes(asset),"missing app-shell asset: "+asset);
+ for(const asset of ["","index.html","src/ui-preview.css","src/design-tokens.css","src/ui-components.css","src/ui-preview.js","src/app.js","src/stock-count-ui.js","src/stock-count-store.js","src/stock-count-domain.js","src/local-store.js","src/ingredient-store.js","src/menu-item-store.js","src/recipe-store.js","src/phase2-sync-engine.js","src/sync-store.js","src/sync-engine.js","src/supabase-api.js","runtime-config.js","src/styles.css","manifest.webmanifest","favicon.svg"])assert.ok(assets.includes(asset),"missing app-shell asset: "+asset);
  assert.match(worker,/new URL\(asset, self\.registration\.scope\)/);assert.match(worker,/new URL\("index\.html", self\.registration\.scope\)/);
  assert.match(worker,/request\.mode === "navigate"/);assert.match(worker,/caches\.match\(INDEX_URL\)/);assert.match(worker,/request\.method !== "GET"/);
 });
