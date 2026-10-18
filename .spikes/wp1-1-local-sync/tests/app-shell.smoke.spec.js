@@ -174,7 +174,7 @@ test("populated IndexedDB v2 upgrades additively, failed legacy mapping retries,
   expect(reopened.legacyRows).toHaveLength(1);
 });
 
-test("new UI shell is responsive and reports online/offline state", async ({ page }) => {
+test("new UI shell is responsive and reports online/offline state", async ({ page, context }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "AI workspace" })).toBeVisible();
   await expect(page.locator("#connection-status")).toContainText("Online");
@@ -184,9 +184,9 @@ test("new UI shell is responsive and reports online/offline state", async ({ pag
   await page.setViewportSize({ width: 320, height: 720 });
   const mobile = await page.evaluate(() => ({ width: innerWidth, content: document.documentElement.scrollWidth }));
   expect(mobile.content).toBeLessThanOrEqual(mobile.width);
-  await page.evaluate(() => window.dispatchEvent(new Event("offline")));
+  await context.setOffline(true);
   await expect(page.locator("#connection-status")).toContainText("Offline");
-  await page.evaluate(() => window.dispatchEvent(new Event("online")));
+  await context.setOffline(false);
   await expect(page.locator("#connection-status")).toContainText("Online");
   await expect(page.locator('link[rel="manifest"]')).toHaveAttribute("href", "/manifest.webmanifest");
 });
