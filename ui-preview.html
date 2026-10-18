@@ -3,7 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#ffffff">\n<meta name="kitchai-base-path" content="__KITCHAI_BASE_PATH__">\n<link rel="manifest" href="__KITCHAI_BASE_PATH__manifest.webmanifest">\n<link rel="icon" href="__KITCHAI_BASE_PATH__favicon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#ffffff">
+<meta name="kitchai-base-path" content="__KITCHAI_BASE_PATH__">
+<link rel="manifest" href="__KITCHAI_BASE_PATH__manifest.webmanifest">
+<link rel="icon" href="__KITCHAI_BASE_PATH__favicon.svg" type="image/svg+xml">
 <meta name="kitchai-base-path" content="__KITCHAI_BASE_PATH__">
 <!-- NON-PRODUCTION STATIC PREVIEW: backend config is intentionally empty. -->
 <meta name="description" content="KitchAI AI Mode and Manage Mode workspace shell">
@@ -11,7 +14,8 @@
 <link rel="stylesheet" href="__KITCHAI_BASE_PATH__src/ui-preview.css">
 <link rel="stylesheet" href="__KITCHAI_BASE_PATH__src/design-tokens.css">
 <link rel="stylesheet" href="__KITCHAI_BASE_PATH__src/ui-components.css">
-<script defer src="__KITCHAI_BASE_PATH__runtime-config.js"></script>\n<script defer src="__KITCHAI_BASE_PATH__src/ui-preview.js"></script>
+<script defer src="__KITCHAI_BASE_PATH__runtime-config.js"></script>
+<script defer src="__KITCHAI_BASE_PATH__src/ui-preview.js"></script>
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
@@ -32,6 +36,8 @@
 <button class="icon-button menu-toggle" id="menu-toggle" aria-label="Open navigation">☰</button>
 <div class="mode-switch topbar-mode-switch" role="group" aria-label="Choose mode"><button class="mode-button active" data-mode="ai" aria-pressed="true"><span class="mode-icon">✳</span><span>AI Mode</span></button><button class="mode-button" data-mode="manage" aria-pressed="false"><span class="mode-icon">▦</span><span>Manage Mode</span></button></div>
 <div class="topbar-actions">
+<span id="connection-status" class="connection-status" role="status" aria-live="polite">Online</span>
+<button class="ui-button ui-button--secondary install-button" id="install-button" type="button" hidden>Install app</button>
 <button class="icon-button compact-theme" id="theme-toggle" aria-label="Toggle light and dark theme" title="Toggle theme">◐</button>
 <select id="language-select" aria-label="Interface language"><option value="en">EN</option><option value="my">မြန်မာ</option><option value="th">ไทย</option></select>
 </div>
