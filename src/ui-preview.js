@@ -193,7 +193,7 @@
   });
   updateConnectionStatus();
   if ("serviceWorker" in navigator && location.protocol !== "file:") {
-    const basePath = document.querySelector('meta[name="kitchai-base-path"]')?.content || "/";
+    const basePath = document.querySelector('meta[name="kitchai-base-path"]')?.getAttribute("content") || "/";
     navigator.serviceWorker.register(basePath + "sw.js", { scope: basePath }).catch(error => {
       console.error("KitchAI service worker registration failed", error);
     });
