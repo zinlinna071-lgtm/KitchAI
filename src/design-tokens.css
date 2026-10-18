@@ -1,91 +1,45 @@
-/* KitchAI Design Tokens — shared visual values for every page. */
+/* KitchAI design tokens — calm, accessible, light/dark-ready. */
 :root {
   color-scheme: light;
-  --color-primary: #0d9488;
-  --color-primary-hover: #0f766e;
-  --color-primary-soft: #ccfbf1;
-  --color-secondary: #64748b;
-  --color-bg: #f8fafc;
+  --color-primary: #16856f;
+  --color-primary-hover: #116b59;
+  --color-primary-soft: #e5f5ef;
+  --color-secondary: #667085;
+  --color-bg: #f7f9f8;
   --color-surface: #ffffff;
-  --color-surface-muted: #f1f5f9;
-  --color-text: #0f172a;
-  --color-text-muted: #64748b;
-  --color-border: #e2e8f0;
-  --color-success: #15803d;
-  --color-warning: #b45309;
-  --color-danger: #dc2626;
-  --color-focus: #0f766e;
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 20px;
-  --space-6: 24px;
-  --space-7: 32px;
-  --space-8: 40px;
-  --space-9: 48px;
-  --page-gutter: 24px;
-  --page-max-width: 1200px;
-  --font-size-xs: 12px;
-  --font-size-sm: 14px;
-  --font-size-md: 16px;
-  --font-size-lg: 20px;
-  --font-size-xl: 24px;
-  --line-height-body: 1.5;
-  --line-height-heading: 1.25;
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-pill: 999px;
-  --control-height: 44px;
-  --control-padding-x: 12px;
-  --control-padding-y: 10px;
-  --card-padding: 20px;
-  --shadow-sm: 0 1px 2px rgb(15 23 42 / 6%);
-  --shadow-md: 0 8px 24px rgb(15 23 42 / 8%);
-  --bg: var(--color-bg);
-  --surface: var(--color-surface);
-  --surface-2: var(--color-surface-muted);
-  --surface-3: #e2e8f0;
-  --text: var(--color-text);
-  --muted: var(--color-text-muted);
-  --line: var(--color-border);
-  --accent: var(--color-primary);
-  --accent-soft: #ccfbf1;
-  --good: var(--color-success);
-  --warning: var(--color-warning);
-  --danger: var(--color-danger);
-  --shadow: var(--shadow-md);
+  --color-surface-muted: #f1f5f3;
+  --color-text: #17211f;
+  --color-text-muted: #687572;
+  --color-border: #e3e9e6;
+  --color-success: #16805d;
+  --color-warning: #a76516;
+  --color-danger: #c44949;
+  --color-focus: #16856f;
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
+  --space-5: 20px; --space-6: 24px; --space-7: 32px; --space-8: 40px; --space-9: 48px;
+  --page-gutter: 28px; --page-max-width: 1320px;
+  --font-size-xs: 12px; --font-size-sm: 14px; --font-size-md: 16px; --font-size-lg: 20px; --font-size-xl: 26px;
+  --line-height-body: 1.55; --line-height-heading: 1.2;
+  --radius-sm: 9px; --radius-md: 14px; --radius-lg: 18px; --radius-pill: 999px;
+  --control-height: 44px; --control-padding-x: 13px; --control-padding-y: 10px; --card-padding: 20px;
+  --shadow-sm: 0 1px 2px rgb(16 24 40 / 3%);
+  --shadow-md: 0 12px 32px rgb(16 24 40 / 6%);
+  --bg: var(--color-bg); --surface: var(--color-surface); --surface-2: var(--color-surface-muted);
+  --surface-3: #e9efec; --text: var(--color-text); --muted: var(--color-text-muted); --line: var(--color-border);
+  --accent: var(--color-primary); --accent-soft: var(--color-primary-soft); --good: var(--color-success);
+  --warning: var(--color-warning); --danger: var(--color-danger); --shadow: var(--shadow-md);
   font-family: Inter, "Noto Sans Myanmar", "Myanmar Text", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
+  font-synthesis: none; text-rendering: optimizeLegibility;
 }
-body.dark,
-html[data-theme="dark"] {
+html[data-theme="dark"], body.dark {
   color-scheme: dark;
-  --color-bg: #0b1220;
-  --color-surface: #111827;
-  --color-surface-muted: #1f2937;
-  --color-text: #f1f5f9;
-  --color-text-muted: #94a3b8;
-  --color-border: #334155;
-  --color-primary: #2dd4bf;
-  --color-primary-hover: #5eead4;
-  --color-primary-soft: #134e4a;
-  --color-focus: #5eead4;
-  --bg: var(--color-bg);
-  --surface: var(--color-surface);
-  --surface-2: var(--color-surface-muted);
-  --surface-3: #334155;
-  --text: var(--color-text);
-  --muted: var(--color-text-muted);
-  --line: var(--color-border);
-  --accent: var(--color-primary);
-  --accent-soft: var(--color-primary-soft);
-  --good: #4ade80;
-  --warning: #fbbf24;
-  --danger: #f87171;
+  --color-primary: #6bd6b5; --color-primary-hover: #8be4ca; --color-primary-soft: #183b32;
+  --color-secondary: #a1ada9; --color-bg: #101513; --color-surface: #171e1b; --color-surface-muted: #202925;
+  --color-text: #edf4f0; --color-text-muted: #a0ada7; --color-border: #2d3933;
+  --color-success: #72d8ac; --color-warning: #f0bd71; --color-danger: #ff8989; --color-focus: #8be4ca;
+  --bg: var(--color-bg); --surface: var(--color-surface); --surface-2: var(--color-surface-muted);
+  --surface-3: #29352f; --text: var(--color-text); --muted: var(--color-text-muted); --line: var(--color-border);
+  --accent: var(--color-primary); --accent-soft: var(--color-primary-soft); --good: var(--color-success);
+  --warning: var(--color-warning); --danger: var(--color-danger); --shadow: 0 12px 32px rgb(0 0 0 / 18%);
 }
-@media (max-width: 680px) {
-  :root { --page-gutter: 16px; --card-padding: 16px; }
-}
+@media (max-width: 680px) { :root { --page-gutter: 16px; --card-padding: 16px; } }
