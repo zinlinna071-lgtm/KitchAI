@@ -1,53 +1,80 @@
 # KitchAI Owner UI Navigation Direction
 
-Status: owner-confirmed high-level direction. This document records only the agreed top-level UI structure. Subpages, detail pages, and their exact workflows are **not finalized**.
+Status: Owner-confirmed high-level direction. This document records only the agreed mode structure, mode-switching UX, and seven Manage Mode main pages. Subpages and detail pages are **not finalized**.
 
-## Product UI principle
+## 1. Core UI principle
 
-KitchAI is intended for users who may not understand bookkeeping or complex business software. Keep the UI they see as simple and easy to understand as possible. The user should see only a small number of clear main destinations. Detailed workflows and operational complexity should be accessible contextually within the relevant page and/or handled with help from AI, rather than exposing many separate main-navigation items.
+KitchAI is for small food-business owners, including people who are not familiar with bookkeeping or complex business software. Keep the experience simple, clear, mobile-first, and easy to operate while busy.
 
-Do not add extra main pages or finalize a large subpage structure without a later owner decision.
+Show a small set of understandable main destinations. Let users reach detailed actions in context or ask AI for help. Do not expose a large navigation tree or invent extra features.
 
-## Two distinct modes
+## 2. Two modes must remain distinct
 
-KitchAI has two separate modes:
+KitchAI has two primary modes:
 
-- **AI Mode:** the user interacts with the AI to ask for help and have supported tasks assisted through natural-language interaction.
-- **Manage Mode:** the user directly browses and manages the business through a small set of clear main pages.
+- **AI Mode** — the AI-first experience where the user can ask questions and request help using natural language.
+- **Manage Mode** — the direct, visual interface for viewing and managing business information through the seven agreed main pages.
 
-Keep both modes. Do not remove, merge, or replace either mode while designing navigation. Preserve the existing mode-switching UI and current app shell unless a separately reviewed owner-approved change says otherwise.
+Keep both modes. Neither mode replaces the other. Preserve the existing app shell and business workflows when implementing UI changes.
 
-## Manage Mode: the 7 agreed main pages
+## 3. Mode-switching UX/UI logic — important
 
-The Manage Mode main navigation contains exactly these seven destinations:
+The owner has specifically chosen a **swipe-friendly way to move between AI Mode and Manage Mode**. Mode switching should feel natural and easy on a phone, not like navigating through a complicated settings menu.
 
-1. **Dashboard** — a simple overview of the business.
-2. **Menu** — food/menu items offered for sale.
-3. **Ingredients** — ingredients and their manually managed stock information.
+### Required interaction direction
+
+- Support an intuitive horizontal swipe gesture to switch between AI Mode and Manage Mode.
+- Make the two modes feel like neighboring views in one app, so the user can move between them with minimal effort.
+- Provide a clear, visible mode indicator or switch control as an alternative to swiping. Users must not be forced to discover or use gestures.
+- The visible control must clearly identify which mode is active and make the other mode easy to reach.
+- Keep mode switching consistent in both directions: AI Mode → Manage Mode and Manage Mode → AI Mode.
+- Make the interaction comfortable on mobile and avoid accidental switches while the user is scrolling, typing, selecting text, or interacting with forms.
+- Where horizontal swipe is used, distinguish deliberate horizontal gestures from vertical page scrolling. Do not hijack ordinary vertical scrolling.
+- Respect accessibility and different input methods: provide a tappable alternative, visible focus behavior for keyboard users where applicable, and accessible labels for mode controls.
+- Switching modes is navigation only. It must not silently clear, reset, submit, duplicate, or modify business data or an unfinished form.
+- Keep the active mode visually obvious. Avoid making users guess where they are.
+- Keep the interaction responsive and lightweight; do not introduce a separate loading step just to change modes unless genuinely required by the underlying system.
+
+### Implementation guardrails
+
+- Before changing mode navigation, inspect and preserve the current mode-switching behavior and app shell.
+- Use one coherent mode state as the source of truth for swipe gestures and the visible switch control, so the two cannot disagree.
+- Prevent gesture handlers from conflicting with existing navigation, form inputs, scrolling, or other touch interactions.
+- Do not load a separate preview controller into production as a shortcut, and do not replace existing production DOM or workflows without a reviewed migration.
+- Verify on a phone-sized viewport that both swipe directions work, the tap control works, vertical scrolling still works, and changing modes does not lose entered data.
+- This document describes the owner’s UX direction; implementation details may be chosen by developers as long as they meet these behaviors and preserve existing functionality.
+
+## 4. Manage Mode — exactly seven agreed main pages
+
+The Manage Mode main navigation contains these seven destinations:
+
+1. **Dashboard** — a simple business overview.
+2. **Menu** — menu items offered for sale.
+3. **Ingredients** — ingredients and manually managed ingredient stock information.
 4. **Equipment & Supplies** — reusable shop/kitchen equipment and supplies.
 5. **Expenses** — business expense records.
-6. **Business Reports** — sales, purchases, expenses, cash summaries, charts, and relevant business reporting.
+6. **Business Reports** — business reporting such as sales, purchases, expenses, cash summaries, and charts as supported by the app.
 7. **Settings** — app and business settings.
 
-These are the only currently agreed Manage Mode main pages. Do not promote Shopping List, Purchases, Stock Adjustment, Categories, Usage Periods, or other detailed workflows into additional main-navigation destinations at this stage.
+These are the only currently agreed Manage Mode main pages. Do not add more main pages without an explicit owner decision.
 
-## Subpages and detail pages are not finalized
+## 5. Subpages and detail pages are undecided
 
-The owner explicitly considers previous subpage proposals too numerous and containing unnecessary items. No subpage/detail-page list is approved yet.
+The owner has said that previous subpage proposals were too numerous and included unnecessary items. No subpage or detail-page list is approved yet.
 
-- Treat subpage and detail-page ideas as open planning items, not requirements.
-- Do not infer approval from earlier AI-generated UI/UX specifications.
-- Do not implement or document a definitive subpage tree until the owner reviews and decides it.
-- Detailed actions may later be placed inside the most relevant main page or assisted through AI; exact placement remains undecided.
+- Do not treat earlier AI-generated subpage lists as requirements.
+- Do not finalize, implement, or add a detailed subpage tree based on assumptions.
+- Do not promote Shopping List, Purchases, Stock Adjustment, Categories, Usage Periods, or any other detailed workflow into extra main pages at this stage.
+- The eventual placement of detailed actions is open: they may belong contextually within an agreed main page or be accessible through AI, subject to future owner decisions.
 
-## Guidance for other AI assistants and contributors
+## 6. Instructions for other AI assistants and contributors
 
-When planning, coding, reviewing, or generating prompts for KitchAI:
+When planning, coding, reviewing, or generating implementation prompts for KitchAI:
 
-1. Follow the seven Manage Mode main pages listed above.
-2. Preserve the distinction between AI Mode and Manage Mode.
-3. Optimize for a non-technical user: simple labels, minimal visible choices, and clear flows.
-4. Do not add new main pages or finalize subpages on your own.
-5. Treat this document as the current owner-confirmed high-level navigation direction. If older planning documents propose a different main navigation or a detailed subpage tree, do not treat those proposals as more recently approved than this document.
-6. This is a documentation-only direction; it does not authorize changing the current UI or business logic by itself.
-
+1. Follow the two-mode structure: AI Mode and Manage Mode.
+2. Follow the swipe-friendly, bidirectional mode-switching UX direction above.
+3. Keep exactly the seven agreed Manage Mode main pages.
+4. Prioritize simplicity for non-technical users and mobile use.
+5. Do not invent extra main pages, features, or finalized subpages.
+6. Treat this document as the current owner-confirmed high-level UI direction when older proposals conflict with it.
+7. This is a documentation decision, not permission to change production UI or business logic by itself.
