@@ -139,7 +139,7 @@
     modeButtons.forEach(b=>{const active=b.dataset.mode===state.mode;b.classList.toggle("active",active);b.setAttribute("aria-pressed",String(active));});
     renderSidebar();renderPage();if(document.documentElement)document.documentElement.lang=language();
   }
-  function setMode(mode){if((mode!=="ai"&&mode!=="manage")||state.mode===mode)return;if(state.dialog){if(state.editId&&state.detailType)state.detailId=state.editId;state.dialog=null;state.editId=null;}state.mode=mode;closeDrawer();render();window.scrollTo({top:0,behavior:"auto"});}
+  function setMode(mode){if((mode!=="ai"&&mode!=="manage")||state.mode===mode)return;if(state.dialog){if(state.editId&&state.detailType)state.detailId=state.editId;state.dialog=null;state.editId=null;}state.mode=mode;if(!isDesktop())closeDrawer();render();window.scrollTo({top:0,behavior:"auto"});}
   function toast(message){const el=$("#toast");if(el){el.textContent=message;el.classList.add("visible");window.setTimeout(()=>el.classList.remove("visible"),2600);}}
   function categoryFor(kind,value){const name=(value||"").trim()||"Default";if(!state.categories[kind].includes(name))state.categories[kind].push(name);return name;}
   function handleAction(action){
@@ -196,19 +196,20 @@
   document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeDrawer();if(state.dialog){state.dialog=null;render();}}});
   languageSelect?.addEventListener("change",render);
   themeToggle?.addEventListener("click",()=>{const dark=document.documentElement.dataset.theme!=="dark";document.documentElement.dataset.theme=dark?"dark":"light";document.body.classList.toggle("dark",dark);themeToggle.setAttribute("aria-pressed",String(dark));});
-  document.addEventListener("touchstart",e=>{
-    if(e.touches.length!==1){state.tracking=false;return;}
-    state.touchX=e.touches[0].clientX;state.touchY=e.touches[0].clientY;
+  document.addEventListener("pointerdown",e=>{
+    if(e.isPrimary===false||(e.pointerType==="mouse"&&e.button!==0)){state.tracking=false;return;}
+    state.touchX=e.clientX;state.touchY=e.clientY;
     state.drawerGesture=drawerIsOpen();state.tracking=true;
   },{passive:true});
-  document.addEventListener("touchend",e=>{
-    if(!state.tracking||!e.changedTouches.length)return;
+  document.addEventListener("pointerup",e=>{
+    if(!state.tracking)return;
     state.tracking=false;
-    const dx=e.changedTouches[0].clientX-state.touchX,dy=e.changedTouches[0].clientY-state.touchY;
+    const dx=e.clientX-state.touchX,dy=e.clientY-state.touchY;
     if(Math.abs(dx)<80||Math.abs(dx)<Math.abs(dy)*1.4)return;
     if(state.drawerGesture&&!isDesktop()){if(dx<0)closeDrawer();return;}
-    if(Math.abs(dx)>=80)setMode(state.mode==="ai"?"manage":"ai");
+    setMode(state.mode==="ai"?"manage":"ai");
   },{passive:true});
+  document.addEventListener("pointercancel",()=>{state.tracking=false;},{passive:true});
   window.addEventListener("resize",()=>{
     if(isDesktop()){sidebar?.classList.remove("open");backdrop?.classList.remove("visible");}
     else appShell?.classList.remove("sidebar-collapsed");
