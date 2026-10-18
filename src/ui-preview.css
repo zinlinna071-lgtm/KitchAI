@@ -61,3 +61,16 @@ button:focus-visible,a:focus-visible,select:focus-visible,textarea:focus-visible
 }
 @media (max-width:380px) { #language-select { max-width:56px; padding-inline:4px; } .icon-button { width:36px; height:36px; } }
 @media (prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto!important; transition-duration:.01ms!important; animation-duration:.01ms!important; } }
+
+/* Personal expenses page: reuse the current KitchAI card and responsive layout. */
+.personal-expense-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 20px 0; }
+.personal-expense-total { font-size: 24px; line-height: 1.25; color: var(--text); overflow-wrap: anywhere; }
+.personal-expense-list { display: grid; gap: 12px; margin-top: 16px; }
+.personal-expense-item { display: grid; gap: 14px; }
+.personal-expense-main { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.personal-expense-main h2 { margin: 0 0 6px; font-size: 17px; overflow-wrap: anywhere; }
+.personal-expense-main p { margin: 6px 0 0; }
+.personal-expense-amount { flex: none; font-size: 18px; font-variant-numeric: tabular-nums; }
+.personal-expense-actions { padding-top: 12px; border-top: 1px solid var(--line); }
+.personal-expense-preview-note { margin-top: 18px; }
+@media (max-width: 520px) { .personal-expense-summary { grid-template-columns: minmax(0, 1fr); } .personal-expense-main { gap: 10px; } .personal-expense-amount { font-size: 16px; } }
