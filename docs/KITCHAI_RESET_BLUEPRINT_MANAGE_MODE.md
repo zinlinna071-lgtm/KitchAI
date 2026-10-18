@@ -17,6 +17,12 @@ This is a foundational app-wide interaction rule and applies to all pages and UI
 3. **Drawer exception:** while a Drawer is open, mode-switching horizontal swipe must be disabled. A horizontal swipe in that state should only close the Drawer; it must not switch modes.
 4. Other UI interactions must not introduce additional horizontal-swipe behaviors. Do not assume or invent exceptions.
 
+## Global navigation rule — preserve each mode's place
+
+- When the user switches away from a mode and later returns to it, restore that mode to the place the user was working in before switching away.
+- Preserve each mode's own current context independently. For example, returning to Manage Mode should return to its previous page/working location, and returning to AI Mode should return to its previous working location; do not reset either mode to its starting screen merely because the user switched modes.
+- This is a navigation/continuity requirement, not permission to invent extra pages or other features. Details of what context must be retained within a page can be clarified as the owner explains the flows.
+
 ## App entry and switching modes
 
 1. When a user opens the app, **AI Mode** is the first view shown.
