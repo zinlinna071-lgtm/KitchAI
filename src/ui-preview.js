@@ -202,9 +202,12 @@
   let swipeClickToSuppress = null;
   document.addEventListener("click",event=>{
     const pending=swipeClickToSuppress;
-    if(!pending||event.detail===0)return;
-    if(Math.abs(event.clientX-pending.x)>32||Math.abs(event.clientY-pending.y)>32)return;
+    if(!pending)return;
+    // Consume the marker on the very next click, even when its coordinates differ.
+    // Otherwise a delayed swipe click can leave stale state and swallow a later real tap.
     swipeClickToSuppress=null;
+    if(event.detail===0)return;
+    if(Math.abs(event.clientX-pending.x)>32||Math.abs(event.clientY-pending.y)>32)return;
     event.preventDefault();
     event.stopImmediatePropagation();
   },true);
