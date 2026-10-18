@@ -206,7 +206,7 @@
     state.tracking=false;
     const dx=e.changedTouches[0].clientX-state.touchX,dy=e.changedTouches[0].clientY-state.touchY;
     if(Math.abs(dx)<80||Math.abs(dx)<Math.abs(dy)*1.4)return;
-    if(state.drawerGesture){if(!isDesktop()&&dx<0)closeDrawer();return;}
+    if(state.drawerGesture&&!isDesktop()){if(dx<0)closeDrawer();return;}
     if(Math.abs(dx)>=80)setMode(state.mode==="ai"?"manage":"ai");
   },{passive:true});
   window.addEventListener("resize",()=>{
