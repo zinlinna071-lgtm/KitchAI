@@ -38,13 +38,37 @@ The owner confirmed these seven main pages for Manage Mode:
 
 1. **Dashboard**
 2. **Menu** — detailed behavior has been described and recorded below.
-3. **Ingredients** — behavior not yet described; wait for the owner's explanation.
+3. **Ingredients** — initial view and Create Ingredient form behavior are recorded in the section **Ingredients Page — confirmed behavior** below. Other behavior remains unspecified.
 4. **Equipment & Supplies** — behavior not yet described; wait for the owner's explanation.
 5. **Expenses** — behavior not yet described; wait for the owner's explanation.
 6. **Business Reports** — behavior not yet described; wait for the owner's explanation.
 7. **Settings** — behavior not yet described; wait for the owner's explanation.
 
 This list records page names only where detailed behavior has not yet been explained. Do not invent their content, controls, or subpages.
+
+## Ingredients Page — confirmed behavior
+
+### Ingredients Page initial view
+
+- When there are no ingredient records yet, show a message that no data exists and prompt the user to add data using a **Create** button.
+- Show the **Default** category.
+- The page has two buttons:
+  - **Create Category**
+  - **Create Ingredient**
+
+No other page actions are confirmed yet.
+
+### Create Ingredient form
+
+When the user opens the Create Ingredient form:
+
+1. **Ingredient name** — ask for the ingredient's name.
+2. **Category** — set the category by choosing **Default**, selecting an existing category, or typing a new category.
+3. **Ingredient type** — the user can choose either **Reusable** or **One time**.
+   - **Reusable:** do not ask for purchase quantity or price in this form. The owner will enter those details later.
+   - **One time:** enter the quantity, unit, and price immediately as part of creating the ingredient.
+
+Do not add further fields, calculations, inventory behavior, or workflows unless the owner specifies them.
 
 ## Menu Page — confirmed behavior
 
