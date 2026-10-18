@@ -106,3 +106,29 @@
   .ui-grid { grid-template-columns: 1fr; }
   .ui-dialog-wrap { width: 100%; }
 }
+
+
+/* AI Mode chat presentation (UI only; no AI service call is made). */
+.ai-page { display: flex; flex-direction: column; min-height: calc(100dvh - 130px); gap: var(--space-5); }
+.ai-page-heading h1 { margin: 0 0 var(--space-2); font-size: clamp(26px, 3vw, 34px); line-height: var(--line-height-heading); letter-spacing: -.035em; }
+.ai-page-heading > p:last-child { max-width: 68ch; margin: 0; color: var(--color-text-muted); line-height: var(--line-height-body); }
+.ai-chat-panel { display: flex; flex: 1; flex-direction: column; gap: var(--space-5); width: 100%; max-width: 920px; min-height: 360px; margin-inline: auto; padding: clamp(16px, 3vw, 28px); }
+.ai-welcome { display: flex; flex: 1; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-3); padding: var(--space-6) var(--space-3); text-align: center; }
+.ai-welcome-mark { display: grid; place-items: center; width: 52px; height: 52px; border: 1px solid var(--color-border); border-radius: 16px; background: var(--color-primary-soft); color: var(--color-primary); font-size: 28px; }
+.ai-welcome h2 { margin: 0; font-size: clamp(20px, 3vw, 26px); line-height: var(--line-height-heading); }
+.ai-welcome p { max-width: 52ch; margin: 0; color: var(--color-text-muted); line-height: var(--line-height-body); }
+.ai-messages { display: flex; flex-direction: column; gap: var(--space-3); }
+.ai-message { align-self: flex-end; width: fit-content; max-width: min(88%, 680px); padding: var(--space-3) var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-md) var(--radius-md) 4px var(--radius-md); background: var(--color-surface-muted); overflow-wrap: anywhere; }
+.ai-message-label { display: block; margin-bottom: 4px; color: var(--color-text-muted); font-size: var(--font-size-xs); font-weight: 700; }
+.ai-message p { margin: 0; white-space: pre-wrap; line-height: var(--line-height-body); }
+.ai-composer { display: flex; flex-direction: column; gap: var(--space-3); padding-top: var(--space-4); border-top: 1px solid var(--color-border); }
+.ai-composer .ui-textarea { min-height: 92px; max-height: 220px; }
+.ai-composer-footer { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
+.ai-composer-footer .ui-hint { max-width: 65%; }
+@media (max-width: 680px) {
+  .ai-page { min-height: calc(100dvh - 112px); }
+  .ai-chat-panel { min-height: 380px; }
+  .ai-composer-footer { align-items: flex-start; flex-direction: column; }
+  .ai-composer-footer .ui-hint { max-width: 100%; }
+  .ai-composer-footer .ui-button { align-self: flex-end; }
+}
