@@ -8,11 +8,21 @@ import { validateMenuItem } from "../src/menu-item-store.js";
 import { validateRecipe, validateRecipeLine } from "../src/recipe-store.js";
 import { scopeForBusinessProfile } from "../src/business-data-store.js";
 const read=path=>readFile(new URL(path,import.meta.url),"utf8");
-test("document has accessible landmarks, viewport metadata, and clear scope",async()=>{
- const html=await read("../index.html");
- assert.match(html,/<html lang="en">/);assert.match(html,/name="viewport"/);assert.match(html,/class="skip-link" href="#main"/);assert.match(html,/<main id="main" class="page-shell" tabindex="-1">/);
- assert.match(html,/id="connection-status" class="connection-status" role="status"/);assert.match(html,/LOCAL BUSINESS PROFILE/);assert.match(html,/Implemented for local testing/);assert.match(html,/Hosted sync is not configured/);assert.match(html,/offline-first kitchen workspace for business records, recipe-based production batches/i);
- assert.match(html,/id="profile-form"/);assert.match(html,/id="ingredient-form"/);assert.match(html,/id="menu-item-form"/);assert.match(html,/id="recipe-form"/);assert.match(html,/id="recipe-line-form"/);assert.match(html,/id="entity-sync-panel"/);assert.match(html,/id="phase2-sync-now"/);assert.match(html,/id="phase2-conflict-list"/);
+test("document has accessible landmarks and the rebuilt two-mode shell", async () => {
+ const html = await read("../index.html");
+ assert.match(html, /<html lang="en">/);
+ assert.match(html, /name="viewport"/);
+ assert.match(html, /class="skip-link" href="#main"/);
+ assert.match(html, /<main id="main" class="page-shell" tabindex="-1">/);
+ assert.match(html, /data-mode="ai"/);
+ assert.match(html, /data-mode="manage"/);
+ assert.match(html, /id="sidebar-content"/);
+ assert.match(html, /id="sidebar-backdrop"/);
+ assert.match(html, /id="page-content"/);
+ assert.match(html, /id="language-select"/);
+ assert.match(html, /id="theme-toggle"/);
+ assert.match(html, /src\/design-tokens\.css/);
+ assert.match(html, /src\/ui-components\.css/);
 });
 test("manifest declares standalone app and local icon",async()=>{
  const manifest=JSON.parse(await read("../public/manifest.webmanifest"));
