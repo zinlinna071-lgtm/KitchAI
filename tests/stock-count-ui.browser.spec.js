@@ -26,7 +26,7 @@ test("shared shell and mobile drawer remain usable without horizontal overflow",
   expect(dimensions.content).toBeLessThanOrEqual(dimensions.viewport);
   await page.getByRole("button", { name: "Open navigation" }).click();
   await expect(page.locator("#sidebar")).toHaveClass(/open/);
-  await page.getByRole("button", { name: "Close navigation" }).click();
+  await page.locator("#sidebar-close").click();
   await expect(page.locator("#sidebar")).not.toHaveClass(/open/);
 });
 
