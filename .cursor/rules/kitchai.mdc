@@ -1,0 +1,6 @@
+---
+description: Mandatory KitchAI project safety and regression rules
+alwaysApply: true
+---
+
+Before every task, read and follow the repository-root `AGENTS.md`. Preserve working behavior first; diagnose root cause before patching; use a non-`main` branch; keep changes minimal; add regression tests; run checks and report only what actually ran; never weaken tests to conceal failures; protect local data, sync, migrations, security, offline/PWA and service-worker behavior; and stop/revert if a regression appears. Do not merge until required checks and acceptance criteria are satisfied. Follow the complete checklist in `AGENTS.md`.
