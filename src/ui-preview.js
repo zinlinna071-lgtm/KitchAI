@@ -76,13 +76,21 @@
     return '<section class="page-section"><div class="ui-row">'+button("← "+t("back"),"back-detail")+'</div><h1>'+esc(item.name)+'</h1><div class="ui-card ui-stack">'+info+'<hr class="ui-divider"><div class="ui-row">'+button(t("edit"),"edit-detail",true)+button(t("delete"),"delete-detail")+'</div></div><p class="ui-hint">'+esc(t("savedInPreview"))+'</p></section>';
   }
   function renderAI() {
-    let html='<section class="page-section ai-page"><div class="ai-page-heading"><p class="eyebrow">KitchAI</p><h1>'+esc(t("aiTitle"))+'</h1><p>'+esc(t("aiDescription"))+'</p></div><div class="ui-card ai-chat-panel">';
+    let html='<section class="page-section ai-page"><div class="ai-page-heading"><p class="eyebrow">KitchAI AI</p><h1>'+esc(t("aiWelcome"))+'</h1><p>'+esc(t("aiDescription"))+'</p></div><div class="ui-card ai-chat-panel">';
     if(!state.aiMessages.length) {
-      html+='<div class="ai-welcome"><div class="ai-welcome-mark" aria-hidden="true">✳</div><h2>'+esc(t("aiWelcome"))+'</h2><p>'+esc(t("aiStart"))+'</p></div>';
+      html+='<div class="ai-welcome"><div class="ai-welcome-mark" aria-hidden="true">✳</div><h2>'+esc(t("aiTitle"))+'</h2><p>'+esc(t("aiStart"))+'</p><div class="ai-suggestions"><button type="button" class="ai-suggestion" data-prompt="Suggest a menu for my night market stall">Suggest a menu</button><button type="button" class="ai-suggestion" data-prompt="Help me understand ingredient costs">Ingredient cost ideas</button><button type="button" class="ai-suggestion" data-prompt="Help me plan today’s food production">Production planning</button><button type="button" class="ai-suggestion" data-prompt="What should I check in my stock?">Stock advice</button></div></div>';
     } else {
       html+='<div class="ai-messages" aria-live="polite">'+state.aiMessages.map(message=>'<div class="ai-message"><span class="ai-message-label">You</span><p>'+esc(message)+'</p></div>').join("")+'</div>';
     }
-    html+='<form id="ai-composer" class="ai-composer"><label class="ui-field"><span class="ui-label">'+esc(t("aiMessage"))+'</span><textarea class="ui-textarea" name="message" maxlength="4000" placeholder="'+esc(t("aiPlaceholder"))+'" required></textarea></label><div class="ai-composer-footer"><span class="ui-hint">'+esc(t("aiPreviewOnly"))+'</span><button class="ui-button ui-button--primary" type="submit">'+esc(t("aiSend"))+' <span aria-hidden="true">↗</span></button></div></form></div></section>';
+    html+='<form id="ai-composer" class="ai-composer"><label class="ui-field"><span class="ui-label">'+esc(t("aiMessage"))+'</span><textarea class="ui-textarea" name="message" maxlength="4000" placeholder="'+esc(t("aiPlaceholder"))+'" required></textarea></label><div class="ai-composer-footer"><span class="ui-hint">'+esc(t("aiPreviewOnly"))+'</span><button class="ui-button ui-button--primary" type="submit">'+esc(t("aiSend"))+' <span aria-hidden="true">↑</span></button></div></form></div></section>';
+    return html;
+  }
+  function renderDashboard() {
+    const stats=[["Total sales","฿2,480","↑ 12% vs last week","↗"],["Expenses","฿850","This week","−"],["Net profit","฿1,630","Preview estimate","+"],["Low stock items","3","Needs attention","!"]];
+    let html=pageHeader("Dashboard","A clear view of your kitchen business at a glance.",'<span class="ui-chip">Preview data</span>');
+    html+='<div class="dashboard-grid">'+stats.map((s,i)=>'<article class="ui-card stat-card"><div class="stat-top"><span>'+s[0]+'</span><span class="stat-icon stat-icon-'+i+'">'+s[3]+'</span></div><strong>'+s[1]+'</strong><small class="'+(i===3?'stat-warning':'stat-positive')+'">'+s[2]+'</small></article>').join("")+'</div>';
+    html+='<div class="dashboard-main-grid"><section class="ui-card sales-card"><div class="section-card-heading"><div><h2>Sales overview</h2><p>Example activity · last 7 days</p></div><span class="ui-chip">7 days</span></div><div class="chart-wrap"><div class="chart-y-labels"><span>฿3k</span><span>฿2k</span><span>฿1k</span><span>฿0</span></div><svg class="sales-chart" viewBox="0 0 600 190" role="img" aria-label="Illustrative sales trend"><defs><linearGradient id="sales-fill" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="var(--accent)" stop-opacity=".18"/><stop offset="100%" stop-color="var(--accent)" stop-opacity="0"/></linearGradient></defs><path d="M0 154 L75 124 L150 137 L225 88 L300 102 L375 58 L450 77 L525 34 L600 48 L600 190 L0 190 Z" fill="url(#sales-fill)"/><path d="M0 154 L75 124 L150 137 L225 88 L300 102 L375 58 L450 77 L525 34 L600 48" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="chart-x-labels"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div></section><section class="ui-card quick-card"><div class="section-card-heading"><div><h2>Quick actions</h2><p>Common tasks</p></div></div><button class="quick-action" data-page="menu"><span>＋</span><span><b>Add menu item</b><small>Manage what you sell</small></span><i>›</i></button><button class="quick-action" data-page="ingredients"><span>◈</span><span><b>Add ingredient</b><small>Manage your ingredients</small></span><i>›</i></button><button class="quick-action" data-page="expenses"><span>−</span><span><b>Record expense</b><small>Track business costs</small></span><i>›</i></button><button class="quick-action" data-page="reports"><span>▤</span><span><b>View reports</b><small>Review business performance</small></span><i>›</i></button></section></div>';
+    html+='<div class="dashboard-bottom-grid"><section class="ui-card"><div class="section-card-heading"><div><h2>Top selling items</h2><p>Illustrative examples</p></div><button class="text-action" data-page="menu">View menu →</button></div><div class="top-item-list"><div class="top-item"><span class="food-emoji">🍢</span><span><b>Quail Fry</b><small>12 portions sold</small></span><strong>฿100</strong></div><div class="top-item"><span class="food-emoji">🍙</span><span><b>Seaweed Rice Roll</b><small>8 portions sold</small></span><strong>฿80</strong></div><div class="top-item"><span class="food-emoji">🥚</span><span><b>Chicken Sausage Roll</b><small>6 portions sold</small></span><strong>฿60</strong></div></div></section><section class="ui-card"><div class="section-card-heading"><div><h2>Stock to check</h2><p>Example levels only</p></div><button class="text-action" data-page="ingredients">View ingredients →</button></div><div class="stock-list"><div><span>Quail meat</span><b>25%</b><i><em style="width:25%"></em></i></div><div><span>Seaweed</span><b>60%</b><i><em style="width:60%"></em></i></div><div><span>Cooking oil</span><b>40%</b><i><em style="width:40%"></em></i></div></div></section></div><p class="ui-hint dashboard-note">These are illustrative UI values only. No records are being saved.</p></section>';
     return html;
   }
   function renderPage() {
@@ -90,10 +98,11 @@
     if(state.mode==="ai"){pageContent.innerHTML=renderAI();return;}
     if(state.dialog){pageContent.innerHTML=renderDialog();return;}
     if(state.detailId){pageContent.innerHTML=renderDetail();return;}
+    if(state.managePage==="dashboard"){pageContent.innerHTML=renderDashboard();return;}
     if(state.managePage==="ingredients"){pageContent.innerHTML=renderIngredients();return;}
     if(state.managePage==="menu"){pageContent.innerHTML=renderMenus();return;}
     const page=pages.find(x=>x.id===state.managePage)||pages[0];
-    pageContent.innerHTML=pageHeader(pageLabel(page),page.id==="dashboard"?t("manageIntro"):t("building"))+'<div class="ui-card"><p>'+esc(t("building"))+'</p></div></section>';
+    pageContent.innerHTML=pageHeader(pageLabel(page),t("building"))+'<div class="ui-card page-placeholder"><div class="placeholder-icon">✳</div><h2>'+esc(pageLabel(page))+'</h2><p>'+esc(t("building"))+'</p><span class="ui-chip">UI design in progress</span></div></section>';
   }
   function renderDialog() {
     const d=state.dialog;
@@ -139,7 +148,7 @@
     else if(action==="delete-detail"){if(window.confirm(t("confirmDelete"))){const key=state.detailType==="ingredient"?"ingredients":"menus";state[key]=state[key].filter(x=>x.id!==state.detailId);state.detailId=null;state.detailType=null;}}
     render();
   }
-  pageContent?.addEventListener("click",event=>{const el=event.target instanceof Element?event.target.closest("[data-action]"):null;if(el)handleAction(el.dataset.action);});
+  pageContent?.addEventListener("click",event=>{const target=event.target instanceof Element?event.target:null;const prompt=target?.closest("[data-prompt]");if(prompt){const box=pageContent.querySelector('textarea[name="message"]');if(box){box.value=prompt.dataset.prompt;box.focus();}return;}const nav=target?.closest("[data-page]");if(nav&&state.mode==="manage"){const id=nav.dataset.page;if(pages.some(p=>p.id===id)){state.managePage=id;state.detailId=null;state.dialog=null;render();window.scrollTo({top:0,behavior:"auto"});}return;}const el=target?.closest("[data-action]");if(el)handleAction(el.dataset.action);});
   pageContent?.addEventListener("change",event=>{if(event.target?.name==="type"){const box=$("#one-time-fields");if(box)box.style.display=event.target.value===t("oneTime")?"grid":"none";}});
   pageContent?.addEventListener("submit",event=>{
     if(event.target.id==="ai-composer") {
