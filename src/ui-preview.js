@@ -25,7 +25,7 @@
     my: { ai:"AI Mode", manage:"Manage Mode", aiTitle:"AI လုပ်ငန်းခွင်", aiDescription:"အတည်ပြုထားသော KitchAI လိုအပ်ချက်များအတိုင်း AI လုပ်ငန်းခွင်ကို တည်ဆောက်သွားမည်။", manageIntro:"လုပ်ငန်းကို တစ်နေရာတည်းမှာ စီမံခန့်ခွဲပါ။", building:"ဒီစာမျက်နှာကို အတည်ပြုထားတဲ့ လိုအပ်ချက်တွေအတိုင်း တည်ဆောက်သွားမယ်။", navigation:"Manage Mode", workspace:"Frontend စမ်းသပ်ဗားရှင်း", openNavigation:"Navigation ဖွင့်ရန်", closeNavigation:"Navigation ပိတ်ရန်", appearance:"Theme ပြောင်းရန်", language:"ဘာသာစကား", emptyTitle:"အချက်အလက် မရှိသေးပါ", emptyCopy:"ပထမဆုံးအချက်အလက်ကို စတင်ထည့်သွင်းပါ။", create:"အသစ်ထည့်ရန်", createCategory:"Category အသစ်", createIngredient:"Ingredient အသစ်", createMenu:"Menu အသစ်", category:"Category", name:"အမည်", cancel:"မလုပ်တော့ပါ", save:"ထည့်သွင်းရန်", default:"Default", reusable:"Reusable", oneTime:"One time", type:"အမျိုးအစား", quantity:"အရေအတွက်", unit:"ယူနစ်", price:"ဈေးနှုန်း", note:"မှတ်ချက် (မဖြစ်မနေမဟုတ်)", sellingPrice:"ရောင်းဈေး", ingredients:"Ingredients", noIngredients:"Ingredient မရှိသေးပါ။ နောက်မှထည့်နိုင်ပါတယ်။", notNow:"အခု Ingredients မထည့်သေးပါ", back:"နောက်သို့", edit:"ပြင်ရန်", delete:"ဖျက်ရန်", update:"ပြင်ဆင်ချက်သိမ်းရန်", confirmDelete:"ဒီအချက်အလက်ကို ဖျက်မှာသေချာပါသလား။", details:"အသေးစိတ်", chooseCategory:"Category ရွေးရန် သို့မဟုတ် အသစ်ရိုက်ရန်", required:"ဒီအကွက်ကို ဖြည့်ရန်လိုပါတယ်။", aiOnly:"ဒီအဆင့်မှာ AI Mode UI ကို နမူနာအဖြစ်သာ ပြထားပါတယ်။", savedInPreview:"ဒီ preview ထဲမှာသာ ထည့်ထားတာဖြစ်ပြီး database ထဲ မသိမ်းရသေးပါ။" },
     th: { ai:"โหมด AI", manage:"โหมดจัดการ", aiTitle:"พื้นที่ AI", aiDescription:"พื้นที่ AI จะสร้างตามข้อกำหนด KitchAI ที่ยืนยันแล้ว", manageIntro:"จัดการธุรกิจของคุณในที่เดียว", building:"หน้านี้จะสร้างตามข้อกำหนดที่ยืนยัน", navigation:"โหมดจัดการ", workspace:"ต้นแบบส่วนหน้า", openNavigation:"เปิดเมนูนำทาง", closeNavigation:"ปิดเมนูนำทาง", appearance:"สลับธีม", language:"ภาษา", emptyTitle:"ยังไม่มีข้อมูล", emptyCopy:"เริ่มต้นด้วยการเพิ่มรายการแรก", create:"สร้าง", createCategory:"สร้างหมวดหมู่", createIngredient:"สร้างวัตถุดิบ", createMenu:"สร้างเมนู", category:"หมวดหมู่", name:"ชื่อ", cancel:"ยกเลิก", save:"สร้าง", default:"Default", reusable:"ใช้ซ้ำ", oneTime:"ครั้งเดียว", type:"ประเภท", quantity:"จำนวน", unit:"หน่วย", price:"ราคา", note:"หมายเหตุ (ไม่บังคับ)", sellingPrice:"ราคาขาย", ingredients:"วัตถุดิบ", noIngredients:"ยังไม่มีวัตถุดิบ เพิ่มภายหลังได้", notNow:"ยังไม่เพิ่มวัตถุดิบตอนนี้", back:"กลับ", edit:"แก้ไข", delete:"ลบ", update:"บันทึก", confirmDelete:"ต้องการลบรายการนี้หรือไม่", details:"รายละเอียด", chooseCategory:"เลือกหรือพิมพ์หมวดหมู่", required:"จำเป็นต้องกรอกข้อมูลนี้", aiOnly:"พื้นที่ AI เป็นตัวอย่างในขั้นตอนนี้", savedInPreview:"เพิ่มในตัวอย่างนี้เท่านั้น ยังไม่ได้บันทึกลงฐานข้อมูล" }
   };
-  const state = { mode:"ai", aiPage:"ai", managePage:"dashboard", touchX:0, touchY:0, tracking:false, drawerGesture:false, dialog:null, categoryTarget:null, detailId:null, detailType:null, editId:null, categories:{ingredients:["Default"],menu:["Default"]}, ingredients:[], menus:[] };
+  const state = { mode:"ai", aiPage:"ai", managePage:"dashboard", touchX:0, touchY:0, tracking:false, drawerGesture:false, dialog:null, categoryTarget:null, detailId:null, detailType:null, editId:null, categories:{ingredients:["Default"],menu:["Default"]}, ingredients:[], menus:[], aiMessages:[] };
   const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   const language = () => labels[languageSelect?.value] ? languageSelect.value : "en";
   const t = key => labels[language()][key] || labels.en[key] || key;
@@ -75,9 +75,19 @@
       : '<p><b>'+esc(t("category"))+':</b> '+esc(item.category)+'</p><p><b>'+esc(t("ingredients"))+':</b> '+esc(item.ingredientNames.length?item.ingredientNames.join(", "):t("noIngredients"))+'</p><p><b>'+esc(t("note"))+':</b> '+esc(item.note||"—")+'</p><p><b>'+esc(t("sellingPrice"))+':</b> '+esc(item.price)+'</p>';
     return '<section class="page-section"><div class="ui-row">'+button("← "+t("back"),"back-detail")+'</div><h1>'+esc(item.name)+'</h1><div class="ui-card ui-stack">'+info+'<hr class="ui-divider"><div class="ui-row">'+button(t("edit"),"edit-detail",true)+button(t("delete"),"delete-detail")+'</div></div><p class="ui-hint">'+esc(t("savedInPreview"))+'</p></section>';
   }
+  function renderAI() {
+    let html='<section class="page-section ai-page"><div class="ai-page-heading"><p class="eyebrow">KitchAI</p><h1>'+esc(t("aiTitle"))+'</h1><p>'+esc(t("aiDescription"))+'</p></div><div class="ui-card ai-chat-panel">';
+    if(!state.aiMessages.length) {
+      html+='<div class="ai-welcome"><div class="ai-welcome-mark" aria-hidden="true">✳</div><h2>Ask KitchAI about your kitchen</h2><p>Start a conversation here. AI replies will be connected after the frontend is confirmed.</p></div>';
+    } else {
+      html+='<div class="ai-messages" aria-live="polite">'+state.aiMessages.map(message=>'<div class="ai-message"><span class="ai-message-label">You</span><p>'+esc(message)+'</p></div>').join("")+'</div>';
+    }
+    html+='<form id="ai-composer" class="ai-composer"><label class="ui-field"><span class="ui-label">Message</span><textarea class="ui-textarea" name="message" maxlength="4000" placeholder="Ask about your kitchen..." required></textarea></label><div class="ai-composer-footer"><span class="ui-hint">Frontend preview only · AI service not connected</span><button class="ui-button ui-button--primary" type="submit">Send <span aria-hidden="true">↗</span></button></div></form></div></section>';
+    return html;
+  }
   function renderPage() {
     if(!pageContent)return;
-    if(state.mode==="ai"){pageContent.innerHTML=pageHeader(t("aiTitle"),t("aiDescription"))+'<div class="ui-card"><p>'+esc(t("aiOnly"))+'</p></div></section>';return;}
+    if(state.mode==="ai"){pageContent.innerHTML=renderAI();return;}
     if(state.dialog){pageContent.innerHTML=renderDialog();return;}
     if(state.detailId){pageContent.innerHTML=renderDetail();return;}
     if(state.managePage==="ingredients"){pageContent.innerHTML=renderIngredients();return;}
@@ -132,6 +142,15 @@
   pageContent?.addEventListener("click",event=>{const el=event.target instanceof Element?event.target.closest("[data-action]"):null;if(el)handleAction(el.dataset.action);});
   pageContent?.addEventListener("change",event=>{if(event.target?.name==="type"){const box=$("#one-time-fields");if(box)box.style.display=event.target.value===t("oneTime")?"grid":"none";}});
   pageContent?.addEventListener("submit",event=>{
+    if(event.target.id==="ai-composer") {
+      event.preventDefault();
+      const message=String(new FormData(event.target).get("message")||"").trim();
+      if(!message)return;
+      state.aiMessages.push(message);
+      render();
+      toast("Message shown in preview only; AI is not connected yet.");
+      return;
+    }
     if(event.target.id!=="record-form")return;event.preventDefault();
     const form=event.target;const data=new FormData(form);const d=state.dialog;
     if(d==="ingredient-category"||d==="menu-category"){
