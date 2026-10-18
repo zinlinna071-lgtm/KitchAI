@@ -8,10 +8,19 @@
 - Do not change AI Mode or any other area based on this document. The owner said the current explanation and redesign scope is Manage Mode only; other areas remain unchanged unless the owner explicitly says otherwise.
 - Do not add unrequested features, fields, workflows, calculations, or subpages. If a behavior is not described, leave it undecided and ask the owner later if it becomes necessary.
 
+## Global interaction rule — horizontal swipe
+
+This is a foundational app-wide interaction rule and applies to all pages and UI:
+
+1. **Horizontal swipe is reserved exclusively for switching between AI Mode and Manage Mode.**
+2. Do not add horizontal-swipe interactions anywhere else in the app, on any page or UI element, for any other purpose. This is a strict rule with no other exceptions except the Drawer behavior below.
+3. **Drawer exception:** while a Drawer is open, mode-switching horizontal swipe must be disabled. A horizontal swipe in that state should only close the Drawer; it must not switch modes.
+4. Other UI interactions must not introduce additional horizontal-swipe behaviors. Do not assume or invent exceptions.
+
 ## App entry and switching modes
 
 1. When a user opens the app, **AI Mode** is the first view shown.
-2. The user can swipe left or right to move easily between AI Mode and Manage Mode.
+2. The user can swipe left or right to move easily between AI Mode and Manage Mode, subject to the global horizontal-swipe rule above.
 3. A new user starts with no business data entered yet.
 4. Manage Mode currently has seven pages in the user's described experience. The owner will explain each page and its behavior separately. Do not infer the functions of the other six pages from older plans.
 
