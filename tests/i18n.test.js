@@ -53,6 +53,10 @@ test("keeps shared Date Filter translations available in every supported locale"
     "dateFilter.cancel", "dateFilter.invalid", "dateFilter.choose",
     "dateFilter.chooseDate", "dateFilter.previousMonth", "dateFilter.nextMonth",
     "dashboard.description", "navigation.dashboard",
+    "page.description.dashboard", "page.description.menu",
+    "page.description.ingredients", "page.description.equipment",
+    "page.description.expenses", "page.description.personal-expenses",
+    "page.description.reports", "page.description.settings",
     "navigation.menu", "navigation.ingredients", "navigation.equipment",
     "navigation.expenses", "navigation.personalExpenses", "navigation.reports",
     "ai.newChat", "ai.recentChats", "ai.searchChats", "ai.settings", "ai.noChats"
