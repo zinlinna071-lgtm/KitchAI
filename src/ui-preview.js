@@ -12,6 +12,7 @@
   const languageSelect = $("#language-select");
   const themeToggle = $("#theme-toggle");
   const menuToggle = $("#menu-toggle");
+  const sidebarMinimize = $("#sidebar-minimize");
   const pages = [
     { id: "dashboard", en: "Dashboard", my: "Dashboard" },
     { id: "menu", en: "Menu", my: "Menu" },
@@ -74,7 +75,7 @@
     menuToggle?.setAttribute("aria-label", t("closeNavigation"));
     menuToggle?.setAttribute("title", t("closeNavigation"));
     menuToggle?.setAttribute("aria-expanded", "true");
-    if (menuToggle) menuToggle.textContent = "‹";
+    if (menuToggle) menuToggle.textContent = "☰";
   };
   const closeDrawer = () => {
     appShell?.classList.add("sidebar-collapsed");
@@ -319,7 +320,7 @@
   });
   sidebarContent?.addEventListener("input",event=>{if(event.target?.id==="sidebar-chat-search"){state.aiSearchQuery=event.target.value;const pos=event.target.selectionStart;render();const next=$("#sidebar-chat-search");if(next){next.focus();next.setSelectionRange(pos,pos);}}});
   modeButtons.forEach(b=>b.addEventListener("click",()=>setMode(b.dataset.mode)));
-  menuToggle?.addEventListener("click",()=>drawerIsOpen()?closeDrawer():openDrawer());backdrop?.addEventListener("click",closeDrawer);
+  menuToggle?.addEventListener("click",()=>{if(!drawerIsOpen())openDrawer();});sidebarMinimize?.addEventListener("click",closeDrawer);backdrop?.addEventListener("click",closeDrawer);
   document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeDrawer();if(state.dialog){state.dialog=null;render();}}});
   languageSelect?.addEventListener("change",render);
   themeToggle?.addEventListener("click",()=>{const dark=document.documentElement.dataset.theme!=="dark";document.documentElement.dataset.theme=dark?"dark":"light";document.body.classList.toggle("dark",dark);themeToggle.setAttribute("aria-pressed",String(dark));});
