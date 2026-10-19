@@ -199,3 +199,41 @@ test("custom calendar opens from the full compact date control for Single Date a
     await expect(page.locator(".date-calendar")).toBeVisible();
   }
 });
+
+
+test("date calendar defaults to current month, supports year-month-date drill-down, and spans the date section", async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 800 });
+  await page.goto("/");
+  await page.getByRole("button", { name: /Manage Mode/ }).click();
+  await page.getByRole("button", { name: "Dashboard", exact: true }).click();
+  const trigger = page.getByRole("button", { name: /Choose date filter/ });
+  await trigger.click();
+
+  const singleSection = page.locator(".date-filter-single");
+  await expect(singleSection.getByRole("heading", { name: "Single Date" })).toBeVisible();
+  await expect(singleSection.locator(".ui-label")).toHaveCount(0);
+  await page.locator('[data-date-filter="calendar:single"]').click();
+  await expect(page.locator(".date-calendar-weekdays span")).toHaveText(["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]);
+  const defaultMonth = await page.locator(".date-calendar-title-button").first().textContent();
+  expect(defaultMonth?.trim()).not.toBe("");
+  await expect(page.locator(".date-calendar-days")).toBeVisible();
+
+  await page.locator('[data-date-filter="view:year"]').click();
+  await expect(page.locator(".date-calendar-years .date-calendar-choice")).toHaveCount(12);
+  await page.locator('[data-date-filter="pick-year:2026"]').click();
+  await expect(page.locator(".date-calendar-months .date-calendar-choice")).toHaveCount(12);
+  await page.locator('[data-date-filter="pick-month:9"]').click();
+  await expect(page.locator(".date-calendar-days")).toBeVisible();
+  await page.locator('[data-date-filter="day:2026-10-08"]').click();
+  await expect(trigger).toContainText(/Oct 8/);
+
+  await trigger.click();
+  await page.locator('[data-date-filter="calendar:start"]').click();
+  let calendar = page.locator(".date-filter-custom:not(.date-filter-single) > .date-calendar");
+  let geometry = await calendar.evaluate(el => ({calendar:el.getBoundingClientRect().width, section:el.parentElement.getBoundingClientRect().width}));
+  expect(geometry.calendar).toBeGreaterThanOrEqual(geometry.section - 30);
+  await page.locator('[data-date-filter="day:2026-10-10"]').click();
+  calendar = page.locator(".date-filter-custom:not(.date-filter-single) > .date-calendar");
+  geometry = await calendar.evaluate(el => ({calendar:el.getBoundingClientRect().width, section:el.parentElement.getBoundingClientRect().width}));
+  expect(geometry.calendar).toBeGreaterThanOrEqual(geometry.section - 30);
+});
