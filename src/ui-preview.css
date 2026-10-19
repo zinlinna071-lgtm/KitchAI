@@ -74,3 +74,61 @@ button:focus-visible,a:focus-visible,select:focus-visible,textarea:focus-visible
 .personal-expense-actions { padding-top: 12px; border-top: 1px solid var(--line); }
 .personal-expense-preview-note { margin-top: 18px; }
 @media (max-width: 520px) { .personal-expense-summary { grid-template-columns: minmax(0, 1fr); } .personal-expense-main { gap: 10px; } .personal-expense-amount { font-size: 16px; } }
+
+
+/* Menu page and internal-screen forms — reuse shared KitchAI tokens. */
+.menu-toolbar { align-items:flex-end; flex-wrap:wrap; margin:18px 0 22px; }
+.menu-search { flex:1; min-width:160px; max-width:360px; }
+.menu-category-section { margin:22px 0 28px; }
+.menu-category-section > h2 { margin:0 0 12px; font-size:17px; font-weight:700; }
+.menu-card-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+.menu-card { display:flex; align-items:center; gap:12px; width:100%; min-width:0; padding:12px; border:1px solid var(--line); color:var(--text); text-align:left; cursor:pointer; }
+.menu-card:hover { border-color:var(--color-primary); }
+.menu-card-image,.menu-card-placeholder { width:68px; height:68px; flex:none; border-radius:10px; object-fit:cover; }
+.menu-card-placeholder { display:grid; place-items:center; background:var(--surface-2); color:var(--muted); font-size:25px; }
+.menu-card-copy { display:grid; gap:5px; min-width:0; flex:1; }
+.menu-card-copy strong { overflow-wrap:anywhere; }
+.menu-card-chevron { color:var(--muted); font-size:24px; }
+.menu-detail-image { display:block; width:100%; max-height:280px; object-fit:cover; border-radius:14px; margin:14px 0; }
+.menu-sales-summary { grid-template-columns:repeat(2,minmax(0,1fr)); margin:18px 0; }
+.internal-form-screen { max-width:760px; }
+.internal-form-heading { align-items:center; gap:14px; margin-bottom:18px; }
+.internal-form-heading h1 { margin:0; font-size:24px; }
+.internal-form { width:100%; padding:20px; }
+.internal-form-actions { padding-top:12px; border-top:1px solid var(--line); }
+@media (max-width:600px) {
+  .menu-card-list { grid-template-columns:minmax(0,1fr); }
+  .menu-card-image,.menu-card-placeholder { width:62px; height:62px; }
+  .internal-form { padding:16px; }
+  .internal-form-heading { align-items:flex-start; flex-direction:column; }
+  .menu-sales-summary { grid-template-columns:minmax(0,1fr); }
+}
+
+
+/* Menu page and internal-screen forms — reuse shared KitchAI tokens. */
+.menu-toolbar { align-items:flex-end; flex-wrap:wrap; margin:18px 0 22px; }
+.menu-search { flex:1; min-width:160px; max-width:360px; }
+.menu-category-section { margin:22px 0 28px; }
+.menu-category-section > h2 { margin:0 0 12px; font-size:17px; font-weight:700; }
+.menu-card-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+.menu-card { display:flex; align-items:center; gap:12px; width:100%; min-width:0; padding:12px; border:1px solid var(--line); color:var(--text); text-align:left; cursor:pointer; }
+.menu-card:hover { border-color:var(--color-primary); }
+.menu-card-image,.menu-card-placeholder { width:68px; height:68px; flex:none; border-radius:10px; object-fit:cover; }
+.menu-card-placeholder { display:grid; place-items:center; background:var(--surface-2); color:var(--muted); font-size:25px; }
+.menu-card-copy { display:grid; gap:5px; min-width:0; flex:1; }
+.menu-card-copy strong { overflow-wrap:anywhere; }
+.menu-card-chevron { color:var(--muted); font-size:24px; }
+.menu-detail-image { display:block; width:100%; max-height:280px; object-fit:cover; border-radius:14px; margin:14px 0; }
+.menu-sales-summary { grid-template-columns:repeat(2,minmax(0,1fr)); margin:18px 0; }
+.internal-form-screen { max-width:760px; }
+.internal-form-heading { align-items:center; gap:14px; margin-bottom:18px; }
+.internal-form-heading h1 { margin:0; font-size:24px; }
+.internal-form { width:100%; padding:20px; }
+.internal-form-actions { padding-top:12px; border-top:1px solid var(--line); }
+@media (max-width:600px) {
+  .menu-card-list { grid-template-columns:minmax(0,1fr); }
+  .menu-card-image,.menu-card-placeholder { width:62px; height:62px; }
+  .internal-form { padding:16px; }
+  .internal-form-heading { align-items:flex-start; flex-direction:column; }
+  .menu-sales-summary { grid-template-columns:minmax(0,1fr); }
+}

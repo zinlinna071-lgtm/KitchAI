@@ -6,12 +6,16 @@ test("Manage Mode navigation keeps the three agreed pages title-only", async ({ 
   await page.goto("/");
   await page.getByRole("button", { name: /Manage Mode/ }).click();
 
-  for (const [label, title] of [["Dashboard", "Dashboard"], ["Menu", "Menu"], ["Ingredients", "Ingredients"]]) {
+  for (const [label, title] of [["Dashboard", "Dashboard"], ["Ingredients", "Ingredients"]]) {
     await page.getByRole("button", { name: label, exact: true }).click();
     const section = page.locator("#page-content .page-title-only");
     await expect(section.getByRole("heading", { name: title })).toBeVisible();
     await expect(section.locator("button, input, select, textarea, .ui-card, p")).toHaveCount(0);
   }
+  await page.getByRole("button", { name: "Menu", exact: true }).click();
+  await expect(page.locator("#page-content").getByRole("heading", { name: "Menu", exact: true })).toBeVisible();
+  await expect(page.locator("#page-content").getByRole("button", { name: "Add Menu", exact: true })).toBeVisible();
+  await expect(page.locator("#page-content").getByRole("button", { name: /Sales History/ })).toBeVisible();
   expect(pageErrors).toEqual([]);
 });
 
