@@ -163,14 +163,17 @@
     } else if(d==="menu"||d==="edit-menu"){
       const item=d==="edit-menu"?state.menus.find(x=>x.id===state.editId):{};
       title=d==="edit-menu"?t("edit")+" "+t("createMenu"):t("createMenu");
-      body=field(t("name"),"name","text",item?.name||"",true,'maxlength="100"')+categoryField("menu",item?.category||"Default");
-      body+='<div class="ui-field"><span class="ui-label">'+esc(t("ingredients"))+'</span>';
+      body=selectField(t("menuType"),"type",[t("reusable"),t("oneTime")],item?.type==="one-time"?t("oneTime"):t("reusable"));
+      body+=categoryField("menu",item?.category||"Default")+field(t("name"),"name","text",item?.name||"",true,'maxlength="100"');
+      body+='<label class="ui-field"><span class="ui-label">'+esc(t("image"))+'</span><input class="ui-input" type="file" name="image" accept="image/*"></label>';
+      body+='<div id="reusable-menu-fields" class="ui-stack" style="display:'+(item?.type==="one-time"?"none":"grid")+'">'+field(t("sellingPrice"),"price","number",item?.price||"",false,'min="0" step="any"')+field(t("unit"),"unit","text",item?.unit||"piece",false,'maxlength="30"')+'<div class="ui-field"><span class="ui-label">'+esc(t("ingredients"))+'</span>';
       if(state.ingredients.length) body+=state.ingredients.map(i=>'<label class="ui-check"><input type="checkbox" name="ingredientIds" value="'+i.id+'" '+((item?.ingredientIds||[]).includes(i.id)?'checked':'')+'> '+esc(i.name)+'</label>').join("");
-      else body+='<label class="ui-check"><input type="checkbox" name="noIngredients" checked> '+esc(t("notNow"))+'</label><p class="ui-hint">'+esc(t("noIngredients"))+'</p>';
-      body+='</div>'+ '<label class="ui-field"><span class="ui-label">'+esc(t("note"))+'</span><textarea class="ui-textarea" name="note" maxlength="500">'+esc(item?.note||"")+'</textarea></label>'+field(t("sellingPrice"),"price","number",item?.price||"",true,'min="0" step="any"');
+      else body+='<p class="ui-hint">'+esc(t("noIngredients"))+'</p>';
+      body+='</div><label class="ui-field"><span class="ui-label">'+esc(t("note"))+'</span><textarea class="ui-textarea" name="note" maxlength="500">'+esc(item?.note||"")+'</textarea></label></div>';
+      body+='<div id="one-time-fields" class="ui-stack" style="display:'+(item?.type==="one-time"?"grid":"none")+'"><h2>'+esc(t("oneTimeSale"))+'</h2>'+field(t("quantity"),"quantity","number","1",true,'min="0.001" step="any"')+field(t("unit"),"saleUnit","text",item?.unit||"piece",true,'maxlength="30"')+field(t("unitPrice"),"unitPrice","number",item?.price||"",true,'min="0" step="any"')+field(t("discount"),"discount","number","0",false,'min="0" step="any"')+field(t("saleDate"),"saleDate","date",localToday(),true)+field(t("saleTime"),"saleTime","time",new Date().toTimeString().slice(0,5),true)+'<label class="ui-field"><span class="ui-label">'+esc(t("note"))+'</span><textarea class="ui-textarea" name="saleNote" maxlength="500"></textarea></label><p class="ui-hint">'+esc(t("netSale"))+': <strong id="net-sale-preview">—</strong></p></div>';
       submit=d==="edit-menu"?t("update"):t("save");
     }
-    return '<section class="page-section"><div class="ui-dialog-wrap"><form class="ui-card ui-stack ui-dialog" id="record-form"><div class="ui-row" style="justify-content:space-between"><h1 style="font-size:24px;margin:0">'+esc(title)+'</h1><button type="button" class="ui-button ui-button--secondary" data-action="cancel-dialog" aria-label="'+esc(t("cancel"))+'">×</button></div>'+body+'<div class="ui-row">'+button(t("cancel"),"cancel-dialog")+ '<button class="ui-button ui-button--primary" type="submit">'+esc(submit)+'</button></div></form></div></section>';
+    return '<section class="page-section internal-form-screen"><div class="ui-row internal-form-heading"><button type="button" class="ui-button ui-button--secondary" data-action="cancel-dialog" aria-label="'+esc(t("back"))+'">← '+esc(t("back"))+'</button><h1>'+esc(title)+'</h1></div><form class="ui-card ui-stack internal-form" id="record-form">'+body+'<div class="ui-row internal-form-actions">'+button(t("cancel"),"cancel-dialog")+'<button class="ui-button ui-button--primary" type="submit">'+esc(submit)+'</button></div></form></section>';
   }
   function render() {
     modeButtons.forEach(b=>{const active=b.dataset.mode===state.mode;b.classList.toggle("active",active);b.setAttribute("aria-pressed",String(active));});
