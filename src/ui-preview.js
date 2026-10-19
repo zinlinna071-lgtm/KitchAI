@@ -183,7 +183,7 @@
       const inRange=target!=="single"&&rangeStart&&rangeEnd&&value>=rangeStart&&value<=rangeEnd;
       return '<button type="button" class="date-calendar-day'+(isChosen?' is-selected':'')+(inRange?' is-in-range':'')+'" data-date-filter="day:'+value+'" aria-label="'+esc(formatDate(value))+'" aria-pressed="'+(isChosen?'true':'false')+'">'+day+'</button>';
     }).join("");
-    const yearStart=Math.floor(year/12)*12;
+    const yearStart=year-5;
     const yearCells=Array.from({length:12},(_,i)=>yearStart+i).map(item=>'<button type="button" class="date-calendar-choice'+(item===year?' is-selected':'')+'" data-date-filter="pick-year:'+item+'" aria-pressed="'+(item===year?'true':'false')+'">'+item+'</button>').join("");
     const monthCells=monthNames.map((name,i)=>'<button type="button" class="date-calendar-choice'+(i===month?' is-selected':'')+'" data-date-filter="pick-month:'+i+'" aria-pressed="'+(i===month?'true':'false')+'">'+esc(name)+'</button>').join("");
     let calendarBody="";
@@ -192,7 +192,7 @@
       calendarHeader='<button type="button" class="date-calendar-nav" data-date-filter="year:-12" aria-label="Previous years">‹</button><strong>'+yearStart+' – '+(yearStart+11)+'</strong><button type="button" class="date-calendar-nav" data-date-filter="year:12" aria-label="Next years">›</button>';
       calendarBody='<div class="date-calendar-choices date-calendar-years">'+yearCells+'</div>';
     }else if(view==="month"){
-      calendarHeader='<button type="button" class="date-calendar-nav" data-date-filter="year:-12" aria-label="Previous years">‹</button><button type="button" class="date-calendar-title-button" data-date-filter="view:year">'+year+'</button><button type="button" class="date-calendar-nav" data-date-filter="year:12" aria-label="Next years">›</button>';
+      calendarHeader='<span aria-hidden="true"></span><button type="button" class="date-calendar-title-button" data-date-filter="view:year">'+year+'</button><span aria-hidden="true"></span>';
       calendarBody='<div class="date-calendar-choices date-calendar-months">'+monthCells+'</div>';
     }else{
       calendarHeader='<button type="button" class="date-calendar-nav" data-date-filter="month:-1" aria-label="'+esc(dateFilterText("previousMonth"))+'">‹</button><div class="date-calendar-title-pair"><button type="button" class="date-calendar-title-button" data-date-filter="view:month">'+esc(monthNames[month])+'</button><button type="button" class="date-calendar-title-button" data-date-filter="view:year">'+year+'</button></div><button type="button" class="date-calendar-nav" data-date-filter="month:1" aria-label="'+esc(dateFilterText("nextMonth"))+'">›</button>';
