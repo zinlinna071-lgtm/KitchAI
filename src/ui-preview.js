@@ -122,8 +122,7 @@
   const dateFilterTranslationKeys = { "title": "dateFilter.title", "description": "dateFilter.description", "today": "dateFilter.today", "yesterday": "dateFilter.yesterday", "thisWeek": "dateFilter.thisWeek", "last7Days": "dateFilter.last7Days", "thisMonth": "dateFilter.thisMonth", "lastMonth": "dateFilter.lastMonth", "singleDate": "dateFilter.singleDate", "custom": "dateFilter.custom", "start": "dateFilter.start", "end": "dateFilter.end", "cancel": "dateFilter.cancel", "invalid": "dateFilter.invalid", "choose": "dateFilter.choose", "chooseDate": "dateFilter.chooseDate", "previousMonth": "dateFilter.previousMonth", "nextMonth": "dateFilter.nextMonth" };
   const dateFilterText = key => {
     const translationKey = dateFilterTranslationKeys[key];
-    /** @type {{ KitchAI18n?: { translate: (key: string) => string } }} */
-    const sharedWindow = window;
+    const sharedWindow = /** @type {Window & { KitchAI18n?: { translate: (key: string) => string } }} */ (window);
     const shared = translationKey && sharedWindow.KitchAI18n?.translate(translationKey);
     return shared && shared !== translationKey ? shared : (dateFilterCopy[language()]?.[key] || dateFilterCopy.en[key] || key);
   };
