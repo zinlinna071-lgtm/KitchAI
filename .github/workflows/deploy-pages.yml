@@ -1,8 +1,13 @@
 name: Deploy GitHub Pages
 
 on:
-  # Deploy only when deliberately requested after a meaningful UI/feature change.
+  # Manual deploys are always allowed; tagged UI commits can publish intentionally.
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "src/ui-preview.js"
+
 
 permissions:
   contents: read
@@ -15,6 +20,7 @@ concurrency:
 
 jobs:
   build:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[deploy-pages]')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout main
