@@ -118,7 +118,7 @@ test("Menu preview records persist locally after a page reload", async ({ page }
 });
 
 
-test("Dashboard date filter supports instant quick selection, cancel, and custom ranges", async ({ page }) => {
+test("Dashboard date filter supports instant quick selection, cancel, and custom ranges with the custom calendar", async ({ page }) => {
   const pageErrors = [];
   page.on("pageerror", error => pageErrors.push(error.message));
   await page.goto("/");
@@ -139,9 +139,11 @@ test("Dashboard date filter supports instant quick selection, cancel, and custom
   await expect(trigger()).toContainText(/Yesterday/);
 
   await trigger().click();
-  await page.locator("#date-filter-start").fill("2026-10-10");
-  await page.locator("#date-filter-end").fill("2026-10-12");
-  await expect(trigger()).toHaveAttribute("aria-label", /Custom Date Range/);
+  await page.locator('[data-date-filter="calendar:start"]').click();
+  await expect(page.locator(".date-calendar")).toBeVisible();
+  await page.locator('[data-date-filter="day:2026-10-10"]').click();
+  await expect(page.locator('[data-date-filter="calendar:end"]')).toHaveAttribute("aria-expanded", "true");
+  await page.locator('[data-date-filter="day:2026-10-12"]').click();
   await expect(trigger()).toContainText(/Oct 10/);
   await expect(trigger()).toContainText(/12/);
   expect(pageErrors).toEqual([]);
@@ -159,12 +161,16 @@ test("date filter supports a single date and keeps its trigger compact on mobile
   await expect(trigger).toBeVisible();
   await trigger.click();
   await expect(page.getByRole("heading", { name: "Single Date" })).toBeVisible();
-  await page.locator("#date-filter-single").fill("2026-10-08");
+  await page.locator('[data-date-filter="calendar:single"]').click();
+  await page.locator('[data-date-filter="day:2026-10-08"]').click();
   await expect(trigger).toContainText(/Oct 8/);
+
   await trigger.click();
-  await page.locator("#date-filter-start").fill("2026-10-10");
-  await page.locator("#date-filter-end").fill("2026-10-12");
-  await expect(trigger).toContainText(/Custom Date Range/);
+  await page.locator('[data-date-filter="calendar:start"]').click();
+  await page.locator('[data-date-filter="day:2026-10-10"]').click();
+  await page.locator('[data-date-filter="day:2026-10-12"]').click();
+  await expect(trigger()).toContainText(/Oct 10/);
+  await expect(trigger()).toContainText(/12/);
   const dimensions = await trigger.evaluate(el => ({right:el.getBoundingClientRect().right, viewport:document.documentElement.clientWidth, width:el.getBoundingClientRect().width}));
   expect(dimensions.right).toBeLessThanOrEqual(dimensions.viewport);
   expect(dimensions.width).toBeLessThanOrEqual(dimensions.viewport);
@@ -172,34 +178,24 @@ test("date filter supports a single date and keeps its trigger compact on mobile
 });
 
 
-test("Single Date and Custom Range date controls are full-area tap targets with consistent sizing", async ({ page }) => {
+test("custom calendar opens from the full compact date control for Single Date and Range", async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 800 });
   await page.goto("/");
   await page.getByRole("button", { name: /Manage Mode/ }).click();
   await page.getByRole("button", { name: "Dashboard", exact: true }).click();
   await page.getByRole("button", { name: /Choose date filter/ }).click();
 
-  for (const id of ["date-filter-single", "date-filter-start", "date-filter-end"]) {
-    const input = page.locator("#" + id);
-    const control = input.locator("xpath=..");
+  for (const target of ["single", "start", "end"]) {
+    const control = page.locator('[data-date-filter="calendar:' + target + '"]');
     await expect(control).toBeVisible();
-    const geometry = await page.evaluate(inputId => {
-      const field = document.getElementById(inputId);
-      const wrapper = field?.parentElement;
-      if (!field || !wrapper) return null;
-      const a = field.getBoundingClientRect();
-      const b = wrapper.getBoundingClientRect();
-      const style = getComputedStyle(field);
-      return {
-        inputWidth: a.width, wrapperWidth: b.width,
-        inputHeight: a.height, wrapperHeight: b.height,
-        opacity: style.opacity, position: style.position,
-      };
-    }, id);
-    expect(geometry).not.toBeNull();
-    expect(Math.abs(geometry.inputWidth - geometry.wrapperWidth)).toBeLessThanOrEqual(1);
-    expect(Math.abs(geometry.inputHeight - geometry.wrapperHeight)).toBeLessThanOrEqual(1);
-    expect(geometry.opacity).toBe("0");
-    expect(geometry.position).toBe("absolute");
+    const geometry = await control.evaluate(el => {
+      const rect = el.getBoundingClientRect();
+      return {width: rect.width, height: rect.height, right: rect.right, viewport: document.documentElement.clientWidth};
+    });
+    expect(geometry.width).toBeGreaterThan(100);
+    expect(geometry.height).toBeGreaterThanOrEqual(36);
+    expect(geometry.right).toBeLessThanOrEqual(geometry.viewport);
+    await control.click();
+    await expect(page.locator(".date-calendar")).toBeVisible();
   }
 });
