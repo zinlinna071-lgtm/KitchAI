@@ -360,6 +360,15 @@
     const end = { x: touch.clientX, y: touch.clientY };
     const dx = end.x - start.x, dy = end.y - start.y;
     if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.25) return;
+    // On mobile, a left swipe while the Drawer is open closes only the Drawer.
+    // Never let a Drawer gesture also trigger a mode change.
+    if (!isDesktop() && drawerIsOpen()) {
+      if (dx < -60) {
+        setSwipeClickGuard(start, end);
+        closeDrawer();
+      }
+      return;
+    }
     setSwipeClickGuard(start, end);
     const nextMode = state.mode === "ai" ? "manage" : "ai";
     window.setTimeout(() => setMode(nextMode), 0);
@@ -379,6 +388,15 @@
     const end = { x: e.clientX, y: e.clientY };
     const dx = end.x - start.x, dy = end.y - start.y;
     if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.25) return;
+    // On mobile, a left swipe while the Drawer is open closes only the Drawer.
+    // Never let a Drawer gesture also trigger a mode change.
+    if (!isDesktop() && drawerIsOpen()) {
+      if (dx < -60) {
+        setSwipeClickGuard(start, end);
+        closeDrawer();
+      }
+      return;
+    }
     setSwipeClickGuard(start, end);
     const nextMode = state.mode === "ai" ? "manage" : "ai";
     window.setTimeout(() => setMode(nextMode), 0);
