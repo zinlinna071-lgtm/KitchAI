@@ -170,3 +170,36 @@ test("date filter supports a single date and keeps its trigger compact on mobile
   expect(dimensions.width).toBeLessThanOrEqual(dimensions.viewport);
   expect(pageErrors).toEqual([]);
 });
+
+
+test("Single Date and Custom Range date controls are full-area tap targets with consistent sizing", async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 800 });
+  await page.goto("/");
+  await page.getByRole("button", { name: /Manage Mode/ }).click();
+  await page.getByRole("button", { name: "Dashboard", exact: true }).click();
+  await page.getByRole("button", { name: /Choose date filter/ }).click();
+
+  for (const id of ["date-filter-single", "date-filter-start", "date-filter-end"]) {
+    const input = page.locator("#" + id);
+    const control = input.locator("xpath=..");
+    await expect(control).toBeVisible();
+    const geometry = await page.evaluate(inputId => {
+      const field = document.getElementById(inputId);
+      const wrapper = field?.parentElement;
+      if (!field || !wrapper) return null;
+      const a = field.getBoundingClientRect();
+      const b = wrapper.getBoundingClientRect();
+      const style = getComputedStyle(field);
+      return {
+        inputWidth: a.width, wrapperWidth: b.width,
+        inputHeight: a.height, wrapperHeight: b.height,
+        opacity: style.opacity, position: style.position,
+      };
+    }, id);
+    expect(geometry).not.toBeNull();
+    expect(Math.abs(geometry.inputWidth - geometry.wrapperWidth)).toBeLessThanOrEqual(1);
+    expect(Math.abs(geometry.inputHeight - geometry.wrapperHeight)).toBeLessThanOrEqual(1);
+    expect(geometry.opacity).toBe("0");
+    expect(geometry.position).toBe("absolute");
+  }
+});
