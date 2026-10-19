@@ -104,36 +104,14 @@
   }
   function money(value) { return Number(value||0).toLocaleString(undefined,{maximumFractionDigits:2}); }
   function renderMenus() {
-    if(state.menuView==="sales") {
-      const sales=[...state.sales].sort((a,b)=>(b.date+" "+b.time).localeCompare(a.date+" "+a.time));
-      let html=pageHeader(t("salesHistory"),t("menuIntro"),button(t("allMenus"),"menu-view-all"));
-      html+='<div class="ui-grid menu-sales-summary"><article class="ui-card ui-stack"><span class="ui-hint">'+esc(t("netSale"))+'</span><strong class="personal-expense-total">'+money(sales.reduce((sum,x)=>sum+x.netSale,0))+'</strong></article><article class="ui-card ui-stack"><span class="ui-hint">'+esc(t("salesCount"))+'</span><strong class="personal-expense-total">'+sales.length+'</strong></article></div>';
-      if(!sales.length) html+=emptyState(t("noSalesAll"),t("menuEmptyCopy"),button(t("addMenu"),"new-menu",true));
-      else html+='<div class="personal-expense-list">'+sales.map(x=>'<article class="ui-card personal-expense-item"><div class="personal-expense-main"><div><h2>'+esc(x.name)+'</h2><p class="ui-hint">'+esc(x.date)+' · '+esc(x.time)+' · '+esc(x.category)+'</p><p class="ui-hint">'+esc(x.quantity)+' '+esc(x.unit)+' × '+money(x.unitPrice)+(x.discount?' · '+esc(t("discount"))+': '+money(x.discount):'')+'</p>'+(x.note?'<p>'+esc(x.note)+'</p>':'')+'</div><strong class="personal-expense-amount">'+money(x.netSale)+'</strong></div></article>').join("")+'</div>';
-      return html+'</section>';
-    }
-    const categories=[...new Set([...state.categories.menu,...state.menus.map(x=>x.category)])];
-    let html=pageHeader(pageLabel(pages[1]),t("menuIntro"),button("+ "+t("addMenu"),"new-menu",true));
-    html+='<div class="ui-row menu-toolbar">'+button(t("allMenus"),"menu-view-all",true)+button(t("salesHistory"),"menu-view-sales")+'<label class="ui-field menu-search"><span class="ui-label">Search</span><input class="ui-input" id="menu-search" type="search" placeholder="Search menus..." value="'+esc(state.menuSearch||"")+'"></label></div>';
-    const visible=state.menus.filter(x=>!state.menuSearch||(x.name+" "+x.category).toLowerCase().includes(state.menuSearch.toLowerCase()));
-    if(!visible.length) html+=emptyState(t("menuEmpty"),t("menuEmptyCopy"),button(t("addMenu"),"new-menu",true));
-    categories.forEach(category=>{const items=visible.filter(x=>x.category===category);if(!items.length)return;html+='<section class="menu-category-section"><h2>'+esc(category)+'</h2><div class="menu-card-list">'+items.map(x=>'<button type="button" class="ui-card menu-card" data-action="menu-detail:'+x.id+'">'+(x.image?'<img class="menu-card-image" src="'+esc(x.image)+'" alt="">':'<span class="menu-card-placeholder" aria-hidden="true">◈</span>')+'<span class="menu-card-copy"><strong>'+esc(x.name)+'</strong><span class="ui-hint">'+esc(x.price?money(x.price):"—")+(x.unit?" / "+esc(x.unit):"")+'</span></span><span class="menu-card-chevron" aria-hidden="true">›</span></button>').join("")+'</div></section>';});
-    return html+'<p class="ui-hint">'+esc(t("menuSaved"))+'</p></section>';
+    return '<section class="page-section" aria-label="Menu" style="min-height:65vh"></section>';
   }
   function localToday() {
     const now = new Date();
     return [now.getFullYear(), String(now.getMonth()+1).padStart(2,"0"), String(now.getDate()).padStart(2,"0")].join("-");
   }
   function renderPersonalExpenses() {
-    const items=[...state.personalExpenses].sort((a,b)=>b.date.localeCompare(a.date)||b.id-a.id);
-    const total=items.reduce((sum,item)=>sum+Number(item.amount||0),0);
-    const actions=button("+ "+t("addPersonalExpense"),"new-personal-expense",true);
-    let html=pageHeader(pageLabel(pages.find(p=>p.id==="personal-expenses")),t("personalExpenseIntro"),actions);
-    html+='<div class="ui-grid personal-expense-summary"><article class="ui-card ui-stack"><span class="ui-hint">'+esc(t("personalExpenseTotal"))+'</span><strong class="personal-expense-total">'+esc(total.toLocaleString())+'</strong></article><article class="ui-card ui-stack"><span class="ui-hint">'+esc(t("personalExpenseCount"))+'</span><strong class="personal-expense-total">'+items.length+'</strong></article></div>';
-    if(!items.length) html+=emptyState(t("personalExpenseEmpty"),t("personalExpenseEmptyCopy"),button(t("addPersonalExpense"),"new-personal-expense",true));
-    else html+='<div class="personal-expense-list">'+items.map(item=>'<article class="ui-card personal-expense-item"><div class="personal-expense-main"><div><h2>'+esc(item.description)+'</h2><p class="ui-hint">'+esc(item.date)+' · '+esc(item.category||t("default"))+'</p>'+(item.note?'<p>'+esc(item.note)+'</p>':'')+'</div><strong class="personal-expense-amount">'+esc(Number(item.amount).toLocaleString())+'</strong></div><div class="ui-row personal-expense-actions">'+button(t("edit"),"edit-personal-expense:"+item.id)+button(t("delete"),"delete-personal-expense:"+item.id)+'</div></article>').join("")+'</div>';
-    html+='<p class="ui-hint personal-expense-preview-note">'+esc(t("savedInPreview"))+'</p></section>';
-    return html;
+    return '<section class="page-section" aria-label="Personal Expenses" style="min-height:65vh"></section>';
   }
   function renderDetail() {
     const items=state.detailType==="ingredient"?state.ingredients:state.menus;
