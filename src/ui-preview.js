@@ -556,12 +556,15 @@
   function updateConnectionStatus() {
     if (!connectionStatus) return;
     const online = navigator.onLine;
-    connectionStatus.textContent = online ? "Online" : "Offline";
+    const statusText = sharedTranslation(online ? "connection.online" : "connection.offline") || (online ? "Online" : "Offline");
+    const statusLabel = sharedTranslation(online ? "connection.statusOnline" : "connection.statusOffline") || (online ? "Connection status: Online" : "Connection status: Offline");
+    connectionStatus.textContent = statusText;
     connectionStatus.dataset.state = online ? "online" : "offline";
-    connectionStatus.setAttribute("aria-label", online ? "Connection status: Online" : "Connection status: Offline");
+    connectionStatus.setAttribute("aria-label", statusLabel);
   }
   window.addEventListener("online", updateConnectionStatus);
   window.addEventListener("offline", updateConnectionStatus);
+  languageSelect?.addEventListener("change", updateConnectionStatus);
   window.addEventListener("beforeinstallprompt", event => {
     event.preventDefault();
     deferredInstallPrompt = event;
