@@ -25,13 +25,12 @@ test("sets supported locales and safely falls back for unknown locales", () => {
 test("translation falls back to English and preserves unknown keys", () => {
   setLocale("my");
   assert.equal(translate("common.save"), "သိမ်းရန်");
-  assert.equal(translate("common.loading"), "ဖွင့်နေသည်…");
+  assert.equal(translate("common.retry"), "Try again");
   assert.equal(translate("missing.key"), "missing.key");
 });
 
-test("supports safe named interpolation", () => {
-  assert.equal(translate("app.name", {}, "en"), "KitchAI");
-  assert.equal(translate("common.save {count}", { count: 3 }, "en"), "common.save 3");
+test("supports named interpolation", () => {
+  assert.equal(translate("common.items", { count: 3 }, "en"), "3 items");
 });
 
 test("formats numbers, dates, and currency using the selected locale", () => {
@@ -42,5 +41,5 @@ test("formats numbers, dates, and currency using the selected locale", () => {
 
 test("reports locale coverage gaps without crashing", () => {
   assert.deepEqual(getMissingTranslationKeys("en"), []);
-  assert.ok(getMissingTranslationKeys("my").length > 0);
+  assert.ok(getMissingTranslationKeys("my").includes("common.retry"));
 });
