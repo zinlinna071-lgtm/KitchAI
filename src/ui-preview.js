@@ -198,10 +198,13 @@
     else if(action==="new-menu"){state.dialog="menu";state.editId=null;state.pendingImageData="";}
     else if(action==="new-ingredient-category"){state.dialog="ingredient-category";state.categoryTarget="ingredients";}
     else if(action==="new-menu-category"){state.dialog="menu-category";state.categoryTarget="menu";}
-    else if(action==="menu-view-all"){state.menuView="all";state.menuSearch="";state.detailId=null;state.detailType=null;}\n    else if(action==="menu-view-sales"){state.menuView="sales";state.detailId=null;state.detailType=null;}\n    else if(action==="cancel-dialog"){state.dialog=null;state.editId=null;state.pendingImageData="";}
+    else if(action==="menu-view-all"){state.menuView="all";state.menuSearch="";state.detailId=null;state.detailType=null;}
+    else if(action==="menu-view-sales"){state.menuView="sales";state.detailId=null;state.detailType=null;}
+    else if(action==="cancel-dialog"){state.dialog=null;state.editId=null;state.pendingImageData="";}
     else if(action==="back-detail"){state.detailId=null;state.detailType=null;}
     else if(action.startsWith("ingredient-detail:")){state.detailType="ingredient";state.detailId=Number(action.split(":")[1]);}
-    else if(action.startsWith("menu-detail:")){state.detailType="menu";state.detailId=Number(action.split(":")[1]);}\n    else if(action.startsWith("record-menu-sale:")){state.editId=Number(action.split(":")[1]);state.dialog="record-menu-sale";state.pendingImageData="";}
+    else if(action.startsWith("menu-detail:")){state.detailType="menu";state.detailId=Number(action.split(":")[1]);}
+    else if(action.startsWith("record-menu-sale:")){state.editId=Number(action.split(":")[1]);state.dialog="record-menu-sale";state.pendingImageData="";}
     else if(action==="edit-detail"){state.editId=state.detailId;state.dialog=state.detailType==="ingredient"?"edit-ingredient":"edit-menu";state.detailId=null;}
     else if(action==="delete-detail"){if(window.confirm(t("confirmDelete"))){const key=state.detailType==="ingredient"?"ingredients":"menus";state[key]=state[key].filter(x=>x.id!==state.detailId);state.detailId=null;state.detailType=null;}}
     render();
