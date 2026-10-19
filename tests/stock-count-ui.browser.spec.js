@@ -10,7 +10,11 @@ test("Manage Mode navigation keeps the three agreed pages title-only", async ({ 
     await page.getByRole("button", { name: label, exact: true }).click();
     const section = page.locator("#page-content .page-section");
     await expect(section.getByRole("heading", { name: title })).toBeVisible();
-    await expect(section.locator("button, input, select, textarea, .ui-card")).toHaveCount(0);
+    if (title === "Dashboard") {
+      await expect(section.getByRole("button", { name: /Choose date filter/ })).toBeVisible();
+    } else {
+      await expect(section.locator("button, input, select, textarea, .ui-card")).toHaveCount(0);
+    }
   }
   await page.getByRole("button", { name: "Menu", exact: true }).click();
   // The Menu workspace is intentionally not rendered in this preview; verify navigation does not throw.
@@ -111,4 +115,34 @@ test("Menu preview records persist locally after a page reload", async ({ page }
   });
   expect(saved.menus.some(item => item.name === "Persistence Test Roll")).toBe(true);
   expect(saved.sales.some(item => item.name === "Persistence Test Sale" && item.netSale === 90)).toBe(true);
+});
+
+
+test("Dashboard date filter supports instant quick selection, cancel, and custom ranges", async ({ page }) => {
+  const pageErrors = [];
+  page.on("pageerror", error => pageErrors.push(error.message));
+  await page.goto("/");
+  await page.getByRole("button", { name: /Manage Mode/ }).click();
+  await page.getByRole("button", { name: "Dashboard", exact: true }).click();
+
+  const trigger = () => page.getByRole("button", { name: /Choose date filter/ });
+  await expect(trigger()).toBeVisible();
+  await expect(trigger()).toContainText(/Today/);
+
+  await trigger().click();
+  await expect(page.getByRole("heading", { name: "Date Filter" })).toBeVisible();
+  await page.locator('[data-date-filter="quick:yesterday"]').click();
+  await expect(trigger()).toContainText(/Yesterday/);
+
+  await trigger().click();
+  await page.getByRole("button", { name: "Cancel", exact: true }).click();
+  await expect(trigger()).toContainText(/Yesterday/);
+
+  await trigger().click();
+  await page.locator("#date-filter-start").fill("2026-10-10");
+  await page.locator("#date-filter-end").fill("2026-10-12");
+  await expect(trigger()).toContainText(/Custom Date Range/);
+  await expect(trigger()).toContainText(/Oct 10/);
+  await expect(trigger()).toContainText(/Oct 12/);
+  expect(pageErrors).toEqual([]);
 });
