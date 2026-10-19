@@ -212,7 +212,11 @@ test("capture desktop and mobile UI previews for review", async ({ page }) => {
     const pageCopy = page.locator("#page-content .main-page-copy");
     await expect(pageCopy.getByRole("heading", { name: title, exact: true })).toBeVisible();
     await expect(pageCopy.locator("p")).toBeVisible();
-    if (pageId === "dashboard") {\n      await expect(pageCopy.getByRole("button", { name: /Choose date filter/ })).toBeVisible();\n    } else {\n      await expect(pageCopy.locator("button, input, select, textarea, .ui-card")).toHaveCount(0);\n    }
+    if (pageId === "dashboard") {
+      await expect(pageCopy.getByRole("button", { name: /Choose date filter/ })).toBeVisible();
+    } else {
+      await expect(pageCopy.locator("button, input, select, textarea, .ui-card")).toHaveCount(0);
+    }
     await page.screenshot({ path: "artifacts/kitchai-ui-preview-" + filename + ".png", fullPage: true });
   }
 });
