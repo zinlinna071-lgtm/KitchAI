@@ -37,22 +37,27 @@ test("Manage Mode exposes eight pages, preserves the Dashboard shell, and opens 
   await page.locator('[data-mode="manage"]').click();
   await expect(page.locator("#sidebar-content [data-page]")).toHaveCount(8);
   await page.locator('#sidebar-content [data-page="dashboard"]').evaluate(element => element.click());
-  const dashboard = page.locator("#page-content .page-title-only");
+  const dashboard = page.locator("#page-content .main-page-copy");
   await expect(dashboard.getByRole("heading", { name: "Dashboard" })).toBeVisible();
-  await expect(dashboard.locator("button, input, select, textarea, .ui-card, p")).toHaveCount(0);
+  await expect(dashboard.locator("p")).toBeVisible();
+  await expect(dashboard.locator("button, input, select, textarea, .ui-card")).toHaveCount(0);
   await page.locator('#sidebar-content [data-page="menu"]').evaluate(element => element.click());
-  await expect(page.locator('#page-content section[aria-label="Menu"]')).toBeVisible();
-  await expect(page.locator('#page-content section[aria-label="Menu"]').locator("*")).toHaveCount(0);
+  const menu = page.locator("#page-content .main-page-copy");
+  await expect(menu.getByRole("heading", { name: "Menu" })).toBeVisible();
+  await expect(menu.locator("p")).toBeVisible();
+  await expect(menu.locator("button, input, select, textarea, .ui-card")).toHaveCount(0);
   await page.locator('#sidebar-content [data-page="personal-expenses"]').evaluate(element => element.click());
-  await expect(page.locator('#page-content section[aria-label="Personal Expenses"]')).toBeVisible();
-  await expect(page.locator('#page-content section[aria-label="Personal Expenses"]').locator("*")).toHaveCount(0);
+  const personal = page.locator("#page-content .main-page-copy");
+  await expect(personal.getByRole("heading", { name: "Personal Expenses" })).toBeVisible();
+  await expect(personal.locator("p")).toBeVisible();
+  await expect(personal.locator("button, input, select, textarea, .ui-card")).toHaveCount(0);
 });
 
 test("unknown project paths load the Pages fallback with project-scoped assets", async ({ page }) => {
   const response = await page.goto("preview-profile/");
   expect(response?.status()).toBe(404);
   await expect(page.getByRole("heading", { name: "AI workspace" })).toBeVisible();
-  await expect(page.locator('link[rel="stylesheet"]').first()).toHaveAttribute("href", "/KitchAI/src/ui-preview.css");
+  await expect(page.locator('link[rel="stylesheet"]').first()).toHaveAttribute("href", /\/KitchAI\/src\/ui-preview\.css(?:\?.*)?$/);
 });
 
 test("the scoped worker serves the UI shell after offline navigation", async ({ page, context }) => {

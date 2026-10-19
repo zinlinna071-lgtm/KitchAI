@@ -6,7 +6,7 @@ button,input,textarea,select { font: inherit; } button,a,select { -webkit-tap-hi
 .skip-link { position: fixed; top:-80px; left:12px; z-index:100; padding:12px; border-radius:8px; background:var(--surface); color:var(--text); box-shadow:var(--shadow); } .skip-link:focus { top:12px; }
 .app-shell { min-height:100dvh; display:grid; grid-template-columns:248px minmax(0,1fr); touch-action:manipulation; }
 .sidebar { position:sticky; top:0; display:flex; flex-direction:column; min-width:0; height:100dvh; padding:20px 14px 14px; border-right:1px solid var(--line); background:var(--surface); z-index:20; }
-.sidebar-top { display:flex; align-items:center; justify-content:space-between; padding:0 10px 26px; }
+.sidebar-top { display:flex; align-items:center; justify-content:flex-start; gap:8px; padding:0 0 18px; }
 .brand { display:flex; align-items:center; gap:10px; font-size:19px; font-weight:760; letter-spacing:-.045em; }
 .brand-mark { display:grid; place-items:center; width:34px; height:34px; border-radius:11px; background:var(--accent-soft); color:var(--accent); font-size:16px; font-weight:800; }
 .sidebar-content { flex:1; min-height:0; overflow-y:auto; padding-block:4px; }
@@ -29,11 +29,13 @@ button,input,textarea,select { font: inherit; } button,a,select { -webkit-tap-hi
 .icon-button:hover { background:var(--surface-2); }
 #language-select { min-height:38px; padding:8px 10px; border:1px solid var(--line); border-radius:9px; background:var(--surface); color:var(--text); font-size:12px; }
 .menu-toggle { display:grid; flex:none; }
-.sidebar-close { display:grid; visibility:visible; opacity:1; position:relative; z-index:2; flex:none; }
+.sidebar-brand-name { flex:1; min-width:0; color:var(--text); font-size:17px; font-weight:750; letter-spacing:-0.025em; white-space:nowrap; }
+.sidebar-minimize { flex:none; font-size:22px; }
+.sidebar-close { display:none; }
 @media (min-width:761px) {
  .sidebar { touch-action:manipulation; }
- .app-shell.sidebar-collapsed { grid-template-columns:minmax(0,1fr); }
- .app-shell.sidebar-collapsed > .sidebar { display:none; }
+ .app-shell.sidebar-collapsed { grid-template-columns:68px minmax(0,1fr); }
+ .app-shell:not(.sidebar-collapsed) { grid-template-columns:248px minmax(0,1fr); }
 }
 #main { flex:1; min-width:0; outline:none; }
 .footer { display:flex; justify-content:space-between; gap:12px; padding:16px 28px; border-top:1px solid var(--line); color:var(--muted); font-size:12px; }
@@ -44,17 +46,18 @@ button:focus-visible,a:focus-visible,select:focus-visible,textarea:focus-visible
 .install-button { min-height:34px!important; padding:6px 10px!important; font-size:12px!important; } .install-button[hidden] { display:none; }
 .toast { position:fixed; left:50%; bottom:24px; z-index:100; max-width:calc(100vw - 32px); padding:12px 16px; border:1px solid var(--line); border-radius:12px; background:var(--surface); color:var(--text); box-shadow:var(--shadow); transform:translate(-50%,20px); opacity:0; pointer-events:none; transition:opacity .18s ease,transform .18s ease; font-size:13px; } .toast.visible { opacity:1; transform:translate(-50%,0); }
 @media (max-width:760px) {
- .app-shell { display:block; }
- .sidebar { position:fixed; inset:0 auto 0 0; width:min(84vw,320px); height:100dvh; transform:translateX(-105%); transition:transform .2s ease; box-shadow:var(--shadow); }
- .sidebar.open { transform:translateX(0); } .sidebar-close { display:grid; }
- .sidebar-backdrop.visible { display:block; position:fixed; inset:0; z-index:19; background:rgb(0 0 0 / 35%); }
+ .app-shell { display:grid; grid-template-columns:58px minmax(0,1fr); }
+ .app-shell.sidebar-collapsed { grid-template-columns:58px minmax(0,1fr); }
+ .app-shell:not(.sidebar-collapsed) { grid-template-columns:58px minmax(0,1fr); }
+ .sidebar { position:sticky; inset:auto; width:auto; height:100dvh; padding:12px 5px 10px; transform:none; box-shadow:none; }
+ .app-shell:not(.sidebar-collapsed) > .sidebar { position:fixed; inset:0 auto 0 0; width:min(82vw,248px); height:100dvh; padding:16px 12px 12px; box-shadow:var(--shadow); z-index:30; }
  .topbar { min-height:60px; gap:8px; padding:9px 12px; }
- .menu-toggle { display:grid; flex:none; } .mode-switch { flex:1; min-width:0; } .mode-button { flex:1; gap:5px; min-width:0; padding-inline:8px; font-size:12px; } .topbar-actions { gap:3px; margin-left:0; }
+ .mode-switch { flex:1; min-width:0; } .mode-button { flex:1; gap:5px; min-width:0; padding-inline:8px; font-size:12px; } .topbar-actions { gap:3px; margin-left:0; }
  .footer { padding:14px 16px; }
 }
 @media (max-width:520px) {
- .topbar { display:grid; grid-template-columns:38px minmax(0,1fr); grid-template-rows:auto auto; gap:8px; padding:8px 12px; }
- .menu-toggle { grid-column:1; grid-row:1; } .topbar-mode-switch { grid-column:2; grid-row:1; width:100%; min-width:0; }
+ .topbar { display:grid; grid-template-columns:minmax(0,1fr); grid-template-rows:auto auto; gap:8px; padding:8px 12px; }
+ .topbar-mode-switch { grid-column:1; grid-row:1; width:100%; min-width:0; }
  .mode-switch { gap:2px; } .mode-button { padding-inline:5px; font-size:12px; white-space:normal; line-height:1.2; }
  .topbar-actions { grid-column:1 / -1; grid-row:2; display:flex; justify-content:flex-end; width:100%; }
  .connection-status { padding-inline:7px; } .install-button { max-width:88px; white-space:normal; }
@@ -173,4 +176,45 @@ button:focus-visible,a:focus-visible,select:focus-visible,textarea:focus-visible
     margin-top: 10px;
     font-size: 15px;
   }
+}
+
+/* Collapsed navigation rail shared by Manage and AI modes. */
+.app-shell.sidebar-collapsed .sidebar { padding-inline:6px; }
+.app-shell.sidebar-collapsed .sidebar-top { justify-content:center; gap:0; padding:0 0 18px; }
+.app-shell.sidebar-collapsed .sidebar-brand-name,
+.app-shell.sidebar-collapsed .sidebar-minimize,
+.app-shell.sidebar-collapsed .brand-name,
+.app-shell.sidebar-collapsed .nav-section-label,
+.app-shell.sidebar-collapsed .nav-item > span:not(.nav-icon),
+.app-shell.sidebar-collapsed .sidebar-footnote,
+.app-shell.sidebar-collapsed .sidebar-search { display:none; }
+.app-shell.sidebar-collapsed .nav-item { justify-content:center; gap:0; min-height:44px; padding:10px 4px; margin-block:4px; }
+.app-shell.sidebar-collapsed .nav-icon { width:100%; font-size:19px; }
+.app-shell.sidebar-collapsed .menu-toggle { margin-inline:auto; }
+.sidebar-search { display:block; padding:6px 8px; }
+.sidebar-search input { width:100%; min-width:0; padding:9px 10px; border:1px solid var(--line); border-radius:9px; background:var(--surface); color:var(--text); font-size:13px; }
+.ai-recent-label { margin-top:8px; }
+.sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+.ai-chat-list { display:grid; gap:10px; margin-top:20px; }
+.ai-chat-list-item { display:flex; align-items:center; justify-content:space-between; gap:16px; width:100%; padding:16px; text-align:left; cursor:pointer; }
+.ai-chat-list-item strong { overflow-wrap:anywhere; }
+.ai-chat-list-item .ui-hint { flex:none; }
+.ai-settings-card { max-width:640px; padding:20px; }
+.ai-settings-card h2 { margin:0 0 8px; font-size:17px; }
+.ai-settings-card p { margin:0; }
+
+
+/* Drawer header layout: hamburger replaces the old logo; collapse is a separate control. */
+.sidebar-top { min-height: 42px; }
+.sidebar-top > .menu-toggle { flex: 0 0 40px; width: 40px; height: 40px; }
+.sidebar-top > .sidebar-brand-name { display: block; flex: 1 1 auto; }
+.sidebar-top > .sidebar-minimize { display: grid; flex: 0 0 36px; width: 36px; height: 40px; }
+.app-shell.sidebar-collapsed .sidebar-top > .sidebar-brand-name,
+.app-shell.sidebar-collapsed .sidebar-top > .sidebar-minimize { display: none; }
+.app-shell.sidebar-collapsed .sidebar-top { justify-content: center; }
+.app-shell.sidebar-collapsed .sidebar-top > .menu-toggle { display: grid; }
+@media (max-width: 760px) {
+  .app-shell:not(.sidebar-collapsed) > .sidebar .sidebar-top > .menu-toggle { display: grid; }
+  .app-shell:not(.sidebar-collapsed) > .sidebar .sidebar-top > .sidebar-brand-name { display: block; }
+  .app-shell:not(.sidebar-collapsed) > .sidebar .sidebar-top > .sidebar-minimize { display: grid; }
 }

@@ -209,12 +209,10 @@ test("capture desktop and mobile UI previews for review", async ({ page }) => {
     ["ingredients", "Ingredients", "ingredients"],
   ]) {
     await page.locator('#sidebar-content [data-page="' + pageId + '"]').click({ force: true });
-    if (pageId === "menu") {
-      await expect(page.locator("#page-content").getByRole("heading", { name: title, exact: true })).toBeVisible();
-      await expect(page.locator("#page-content").getByRole("button", { name: "Add Menu", exact: true })).toBeVisible();
-    } else {
-      await expect(page.locator("#page-content .page-title-only").getByRole("heading", { name: title })).toBeVisible();
-    }
+    const pageCopy = page.locator("#page-content .main-page-copy");
+    await expect(pageCopy.getByRole("heading", { name: title, exact: true })).toBeVisible();
+    await expect(pageCopy.locator("p")).toBeVisible();
+    await expect(pageCopy.locator("button, input, select, textarea, .ui-card")).toHaveCount(0);
     await page.screenshot({ path: "artifacts/kitchai-ui-preview-" + filename + ".png", fullPage: true });
   }
 });
