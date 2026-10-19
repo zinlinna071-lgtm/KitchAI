@@ -43,3 +43,21 @@ test("reports locale coverage gaps without crashing", () => {
   assert.deepEqual(getMissingTranslationKeys("en"), []);
   assert.ok(getMissingTranslationKeys("my").includes("common.retry"));
 });
+
+test("keeps shared Date Filter translations available in every supported locale", () => {
+  const keys = [
+    "dateFilter.title", "dateFilter.description", "dateFilter.today",
+    "dateFilter.yesterday", "dateFilter.thisWeek", "dateFilter.last7Days",
+    "dateFilter.thisMonth", "dateFilter.lastMonth", "dateFilter.singleDate",
+    "dateFilter.custom", "dateFilter.start", "dateFilter.end",
+    "dateFilter.cancel", "dateFilter.invalid", "dateFilter.choose",
+    "dateFilter.chooseDate", "dateFilter.previousMonth", "dateFilter.nextMonth"
+  ];
+  for (const locale of ["en", "my", "th"]) {
+    const missing = new Set(getMissingTranslationKeys(locale));
+    for (const key of keys) {
+      assert.equal(missing.has(key), false, `${locale} is missing ${key}`);
+      assert.notEqual(translate(key, {}, locale), key, `${locale} has no text for ${key}`);
+    }
+  }
+});

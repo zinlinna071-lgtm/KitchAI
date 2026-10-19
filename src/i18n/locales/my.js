@@ -23,6 +23,18 @@ export default {
     "dateFilter.yesterday": "မနေ့က",
     "dateFilter.thisWeek": "ဒီအပတ်",
     "dateFilter.thisMonth": "ဒီလ",
-    "dateFilter.custom": "စိတ်ကြိုက်ရက်အပိုင်းအခြား"
+    "dateFilter.custom": "စိတ်ကြိုက်ရက်အပိုင်းအခြား",
+    "dateFilter.description": "ဒီစာမျက်နှာအတွက် ကြည့်မယ့်ရက်ကို ရွေးချယ်ပါ။",
+    "dateFilter.last7Days": "လွန်ခဲ့သော ၇ ရက်",
+    "dateFilter.lastMonth": "ပြီးခဲ့တဲ့လ",
+    "dateFilter.singleDate": "ရက်တစ်ရက်တည်း",
+    "dateFilter.start": "စတင်ရက်",
+    "dateFilter.end": "ဆုံးရက်",
+    "dateFilter.cancel": "မလုပ်တော့ပါ",
+    "dateFilter.invalid": "ဆုံးရက်သည် စတင်ရက်နှင့် တူရမည် သို့မဟုတ် နောက်ကျရမည်။",
+    "dateFilter.choose": "ရက်စွဲ Filter ရွေးရန်",
+    "dateFilter.chooseDate": "ရက်စွဲရွေးရန်",
+    "dateFilter.previousMonth": "ယခင်လ",
+    "dateFilter.nextMonth": "နောက်လ"
   }
 };

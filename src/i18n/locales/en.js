@@ -25,6 +25,18 @@ export default {
     "dateFilter.yesterday": "Yesterday",
     "dateFilter.thisWeek": "This Week",
     "dateFilter.thisMonth": "This Month",
-    "dateFilter.custom": "Custom Date Range"
+    "dateFilter.custom": "Custom Date Range",
+    "dateFilter.description": "Choose which dates to use for this page.",
+    "dateFilter.last7Days": "Last 7 Days",
+    "dateFilter.lastMonth": "Last Month",
+    "dateFilter.singleDate": "Single Date",
+    "dateFilter.start": "Start date",
+    "dateFilter.end": "End date",
+    "dateFilter.cancel": "Cancel",
+    "dateFilter.invalid": "End date must be the same as or later than the start date.",
+    "dateFilter.choose": "Choose date filter",
+    "dateFilter.chooseDate": "Choose date",
+    "dateFilter.previousMonth": "Previous month",
+    "dateFilter.nextMonth": "Next month"
   }
 };

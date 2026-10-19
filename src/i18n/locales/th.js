@@ -23,6 +23,18 @@ export default {
     "dateFilter.yesterday": "เมื่อวาน",
     "dateFilter.thisWeek": "สัปดาห์นี้",
     "dateFilter.thisMonth": "เดือนนี้",
-    "dateFilter.custom": "กำหนดช่วงวันที่เอง"
+    "dateFilter.custom": "กำหนดช่วงวันที่เอง",
+    "dateFilter.description": "เลือกวันที่ที่ต้องการใช้กับหน้านี้",
+    "dateFilter.last7Days": "7 วันล่าสุด",
+    "dateFilter.lastMonth": "เดือนที่แล้ว",
+    "dateFilter.singleDate": "วันเดียว",
+    "dateFilter.start": "วันที่เริ่มต้น",
+    "dateFilter.end": "วันที่สิ้นสุด",
+    "dateFilter.cancel": "ยกเลิก",
+    "dateFilter.invalid": "วันที่สิ้นสุดต้องเป็นวันเดียวกันหรือหลังวันที่เริ่มต้น",
+    "dateFilter.choose": "เลือกตัวกรองวันที่",
+    "dateFilter.chooseDate": "เลือกวันที่",
+    "dateFilter.previousMonth": "เดือนก่อนหน้า",
+    "dateFilter.nextMonth": "เดือนถัดไป"
   }
 };
