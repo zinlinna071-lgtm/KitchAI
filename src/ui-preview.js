@@ -141,6 +141,9 @@
     if(filter.preset==="custom") return range.start===range.end?label+" · "+formatDate(range.start):label+" · "+formatDate(range.start)+" – "+formatDate(range.end);
     return label+" · "+(range.start===range.end?formatDate(range.start):formatDate(range.start)+" – "+formatDate(range.end));
   }
+  function renderDateFilterTrigger() {
+    return '<button type="button" class="ui-button ui-button--secondary date-filter-trigger" data-date-filter="open" aria-label="'+esc(dateFilterText("choose")+": "+dateFilterLabel())+'"><span aria-hidden="true">▦</span><span>'+esc(dateFilterLabel())+'</span><span aria-hidden="true">⌄</span></button>';
+  }
   function renderDateFilterPage() {
     const presets=[["today","today"],["yesterday","yesterday"],["thisWeek","thisWeek"],["last7Days","last7Days"],["thisMonth","thisMonth"],["lastMonth","lastMonth"]];
     const quick=presets.map(([value,key])=>'<button type="button" class="ui-button ui-button--secondary date-filter-quick'+(state.dateFilter.preset===value?' is-selected':'')+'" data-date-filter="quick:'+value+'" aria-pressed="'+(state.dateFilter.preset===value?'true':'false')+'">'+esc(dateFilterText(key))+'</button>').join("");
@@ -148,7 +151,7 @@
   }
   function renderMainPage(page) {
     const description = pageDescriptions[page.id]?.[language()] || pageDescriptions[page.id]?.en || "";
-    const dateFilter = page.id==="dashboard" ? '<button type="button" class="ui-button ui-button--secondary date-filter-trigger" data-date-filter="open" aria-label="'+esc(dateFilterText("choose")+": "+dateFilterLabel())+'"><span aria-hidden="true">▦</span><span>'+esc(dateFilterLabel())+'</span><span aria-hidden="true">⌄</span></button>' : "";
+    const dateFilter = page.id==="dashboard" ? renderDateFilterTrigger() : "";
     return '<section class="page-section main-page-copy"><h1>'+esc(pageLabel(page))+'</h1><p>'+esc(description)+'</p>'+dateFilter+'</section>';
   }
   function money(value) { return Number(value||0).toLocaleString(undefined,{maximumFractionDigits:2}); }
