@@ -211,7 +211,7 @@ test("capture desktop and mobile UI previews for review", async ({ page }) => {
     await page.locator('#sidebar-content [data-page="' + pageId + '"]').click({ force: true });
     if (pageId === "menu") {
       await expect(page.locator("#page-content").getByRole("heading", { name: title, exact: true })).toBeVisible();
-      await expect(page.locator("#page-content").getByRole("button", { name: /Add Menu/ })).toBeVisible();
+      await expect(page.locator("#page-content").getByRole("button", { name: "Add Menu", exact: true })).toBeVisible();
     } else {
       await expect(page.locator("#page-content .page-title-only").getByRole("heading", { name: title })).toBeVisible();
     }
