@@ -230,3 +230,22 @@ button:focus-visible,a:focus-visible,select:focus-visible,textarea:focus-visible
   .app-shell:not(.sidebar-collapsed) > .sidebar .sidebar-top > .sidebar-brand-name { display: block; }
   .app-shell:not(.sidebar-collapsed) > .sidebar .sidebar-top > .sidebar-minimize { display: grid; }
 }
+
+
+/* Reusable date-filter component: trigger plus an internal, mobile-friendly selection page. */
+.date-filter-trigger{display:flex;align-items:center;justify-content:flex-start;gap:10px;flex-wrap:wrap;max-width:100%;margin-top:20px;text-align:left}
+.date-filter-trigger span:nth-child(2){flex:1 1 auto;overflow-wrap:anywhere}
+.date-filter-page{width:100%;max-width:760px}
+.date-filter-heading h1{margin:0}
+.date-filter-heading p{margin:10px 0 0;color:var(--muted);line-height:1.6}
+.date-filter-quick-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:24px 0}
+.date-filter-quick{justify-content:flex-start;min-height:48px;text-align:left;white-space:normal;overflow-wrap:anywhere}
+.date-filter-quick.is-selected{border-color:var(--color-primary);background:var(--color-primary-soft);color:var(--color-primary);font-weight:700}
+.date-filter-custom{padding:20px;border:1px solid var(--line);border-radius:16px;background:var(--surface)}
+.date-filter-custom h2{margin:0 0 16px;font-size:18px}
+.date-filter-date-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.date-filter-date-grid .ui-field{min-width:0}
+.date-filter-date-grid input{width:100%;min-width:0;max-width:100%;box-sizing:border-box}
+.date-filter-error{margin:12px 0 0;color:var(--danger);font-size:14px}
+.date-filter-actions{display:flex;justify-content:flex-start;margin-top:20px}
+@media(max-width:560px){.date-filter-quick-grid{grid-template-columns:minmax(0,1fr);gap:8px;margin:20px 0}.date-filter-quick{width:100%}.date-filter-custom{padding:14px}.date-filter-date-grid{grid-template-columns:minmax(0,1fr)}.date-filter-actions button{width:100%}}
