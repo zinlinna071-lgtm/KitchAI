@@ -51,7 +51,10 @@ test("keeps shared Date Filter translations available in every supported locale"
     "dateFilter.thisMonth", "dateFilter.lastMonth", "dateFilter.singleDate",
     "dateFilter.custom", "dateFilter.start", "dateFilter.end",
     "dateFilter.cancel", "dateFilter.invalid", "dateFilter.choose",
-    "dateFilter.chooseDate", "dateFilter.previousMonth", "dateFilter.nextMonth"
+    "dateFilter.chooseDate", "dateFilter.previousMonth", "dateFilter.nextMonth",
+    "navigation.menu", "navigation.ingredients", "navigation.equipment",
+    "navigation.expenses", "navigation.personalExpenses", "navigation.reports",
+    "ai.newChat", "ai.recentChats", "ai.searchChats", "ai.settings", "ai.noChats"
   ];
   for (const locale of ["en", "my", "th"]) {
     const missing = new Set(getMissingTranslationKeys(locale));
