@@ -1,9 +1,7 @@
 name: Deploy GitHub Pages
 
 on:
-  push:
-    branches:
-      - main
+  # Deploy only when deliberately requested after a meaningful UI/feature change.
   workflow_dispatch:
 
 permissions:
