@@ -100,19 +100,19 @@
   function renderSidebar() {
     if (!sidebarContent) return;
     if (state.mode==="ai") {
-      const actions=[["new-chat","＋","New Chat"],["recent","◷","Recent Chats"],["search","⌕","Search Chats"],["settings","⚙","AI Settings"]];
-      let html=actions.map(([id,icon,label])=>'<button type="button" class="nav-item ai-nav-item'+(state.aiView===id?' active':'')+'" data-ai-action="'+id+'" title="'+label+'"><span class="nav-icon" aria-hidden="true">'+icon+'</span><span>'+label+'</span></button>').join("");
+      const actions=[["new-chat","＋","ai.newChat","New Chat"],["recent","◷","ai.recentChats","Recent Chats"],["search","⌕","ai.searchChats","Search Chats"],["settings","⚙","ai.settings","AI Settings"]];
+      let html=actions.map(([id,icon,key,fallback])=>{const label=sharedTranslation(key)||fallback;return '<button type="button" class="nav-item ai-nav-item'+(state.aiView===id?' active':'')+'" data-ai-action="'+id+'" title="'+esc(label)+'"><span class="nav-icon" aria-hidden="true">'+icon+'</span><span>'+esc(label)+'</span></button>';}).join("");
       const chats=state.aiChats.slice().reverse();
-      if(state.aiView==="search") html+='<label class="sidebar-search"><span class="sr-only">Search chats</span><input id="sidebar-chat-search" type="search" value="'+esc(state.aiSearchQuery)+'" placeholder="Search chats"></label>';
+      if(state.aiView==="search") { const searchLabel=sharedTranslation("ai.searchChats")||"Search chats"; html+='<label class="sidebar-search"><span class="sr-only">'+esc(searchLabel)+'</span><input id="sidebar-chat-search" type="search" value="'+esc(state.aiSearchQuery)+'" placeholder="'+esc(searchLabel)+'"></label>'; }
       if(state.aiView==="recent"||state.aiView==="search"||chats.length){
-        html+='<div class="nav-section-label ai-recent-label">Recent Chats</div>';
+        html+='<div class="nav-section-label ai-recent-label">'+esc(sharedTranslation("ai.recentChats")||"Recent Chats")+'</div>';
         const filtered=chats.filter(chat=>state.aiView!=="search"||!state.aiSearchQuery||chat.title.toLowerCase().includes(state.aiSearchQuery.toLowerCase()));
         html+=filtered.slice(0,state.aiView==="recent"||state.aiView==="search"?20:5).map(chat=>'<button type="button" class="nav-item chat-history-item" data-chat-id="'+chat.id+'" title="'+esc(chat.title)+'"><span class="nav-icon" aria-hidden="true">◦</span><span>'+esc(chat.title)+'</span></button>').join("");
-        if(!filtered.length)html+='<p class="empty-history">No chats yet</p>';
+        if(!filtered.length)html+='<p class="empty-history">'+esc(sharedTranslation("ai.noChats")||"No chats yet")+'</p>';
       }
       sidebarContent.innerHTML=html;return;
     }
-    sidebarContent.innerHTML='<div class="nav-section-label">'+esc(t("navigation"))+'</div>'+pages.map(page=>'<button type="button" class="nav-item'+(state.managePage===page.id?' active':'')+'" data-page="'+page.id+'" aria-current="'+(state.managePage===page.id?'page':'false')+'" title="'+esc(pageLabel(page))+'"><span class="nav-icon" aria-hidden="true">'+({dashboard:"▦",menu:"≡",ingredients:"◈",equipment:"□",expenses:"−","personal-expenses":"◷",reports:"▥",settings:"⚙"}[page.id])+'</span><span>'+esc(pageLabel(page))+'</span></button>').join("");
+    sidebarContent.innerHTML='<div class="nav-section-label">'+esc(sharedTranslation("navigation.manage")||t("navigation"))+'</div>'+pages.map(page=>'<button type="button" class="nav-item'+(state.managePage===page.id?' active':'')+'" data-page="'+page.id+'" aria-current="'+(state.managePage===page.id?'page':'false')+'" title="'+esc(pageLabel(page))+'"><span class="nav-icon" aria-hidden="true">'+({dashboard:"▦",menu:"≡",ingredients:"◈",equipment:"□",expenses:"−","personal-expenses":"◷",reports:"▥",settings:"⚙"}[page.id])+'</span><span>'+esc(pageLabel(page))+'</span></button>').join("");
   }
   function pageHeader(title, intro, actions="") {
     return '<section class="page-section"><div class="ui-row ui-row--mobile-stack" style="justify-content:space-between;align-items:flex-start"><div><p class="eyebrow">'+esc(t("manage"))+'</p><h1>'+esc(title)+'</h1><p>'+esc(intro)+'</p></div><div class="ui-row">'+actions+'</div></div>';
