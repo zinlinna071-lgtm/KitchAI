@@ -1,3 +1,4 @@
+/* Pages publish marker: Menu and Personal Expenses pages intentionally cleared. */
 /* KitchAI frontend prototype. UI-only state; persistence/backend intentionally not connected. */
 (() => {
   const $ = (s, root = document) => root.querySelector(s);
