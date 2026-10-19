@@ -40,6 +40,18 @@ button,input,textarea,select { font: inherit; } button,a,select { -webkit-tap-hi
 #main { flex:1; min-width:0; outline:none; }
 .footer { display:flex; justify-content:space-between; gap:12px; padding:16px 28px; border-top:1px solid var(--line); color:var(--muted); font-size:12px; }
 .sidebar-backdrop { display:none; }
+
+/* On mobile, the visible page strip beside the Drawer acts as a close target. */
+@media (max-width:760px) {
+  .app-shell:not(.sidebar-collapsed) .sidebar-backdrop {
+    display:block;
+    position:fixed;
+    inset:0 0 0 min(82vw,248px);
+    z-index:25;
+    background:transparent;
+    cursor:pointer;
+  }
+}
 button:focus-visible,a:focus-visible,select:focus-visible,textarea:focus-visible,input:focus-visible { outline:2px solid var(--color-focus); outline-offset:2px; }
 .connection-status { display:inline-flex; align-items:center; min-height:30px; padding:4px 9px; border:1px solid var(--line); border-radius:999px; color:var(--muted); font-size:11px; white-space:nowrap; }
 .connection-status::before { content:""; width:6px; height:6px; margin-right:7px; border-radius:50%; background:var(--good); } .connection-status[data-state="offline"]::before { background:var(--warning); }
