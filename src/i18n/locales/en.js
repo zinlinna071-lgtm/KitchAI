@@ -19,6 +19,7 @@ export default {
     "navigation.ai": "AI Mode",
     "navigation.manage": "Manage Mode",
     "navigation.dashboard": "Dashboard",
+    "dashboard.description": "A clear overview of your kitchen business.",
     "navigation.settings": "Settings",
     "navigation.menu": "Menu",
     "navigation.ingredients": "Ingredients",

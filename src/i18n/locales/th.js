@@ -17,6 +17,7 @@ export default {
     "navigation.ai": "โหมด AI",
     "navigation.manage": "โหมดจัดการ",
     "navigation.dashboard": "แดชบอร์ด",
+    "dashboard.description": "ดูภาพรวมธุรกิจอาหารของคุณได้ในที่เดียว",
     "navigation.settings": "การตั้งค่า",
     "navigation.menu": "เมนู",
     "navigation.ingredients": "วัตถุดิบ",
