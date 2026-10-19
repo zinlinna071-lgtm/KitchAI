@@ -10,7 +10,11 @@ test("Manage Mode navigation keeps the three agreed pages title-only", async ({ 
     await page.getByRole("button", { name: label, exact: true }).click();
     const section = page.locator("#page-content .page-section");
     await expect(section.getByRole("heading", { name: title })).toBeVisible();
-    await expect(section.locator("button, input, select, textarea, .ui-card")).toHaveCount(0);
+    if (title === "Dashboard") {
+      await expect(section.getByRole("button", { name: /Choose date filter/ })).toBeVisible();
+    } else {
+      await expect(section.locator("button, input, select, textarea, .ui-card")).toHaveCount(0);
+    }
   }
   await page.getByRole("button", { name: "Menu", exact: true }).click();
   // The Menu workspace is intentionally not rendered in this preview; verify navigation does not throw.
@@ -111,4 +115,125 @@ test("Menu preview records persist locally after a page reload", async ({ page }
   });
   expect(saved.menus.some(item => item.name === "Persistence Test Roll")).toBe(true);
   expect(saved.sales.some(item => item.name === "Persistence Test Sale" && item.netSale === 90)).toBe(true);
+});
+
+
+test("Dashboard date filter supports instant quick selection, cancel, and custom ranges with the custom calendar", async ({ page }) => {
+  const pageErrors = [];
+  page.on("pageerror", error => pageErrors.push(error.message));
+  await page.goto("/");
+  await page.getByRole("button", { name: /Manage Mode/ }).click();
+  await page.getByRole("button", { name: "Dashboard", exact: true }).click();
+
+  const trigger = () => page.getByRole("button", { name: /Choose date filter/ });
+  await expect(trigger()).toBeVisible();
+  await expect(trigger()).toContainText(/Today/);
+
+  await trigger().click();
+  await expect(page.getByRole("heading", { name: "Date Filter" })).toBeVisible();
+  await page.locator('[data-date-filter="quick:yesterday"]').click();
+  await expect(trigger()).toContainText(/Yesterday/);
+
+  await trigger().click();
+  await page.getByRole("button", { name: "Cancel", exact: true }).click();
+  await expect(trigger()).toContainText(/Yesterday/);
+
+  await trigger().click();
+  await page.locator('[data-date-filter="calendar:start"]').click();
+  await expect(page.locator(".date-calendar")).toBeVisible();
+  await page.locator('[data-date-filter="day:2026-10-10"]').click();
+  await expect(page.locator('[data-date-filter="calendar:end"]')).toHaveAttribute("aria-expanded", "true");
+  await page.locator('[data-date-filter="day:2026-10-12"]').click();
+  await expect(trigger()).toContainText(/Oct 10/);
+  await expect(trigger()).toContainText(/12/);
+  expect(pageErrors).toEqual([]);
+});
+
+
+test("date filter supports a single date and keeps its trigger compact on mobile", async ({ page }) => {
+  const pageErrors = [];
+  page.on("pageerror", error => pageErrors.push(error.message));
+  await page.setViewportSize({ width: 320, height: 700 });
+  await page.goto("/");
+  await page.getByRole("button", { name: /Manage Mode/ }).click();
+  await page.getByRole("button", { name: "Dashboard", exact: true }).click();
+  const trigger = page.getByRole("button", { name: /Choose date filter/ });
+  await expect(trigger).toBeVisible();
+  await trigger.click();
+  await expect(page.getByRole("heading", { name: "Single Date" })).toBeVisible();
+  await page.locator('[data-date-filter="calendar:single"]').click();
+  await page.locator('[data-date-filter="day:2026-10-08"]').click();
+  await expect(trigger).toContainText(/Oct 8/);
+
+  await trigger.click();
+  await page.locator('[data-date-filter="calendar:start"]').click();
+  await page.locator('[data-date-filter="day:2026-10-10"]').click();
+  await page.locator('[data-date-filter="day:2026-10-12"]').click();
+  await expect(trigger).toContainText(/Oct 10/);
+  await expect(trigger).toContainText(/12/);
+  const dimensions = await trigger.evaluate(el => ({right:el.getBoundingClientRect().right, viewport:document.documentElement.clientWidth, width:el.getBoundingClientRect().width}));
+  expect(dimensions.right).toBeLessThanOrEqual(dimensions.viewport);
+  expect(dimensions.width).toBeLessThanOrEqual(dimensions.viewport);
+  expect(pageErrors).toEqual([]);
+});
+
+
+test("custom calendar opens from the full compact date control for Single Date and Range", async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 800 });
+  await page.goto("/");
+  await page.getByRole("button", { name: /Manage Mode/ }).click();
+  await page.getByRole("button", { name: "Dashboard", exact: true }).click();
+  await page.getByRole("button", { name: /Choose date filter/ }).click();
+
+  for (const target of ["single", "start", "end"]) {
+    const control = page.locator('[data-date-filter="calendar:' + target + '"]');
+    await expect(control).toBeVisible();
+    const geometry = await control.evaluate(el => {
+      const rect = el.getBoundingClientRect();
+      return {width: rect.width, height: rect.height, right: rect.right, viewport: document.documentElement.clientWidth};
+    });
+    expect(geometry.width).toBeGreaterThan(100);
+    expect(geometry.height).toBeGreaterThanOrEqual(36);
+    expect(geometry.right).toBeLessThanOrEqual(geometry.viewport);
+    await control.click();
+    await expect(page.locator(".date-calendar")).toBeVisible();
+  }
+});
+
+
+test("date calendar defaults to current month, supports year-month-date drill-down, and spans the date section", async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 800 });
+  await page.goto("/");
+  await page.getByRole("button", { name: /Manage Mode/ }).click();
+  await page.getByRole("button", { name: "Dashboard", exact: true }).click();
+  const trigger = page.getByRole("button", { name: /Choose date filter/ });
+  await trigger.click();
+
+  const singleSection = page.locator(".date-filter-single");
+  await expect(singleSection.getByRole("heading", { name: "Single Date" })).toBeVisible();
+  await expect(singleSection.locator(".ui-label")).toHaveCount(0);
+  await page.locator('[data-date-filter="calendar:single"]').click();
+  await expect(page.locator(".date-calendar-weekdays span")).toHaveText(["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]);
+  const defaultMonth = await page.locator(".date-calendar-title-button").first().textContent();
+  expect(defaultMonth?.trim()).not.toBe("");
+  await expect(page.locator(".date-calendar-days")).toBeVisible();
+
+  await page.locator('[data-date-filter="view:year"]').click();
+  await expect(page.locator(".date-calendar-years .date-calendar-choice")).toHaveCount(12);
+  await page.locator('[data-date-filter="pick-year:2026"]').click();
+  await expect(page.locator(".date-calendar-months .date-calendar-choice")).toHaveCount(12);
+  await page.locator('[data-date-filter="pick-month:9"]').click();
+  await expect(page.locator(".date-calendar-days")).toBeVisible();
+  await page.locator('[data-date-filter="day:2026-10-08"]').click();
+  await expect(trigger).toContainText(/Oct 8/);
+
+  await trigger.click();
+  await page.locator('[data-date-filter="calendar:start"]').click();
+  let calendar = page.locator(".date-filter-custom:not(.date-filter-single) > .date-calendar");
+  let geometry = await calendar.evaluate(el => ({calendar:el.getBoundingClientRect().width, section:el.parentElement.getBoundingClientRect().width}));
+  expect(geometry.calendar).toBeGreaterThanOrEqual(geometry.section - 30);
+  await page.locator('[data-date-filter="day:2026-10-10"]').click();
+  calendar = page.locator(".date-filter-custom:not(.date-filter-single) > .date-calendar");
+  geometry = await calendar.evaluate(el => ({calendar:el.getBoundingClientRect().width, section:el.parentElement.getBoundingClientRect().width}));
+  expect(geometry.calendar).toBeGreaterThanOrEqual(geometry.section - 30);
 });

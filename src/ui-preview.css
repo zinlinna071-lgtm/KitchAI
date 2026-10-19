@@ -230,3 +230,227 @@ button:focus-visible,a:focus-visible,select:focus-visible,textarea:focus-visible
   .app-shell:not(.sidebar-collapsed) > .sidebar .sidebar-top > .sidebar-brand-name { display: block; }
   .app-shell:not(.sidebar-collapsed) > .sidebar .sidebar-top > .sidebar-minimize { display: grid; }
 }
+
+
+/* Reusable date-filter component: compact text-only trigger and spaced selection cards. */
+.date-filter-trigger{display:inline-flex;align-items:center;justify-content:center;width:auto;max-width:100%;min-width:0;margin-top:16px;padding:7px 11px;border-radius:10px;text-align:center;font-size:13px;line-height:1.3;white-space:nowrap}
+.date-filter-label-compact{display:inline;min-width:0;white-space:nowrap}
+.date-filter-page{width:100%;max-width:760px}
+.date-filter-heading h1{margin:0}
+.date-filter-heading p{margin:10px 0 0;color:var(--muted);line-height:1.6}
+.date-filter-quick-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:24px 0}
+.date-filter-quick{justify-content:flex-start;min-height:48px;text-align:left;white-space:normal;overflow-wrap:anywhere}
+.date-filter-quick.is-selected{border-color:var(--color-primary);background:var(--color-primary-soft);color:var(--color-primary);font-weight:700}
+.date-filter-custom{padding:20px;border:1px solid var(--line);border-radius:16px;background:var(--surface)}
+.date-filter-custom + .date-filter-custom{margin-top:16px}
+.date-filter-custom h2{margin:0 0 16px;font-size:18px}
+.date-filter-date-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.date-filter-date-grid .ui-field{min-width:0}
+.date-filter-date-grid input{width:100%;min-width:0;max-width:100%;box-sizing:border-box}
+.date-filter-error{margin:12px 0 0;color:var(--danger);font-size:14px}
+.date-filter-actions{display:flex;justify-content:flex-start;margin-top:20px}
+@media(max-width:560px){
+.date-filter-trigger{padding:7px 10px;font-size:12px;gap:0}
+.date-filter-quick-grid{grid-template-columns:minmax(0,1fr);gap:8px;margin:20px 0}
+.date-filter-quick{width:100%}
+.date-filter-custom{padding:14px}
+.date-filter-custom + .date-filter-custom{margin-top:14px}
+.date-filter-date-grid{grid-template-columns:minmax(0,1fr)}
+.date-filter-actions button{width:100%}
+}
+
+
+/* Date filter polish: align type, spacing, colors and full-field date picking with shared UI. */
+.date-filter-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 34px;
+  margin-top: 16px;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 550;
+  line-height: 1.35;
+  white-space: nowrap;
+}
+.date-filter-trigger:hover {
+  border-color: var(--color-primary);
+  background: var(--surface-2);
+}
+.date-filter-trigger-icon {
+  display: block;
+  width: 15px;
+  height: 15px;
+  flex: 0 0 15px;
+  color: var(--muted);
+}
+.date-filter-label-compact { min-width: 0; }
+.date-filter-page { color: var(--text); }
+.date-filter-heading p { font-size: 14px; }
+.date-filter-quick-grid { gap: 10px; margin: 20px 0; }
+.date-filter-quick {
+  min-height: 44px;
+  padding: 11px 14px;
+  border-radius: 10px;
+  font-size: 14px;
+  line-height: 1.45;
+}
+.date-filter-custom {
+  padding: 18px;
+  border-radius: 12px;
+  color: var(--text);
+}
+.date-filter-custom + .date-filter-custom { margin-top: 14px; }
+.date-filter-custom h2 {
+  margin-bottom: 14px;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+.date-filter-date-grid { gap: 12px; }
+.date-filter-date-grid .ui-field { gap: 6px; }
+.date-filter-date-grid input[type="date"] {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-appearance: auto;
+  appearance: auto;
+}
+.date-filter-date-grid input[type="date"]:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+.date-filter-error { font-size: 13px; line-height: 1.5; }
+.date-filter-actions { margin-top: 18px; }
+@media (max-width: 560px) {
+  .date-filter-trigger { gap: 6px; padding: 6px 9px; font-size: 12px; }
+  .date-filter-trigger-icon { width: 14px; height: 14px; flex-basis: 14px; }
+  .date-filter-quick-grid { gap: 8px; margin: 18px 0; }
+  .date-filter-quick { min-height: 44px; padding: 10px 12px; }
+  .date-filter-custom { padding: 14px; }
+  .date-filter-custom + .date-filter-custom { margin-top: 12px; }
+  .date-filter-date-grid { gap: 10px; }
+  .date-filter-date-grid input[type="date"] { min-height: 46px; padding: 10px; }
+  .date-filter-actions { margin-top: 16px; }
+}
+
+/* Final date-filter overrides: one shared type scale and a genuinely full-area date target. */
+.date-filter-page { max-width: 760px; color: var(--text); }
+.date-filter-heading h1 { margin: 0; font-size: 24px; line-height: 1.3; letter-spacing: -0.02em; }
+.date-filter-heading p { margin: 8px 0 0; color: var(--muted); font-size: 14px; line-height: 1.55; }
+.date-filter-quick-grid { gap: 10px; margin: 20px 0; }
+.date-filter-quick { min-height: 44px; padding: 10px 14px; border-radius: 10px; font-size: 14px; font-weight: 550; line-height: 1.4; }
+.date-filter-custom { padding: 18px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.date-filter-custom + .date-filter-custom { margin-top: 14px; }
+.date-filter-custom h2 { margin: 0 0 12px; font-size: 16px; font-weight: 700; line-height: 1.4; }
+.date-filter-date-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+.date-filter-field { display: grid; gap: 6px; min-width: 0; }
+.date-filter-field .ui-label { margin: 0; color: var(--muted); font-size: 13px; font-weight: 600; line-height: 1.4; }
+.date-filter-date-control { position: relative; display: flex; align-items: center; gap: 10px; width: 100%; min-width: 0; min-height: 46px; padding: 10px 12px; overflow: hidden; border: 1px solid var(--line); border-radius: 9px; background: var(--surface); color: var(--text); font: inherit; font-size: 14px; line-height: 1.4; cursor: pointer; }
+.date-filter-date-control:focus-within { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.date-filter-date-value { flex: 1 1 auto; min-width: 0; overflow: hidden; color: var(--text); text-overflow: ellipsis; white-space: nowrap; pointer-events: none; }
+.date-filter-date-icon { width: 17px; height: 17px; flex: 0 0 17px; color: var(--muted); pointer-events: none; }
+.date-filter-native-input { position: absolute; inset: 0; z-index: 1; display: block; width: 100%; height: 100%; margin: 0; padding: 0; opacity: 0; border: 0; cursor: pointer; touch-action: manipulation; }
+.date-filter-error { margin: 10px 0 0; color: var(--danger); font-size: 13px; line-height: 1.5; }
+.date-filter-actions { display: flex; justify-content: flex-start; margin-top: 18px; }
+.date-filter-trigger { gap: 7px; min-height: 36px; margin-top: 14px; padding: 7px 10px; border: 1px solid var(--line); border-radius: 9px; background: var(--surface); color: var(--text); font-size: 13px; font-weight: 550; line-height: 1.35; }
+.date-filter-trigger-icon { width: 15px; height: 15px; flex: 0 0 15px; color: var(--muted); }
+@media (max-width: 560px) {
+  .date-filter-heading h1 { font-size: 22px; }
+  .date-filter-quick-grid { gap: 8px; margin: 18px 0; }
+  .date-filter-quick { min-height: 44px; padding: 10px 12px; }
+  .date-filter-custom { padding: 14px; }
+  .date-filter-custom + .date-filter-custom { margin-top: 12px; }
+  .date-filter-date-grid { grid-template-columns: minmax(0,1fr); gap: 12px; }
+  .date-filter-date-control { min-height: 46px; padding: 10px 12px; }
+  .date-filter-trigger { gap: 6px; padding: 6px 9px; font-size: 12px; }
+  .date-filter-trigger-icon { width: 14px; height: 14px; flex-basis: 14px; }
+  .date-filter-actions button { width: 100%; }
+}
+
+
+/* Compact reusable date controls and a fully custom, theme-aware calendar. */
+.date-filter-page { max-width: 700px; }
+.date-filter-heading h1 { font-size: 22px; }
+.date-filter-heading p { margin-top: 6px; font-size: 13px; }
+.date-filter-quick-grid { gap: 8px; margin: 14px 0; }
+.date-filter-quick { min-height: 38px; padding: 8px 11px; font-size: 13px; }
+.date-filter-custom { padding: 12px; border-radius: 10px; }
+.date-filter-custom + .date-filter-custom { margin-top: 10px; }
+.date-filter-custom h2 { margin-bottom: 9px; font-size: 14px; }
+.date-filter-date-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; align-items: start; }
+.date-filter-date-grid.single-date-grid { grid-template-columns: minmax(0,1fr); }
+.date-filter-field { display: grid; gap: 5px; min-width: 0; }
+.date-filter-field .ui-label { font-size: 12px; line-height: 1.3; }
+.date-filter-date-control { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; min-width: 0; min-height: 40px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--text); font: inherit; font-size: 13px; line-height: 1.3; text-align: left; cursor: pointer; }
+.date-filter-date-control:hover, .date-filter-date-control.is-active { border-color: var(--color-primary); }
+.date-filter-date-control:focus-visible, .date-calendar button:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.date-filter-date-value { flex: 1 1 auto; min-width: 0; overflow: hidden; color: var(--text); text-overflow: ellipsis; white-space: nowrap; }
+.date-filter-date-icon { width: 15px; height: 15px; flex: 0 0 15px; color: var(--muted); }
+.date-calendar { width: 100%; min-width: 0; margin-top: 7px; padding: 9px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); box-shadow: 0 4px 14px rgb(0 0 0 / 7%); }
+.date-calendar-header { display: grid; grid-template-columns: 32px minmax(0,1fr) 32px; align-items: center; gap: 5px; margin-bottom: 8px; text-align: center; }
+.date-calendar-header strong { overflow: hidden; font-size: 13px; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
+.date-calendar-nav { display: inline-grid; place-items: center; width: 32px; height: 32px; padding: 0; border: 1px solid var(--line); border-radius: 7px; background: var(--surface); color: var(--text); font-size: 22px; line-height: 1; cursor: pointer; }
+.date-calendar-weekdays, .date-calendar-days { display: grid; grid-template-columns: repeat(7,minmax(0,1fr)); gap: 2px; }
+.date-calendar-weekdays { margin-bottom: 3px; }
+.date-calendar-weekdays span { display: grid; place-items: center; min-width: 0; height: 24px; color: var(--muted); font-size: 10px; font-weight: 650; }
+.date-calendar-day { display: grid; place-items: center; width: 100%; min-width: 0; height: 31px; padding: 0; border: 0; border-radius: 7px; background: transparent; color: var(--text); font: inherit; font-size: 12px; cursor: pointer; }
+.date-calendar-day:hover { background: var(--surface-2); }
+.date-calendar-day.is-selected { background: var(--color-primary); color: #fff; font-weight: 700; }
+.date-calendar-day.is-in-range:not(.is-selected) { background: var(--color-primary-soft); color: var(--color-primary); border-radius: 0; }
+.date-calendar-day.is-outside { visibility: hidden; }
+.date-filter-error { margin: 7px 0 0; font-size: 12px; line-height: 1.4; }
+.date-filter-actions { margin-top: 12px; }
+.date-filter-actions button { min-height: 36px; padding: 8px 12px; font-size: 13px; }
+@media (max-width: 560px) {
+  .date-filter-heading h1 { font-size: 20px; }
+  .date-filter-heading p { font-size: 12px; }
+  .date-filter-quick-grid { gap: 6px; margin: 12px 0; }
+  .date-filter-quick { min-height: 36px; padding: 7px 9px; font-size: 12px; }
+  .date-filter-custom { padding: 10px; }
+  .date-filter-custom + .date-filter-custom { margin-top: 9px; }
+  .date-filter-date-grid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 7px; }
+  .date-filter-date-control { min-height: 38px; padding: 7px 8px; font-size: 12px; }
+  .date-filter-date-icon { width: 14px; height: 14px; flex-basis: 14px; }
+  .date-calendar { padding: 7px; }
+  .date-calendar-day { height: 29px; font-size: 11px; }
+  .date-calendar-weekdays span { font-size: 9px; }
+}
+
+
+/* Date filter refinements: full-width calendar and optional year/month drill-down. */
+.date-filter-custom > .date-calendar { display: block; width: 100%; max-width: 100%; margin-top: 12px; }
+.date-calendar-header { grid-template-columns: 34px minmax(0,1fr) 34px; gap: 6px; }
+.date-calendar-title-pair { display: flex; align-items: center; justify-content: center; gap: 5px; min-width: 0; }
+.date-calendar-title-button { min-width: 0; padding: 5px 7px; border: 1px solid transparent; border-radius: 7px; background: transparent; color: var(--text); font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
+.date-calendar-title-button:hover { border-color: var(--line); background: var(--surface-2); }
+.date-calendar-choices { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 7px; }
+.date-calendar-choice { display: grid; place-items: center; min-width: 0; min-height: 42px; padding: 7px 4px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--text); font: inherit; font-size: 13px; line-height: 1.3; cursor: pointer; overflow-wrap: anywhere; }
+.date-calendar-choice:hover { border-color: var(--color-primary); background: var(--surface-2); }
+.date-calendar-choice.is-selected { border-color: var(--color-primary); background: var(--color-primary-soft); color: var(--color-primary); font-weight: 700; }
+.date-calendar-weekdays span { font-size: 11px; }
+.date-calendar-day { height: 36px; font-size: 13px; }
+@media (max-width: 560px) {
+  .date-filter-custom > .date-calendar { margin-top: 10px; padding: 9px; }
+  .date-calendar-header { grid-template-columns: 32px minmax(0,1fr) 32px; gap: 4px; }
+  .date-calendar-title-pair { gap: 2px; }
+  .date-calendar-title-button { padding: 5px 4px; font-size: 13px; }
+  .date-calendar-choices { gap: 6px; }
+  .date-calendar-choice { min-height: 42px; padding: 6px 2px; font-size: 12px; }
+  .date-calendar-weekdays span { height: 28px; font-size: 11px; }
+  .date-calendar-day { height: 36px; font-size: 12px; }
+}

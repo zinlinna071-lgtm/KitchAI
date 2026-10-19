@@ -40,7 +40,7 @@ test("Manage Mode exposes eight pages, preserves the Dashboard shell, and opens 
   const dashboard = page.locator("#page-content .main-page-copy");
   await expect(dashboard.getByRole("heading", { name: "Dashboard" })).toBeVisible();
   await expect(dashboard.locator("p")).toBeVisible();
-  await expect(dashboard.locator("button, input, select, textarea, .ui-card")).toHaveCount(0);
+  await expect(dashboard.getByRole("button", { name: /Choose date filter/ })).toBeVisible();
   await page.locator('#sidebar-content [data-page="menu"]').evaluate(element => element.click());
   const menu = page.locator("#page-content .main-page-copy");
   await expect(menu.getByRole("heading", { name: "Menu" })).toBeVisible();
