@@ -40,10 +40,12 @@ test("Manage Mode exposes eight pages, preserves the Dashboard shell, and opens 
   const dashboard = page.locator("#page-content .page-title-only");
   await expect(dashboard.getByRole("heading", { name: "Dashboard" })).toBeVisible();
   await expect(dashboard.locator("button, input, select, textarea, .ui-card, p")).toHaveCount(0);
+  await page.locator('#sidebar-content [data-page="menu"]').evaluate(element => element.click());
+  await expect(page.locator('#page-content section[aria-label="Menu"]')).toBeVisible();
+  await expect(page.locator('#page-content section[aria-label="Menu"]').locator("*")).toHaveCount(0);
   await page.locator('#sidebar-content [data-page="personal-expenses"]').evaluate(element => element.click());
-  await expect(page.getByRole("heading", { name: "Personal Expenses", exact: true })).toBeVisible();
-  await expect(page.getByRole("button", { name: "+ Add personal expense", exact: true })).toBeVisible();
-  await expect(page.getByText("No personal expenses yet.")).toBeVisible();
+  await expect(page.locator('#page-content section[aria-label="Personal Expenses"]')).toBeVisible();
+  await expect(page.locator('#page-content section[aria-label="Personal Expenses"]').locator("*")).toHaveCount(0);
 });
 
 test("unknown project paths load the Pages fallback with project-scoped assets", async ({ page }) => {
