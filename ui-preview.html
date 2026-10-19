@@ -11,19 +11,20 @@
 <!-- NON-PRODUCTION STATIC PREVIEW: backend config is intentionally empty. -->
 <meta name="description" content="KitchAI AI Mode and Manage Mode workspace shell">
 <title>KitchAI</title>
-<link rel="stylesheet" href="__KITCHAI_BASE_PATH__src/ui-preview.css?v=20261019-2">
-<link rel="stylesheet" href="__KITCHAI_BASE_PATH__src/design-tokens.css?v=20261019-2">
-<link rel="stylesheet" href="__KITCHAI_BASE_PATH__src/ui-components.css?v=20261019-2">
-<script defer src="__KITCHAI_BASE_PATH__runtime-config.js?v=20261019-2"></script>
-<script defer src="__KITCHAI_BASE_PATH__src/ui-preview.js?v=20261019-2"></script>
+<link rel="stylesheet" href="__KITCHAI_BASE_PATH__src/ui-preview.css?v=20261019-3">
+<link rel="stylesheet" href="__KITCHAI_BASE_PATH__src/design-tokens.css?v=20261019-3">
+<link rel="stylesheet" href="__KITCHAI_BASE_PATH__src/ui-components.css?v=20261019-3">
+<script defer src="__KITCHAI_BASE_PATH__runtime-config.js?v=20261019-3"></script>
+<script defer src="__KITCHAI_BASE_PATH__src/ui-preview.js?v=20261019-3"></script>
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
 <div class="app-shell">
 <aside class="sidebar" id="sidebar" aria-label="KitchAI navigation">
 <div class="sidebar-top">
-<a class="brand" href="#ai" aria-label="KitchAI home"><span class="brand-mark">K</span><span class="brand-name">KitchAI</span></a>
-<button class="icon-button sidebar-close" id="sidebar-close" aria-label="Close navigation">×</button>
+<button class="icon-button menu-toggle" id="menu-toggle" aria-label="Open navigation" aria-expanded="false" title="Open navigation">☰</button>
+<span class="sidebar-brand-name">KitchAI</span>
+<button class="icon-button sidebar-minimize" id="sidebar-minimize" aria-label="Minimize navigation" title="Minimize navigation">‹</button>
 </div>
 <div class="sidebar-content" id="sidebar-content"></div>
 <div class="sidebar-bottom">
@@ -33,7 +34,6 @@
 <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
 <div class="main-column">
 <header class="topbar">
-<button class="icon-button menu-toggle" id="menu-toggle" aria-label="Open navigation">☰</button>
 <div class="mode-switch topbar-mode-switch" role="group" aria-label="Choose mode"><button class="mode-button active" data-mode="ai" aria-pressed="true"><span class="mode-icon">✳</span><span>AI Mode</span></button><button class="mode-button" data-mode="manage" aria-pressed="false"><span class="mode-icon">▦</span><span>Manage Mode</span></button></div>
 <div class="topbar-actions">
 <span id="connection-status" class="connection-status" role="status" aria-live="polite">Online</span>
