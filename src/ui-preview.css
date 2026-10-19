@@ -232,12 +232,9 @@ button:focus-visible,a:focus-visible,select:focus-visible,textarea:focus-visible
 }
 
 
-/* Reusable date-filter component: trigger plus an internal, mobile-friendly selection page. */
-.date-filter-trigger{display:inline-flex;align-items:center;justify-content:flex-start;gap:10px;flex-wrap:nowrap;width:auto;max-width:100%;min-width:0;margin-top:20px;text-align:left}
-.date-filter-trigger .date-filter-icon,.date-filter-trigger .date-filter-chevron{flex:none}
-.date-filter-label-full{min-width:0;overflow-wrap:anywhere}
-.date-filter-label-compact{display:none;min-width:0;white-space:nowrap}
-.date-filter-trigger .date-filter-chevron{margin-left:auto}
+/* Reusable date-filter component: compact text-only trigger and spaced selection cards. */
+.date-filter-trigger{display:inline-flex;align-items:center;justify-content:center;width:auto;max-width:100%;min-width:0;margin-top:16px;padding:7px 11px;border-radius:10px;text-align:center;font-size:13px;line-height:1.3;white-space:nowrap}
+.date-filter-label-compact{display:inline;min-width:0;white-space:nowrap}
 .date-filter-page{width:100%;max-width:760px}
 .date-filter-heading h1{margin:0}
 .date-filter-heading p{margin:10px 0 0;color:var(--muted);line-height:1.6}
@@ -245,6 +242,7 @@ button:focus-visible,a:focus-visible,select:focus-visible,textarea:focus-visible
 .date-filter-quick{justify-content:flex-start;min-height:48px;text-align:left;white-space:normal;overflow-wrap:anywhere}
 .date-filter-quick.is-selected{border-color:var(--color-primary);background:var(--color-primary-soft);color:var(--color-primary);font-weight:700}
 .date-filter-custom{padding:20px;border:1px solid var(--line);border-radius:16px;background:var(--surface)}
+.date-filter-custom + .date-filter-custom{margin-top:16px}
 .date-filter-custom h2{margin:0 0 16px;font-size:18px}
 .date-filter-date-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
 .date-filter-date-grid .ui-field{min-width:0}
@@ -252,9 +250,11 @@ button:focus-visible,a:focus-visible,select:focus-visible,textarea:focus-visible
 .date-filter-error{margin:12px 0 0;color:var(--danger);font-size:14px}
 .date-filter-actions{display:flex;justify-content:flex-start;margin-top:20px}
 @media(max-width:560px){
-.date-filter-trigger{display:flex;width:fit-content;max-width:100%;gap:7px;padding:9px 11px;font-size:13px}
-.date-filter-label-full{display:none}
-.date-filter-label-compact{display:inline;overflow:hidden;text-overflow:ellipsis}
+.date-filter-trigger{padding:7px 10px;font-size:12px;gap:0}
 .date-filter-quick-grid{grid-template-columns:minmax(0,1fr);gap:8px;margin:20px 0}
-.date-filter-quick{width:100%}.date-filter-custom{padding:14px}.date-filter-date-grid{grid-template-columns:minmax(0,1fr)}.date-filter-actions button{width:100%}
+.date-filter-quick{width:100%}
+.date-filter-custom{padding:14px}
+.date-filter-custom + .date-filter-custom{margin-top:14px}
+.date-filter-date-grid{grid-template-columns:minmax(0,1fr)}
+.date-filter-actions button{width:100%}
 }
