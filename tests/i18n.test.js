@@ -52,6 +52,7 @@ test("keeps shared Date Filter translations available in every supported locale"
     "dateFilter.custom", "dateFilter.start", "dateFilter.end",
     "dateFilter.cancel", "dateFilter.invalid", "dateFilter.choose",
     "dateFilter.chooseDate", "dateFilter.previousMonth", "dateFilter.nextMonth",
+    "dashboard.description", "navigation.dashboard",
     "navigation.menu", "navigation.ingredients", "navigation.equipment",
     "navigation.expenses", "navigation.personalExpenses", "navigation.reports",
     "ai.newChat", "ai.recentChats", "ai.searchChats", "ai.settings", "ai.noChats"
