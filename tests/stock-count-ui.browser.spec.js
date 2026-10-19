@@ -96,3 +96,23 @@ test.describe("swipe then tap regression", () => {
     }
   });
 });
+
+
+test("Menu preview records persist locally after a page reload", async ({ page }) => {
+  await page.goto("/");
+  await page.evaluate(async () => {
+    const store = await import("/src/menu-preview-store.js");
+    await store.saveMenuWorkspace({
+      menus: [{ id: 71001, name: "Persistence Test Roll", category: "Test Foods", type: "reusable", price: "45", unit: "piece", ingredientIds: [], ingredientNames: [], note: "" }],
+      sales: [{ id: 71002, menuId: null, name: "Persistence Test Sale", category: "Test Foods", quantity: 2, unit: "piece", unitPrice: 45, discount: 0, netSale: 90, date: "2026-10-19", time: "12:00", note: "", status: "completed", type: "one-time" }],
+      categories: ["Default", "Test Foods"],
+    });
+  });
+  await page.reload();
+  await page.getByRole("button", { name: /Manage Mode/ }).click();
+  await page.getByRole("button", { name: "Menu", exact: true }).click();
+  await expect(page.getByRole("button", { name: /Persistence Test Roll/ })).toBeVisible();
+  await page.getByRole("button", { name: /Sales History/ }).click();
+  await expect(page.getByText("Persistence Test Sale")).toBeVisible();
+  await expect(page.getByRole("article").filter({ hasText: "Persistence Test Sale" }).getByText("90", { exact: true })).toBeVisible();
+});
