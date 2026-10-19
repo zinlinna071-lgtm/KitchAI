@@ -59,7 +59,8 @@ test("keeps shared Date Filter translations available in every supported locale"
     "page.description.reports", "page.description.settings",
     "navigation.menu", "navigation.ingredients", "navigation.equipment",
     "navigation.expenses", "navigation.personalExpenses", "navigation.reports",
-    "ai.newChat", "ai.recentChats", "ai.searchChats", "ai.settings", "ai.noChats"
+    "ai.newChat", "ai.recentChats", "ai.searchChats", "ai.settings", "ai.noChats",
+    "ai.settings.description", "ai.connection.title", "ai.connection.previewOnly"
   ];
   for (const locale of ["en", "my", "th"]) {
     const missing = new Set(getMissingTranslationKeys(locale));
