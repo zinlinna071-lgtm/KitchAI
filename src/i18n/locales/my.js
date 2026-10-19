@@ -17,6 +17,7 @@ export default {
     "navigation.ai": "AI Mode",
     "navigation.manage": "Manage Mode",
     "navigation.dashboard": "Dashboard",
+    "dashboard.description": "သင့်အစားအသောက်လုပ်ငန်း၏ အခြေအနေကို တစ်နေရာတည်းမှ ကြည့်ရှုနိုင်သည်။",
     "navigation.settings": "ဆက်တင်များ",
     "navigation.menu": "မီနူး",
     "navigation.ingredients": "ကုန်ကြမ်းပစ္စည်းများ",
