@@ -384,10 +384,7 @@
     window.setTimeout(() => setMode(nextMode), 0);
   }, { passive: true, capture: true });
   document.addEventListener("pointercancel", () => { state.tracking = false; }, { passive: true, capture: true });
-  window.addEventListener("resize",()=>{
-    if(isDesktop()){sidebar?.classList.remove("open");backdrop?.classList.remove("visible");}
-    else appShell?.classList.remove("sidebar-collapsed");
-  });
+  window.addEventListener("resize",()=>closeDrawer());
   let deferredInstallPrompt = null;
   const connectionStatus = $("#connection-status");
   const installButton = $("#install-button");
