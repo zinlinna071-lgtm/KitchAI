@@ -75,14 +75,14 @@
     menuToggle?.setAttribute("aria-label", t("closeNavigation"));
     menuToggle?.setAttribute("aria-expanded", "true");
     sidebarClose?.setAttribute("aria-label", t("closeNavigation"));
-    sidebarClose?.textContent = "‹";
+    if (sidebarClose) sidebarClose.textContent = "‹";
   };
   const closeDrawer = () => {
     appShell?.classList.add("sidebar-collapsed");
     menuToggle?.setAttribute("aria-label", t("openNavigation"));
     menuToggle?.setAttribute("aria-expanded", "false");
     sidebarClose?.setAttribute("aria-label", t("openNavigation"));
-    sidebarClose?.textContent = "›";
+    if (sidebarClose) sidebarClose.textContent = "›";
   };
   const drawerIsOpen = () => !appShell?.classList.contains("sidebar-collapsed");
   const button = (label, action, primary=false) => '<button type="button" class="ui-button '+(primary?'ui-button--primary':'ui-button--secondary')+'" data-action="'+action+'">'+esc(label)+'</button>';
