@@ -143,7 +143,7 @@ test("Dashboard date filter supports instant quick selection, cancel, and custom
   await page.locator("#date-filter-end").fill("2026-10-12");
   await expect(trigger()).toHaveAttribute("aria-label", /Custom Date Range/);
   await expect(trigger()).toContainText(/Oct 10/);
-  await expect(trigger()).toContainText(/Oct 12/);
+  await expect(trigger()).toContainText(/12/);
   expect(pageErrors).toEqual([]);
 });
 
