@@ -233,8 +233,11 @@ button:focus-visible,a:focus-visible,select:focus-visible,textarea:focus-visible
 
 
 /* Reusable date-filter component: trigger plus an internal, mobile-friendly selection page. */
-.date-filter-trigger{display:flex;align-items:center;justify-content:flex-start;gap:10px;flex-wrap:wrap;max-width:100%;margin-top:20px;text-align:left}
-.date-filter-trigger span:nth-child(2){flex:1 1 auto;overflow-wrap:anywhere}
+.date-filter-trigger{display:inline-flex;align-items:center;justify-content:flex-start;gap:10px;flex-wrap:nowrap;width:auto;max-width:100%;min-width:0;margin-top:20px;text-align:left}
+.date-filter-trigger .date-filter-icon,.date-filter-trigger .date-filter-chevron{flex:none}
+.date-filter-label-full{min-width:0;overflow-wrap:anywhere}
+.date-filter-label-compact{display:none;min-width:0;white-space:nowrap}
+.date-filter-trigger .date-filter-chevron{margin-left:auto}
 .date-filter-page{width:100%;max-width:760px}
 .date-filter-heading h1{margin:0}
 .date-filter-heading p{margin:10px 0 0;color:var(--muted);line-height:1.6}
@@ -248,4 +251,10 @@ button:focus-visible,a:focus-visible,select:focus-visible,textarea:focus-visible
 .date-filter-date-grid input{width:100%;min-width:0;max-width:100%;box-sizing:border-box}
 .date-filter-error{margin:12px 0 0;color:var(--danger);font-size:14px}
 .date-filter-actions{display:flex;justify-content:flex-start;margin-top:20px}
-@media(max-width:560px){.date-filter-quick-grid{grid-template-columns:minmax(0,1fr);gap:8px;margin:20px 0}.date-filter-quick{width:100%}.date-filter-custom{padding:14px}.date-filter-date-grid{grid-template-columns:minmax(0,1fr)}.date-filter-actions button{width:100%}}
+@media(max-width:560px){
+.date-filter-trigger{display:flex;width:fit-content;max-width:100%;gap:7px;padding:9px 11px;font-size:13px}
+.date-filter-label-full{display:none}
+.date-filter-label-compact{display:inline;overflow:hidden;text-overflow:ellipsis}
+.date-filter-quick-grid{grid-template-columns:minmax(0,1fr);gap:8px;margin:20px 0}
+.date-filter-quick{width:100%}.date-filter-custom{padding:14px}.date-filter-date-grid{grid-template-columns:minmax(0,1fr)}.date-filter-actions button{width:100%}
+}
