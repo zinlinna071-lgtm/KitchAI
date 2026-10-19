@@ -240,7 +240,7 @@
     modeButtons.forEach(b=>{const active=b.dataset.mode===state.mode;b.classList.toggle("active",active);b.setAttribute("aria-pressed",String(active));});
     renderSidebar();renderPage();if(document.documentElement)document.documentElement.lang=language();
   }
-  function setMode(mode){if((mode!=="ai"&&mode!=="manage")||state.mode===mode)return;if(state.dialog){if(state.editId&&state.detailType)state.detailId=state.editId;state.dialog=null;state.editId=null;}state.mode=mode;if(!isDesktop())closeDrawer();render();window.scrollTo({top:0,behavior:"auto"});}
+  function setMode(mode){if((mode!=="ai"&&mode!=="manage")||state.mode===mode)return;if(state.dialog){if(state.editId&&state.detailType)state.detailId=state.editId;state.dialog=null;state.editId=null;}state.mode=mode;state.dateFilterOpen=false;state.dateFilterDraft=null;if(!isDesktop())closeDrawer();render();window.scrollTo({top:0,behavior:"auto"});}
   function toast(message){const el=$("#toast");if(el){el.textContent=message;el.classList.add("visible");window.setTimeout(()=>el.classList.remove("visible"),2600);}}
   function categoryFor(kind,value){const name=(value||"").trim()||"Default";if(!state.categories[kind].includes(name))state.categories[kind].push(name);return name;}
   function handleAction(action){
@@ -352,7 +352,7 @@
       state.dialog=null;state.editId=null;state.pendingImageData="";state.menuView="all";render();toast(t("menuSaved"));
     }
   });
-  sidebarContent?.addEventListener("click",event=>{const b=event.target instanceof Element?event.target.closest("[data-page]"):null;if(!b)return;const id=b.getAttribute("data-page");if(!pages.some(p=>p.id===id))return;state.managePage=id;state.detailId=null;state.dialog=null;if(!isDesktop())closeDrawer();render();window.scrollTo({top:0,behavior:"auto"});});
+  sidebarContent?.addEventListener("click",event=>{const b=event.target instanceof Element?event.target.closest("[data-page]"):null;if(!b)return;const id=b.getAttribute("data-page");if(!pages.some(p=>p.id===id))return;state.managePage=id;state.dateFilterOpen=false;state.dateFilterDraft=null;state.detailId=null;state.dialog=null;if(!isDesktop())closeDrawer();render();window.scrollTo({top:0,behavior:"auto"});});
   sidebarContent?.addEventListener("click",event=>{
     const target=event.target instanceof Element?event.target:null;
     const action=target?.closest("[data-ai-action]");
