@@ -169,8 +169,8 @@ test("date filter supports a single date and keeps its trigger compact on mobile
   await page.locator('[data-date-filter="calendar:start"]').click();
   await page.locator('[data-date-filter="day:2026-10-10"]').click();
   await page.locator('[data-date-filter="day:2026-10-12"]').click();
-  await expect(trigger()).toContainText(/Oct 10/);
-  await expect(trigger()).toContainText(/12/);
+  await expect(trigger).toContainText(/Oct 10/);
+  await expect(trigger).toContainText(/12/);
   const dimensions = await trigger.evaluate(el => ({right:el.getBoundingClientRect().right, viewport:document.documentElement.clientWidth, width:el.getBoundingClientRect().width}));
   expect(dimensions.right).toBeLessThanOrEqual(dimensions.viewport);
   expect(dimensions.width).toBeLessThanOrEqual(dimensions.viewport);
