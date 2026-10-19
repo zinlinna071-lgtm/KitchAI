@@ -38,6 +38,7 @@ export function savePreferredLocale(locale, storage) {
 /** Connect the existing language selector to the shared locale registry. */
 export function initializeLocaleUI(documentRef = globalThis.document, storage) {
   const locale = readPreferredLocale(storage);
+  /** @type {HTMLSelectElement | null | undefined} */
   const select = documentRef?.querySelector("#language-select");
   setLocale(locale);
   if (select) {
@@ -48,13 +49,15 @@ export function initializeLocaleUI(documentRef = globalThis.document, storage) {
     });
   }
   if (typeof globalThis.window !== "undefined") {
-    globalThis.window.KitchAI18n = Object.freeze({
-      getSupportedLocales,
-      setLocale,
-      translate,
-      formatNumber,
-      formatDate,
-      formatCurrency
+    Object.assign(globalThis.window, {
+      KitchAI18n: Object.freeze({
+        getSupportedLocales,
+        setLocale,
+        translate,
+        formatNumber,
+        formatDate,
+        formatCurrency
+      })
     });
   }
   return locale;
