@@ -38,7 +38,7 @@
     my: { ai:"AI Mode", manage:"Manage Mode", aiTitle:"AI လုပ်ငန်းခွင်", aiDescription:"ဒီနေရာမှာ မီးဖိုချောင်နဲ့ပတ်သက်တဲ့ မေးခွန်းတွေ စတင်မေးနိုင်ပါတယ်။ Frontend အတည်ပြုပြီးမှ AI အဖြေဝန်ဆောင်မှုကို ချိတ်ဆက်မယ်။", aiWelcome:"KitchAI ကို မီးဖိုချောင်အကြောင်း မေးမြန်းပါ", aiStart:"ဒီနေရာမှာ စကားဝိုင်း စတင်နိုင်ပါတယ်။ Frontend အတည်ပြုပြီးမှ AI အဖြေဝန်ဆောင်မှု ချိတ်ဆက်ပါမယ်။", aiMessage:"စာတို", aiPlaceholder:"မီးဖိုချောင်အကြောင်း မေးပါ...", aiPreviewOnly:"Frontend စမ်းသပ်ဗားရှင်းသာဖြစ်ပြီး AI ဝန်ဆောင်မှု မချိတ်ဆက်ရသေးပါ", aiSend:"ပို့ရန်", aiMessageNotice:"ဒီစာတိုကို Preview ထဲမှာသာ ပြထားပါတယ်။ AI မချိတ်ဆက်ရသေးပါ။", manageIntro:"လုပ်ငန်းကို တစ်နေရာတည်းမှာ စီမံခန့်ခွဲပါ။", building:"ဒီစာမျက်နှာကို အတည်ပြုထားတဲ့ လိုအပ်ချက်တွေအတိုင်း တည်ဆောက်သွားမယ်။", navigation:"Manage Mode", workspace:"Frontend စမ်းသပ်ဗားရှင်း", openNavigation:"Navigation ဖွင့်ရန်", closeNavigation:"Navigation ပိတ်ရန်", appearance:"Theme ပြောင်းရန်", language:"ဘာသာစကား", emptyTitle:"အချက်အလက် မရှိသေးပါ", emptyCopy:"ပထမဆုံးအချက်အလက်ကို စတင်ထည့်သွင်းပါ။", create:"အသစ်ထည့်ရန်", createCategory:"Category အသစ်", createIngredient:"Ingredient အသစ်", createMenu:"Menu အသစ်", category:"Category", name:"အမည်", cancel:"မလုပ်တော့ပါ", save:"ထည့်သွင်းရန်", default:"Default", reusable:"Reusable", oneTime:"One time", type:"အမျိုးအစား", quantity:"အရေအတွက်", unit:"ယူနစ်", price:"ဈေးနှုန်း", note:"မှတ်ချက် (မဖြစ်မနေမဟုတ်)", sellingPrice:"ရောင်းဈေး", ingredients:"Ingredients", noIngredients:"Ingredient မရှိသေးပါ။ နောက်မှထည့်နိုင်ပါတယ်။", notNow:"အခု Ingredients မထည့်သေးပါ", back:"နောက်သို့", edit:"ပြင်ရန်", delete:"ဖျက်ရန်", update:"ပြင်ဆင်ချက်သိမ်းရန်", confirmDelete:"ဒီအချက်အလက်ကို ဖျက်မှာသေချာပါသလား။", details:"အသေးစိတ်", chooseCategory:"Category ရွေးရန် သို့မဟုတ် အသစ်ရိုက်ရန်", required:"ဒီအကွက်ကို ဖြည့်ရန်လိုပါတယ်။", aiOnly:"ဒီအဆင့်မှာ AI Mode UI ကို နမူနာအဖြစ်သာ ပြထားပါတယ်။", savedInPreview:"ဒီ preview ထဲမှာသာ ထည့်ထားတာဖြစ်ပြီး database ထဲ မသိမ်းရသေးပါ။", personalExpenseIntro:"လုပ်ငန်းအသုံးစရိတ်နဲ့ သီးခြားခွဲပြီး ကိုယ်ပိုင်အသုံးစရိတ်တွေကို မှတ်တမ်းတင်ပါ။", addPersonalExpense:"ကိုယ်ပိုင်အသုံးစရိတ် ထည့်ရန်", personalExpenseEmpty:"ကိုယ်ပိုင်အသုံးစရိတ် မရှိသေးပါ။", personalExpenseEmptyCopy:"အသုံးစရိတ် စတင်မှတ်တမ်းတင်ရန် ပထမဆုံးစာရင်းကို ထည့်ပါ။", expenseDescription:"ဘာအတွက် သုံးခဲ့သလဲ", expenseDate:"ရက်စွဲ", expenseAmount:"ပမာဏ", expenseCategory:"အမျိုးအစား", expenseNote:"မှတ်ချက် (မဖြစ်မနေမဟုတ်)", personalExpenseTotal:"မှတ်တမ်းတင်ထားသော ကိုယ်ပိုင်အသုံးစရိတ်", personalExpenseCount:"စာရင်းအရေအတွက်", editPersonalExpense:"ကိုယ်ပိုင်အသုံးစရိတ် ပြင်ရန်", deletePersonalExpense:"အသုံးစရိတ် ဖျက်ရန်", personalExpenseSaved:"ကိုယ်ပိုင်အသုံးစရိတ်ကို Preview ထဲမှာသာ ထည့်ထားပါတယ်။", personalExpenseCategories:"ဥပမာ - အစားအသောက်၊ ခရီးစရိတ်၊ ဈေးဝယ်၊ ဘေလ်", personalExpenseDeleteConfirm:"ဒီကိုယ်ပိုင်အသုံးစရိတ်ကို ဖျက်မှာ သေချာပါသလား။" },
     th: { ai:"โหมด AI", manage:"โหมดจัดการ", aiTitle:"พื้นที่ AI", aiDescription:"เริ่มถามคำถามเกี่ยวกับครัวของคุณได้ที่นี่ ระบบ AI จะเชื่อมต่อหลังจากยืนยันส่วนหน้าแล้ว", aiWelcome:"ถาม KitchAI เกี่ยวกับครัวของคุณ", aiStart:"เริ่มบทสนทนาได้ที่นี่ ระบบ AI จะเชื่อมต่อหลังจากยืนยันส่วนหน้าแล้ว", aiMessage:"ข้อความ", aiPlaceholder:"ถามเกี่ยวกับครัวของคุณ...", aiPreviewOnly:"ตัวอย่างส่วนหน้าเท่านั้น ยังไม่ได้เชื่อมต่อบริการ AI", aiSend:"ส่ง", aiMessageNotice:"แสดงข้อความนี้ในตัวอย่างเท่านั้น ยังไม่ได้เชื่อมต่อ AI", manageIntro:"จัดการธุรกิจของคุณในที่เดียว", building:"หน้านี้จะสร้างตามข้อกำหนดที่ยืนยัน", navigation:"โหมดจัดการ", workspace:"ต้นแบบส่วนหน้า", openNavigation:"เปิดเมนูนำทาง", closeNavigation:"ปิดเมนูนำทาง", appearance:"สลับธีม", language:"ภาษา", emptyTitle:"ยังไม่มีข้อมูล", emptyCopy:"เริ่มต้นด้วยการเพิ่มรายการแรก", create:"สร้าง", createCategory:"สร้างหมวดหมู่", createIngredient:"สร้างวัตถุดิบ", createMenu:"สร้างเมนู", category:"หมวดหมู่", name:"ชื่อ", cancel:"ยกเลิก", save:"สร้าง", default:"Default", reusable:"ใช้ซ้ำ", oneTime:"ครั้งเดียว", type:"ประเภท", quantity:"จำนวน", unit:"หน่วย", price:"ราคา", note:"หมายเหตุ (ไม่บังคับ)", sellingPrice:"ราคาขาย", ingredients:"วัตถุดิบ", noIngredients:"ยังไม่มีวัตถุดิบ เพิ่มภายหลังได้", notNow:"ยังไม่เพิ่มวัตถุดิบตอนนี้", back:"กลับ", edit:"แก้ไข", delete:"ลบ", update:"บันทึก", confirmDelete:"ต้องการลบรายการนี้หรือไม่", details:"รายละเอียด", chooseCategory:"เลือกหรือพิมพ์หมวดหมู่", required:"จำเป็นต้องกรอกข้อมูลนี้", aiOnly:"พื้นที่ AI เป็นตัวอย่างในขั้นตอนนี้", savedInPreview:"เพิ่มในตัวอย่างนี้เท่านั้น ยังไม่ได้บันทึกลงฐานข้อมูล", personalExpenseIntro:"บันทึกรายจ่ายส่วนตัวแยกจากรายจ่ายของธุรกิจ", addPersonalExpense:"เพิ่มรายจ่ายส่วนตัว", personalExpenseEmpty:"ยังไม่มีรายจ่ายส่วนตัว", personalExpenseEmptyCopy:"เพิ่มรายการแรกเพื่อเริ่มติดตามรายจ่ายส่วนตัว", expenseDescription:"ใช้จ่ายเรื่องอะไร", expenseDate:"วันที่", expenseAmount:"จำนวนเงิน", expenseCategory:"หมวดหมู่", expenseNote:"หมายเหตุ (ไม่บังคับ)", personalExpenseTotal:"ยอดรายจ่ายส่วนตัวที่บันทึก", personalExpenseCount:"รายการ", editPersonalExpense:"แก้ไขรายจ่ายส่วนตัว", deletePersonalExpense:"ลบรายจ่าย", personalExpenseSaved:"เพิ่มรายจ่ายส่วนตัวในตัวอย่างนี้เท่านั้น", personalExpenseCategories:"ตัวอย่าง: อาหาร, เดินทาง, ช้อปปิ้ง, บิล", personalExpenseDeleteConfirm:"ต้องการลบรายจ่ายส่วนตัวนี้หรือไม่" }
   };
-  const state = { mode:"ai", aiPage:"ai", managePage:"dashboard", touchX:0, touchY:0, tracking:false, drawerGesture:false, dialog:null, categoryTarget:null, detailId:null, detailType:null, editId:null, categories:{ingredients:["Default"],menu:["Default"]}, ingredients:[], menus:[], sales:[], menuView:"all", menuSearch:"", pendingImageData:"", personalExpenses:[], aiMessages:[] };
+  const state = { mode:"ai", aiPage:"ai", managePage:"dashboard", touchX:0, touchY:0, tracking:false, drawerGesture:false, dialog:null, categoryTarget:null, detailId:null, detailType:null, editId:null, categories:{ingredients:["Default"],menu:["Default"]}, ingredients:[], menus:[], sales:[], menuView:"all", menuSearch:"", pendingImageData:"", personalExpenses:[], aiMessages:[], aiChats:[], activeAiChatId:null, aiView:"chat", aiSearchQuery:"" };
   let menuPersistenceReady = false;
   let menuPersistenceModule = null;
   async function persistMenuWorkspace() {
@@ -71,38 +71,40 @@
   const pageLabel = page => page[language()] || page.en;
   const isDesktop = () => window.matchMedia("(min-width: 761px)").matches;
   const openDrawer = () => {
-    if (isDesktop()) {
-      appShell?.classList.remove("sidebar-collapsed");
-      menuToggle?.setAttribute("aria-label", t("closeNavigation"));
-      menuToggle?.setAttribute("aria-expanded", "true");
-      return;
-    }
-    sidebar?.classList.add("open"); backdrop?.classList.add("visible");
+    appShell?.classList.remove("sidebar-collapsed");
     menuToggle?.setAttribute("aria-label", t("closeNavigation"));
-    menuToggle?.setAttribute("aria-expanded","true");
+    menuToggle?.setAttribute("aria-expanded", "true");
+    sidebarClose?.setAttribute("aria-label", t("closeNavigation"));
+    sidebarClose?.textContent = "‹";
   };
   const closeDrawer = () => {
-    if (isDesktop()) {
-      appShell?.classList.add("sidebar-collapsed");
-      menuToggle?.setAttribute("aria-label", t("openNavigation"));
-      menuToggle?.setAttribute("aria-expanded", "false");
-      return;
-    }
-    sidebar?.classList.remove("open"); backdrop?.classList.remove("visible");
+    appShell?.classList.add("sidebar-collapsed");
     menuToggle?.setAttribute("aria-label", t("openNavigation"));
-    menuToggle?.setAttribute("aria-expanded","false");
+    menuToggle?.setAttribute("aria-expanded", "false");
+    sidebarClose?.setAttribute("aria-label", t("openNavigation"));
+    sidebarClose?.textContent = "›";
   };
-  const drawerIsOpen = () => isDesktop()
-    ? !appShell?.classList.contains("sidebar-collapsed")
-    : Boolean(sidebar?.classList.contains("open"));
+  const drawerIsOpen = () => !appShell?.classList.contains("sidebar-collapsed");
   const button = (label, action, primary=false) => '<button type="button" class="ui-button '+(primary?'ui-button--primary':'ui-button--secondary')+'" data-action="'+action+'">'+esc(label)+'</button>';
   const field = (label, name, type="text", value="", required=false, extra="") => '<label class="ui-field"><span class="ui-label">'+esc(label)+(required?' *':'')+'</span><input class="ui-input" name="'+esc(name)+'" type="'+type+'" value="'+esc(value)+'" '+(required?'required':'')+' '+extra+'></label>';
   const selectField = (label,name,options,selected="") => '<label class="ui-field"><span class="ui-label">'+esc(label)+'</span><select class="ui-select" name="'+esc(name)+'">'+options.map(o=>'<option value="'+esc(o)+'" '+(o===selected?'selected':'')+'>'+esc(o)+'</option>').join("")+'</select></label>';
   const categoryField = (kind, selected="Default") => '<label class="ui-field"><span class="ui-label">'+t("category")+'</span><input class="ui-input" name="category" list="category-options" value="'+esc(selected)+'" placeholder="'+esc(t("chooseCategory"))+'"><datalist id="category-options">'+state.categories[kind].map(c=>'<option value="'+esc(c)+'"></option>').join("")+'</datalist></label>';
   function renderSidebar() {
     if (!sidebarContent) return;
-    if (state.mode==="ai") { sidebarContent.innerHTML='<div class="nav-section-label">KitchAI</div><p class="empty-history">'+esc(t("aiDescription"))+'</p>'; return; }
-    sidebarContent.innerHTML='<div class="nav-section-label">'+esc(t("navigation"))+'</div>'+pages.map(page=>'<button type="button" class="nav-item'+(state.managePage===page.id?' active':'')+'" data-page="'+page.id+'" aria-current="'+(state.managePage===page.id?'page':'false')+'"><span class="nav-icon" aria-hidden="true">'+({dashboard:"▦",menu:"≡",ingredients:"◈",equipment:"□",expenses:"−","personal-expenses":"◷",reports:"▥",settings:"⚙"}[page.id])+'</span><span>'+esc(pageLabel(page))+'</span></button>').join("");
+    if (state.mode==="ai") {
+      const actions=[["new-chat","＋","New Chat"],["recent","◷","Recent Chats"],["search","⌕","Search Chats"],["settings","⚙","AI Settings"]];
+      let html=actions.map(([id,icon,label])=>'<button type="button" class="nav-item ai-nav-item'+(state.aiView===id?' active':'')+'" data-ai-action="'+id+'" title="'+label+'"><span class="nav-icon" aria-hidden="true">'+icon+'</span><span>'+label+'</span></button>').join("");
+      const chats=state.aiChats.slice().reverse();
+      if(state.aiView==="search") html+='<label class="sidebar-search"><span class="sr-only">Search chats</span><input id="sidebar-chat-search" type="search" value="'+esc(state.aiSearchQuery)+'" placeholder="Search chats"></label>';
+      if(state.aiView==="recent"||state.aiView==="search"||chats.length){
+        html+='<div class="nav-section-label ai-recent-label">Recent Chats</div>';
+        const filtered=chats.filter(chat=>state.aiView!=="search"||!state.aiSearchQuery||chat.title.toLowerCase().includes(state.aiSearchQuery.toLowerCase()));
+        html+=filtered.slice(0,state.aiView==="recent"||state.aiView==="search"?20:5).map(chat=>'<button type="button" class="nav-item chat-history-item" data-chat-id="'+chat.id+'" title="'+esc(chat.title)+'"><span class="nav-icon" aria-hidden="true">◦</span><span>'+esc(chat.title)+'</span></button>').join("");
+        if(!filtered.length)html+='<p class="empty-history">No chats yet</p>';
+      }
+      sidebarContent.innerHTML=html;return;
+    }
+    sidebarContent.innerHTML='<div class="nav-section-label">'+esc(t("navigation"))+'</div>'+pages.map(page=>'<button type="button" class="nav-item'+(state.managePage===page.id?' active':'')+'" data-page="'+page.id+'" aria-current="'+(state.managePage===page.id?'page':'false')+'" title="'+esc(pageLabel(page))+'"><span class="nav-icon" aria-hidden="true">'+({dashboard:"▦",menu:"≡",ingredients:"◈",equipment:"□",expenses:"−","personal-expenses":"◷",reports:"▥",settings:"⚙"}[page.id])+'</span><span>'+esc(pageLabel(page))+'</span></button>').join("");
   }
   function pageHeader(title, intro, actions="") {
     return '<section class="page-section"><div class="ui-row ui-row--mobile-stack" style="justify-content:space-between;align-items:flex-start"><div><p class="eyebrow">'+esc(t("manage"))+'</p><h1>'+esc(title)+'</h1><p>'+esc(intro)+'</p></div><div class="ui-row">'+actions+'</div></div>';
@@ -149,7 +151,10 @@
   }
   function renderPage() {
     if(!pageContent)return;
-    if(state.mode==="ai"){pageContent.innerHTML=renderAI();return;}
+    if(state.mode==="ai"){
+      if(state.aiView==="settings"){pageContent.innerHTML='<section class="page-section ai-page"><div class="ai-page-heading"><p class="eyebrow">KitchAI</p><h1>AI Settings</h1><p>AI preferences will be available when the AI service is connected.</p></div><div class="ui-card ai-settings-card"><h2>AI connection</h2><p class="ui-hint">This preview does not connect to an AI service yet.</p></div></section>';return;}
+      if(state.aiView==="recent"||state.aiView==="search"){const chats=state.aiChats.slice().reverse().filter(chat=>state.aiView!=="search"||!state.aiSearchQuery||chat.title.toLowerCase().includes(state.aiSearchQuery.toLowerCase()));pageContent.innerHTML='<section class="page-section ai-page"><div class="ai-page-heading"><p class="eyebrow">KitchAI</p><h1>'+(state.aiView==="search"?"Search Chats":"Recent Chats")+'</h1><p>Open a previous conversation to continue.</p></div>'+(state.aiView==="search"?'<label class="ui-field"><span class="ui-label">Search chats</span><input class="ui-input" id="main-chat-search" type="search" value="'+esc(state.aiSearchQuery)+'" placeholder="Search conversations"></label>':"")+'<div class="ai-chat-list">'+(chats.length?chats.map(chat=>'<button type="button" class="ui-card ai-chat-list-item" data-chat-id="'+chat.id+'"><strong>'+esc(chat.title)+'</strong><span class="ui-hint">'+chat.messages.length+' message(s)</span></button>').join(""):'<p class="ui-hint">No saved chats yet.</p>')+'</div></section>';return;}
+      pageContent.innerHTML=renderAI();return;}
     if(state.dialog){pageContent.innerHTML=renderDialog();return;}
     if(state.detailId){pageContent.innerHTML=renderDetail();return;}
     const page=pages.find(x=>x.id===state.managePage)||pages[0];
@@ -218,8 +223,9 @@
     else if(action==="delete-detail"){if(window.confirm(t("confirmDelete"))){const key=state.detailType==="ingredient"?"ingredients":"menus";state[key]=state[key].filter(x=>x.id!==state.detailId);if(key==="menus")persistMenuWorkspace();state.detailId=null;state.detailType=null;}}
     render();
   }
-  pageContent?.addEventListener("click",event=>{const target=event.target instanceof Element?event.target:null;const prompt=target?.closest("[data-prompt]");if(prompt){const box=pageContent.querySelector('textarea[name="message"]');if(box){box.value=prompt.dataset.prompt;box.focus();}return;}const nav=target?.closest("[data-page]");if(nav&&state.mode==="manage"){const id=nav.dataset.page;if(pages.some(p=>p.id===id)){state.managePage=id;state.detailId=null;state.dialog=null;render();window.scrollTo({top:0,behavior:"auto"});}return;}const el=target?.closest("[data-action]");if(el)handleAction(el.dataset.action);});
+  pageContent?.addEventListener("click",event=>{const target=event.target instanceof Element?event.target:null;const chat=target?.closest("[data-chat-id]");if(chat){const saved=state.aiChats.find(item=>item.id===Number(chat.dataset.chatId));if(saved){state.activeAiChatId=saved.id;state.aiMessages=[...saved.messages];state.aiView="chat";render();}return;}const prompt=target?.closest("[data-prompt]");if(prompt){const box=pageContent.querySelector('textarea[name="message"]');if(box){box.value=prompt.dataset.prompt;box.focus();}return;}const nav=target?.closest("[data-page]");if(nav&&state.mode==="manage"){const id=nav.dataset.page;if(pages.some(p=>p.id===id)){state.managePage=id;state.detailId=null;state.dialog=null;render();window.scrollTo({top:0,behavior:"auto"});}return;}const el=target?.closest("[data-action]");if(el)handleAction(el.dataset.action);});
   pageContent?.addEventListener("input",event=>{
+    if(event.target?.id==="main-chat-search"){state.aiSearchQuery=event.target.value;const pos=event.target.selectionStart;render();const next=$("#main-chat-search");if(next){next.focus();next.setSelectionRange(pos,pos);}return;}
     if(event.target?.id==="menu-search"){state.menuSearch=event.target.value;const pos=event.target.selectionStart;render();const next=$("#menu-search");if(next){next.focus();next.setSelectionRange(pos,pos);}return;}
     if(["quantity","unitPrice","discount"].includes(event.target?.name)){const form=$("#record-form");if(!form)return;const qty=Number(form.elements.quantity?.value||0),price=Number(form.elements.unitPrice?.value||0),discount=Number(form.elements.discount?.value||0);const preview=$("#net-sale-preview");if(preview)preview.textContent=money(Math.max(0,qty*price-discount));}
   });
@@ -233,8 +239,9 @@
       const message=String(new FormData(event.target).get("message")||"").trim();
       if(!message)return;
       state.aiMessages.push(message);
-      render();
-      toast(t("aiMessageNotice"));
+      if(!state.activeAiChatId){state.activeAiChatId=Date.now();state.aiChats.push({id:state.activeAiChatId,title:message.slice(0,48),messages:[...state.aiMessages]});}
+      else {const saved=state.aiChats.find(chat=>chat.id===state.activeAiChatId);if(saved)saved.messages=[...state.aiMessages];}
+      state.aiView="chat";render();toast(t("aiMessageNotice"));
       return;
     }
     if(event.target.id!=="record-form")return;event.preventDefault();
@@ -296,8 +303,24 @@
     }
   });
   sidebarContent?.addEventListener("click",event=>{const b=event.target instanceof Element?event.target.closest("[data-page]"):null;if(!b)return;const id=b.getAttribute("data-page");if(!pages.some(p=>p.id===id))return;state.managePage=id;state.detailId=null;state.dialog=null;if(!isDesktop())closeDrawer();render();window.scrollTo({top:0,behavior:"auto"});});
+  sidebarContent?.addEventListener("click",event=>{
+    const target=event.target instanceof Element?event.target:null;
+    const action=target?.closest("[data-ai-action]");
+    if(action){
+      const key=action.dataset.aiAction;
+      if(key==="new-chat"){state.aiMessages=[];state.activeAiChatId=null;state.aiView="chat";state.aiSearchQuery="";}
+      else if(key==="recent"){state.aiView="recent";state.aiSearchQuery="";}
+      else if(key==="search"){state.aiView="search";state.aiSearchQuery="";}
+      else if(key==="settings"){state.aiView="settings";}
+      render();return;
+    }
+    const chat=target?.closest("[data-chat-id]");
+    if(chat){const saved=state.aiChats.find(item=>item.id===Number(chat.dataset.chatId));if(saved){state.activeAiChatId=saved.id;state.aiMessages=[...saved.messages];state.aiView="chat";render();}return;}
+    const b=target?.closest("[data-page]");if(!b)return;const id=b.dataset.page;if(!pages.some(p=>p.id===id))return;state.managePage=id;state.detailId=null;state.dialog=null;render();window.scrollTo({top:0,behavior:"auto"});
+  });
+  sidebarContent?.addEventListener("input",event=>{if(event.target?.id==="sidebar-chat-search"){state.aiSearchQuery=event.target.value;const pos=event.target.selectionStart;render();const next=$("#sidebar-chat-search");if(next){next.focus();next.setSelectionRange(pos,pos);}}});
   modeButtons.forEach(b=>b.addEventListener("click",()=>setMode(b.dataset.mode)));
-  menuToggle?.addEventListener("click",()=>drawerIsOpen()?closeDrawer():openDrawer());sidebarClose?.addEventListener("click",closeDrawer);backdrop?.addEventListener("click",closeDrawer);
+  menuToggle?.addEventListener("click",()=>drawerIsOpen()?closeDrawer():openDrawer());sidebarClose?.addEventListener("click",()=>drawerIsOpen()?closeDrawer():openDrawer());backdrop?.addEventListener("click",closeDrawer);
   document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeDrawer();if(state.dialog){state.dialog=null;render();}}});
   languageSelect?.addEventListener("change",render);
   themeToggle?.addEventListener("click",()=>{const dark=document.documentElement.dataset.theme!=="dark";document.documentElement.dataset.theme=dark?"dark":"light";document.body.classList.toggle("dark",dark);themeToggle.setAttribute("aria-pressed",String(dark));});
@@ -393,11 +416,7 @@
     deferredInstallPrompt = null;
     if (installButton) installButton.hidden = true;
   });
-  if (isDesktop()) {
-    appShell?.classList.remove("sidebar-collapsed");
-    menuToggle?.setAttribute("aria-label", t("closeNavigation"));
-    menuToggle?.setAttribute("aria-expanded", "true");
-  } else closeDrawer();
+  closeDrawer();
   updateConnectionStatus();
   if ("serviceWorker" in navigator && location.protocol !== "file:") {
     const basePath = document.querySelector('meta[name="kitchai-base-path"]')?.getAttribute("content") || "/";
