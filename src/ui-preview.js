@@ -70,7 +70,13 @@
   const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   const language = () => labels[languageSelect?.value] ? languageSelect.value : "en";
   const t = key => labels[language()][key] || labels.en[key] || key;
-  const pageLabel = page => page[language()] || page.en;
+  const sharedTranslation = key => {
+    const sharedWindow = /** @type {Window & { KitchAI18n?: { translate: (key: string) => string } }} */ (window);
+    const value = sharedWindow.KitchAI18n?.translate(key);
+    return value && value !== key ? value : "";
+  };
+  const pageTranslationKeys = { dashboard: "navigation.dashboard", menu: "navigation.menu", ingredients: "navigation.ingredients", equipment: "navigation.equipment", expenses: "navigation.expenses", "personal-expenses": "navigation.personalExpenses", reports: "navigation.reports", settings: "navigation.settings" };
+  const pageLabel = page => sharedTranslation(pageTranslationKeys[page.id]) || page[language()] || page.en;
   const isDesktop = () => window.matchMedia("(min-width: 761px)").matches;
   const openDrawer = () => {
     appShell?.classList.remove("sidebar-collapsed");
