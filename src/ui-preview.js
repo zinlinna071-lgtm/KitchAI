@@ -154,7 +154,7 @@
     return startLabel+" – "+endLabel;
   }
   function renderDateFilterTrigger() {
-    return '<button type="button" class="ui-button ui-button--secondary date-filter-trigger" data-date-filter="open" aria-label="'+esc(dateFilterText("choose")+": "+dateFilterLabel())+'"><span class="date-filter-icon" aria-hidden="true">▦</span><span class="date-filter-label-full">'+esc(dateFilterLabel())+'</span><span class="date-filter-label-compact">'+esc(compactDateFilterLabel())+'</span><span class="date-filter-chevron" aria-hidden="true">⌄</span></button>';
+    return '<button type="button" class="ui-button ui-button--secondary date-filter-trigger" data-date-filter="open" aria-label="'+esc(dateFilterText("choose")+": "+dateFilterLabel())+'"><span class="date-filter-label-compact">'+esc(compactDateFilterLabel())+'</span></button>';
   }
   function renderDateFilterPage() {
     const presets=[["today","today"],["yesterday","yesterday"],["thisWeek","thisWeek"],["last7Days","last7Days"],["thisMonth","thisMonth"],["lastMonth","lastMonth"]];
