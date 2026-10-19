@@ -187,10 +187,10 @@
     else if(action==="new-personal-expense"){state.dialog="personal-expense";state.editId=null;}
     else if(action.startsWith("edit-personal-expense:")){state.editId=Number(action.split(":")[1]);state.dialog="edit-personal-expense";}
     else if(action.startsWith("delete-personal-expense:")){const id=Number(action.split(":")[1]);if(window.confirm(t("personalExpenseDeleteConfirm"))){state.personalExpenses=state.personalExpenses.filter(item=>item.id!==id);toast(t("personalExpenseSaved"));}}
-    else if(action==="new-menu"){state.dialog="menu";state.editId=null;}
+    else if(action==="new-menu"){state.dialog="menu";state.editId=null;state.pendingImageData="";}
     else if(action==="new-ingredient-category"){state.dialog="ingredient-category";state.categoryTarget="ingredients";}
     else if(action==="new-menu-category"){state.dialog="menu-category";state.categoryTarget="menu";}
-    else if(action==="cancel-dialog"){state.dialog=null;state.editId=null;}
+    else if(action==="menu-view-all"){state.menuView="all";state.menuSearch="";state.detailId=null;state.detailType=null;}\n    else if(action==="menu-view-sales"){state.menuView="sales";state.detailId=null;state.detailType=null;}\n    else if(action==="cancel-dialog"){state.dialog=null;state.editId=null;state.pendingImageData="";}
     else if(action==="back-detail"){state.detailId=null;state.detailType=null;}
     else if(action.startsWith("ingredient-detail:")){state.detailType="ingredient";state.detailId=Number(action.split(":")[1]);}
     else if(action.startsWith("menu-detail:")){state.detailType="menu";state.detailId=Number(action.split(":")[1]);}
@@ -199,7 +199,14 @@
     render();
   }
   pageContent?.addEventListener("click",event=>{const target=event.target instanceof Element?event.target:null;const prompt=target?.closest("[data-prompt]");if(prompt){const box=pageContent.querySelector('textarea[name="message"]');if(box){box.value=prompt.dataset.prompt;box.focus();}return;}const nav=target?.closest("[data-page]");if(nav&&state.mode==="manage"){const id=nav.dataset.page;if(pages.some(p=>p.id===id)){state.managePage=id;state.detailId=null;state.dialog=null;render();window.scrollTo({top:0,behavior:"auto"});}return;}const el=target?.closest("[data-action]");if(el)handleAction(el.dataset.action);});
-  pageContent?.addEventListener("change",event=>{if(event.target?.name==="type"){const box=$("#one-time-fields");if(box)box.style.display=event.target.value===t("oneTime")?"grid":"none";}});
+  pageContent?.addEventListener("input",event=>{
+    if(event.target?.id==="menu-search"){state.menuSearch=event.target.value;const pos=event.target.selectionStart;render();const next=$("#menu-search");if(next){next.focus();next.setSelectionRange(pos,pos);}return;}
+    if(["quantity","unitPrice","discount"].includes(event.target?.name)){const form=$("#record-form");if(!form)return;const qty=Number(form.elements.quantity?.value||0),price=Number(form.elements.unitPrice?.value||0),discount=Number(form.elements.discount?.value||0);const preview=$("#net-sale-preview");if(preview)preview.textContent=money(Math.max(0,qty*price-discount));}
+  });
+  pageContent?.addEventListener("change",event=>{
+    if(event.target?.name==="type"){const one=event.target.value===t("oneTime"),box=$("#one-time-fields"),reusable=$("#reusable-menu-fields");if(box)box.style.display=one?"grid":"none";if(reusable)reusable.style.display=one?"none":"grid";}
+    if(event.target?.name==="image"){const file=event.target.files?.[0];if(!file){state.pendingImageData="";return;}if(!file.type.startsWith("image/")){toast(t("required"));event.target.value="";return;}if(file.size>2*1024*1024){toast("Please choose an image under 2 MB.");event.target.value="";return;}const reader=new FileReader();reader.onload=()=>{state.pendingImageData=String(reader.result||"");};reader.readAsDataURL(file);}
+  });
   pageContent?.addEventListener("submit",event=>{
     if(event.target.id==="ai-composer") {
       event.preventDefault();
@@ -238,10 +245,23 @@
     }
     if(d==="menu"||d==="edit-menu"){
       const name=String(data.get("name")||"").trim();if(!name){form.elements.name.reportValidity();return;}
-      const ingredientIds=data.getAll("ingredientIds").map(Number);
-      const item={id:d==="edit-menu"?state.editId:Date.now(),name,category:categoryFor("menu",data.get("category")),ingredientIds,ingredientNames:state.ingredients.filter(i=>ingredientIds.includes(i.id)).map(i=>i.name),note:String(data.get("note")||"").trim(),price:String(data.get("price")||"")};
+      const type=data.get("type")===t("oneTime")?"one-time":"reusable",category=categoryFor("menu",String(data.get("category")||"").trim());
+      const image=state.pendingImageData||(d==="edit-menu"?state.menus.find(x=>x.id===state.editId)?.image:"")||"";
+      if(type==="one-time"){
+        const quantity=Number(data.get("quantity")),unit=String(data.get("saleUnit")||"").trim(),unitPrice=Number(data.get("unitPrice")),discount=Number(data.get("discount")||0),date=String(data.get("saleDate")||""),time=String(data.get("saleTime")||"");
+        if(!Number.isFinite(quantity)||quantity<=0){form.elements.quantity.reportValidity();return;}
+        if(!unit){form.elements.saleUnit.reportValidity();return;}
+        if(!Number.isFinite(unitPrice)||unitPrice<0){form.elements.unitPrice.reportValidity();return;}
+        if(!Number.isFinite(discount)||discount<0||discount>quantity*unitPrice){form.elements.discount.reportValidity();return;}
+        if(!date||!time){toast(t("required"));return;}
+        state.sales.push({id:Date.now(),menuId:null,name,category,image,quantity,unit,unitPrice,discount,netSale:Math.round((quantity*unitPrice-discount)*100)/100,date,time,note:String(data.get("saleNote")||"").trim(),status:"completed",type:"one-time"});
+        state.menuView="sales";state.dialog=null;state.editId=null;state.pendingImageData="";render();toast(t("saleSaved"));return;
+      }
+      const price=String(data.get("price")||"").trim(),unit=String(data.get("unit")||"piece").trim(),ingredientIds=data.getAll("ingredientIds").map(Number);
+      if(price!==""&&(!Number.isFinite(Number(price))||Number(price)<0)){form.elements.price.reportValidity();return;}
+      const item={id:d==="edit-menu"?state.editId:Date.now(),name,category,image,ingredientIds,ingredientNames:state.ingredients.filter(i=>ingredientIds.includes(i.id)).map(i=>i.name),note:String(data.get("note")||"").trim(),price,unit,type:"reusable"};
       if(d==="edit-menu")state.menus=state.menus.map(x=>x.id===item.id?item:x);else state.menus.push(item);
-      state.dialog=null;state.editId=null;render();toast(t("savedInPreview"));
+      state.dialog=null;state.editId=null;state.pendingImageData="";state.menuView="all";render();toast(t("menuSaved"));
     }
   });
   sidebarContent?.addEventListener("click",event=>{const b=event.target instanceof Element?event.target.closest("[data-page]"):null;if(!b)return;const id=b.getAttribute("data-page");if(!pages.some(p=>p.id===id))return;state.managePage=id;state.detailId=null;state.dialog=null;if(!isDesktop())closeDrawer();render();window.scrollTo({top:0,behavior:"auto"});});
