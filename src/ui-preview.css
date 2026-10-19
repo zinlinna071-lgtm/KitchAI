@@ -202,3 +202,19 @@ button:focus-visible,a:focus-visible,select:focus-visible,textarea:focus-visible
 .ai-settings-card { max-width:640px; padding:20px; }
 .ai-settings-card h2 { margin:0 0 8px; font-size:17px; }
 .ai-settings-card p { margin:0; }
+
+
+/* Drawer header layout: hamburger replaces the old logo; collapse is a separate control. */
+.sidebar-top { min-height: 42px; }
+.sidebar-top > .menu-toggle { flex: 0 0 40px; width: 40px; height: 40px; }
+.sidebar-top > .sidebar-brand-name { display: block; flex: 1 1 auto; }
+.sidebar-top > .sidebar-minimize { display: grid; flex: 0 0 36px; width: 36px; height: 40px; }
+.app-shell.sidebar-collapsed .sidebar-top > .sidebar-brand-name,
+.app-shell.sidebar-collapsed .sidebar-top > .sidebar-minimize { display: none; }
+.app-shell.sidebar-collapsed .sidebar-top { justify-content: center; }
+.app-shell.sidebar-collapsed .sidebar-top > .menu-toggle { display: grid; }
+@media (max-width: 760px) {
+  .app-shell:not(.sidebar-collapsed) > .sidebar .sidebar-top > .menu-toggle { display: grid; }
+  .app-shell:not(.sidebar-collapsed) > .sidebar .sidebar-top > .sidebar-brand-name { display: block; }
+  .app-shell:not(.sidebar-collapsed) > .sidebar .sidebar-top > .sidebar-minimize { display: grid; }
+}
