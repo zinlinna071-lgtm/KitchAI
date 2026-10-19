@@ -39,6 +39,8 @@
     th: { ai:"โหมด AI", manage:"โหมดจัดการ", aiTitle:"พื้นที่ AI", aiDescription:"เริ่มถามคำถามเกี่ยวกับครัวของคุณได้ที่นี่ ระบบ AI จะเชื่อมต่อหลังจากยืนยันส่วนหน้าแล้ว", aiWelcome:"ถาม KitchAI เกี่ยวกับครัวของคุณ", aiStart:"เริ่มบทสนทนาได้ที่นี่ ระบบ AI จะเชื่อมต่อหลังจากยืนยันส่วนหน้าแล้ว", aiMessage:"ข้อความ", aiPlaceholder:"ถามเกี่ยวกับครัวของคุณ...", aiPreviewOnly:"ตัวอย่างส่วนหน้าเท่านั้น ยังไม่ได้เชื่อมต่อบริการ AI", aiSend:"ส่ง", aiMessageNotice:"แสดงข้อความนี้ในตัวอย่างเท่านั้น ยังไม่ได้เชื่อมต่อ AI", manageIntro:"จัดการธุรกิจของคุณในที่เดียว", building:"หน้านี้จะสร้างตามข้อกำหนดที่ยืนยัน", navigation:"โหมดจัดการ", workspace:"ต้นแบบส่วนหน้า", openNavigation:"เปิดเมนูนำทาง", closeNavigation:"ปิดเมนูนำทาง", appearance:"สลับธีม", language:"ภาษา", emptyTitle:"ยังไม่มีข้อมูล", emptyCopy:"เริ่มต้นด้วยการเพิ่มรายการแรก", create:"สร้าง", createCategory:"สร้างหมวดหมู่", createIngredient:"สร้างวัตถุดิบ", createMenu:"สร้างเมนู", category:"หมวดหมู่", name:"ชื่อ", cancel:"ยกเลิก", save:"สร้าง", default:"Default", reusable:"ใช้ซ้ำ", oneTime:"ครั้งเดียว", type:"ประเภท", quantity:"จำนวน", unit:"หน่วย", price:"ราคา", note:"หมายเหตุ (ไม่บังคับ)", sellingPrice:"ราคาขาย", ingredients:"วัตถุดิบ", noIngredients:"ยังไม่มีวัตถุดิบ เพิ่มภายหลังได้", notNow:"ยังไม่เพิ่มวัตถุดิบตอนนี้", back:"กลับ", edit:"แก้ไข", delete:"ลบ", update:"บันทึก", confirmDelete:"ต้องการลบรายการนี้หรือไม่", details:"รายละเอียด", chooseCategory:"เลือกหรือพิมพ์หมวดหมู่", required:"จำเป็นต้องกรอกข้อมูลนี้", aiOnly:"พื้นที่ AI เป็นตัวอย่างในขั้นตอนนี้", savedInPreview:"เพิ่มในตัวอย่างนี้เท่านั้น ยังไม่ได้บันทึกลงฐานข้อมูล", personalExpenseIntro:"บันทึกรายจ่ายส่วนตัวแยกจากรายจ่ายของธุรกิจ", addPersonalExpense:"เพิ่มรายจ่ายส่วนตัว", personalExpenseEmpty:"ยังไม่มีรายจ่ายส่วนตัว", personalExpenseEmptyCopy:"เพิ่มรายการแรกเพื่อเริ่มติดตามรายจ่ายส่วนตัว", expenseDescription:"ใช้จ่ายเรื่องอะไร", expenseDate:"วันที่", expenseAmount:"จำนวนเงิน", expenseCategory:"หมวดหมู่", expenseNote:"หมายเหตุ (ไม่บังคับ)", personalExpenseTotal:"ยอดรายจ่ายส่วนตัวที่บันทึก", personalExpenseCount:"รายการ", editPersonalExpense:"แก้ไขรายจ่ายส่วนตัว", deletePersonalExpense:"ลบรายจ่าย", personalExpenseSaved:"เพิ่มรายจ่ายส่วนตัวในตัวอย่างนี้เท่านั้น", personalExpenseCategories:"ตัวอย่าง: อาหาร, เดินทาง, ช้อปปิ้ง, บิล", personalExpenseDeleteConfirm:"ต้องการลบรายจ่ายส่วนตัวนี้หรือไม่" }
   };
   const state = { mode:"ai", aiPage:"ai", managePage:"dashboard", touchX:0, touchY:0, tracking:false, drawerGesture:false, dialog:null, dateFilterOpen:false, dateFilter:{preset:"today",start:"",end:""}, dateFilterDraft:null, dateCalendarTarget:null, dateCalendarMonth:"", dateCalendarView:"day", categoryTarget:null, detailId:null, detailType:null, editId:null, categories:{ingredients:["Default"],menu:["Default"]}, ingredients:[], menus:[], sales:[], menuView:"all", menuSearch:"", pendingImageData:"", personalExpenses:[], aiMessages:[], aiChats:[], activeAiChatId:null, aiView:"chat", aiSearchQuery:"" };
+  // Keep an independent UI snapshot for each mode so switching modes never discards unfinished work.
+  const modeWorkspaceSnapshots = { ai:null, manage:null };
   let menuPersistenceReady = false;
   let menuPersistenceModule = null;
   async function persistMenuWorkspace() {
@@ -294,7 +296,47 @@
     modeButtons.forEach(b=>{const active=b.dataset.mode===state.mode;b.classList.toggle("active",active);b.setAttribute("aria-pressed",String(active));});
     renderSidebar();renderPage();if(document.documentElement)document.documentElement.lang=language();
   }
-  function setMode(mode){if((mode!=="ai"&&mode!=="manage")||state.mode===mode)return;if(state.dialog){if(state.editId&&state.detailType)state.detailId=state.editId;state.dialog=null;state.editId=null;}state.mode=mode;state.dateFilterOpen=false;state.dateFilterDraft=null;if(!isDesktop())closeDrawer();render();window.scrollTo({top:0,behavior:"auto"});}
+  function captureModeWorkspace(mode){
+    const controls=pageContent?[...pageContent.querySelectorAll("input, textarea, select")]:[];
+    modeWorkspaceSnapshots[mode]={
+      scrollY:window.scrollY||window.pageYOffset||0,
+      controls:controls.map((el,index)=>({
+        index,
+        id:el.id||"",
+        name:el.name||"",
+        type:(el.type||el.tagName||"").toLowerCase(),
+        value:el.type==="file"?undefined:el.value,
+        checked:("checked" in el)?el.checked:undefined,
+        selectedIndex:el.tagName==="SELECT"?el.selectedIndex:undefined,
+        selectionStart:typeof el.selectionStart==="number"?el.selectionStart:null,
+        selectionEnd:typeof el.selectionEnd==="number"?el.selectionEnd:null
+      }))
+    };
+  }
+  function restoreModeWorkspace(mode){
+    const snapshot=modeWorkspaceSnapshots[mode];
+    if(!snapshot)return;
+    const controls=pageContent?[...pageContent.querySelectorAll("input, textarea, select")]:[];
+    snapshot.controls.forEach(saved=>{
+      const el=controls[saved.index];
+      if(!el||el.id!==saved.id||el.name!==saved.name||(el.type||el.tagName||"").toLowerCase()!==saved.type)return;
+      if(saved.value!==undefined&&el.type!=="file")el.value=saved.value;
+      if(saved.checked!==undefined)el.checked=saved.checked;
+      if(saved.selectedIndex!==undefined)el.selectedIndex=saved.selectedIndex;
+      if(saved.selectionStart!==null&&typeof el.setSelectionRange==="function"){
+        try{el.setSelectionRange(saved.selectionStart,saved.selectionEnd);}catch{}
+      }
+    });
+    window.scrollTo({top:snapshot.scrollY,behavior:"auto"});
+  }
+  function setMode(mode){
+    if((mode!=="ai"&&mode!=="manage")||state.mode===mode)return;
+    captureModeWorkspace(state.mode);
+    state.mode=mode;
+    if(!isDesktop())closeDrawer();
+    render();
+    restoreModeWorkspace(mode);
+  }
   function toast(message){const el=$("#toast");if(el){el.textContent=message;el.classList.add("visible");window.setTimeout(()=>el.classList.remove("visible"),2600);}}
   function categoryFor(kind,value){const name=(value||"").trim()||"Default";if(!state.categories[kind].includes(name))state.categories[kind].push(name);return name;}
   function handleAction(action){
