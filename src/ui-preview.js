@@ -28,6 +28,32 @@
     th: { ai:"โหมด AI", manage:"โหมดจัดการ", aiTitle:"พื้นที่ AI", aiDescription:"เริ่มถามคำถามเกี่ยวกับครัวของคุณได้ที่นี่ ระบบ AI จะเชื่อมต่อหลังจากยืนยันส่วนหน้าแล้ว", aiWelcome:"ถาม KitchAI เกี่ยวกับครัวของคุณ", aiStart:"เริ่มบทสนทนาได้ที่นี่ ระบบ AI จะเชื่อมต่อหลังจากยืนยันส่วนหน้าแล้ว", aiMessage:"ข้อความ", aiPlaceholder:"ถามเกี่ยวกับครัวของคุณ...", aiPreviewOnly:"ตัวอย่างส่วนหน้าเท่านั้น ยังไม่ได้เชื่อมต่อบริการ AI", aiSend:"ส่ง", aiMessageNotice:"แสดงข้อความนี้ในตัวอย่างเท่านั้น ยังไม่ได้เชื่อมต่อ AI", manageIntro:"จัดการธุรกิจของคุณในที่เดียว", building:"หน้านี้จะสร้างตามข้อกำหนดที่ยืนยัน", navigation:"โหมดจัดการ", workspace:"ต้นแบบส่วนหน้า", openNavigation:"เปิดเมนูนำทาง", closeNavigation:"ปิดเมนูนำทาง", appearance:"สลับธีม", language:"ภาษา", emptyTitle:"ยังไม่มีข้อมูล", emptyCopy:"เริ่มต้นด้วยการเพิ่มรายการแรก", create:"สร้าง", createCategory:"สร้างหมวดหมู่", createIngredient:"สร้างวัตถุดิบ", createMenu:"สร้างเมนู", category:"หมวดหมู่", name:"ชื่อ", cancel:"ยกเลิก", save:"สร้าง", default:"Default", reusable:"ใช้ซ้ำ", oneTime:"ครั้งเดียว", type:"ประเภท", quantity:"จำนวน", unit:"หน่วย", price:"ราคา", note:"หมายเหตุ (ไม่บังคับ)", sellingPrice:"ราคาขาย", ingredients:"วัตถุดิบ", noIngredients:"ยังไม่มีวัตถุดิบ เพิ่มภายหลังได้", notNow:"ยังไม่เพิ่มวัตถุดิบตอนนี้", back:"กลับ", edit:"แก้ไข", delete:"ลบ", update:"บันทึก", confirmDelete:"ต้องการลบรายการนี้หรือไม่", details:"รายละเอียด", chooseCategory:"เลือกหรือพิมพ์หมวดหมู่", required:"จำเป็นต้องกรอกข้อมูลนี้", aiOnly:"พื้นที่ AI เป็นตัวอย่างในขั้นตอนนี้", savedInPreview:"เพิ่มในตัวอย่างนี้เท่านั้น ยังไม่ได้บันทึกลงฐานข้อมูล", personalExpenseIntro:"บันทึกรายจ่ายส่วนตัวแยกจากรายจ่ายของธุรกิจ", addPersonalExpense:"เพิ่มรายจ่ายส่วนตัว", personalExpenseEmpty:"ยังไม่มีรายจ่ายส่วนตัว", personalExpenseEmptyCopy:"เพิ่มรายการแรกเพื่อเริ่มติดตามรายจ่ายส่วนตัว", expenseDescription:"ใช้จ่ายเรื่องอะไร", expenseDate:"วันที่", expenseAmount:"จำนวนเงิน", expenseCategory:"หมวดหมู่", expenseNote:"หมายเหตุ (ไม่บังคับ)", personalExpenseTotal:"ยอดรายจ่ายส่วนตัวที่บันทึก", personalExpenseCount:"รายการ", editPersonalExpense:"แก้ไขรายจ่ายส่วนตัว", deletePersonalExpense:"ลบรายจ่าย", personalExpenseSaved:"เพิ่มรายจ่ายส่วนตัวในตัวอย่างนี้เท่านั้น", personalExpenseCategories:"ตัวอย่าง: อาหาร, เดินทาง, ช้อปปิ้ง, บิล", personalExpenseDeleteConfirm:"ต้องการลบรายจ่ายส่วนตัวนี้หรือไม่" }
   };
   const state = { mode:"ai", aiPage:"ai", managePage:"dashboard", touchX:0, touchY:0, tracking:false, drawerGesture:false, dialog:null, categoryTarget:null, detailId:null, detailType:null, editId:null, categories:{ingredients:["Default"],menu:["Default"]}, ingredients:[], menus:[], sales:[], menuView:"all", menuSearch:"", pendingImageData:"", personalExpenses:[], aiMessages:[] };
+  let menuPersistenceReady = false;
+  let menuPersistenceModule = null;
+  async function persistMenuWorkspace() {
+    if (!menuPersistenceReady || !menuPersistenceModule) return;
+    try {
+      await menuPersistenceModule.saveMenuWorkspace({ menus: state.menus, sales: state.sales, categories: state.categories.menu });
+    } catch (error) {
+      console.error("KitchAI could not save local Menu data", error);
+      toast("Menu data could not be saved on this device.");
+    }
+  }
+  async function initializeMenuPersistence() {
+    try {
+      menuPersistenceModule = await import("./menu-preview-store.js");
+      const saved = await menuPersistenceModule.loadMenuWorkspace();
+      state.menus = saved.menus;
+      state.sales = saved.sales;
+      state.categories.menu = [...new Set(["Default", ...saved.categories])];
+    } catch (error) {
+      console.error("KitchAI could not load local Menu data", error);
+      toast("Local Menu storage is unavailable in this browser.");
+    } finally {
+      menuPersistenceReady = true;
+      render();
+    }
+  }
   const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   const language = () => labels[languageSelect?.value] ? languageSelect.value : "en";
   const t = key => labels[language()][key] || labels.en[key] || key;
@@ -206,7 +232,7 @@
     else if(action.startsWith("menu-detail:")){state.detailType="menu";state.detailId=Number(action.split(":")[1]);}
     else if(action.startsWith("record-menu-sale:")){state.editId=Number(action.split(":")[1]);state.dialog="record-menu-sale";state.pendingImageData="";}
     else if(action==="edit-detail"){state.editId=state.detailId;state.dialog=state.detailType==="ingredient"?"edit-ingredient":"edit-menu";state.detailId=null;}
-    else if(action==="delete-detail"){if(window.confirm(t("confirmDelete"))){const key=state.detailType==="ingredient"?"ingredients":"menus";state[key]=state[key].filter(x=>x.id!==state.detailId);state.detailId=null;state.detailType=null;}}
+    else if(action==="delete-detail"){if(window.confirm(t("confirmDelete"))){const key=state.detailType==="ingredient"?"ingredients":"menus";state[key]=state[key].filter(x=>x.id!==state.detailId);if(key==="menus")persistMenuWorkspace();state.detailId=null;state.detailType=null;}}
     render();
   }
   pageContent?.addEventListener("click",event=>{const target=event.target instanceof Element?event.target:null;const prompt=target?.closest("[data-prompt]");if(prompt){const box=pageContent.querySelector('textarea[name="message"]');if(box){box.value=prompt.dataset.prompt;box.focus();}return;}const nav=target?.closest("[data-page]");if(nav&&state.mode==="manage"){const id=nav.dataset.page;if(pages.some(p=>p.id===id)){state.managePage=id;state.detailId=null;state.dialog=null;render();window.scrollTo({top:0,behavior:"auto"});}return;}const el=target?.closest("[data-action]");if(el)handleAction(el.dataset.action);});
@@ -233,7 +259,7 @@
     if(d==="ingredient-category"||d==="menu-category"){
       const kind=d==="ingredient-category"?"ingredients":"menu";const name=String(data.get("categoryName")||"").trim();
       if(!name){form.elements.categoryName.reportValidity();return;}
-      categoryFor(kind,name);state.managePage=kind==="menu"?"menu":"ingredients";state.dialog=null;render();toast(t("savedInPreview"));return;
+      categoryFor(kind,name);state.managePage=kind==="menu"?"menu":"ingredients";state.dialog=null;render();if(kind==="menu")persistMenuWorkspace();toast(t("savedInPreview"));return;
     }
     if(d==="personal-expense"||d==="edit-personal-expense"){
       const description=String(data.get("description")||"").trim();
@@ -262,7 +288,7 @@
       if(!Number.isFinite(unitPrice)||unitPrice<0){form.elements.unitPrice.reportValidity();return;}
       if(!Number.isFinite(discount)||discount<0||discount>quantity*unitPrice){form.elements.discount.reportValidity();return;}
       if(!date||!time){toast(t("required"));return;}
-      state.sales.push({id:Date.now(),menuId:item.id,name:item.name,category:item.category,image:item.image||"",quantity,unit,unitPrice,discount,netSale:Math.round((quantity*unitPrice-discount)*100)/100,date,time,note:String(data.get("saleNote")||"").trim(),status:"completed",type:"reusable"});
+      state.sales.push({id:Date.now(),menuId:item.id,name:item.name,category:item.category,image:item.image||"",quantity,unit,unitPrice,discount,netSale:Math.round((quantity*unitPrice-discount)*100)/100,date,time,note:String(data.get("saleNote")||"").trim(),status:"completed",type:"reusable"});persistMenuWorkspace();
       state.dialog=null;state.editId=null;render();toast(t("saleSaved"));return;
     }
     if(d==="menu"||d==="edit-menu"){
@@ -276,13 +302,13 @@
         if(!Number.isFinite(unitPrice)||unitPrice<0){form.elements.unitPrice.reportValidity();return;}
         if(!Number.isFinite(discount)||discount<0||discount>quantity*unitPrice){form.elements.discount.reportValidity();return;}
         if(!date||!time){toast(t("required"));return;}
-        state.sales.push({id:Date.now(),menuId:null,name,category,image,quantity,unit,unitPrice,discount,netSale:Math.round((quantity*unitPrice-discount)*100)/100,date,time,note:String(data.get("saleNote")||"").trim(),status:"completed",type:"one-time"});
+        state.sales.push({id:Date.now(),menuId:null,name,category,image,quantity,unit,unitPrice,discount,netSale:Math.round((quantity*unitPrice-discount)*100)/100,date,time,note:String(data.get("saleNote")||"").trim(),status:"completed",type:"one-time"});persistMenuWorkspace();
         state.menuView="sales";state.dialog=null;state.editId=null;state.pendingImageData="";render();toast(t("saleSaved"));return;
       }
       const price=String(data.get("price")||"").trim(),unit=String(data.get("unit")||"piece").trim(),ingredientIds=data.getAll("ingredientIds").map(Number);
       if(price!==""&&(!Number.isFinite(Number(price))||Number(price)<0)){form.elements.price.reportValidity();return;}
       const item={id:d==="edit-menu"?state.editId:Date.now(),name,category,image,ingredientIds,ingredientNames:state.ingredients.filter(i=>ingredientIds.includes(i.id)).map(i=>i.name),note:String(data.get("note")||"").trim(),price,unit,type:"reusable"};
-      if(d==="edit-menu")state.menus=state.menus.map(x=>x.id===item.id?item:x);else state.menus.push(item);
+      if(d==="edit-menu")state.menus=state.menus.map(x=>x.id===item.id?item:x);else state.menus.push(item);persistMenuWorkspace();
       state.dialog=null;state.editId=null;state.pendingImageData="";state.menuView="all";render();toast(t("menuSaved"));
     }
   });
@@ -397,5 +423,5 @@
     });
   }
 
-  render();
+  initializeMenuPersistence();
 })();
