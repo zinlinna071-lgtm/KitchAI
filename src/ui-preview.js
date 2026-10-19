@@ -320,7 +320,7 @@
   });
   sidebarContent?.addEventListener("input",event=>{if(event.target?.id==="sidebar-chat-search"){state.aiSearchQuery=event.target.value;const pos=event.target.selectionStart;render();const next=$("#sidebar-chat-search");if(next){next.focus();next.setSelectionRange(pos,pos);}}});
   modeButtons.forEach(b=>b.addEventListener("click",()=>setMode(b.dataset.mode)));
-  menuToggle?.addEventListener("click",()=>{if(!drawerIsOpen())openDrawer();});sidebarMinimize?.addEventListener("click",closeDrawer);backdrop?.addEventListener("click",closeDrawer);
+  menuToggle?.addEventListener("click",()=>{if(drawerIsOpen())closeDrawer();else openDrawer();});sidebarMinimize?.addEventListener("click",closeDrawer);backdrop?.addEventListener("click",closeDrawer);
   document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeDrawer();if(state.dialog){state.dialog=null;render();}}});
   languageSelect?.addEventListener("change",render);
   themeToggle?.addEventListener("click",()=>{const dark=document.documentElement.dataset.theme!=="dark";document.documentElement.dataset.theme=dark?"dark":"light";document.body.classList.toggle("dark",dark);themeToggle.setAttribute("aria-pressed",String(dark));});
