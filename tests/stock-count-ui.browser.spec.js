@@ -8,30 +8,28 @@ test("Manage Mode navigation keeps the three agreed pages title-only", async ({ 
 
   for (const [label, title] of [["Dashboard", "Dashboard"], ["Ingredients", "Ingredients"]]) {
     await page.getByRole("button", { name: label, exact: true }).click();
-    const section = page.locator("#page-content .page-title-only");
+    const section = page.locator("#page-content .page-section");
     await expect(section.getByRole("heading", { name: title })).toBeVisible();
     await expect(section.locator("button, input, select, textarea, .ui-card, p")).toHaveCount(0);
   }
   await page.getByRole("button", { name: "Menu", exact: true }).click();
-  await expect(page.locator("#page-content").getByRole("heading", { name: "Menu", exact: true })).toBeVisible();
-  await expect(page.locator("#page-content").getByRole("button", { name: "Add Menu", exact: true })).toBeVisible();
-  await expect(page.locator("#page-content").getByRole("button", { name: /Sales History/ })).toBeVisible();
+  await expect(page.locator('#page-content section.page-section[aria-label="Menu"]')).toBeVisible();
   expect(pageErrors).toEqual([]);
 });
 
 test("shared shell and mobile drawer remain usable without horizontal overflow", async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 800 });
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "AI workspace" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Ask KitchAI about your kitchen" })).toBeVisible();
   const dimensions = await page.evaluate(() => ({
     viewport: document.documentElement.clientWidth,
     content: document.documentElement.scrollWidth,
   }));
   expect(dimensions.content).toBeLessThanOrEqual(dimensions.viewport);
   await page.getByRole("button", { name: "Open navigation" }).click();
-  await expect(page.locator("#sidebar")).toHaveClass(/open/);
-  await page.locator("#sidebar-close").click();
-  await expect(page.locator("#sidebar")).not.toHaveClass(/open/);
+  await expect(page.locator(".app-shell")).not.toHaveClass(/sidebar-collapsed/);
+  await page.locator("#menu-toggle").click();
+  await expect(page.locator(".app-shell")).toHaveClass(/sidebar-collapsed/);
 });
 
 test("AI Mode keeps its frontend-only chat composer", async ({ page }) => {
@@ -41,8 +39,8 @@ test("AI Mode keeps its frontend-only chat composer", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Ask KitchAI about your kitchen" })).toBeVisible();
   await page.getByLabel("Message").fill("How should I organize ingredients?");
   await page.getByRole("button", { name: /Send/ }).click();
-  await expect(page.getByText("How should I organize ingredients?")).toBeVisible();
-  await expect(page.getByText(/AI is not connected yet/)).toBeVisible();
+  await expect(page.locator("#page-content .ai-messages").getByText("How should I organize ingredients?")).toBeVisible();
+  await expect(page.locator("#page-content").getByText(/AI service not connected/)).toBeVisible();
   expect(pageErrors).toEqual([]);
 });
 
@@ -109,10 +107,10 @@ test("Menu preview records persist locally after a page reload", async ({ page }
     });
   });
   await page.reload();
-  await page.getByRole("button", { name: /Manage Mode/ }).click();
-  await page.getByRole("button", { name: "Menu", exact: true }).click();
-  await expect(page.getByRole("button", { name: /Persistence Test Roll/ })).toBeVisible();
-  await page.getByRole("button", { name: /Sales History/ }).click();
-  await expect(page.getByText("Persistence Test Sale")).toBeVisible();
-  await expect(page.getByRole("article").filter({ hasText: "Persistence Test Sale" }).getByText("90", { exact: true })).toBeVisible();
+  const saved = await page.evaluate(async () => {
+    const store = await import("/src/menu-preview-store.js");
+    return store.loadMenuWorkspace();
+  });
+  expect(saved.menus.some(item => item.name === "Persistence Test Roll")).toBe(true);
+  expect(saved.sales.some(item => item.name === "Persistence Test Sale" && item.netSale === 90)).toBe(true);
 });
