@@ -14,6 +14,8 @@ export default {
     "common.delete": "Delete",
     "common.loading": "Loading…",
     "common.error": "Something went wrong.",
+    "common.retry": "Try again",
+    "common.items": "{count} items",
     "navigation.ai": "AI Mode",
     "navigation.manage": "Manage Mode",
     "navigation.dashboard": "Dashboard",
