@@ -114,5 +114,5 @@ test("Menu preview records persist locally after a page reload", async ({ page }
   await expect(page.getByRole("button", { name: /Persistence Test Roll/ })).toBeVisible();
   await page.getByRole("button", { name: /Sales History/ }).click();
   await expect(page.getByText("Persistence Test Sale")).toBeVisible();
-  await expect(page.getByText("90", { exact: true })).toBeVisible();
+  await expect(page.getByRole("article").filter({ hasText: "Persistence Test Sale" }).getByText("90", { exact: true })).toBeVisible();
 });
