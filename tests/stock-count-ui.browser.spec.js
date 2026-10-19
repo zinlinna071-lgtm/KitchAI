@@ -116,3 +116,19 @@ test("Menu preview records persist locally after a page reload", async ({ page }
   await expect(page.getByText("Persistence Test Sale")).toBeVisible();
   await expect(page.getByRole("article").filter({ hasText: "Persistence Test Sale" }).getByText("90", { exact: true })).toBeVisible();
 });
+
+
+test("Personal Expenses preview records persist locally after a page reload", async ({ page }) => {
+  await page.goto("/");
+  await page.evaluate(async () => {
+    const store = await import("/src/personal-expenses-preview-store.js");
+    await store.savePersonalExpenses([
+      { id: 81001, description: "Persistence Test Personal Expense", amount: 123, date: "2026-10-19", category: "Test", note: "Reload check" },
+    ]);
+  });
+  await page.reload();
+  await page.getByRole("button", { name: /Manage Mode/ }).click();
+  await page.getByRole("button", { name: "Personal Expenses", exact: true }).click();
+  await expect(page.getByText("Persistence Test Personal Expense")).toBeVisible();
+  await expect(page.getByText("123", { exact: true })).toBeVisible();
+});
