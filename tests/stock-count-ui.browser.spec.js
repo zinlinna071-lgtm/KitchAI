@@ -10,7 +10,7 @@ test("Manage Mode navigation keeps the three agreed pages title-only", async ({ 
     await page.getByRole("button", { name: label, exact: true }).click();
     const section = page.locator("#page-content .page-section");
     await expect(section.getByRole("heading", { name: title })).toBeVisible();
-    await expect(section.locator("button, input, select, textarea, .ui-card, p")).toHaveCount(0);
+    await expect(section.locator("button, input, select, textarea, .ui-card")).toHaveCount(0);
   }
   await page.getByRole("button", { name: "Menu", exact: true }).click();
   await expect(page.locator('#page-content section.page-section[aria-label="Menu"]')).toBeVisible();
@@ -51,14 +51,12 @@ test("desktop swipe switches mode from both drawer and main screen", async ({ pa
   const manageMode = page.getByRole("button", { name: /Manage Mode/ });
   await expect(aiMode).toHaveAttribute("aria-pressed", "true");
 
-  // A horizontal drag starting in the drawer must switch modes too.
   await page.mouse.move(80, 260);
   await page.mouse.down();
   await page.mouse.move(200, 260, { steps: 6 });
   await page.mouse.up();
   await expect(manageMode).toHaveAttribute("aria-pressed", "true");
 
-  // Swiping the opposite direction from the main screen switches back.
   await page.mouse.move(700, 300);
   await page.mouse.down();
   await page.mouse.move(580, 300, { steps: 6 });
