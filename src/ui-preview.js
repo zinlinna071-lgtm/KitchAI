@@ -148,9 +148,10 @@
     const shortDate=value=>toLocalDate(value).toLocaleDateString(language()==="my"?"my-MM":language()==="th"?"th-TH":"en-US",{month:"short",day:"numeric"});
     if(filter.preset==="singleDate") return shortDate(range.start);
     const start=toLocalDate(range.start),end=toLocalDate(range.end);
-    const startLabel=shortDate(range.start);
-    const endLabel=start.getFullYear()===end.getFullYear()&&start.getMonth()===end.getMonth()?String(end.getDate()):shortDate(range.end);
-    return startLabel+" – "+endLabel+(start.getFullYear()===end.getFullYear()?"":" "+String(end.getFullYear()));
+    const sameYear=start.getFullYear()===end.getFullYear();
+    const startLabel=shortDate(range.start)+(sameYear?"":", "+start.getFullYear());
+    const endLabel=sameYear&&start.getMonth()===end.getMonth()?String(end.getDate()):shortDate(range.end)+(sameYear?"":", "+end.getFullYear());
+    return startLabel+" – "+endLabel;
   }
   function renderDateFilterTrigger() {
     return '<button type="button" class="ui-button ui-button--secondary date-filter-trigger" data-date-filter="open" aria-label="'+esc(dateFilterText("choose")+": "+dateFilterLabel())+'"><span class="date-filter-icon" aria-hidden="true">▦</span><span class="date-filter-label-full">'+esc(dateFilterLabel())+'</span><span class="date-filter-label-compact">'+esc(compactDateFilterLabel())+'</span><span class="date-filter-chevron" aria-hidden="true">⌄</span></button>';
