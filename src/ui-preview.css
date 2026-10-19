@@ -258,3 +258,92 @@ button:focus-visible,a:focus-visible,select:focus-visible,textarea:focus-visible
 .date-filter-date-grid{grid-template-columns:minmax(0,1fr)}
 .date-filter-actions button{width:100%}
 }
+
+
+/* Date filter polish: align type, spacing, colors and full-field date picking with shared UI. */
+.date-filter-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 34px;
+  margin-top: 16px;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 550;
+  line-height: 1.35;
+  white-space: nowrap;
+}
+.date-filter-trigger:hover {
+  border-color: var(--color-primary);
+  background: var(--surface-2);
+}
+.date-filter-trigger-icon {
+  display: block;
+  width: 15px;
+  height: 15px;
+  flex: 0 0 15px;
+  color: var(--muted);
+}
+.date-filter-label-compact { min-width: 0; }
+.date-filter-page { color: var(--text); }
+.date-filter-heading p { font-size: 14px; }
+.date-filter-quick-grid { gap: 10px; margin: 20px 0; }
+.date-filter-quick {
+  min-height: 44px;
+  padding: 11px 14px;
+  border-radius: 10px;
+  font-size: 14px;
+  line-height: 1.45;
+}
+.date-filter-custom {
+  padding: 18px;
+  border-radius: 12px;
+  color: var(--text);
+}
+.date-filter-custom + .date-filter-custom { margin-top: 14px; }
+.date-filter-custom h2 {
+  margin-bottom: 14px;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+.date-filter-date-grid { gap: 12px; }
+.date-filter-date-grid .ui-field { gap: 6px; }
+.date-filter-date-grid input[type="date"] {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-appearance: auto;
+  appearance: auto;
+}
+.date-filter-date-grid input[type="date"]:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+.date-filter-error { font-size: 13px; line-height: 1.5; }
+.date-filter-actions { margin-top: 18px; }
+@media (max-width: 560px) {
+  .date-filter-trigger { gap: 6px; padding: 6px 9px; font-size: 12px; }
+  .date-filter-trigger-icon { width: 14px; height: 14px; flex-basis: 14px; }
+  .date-filter-quick-grid { gap: 8px; margin: 18px 0; }
+  .date-filter-quick { min-height: 44px; padding: 10px 12px; }
+  .date-filter-custom { padding: 14px; }
+  .date-filter-custom + .date-filter-custom { margin-top: 12px; }
+  .date-filter-date-grid { gap: 10px; }
+  .date-filter-date-grid input[type="date"] { min-height: 46px; padding: 10px; }
+  .date-filter-actions { margin-top: 16px; }
+}
