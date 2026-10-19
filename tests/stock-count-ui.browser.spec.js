@@ -14,7 +14,7 @@ test("Manage Mode navigation keeps the three agreed pages title-only", async ({ 
   }
   await page.getByRole("button", { name: "Menu", exact: true }).click();
   await expect(page.locator("#page-content").getByRole("heading", { name: "Menu", exact: true })).toBeVisible();
-  await expect(page.locator("#page-content").getByRole("button", { name: /Add Menu/ })).toBeVisible();
+  await expect(page.locator("#page-content").getByRole("button", { name: "Add Menu", exact: true })).toBeVisible();
   await expect(page.locator("#page-content").getByRole("button", { name: /Sales History/ })).toBeVisible();
   expect(pageErrors).toEqual([]);
 });
