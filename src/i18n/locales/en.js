@@ -74,5 +74,9 @@ export default {
     "dateFilter.chooseDate": "Choose date",
     "dateFilter.previousMonth": "Previous month",
     "dateFilter.nextMonth": "Next month"
+    "ai.prompt.menu": "Suggest a menu for my night market stall",
+    "ai.prompt.ingredientCosts": "Help me understand ingredient costs",
+    "ai.prompt.production": "Help me plan today’s food production",
+    "ai.prompt.stock": "What should I check in my stock?",
   }
 };
