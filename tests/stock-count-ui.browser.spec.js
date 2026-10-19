@@ -21,6 +21,21 @@ test("Manage Mode navigation keeps the three agreed pages title-only", async ({ 
   expect(pageErrors).toEqual([]);
 });
 
+test("switching modes restores each mode's last active workspace", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: /AI Settings/ }).click();
+  await expect(page.getByRole("heading", { name: "AI Settings" })).toBeVisible();
+
+  await page.getByRole("button", { name: /Manage Mode/ }).click();
+  await page.getByRole("button", { name: /Choose date filter/ }).click();
+  await expect(page.getByRole("heading", { name: "Date Filter" })).toBeVisible();
+
+  await page.getByRole("button", { name: /AI Mode/ }).click();
+  await expect(page.getByRole("heading", { name: "AI Settings" })).toBeVisible();
+  await page.getByRole("button", { name: /Manage Mode/ }).click();
+  await expect(page.getByRole("heading", { name: "Date Filter" })).toBeVisible();
+});
+
 test("shared shell and mobile drawer remain usable without horizontal overflow", async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 800 });
   await page.goto("/");
