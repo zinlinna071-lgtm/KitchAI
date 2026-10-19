@@ -73,3 +73,14 @@ Select the relevant items for each change; do not claim unrelated checks were pe
 - **PR / merge status:** …
 
 These instructions are mandatory project guidance. Repository permissions and CI settings are the mechanisms for technical enforcement; instruction files alone cannot force every external AI tool to comply.
+
+## GitHub Pages preview deployment policy (mandatory)
+
+- Public preview URL: https://zinlinna071-lgtm.github.io/KitchAI/
+- A merge into `main` does **not** automatically mean the public preview must be redeployed. Do not deploy after every merge.
+- Deploy when a merged change makes a meaningful, user-visible difference: a substantial UI/layout/navigation change, a new or changed user workflow, a significant feature or interaction, or an important bug fix whose result should be checked on the live preview.
+- Normally do not deploy documentation-only changes, internal refactors with no visible/behavioral effect, test-only changes, CI maintenance, or other changes that do not materially change what the user sees or can do.
+- After the relevant PR is merged into `main`, decide whether the change meets the criteria above. If it does, manually run **Actions → Deploy GitHub Pages → Run workflow** from the repository's default branch. The workflow must build with `npm run build:pages-preview` so the `/KitchAI/` base path is correct.
+- After a deployment, verify that the GitHub Actions run succeeded and inspect the public preview URL. Report the deployment result and any checks that could not be verified. Never say the live preview is updated until the deployment has succeeded.
+- Keep deployment intentional and low-noise: combine several small, non-urgent UI changes into one preview deployment when practical. Deploy urgent user-visible fixes promptly after they are merged.
+- This policy governs the public GitHub Pages preview only. It does not replace tests, PR review, or any separate Vercel preview workflow.
