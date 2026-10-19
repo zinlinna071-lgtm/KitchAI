@@ -146,3 +146,27 @@ test("Dashboard date filter supports instant quick selection, cancel, and custom
   await expect(trigger()).toContainText(/Oct 12/);
   expect(pageErrors).toEqual([]);
 });
+
+
+test("date filter supports a single date and keeps its trigger compact on mobile", async ({ page }) => {
+  const pageErrors = [];
+  page.on("pageerror", error => pageErrors.push(error.message));
+  await page.setViewportSize({ width: 320, height: 700 });
+  await page.goto("/");
+  await page.getByRole("button", { name: /Manage Mode/ }).click();
+  await page.getByRole("button", { name: "Dashboard", exact: true }).click();
+  const trigger = page.getByRole("button", { name: /Choose date filter/ });
+  await expect(trigger).toBeVisible();
+  await trigger.click();
+  await expect(page.getByRole("heading", { name: "Single Date" })).toBeVisible();
+  await page.locator("#date-filter-single").fill("2026-10-08");
+  await expect(trigger).toContainText(/Oct 8/);
+  await trigger.click();
+  await page.locator("#date-filter-start").fill("2026-10-10");
+  await page.locator("#date-filter-end").fill("2026-10-12");
+  await expect(trigger).toContainText(/Custom Date Range/);
+  const dimensions = await trigger.evaluate(el => ({right:el.getBoundingClientRect().right, viewport:document.documentElement.clientWidth, width:el.getBoundingClientRect().width}));
+  expect(dimensions.right).toBeLessThanOrEqual(dimensions.viewport);
+  expect(dimensions.width).toBeLessThanOrEqual(dimensions.viewport);
+  expect(pageErrors).toEqual([]);
+});
