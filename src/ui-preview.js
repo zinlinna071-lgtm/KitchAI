@@ -113,9 +113,9 @@
     return '<div class="ui-empty-state"><div aria-hidden="true" style="font-size:32px;color:var(--color-primary)">+</div><h2>'+esc(title)+'</h2><p>'+esc(copy)+'</p>'+action+'</div>';
   }
   const dateFilterCopy = {
-    en: { title:"Date Filter", description:"Choose which dates to use for this page.", today:"Today", yesterday:"Yesterday", thisWeek:"This Week", last7Days:"Last 7 Days", thisMonth:"This Month", lastMonth:"Last Month", custom:"Custom Date Range", start:"Start date", end:"End date", cancel:"Cancel", invalid:"End date must be the same as or later than the start date.", choose:"Choose date filter" },
-    my: { title:"ရက်စွဲ Filter", description:"ဒီစာမျက်နှာအတွက် ကြည့်မယ့်ရက်ကို ရွေးချယ်ပါ။", today:"ဒီနေ့", yesterday:"မနေ့က", thisWeek:"ဒီအပတ်", last7Days:"လွန်ခဲ့သော ၇ ရက်", thisMonth:"ဒီလ", lastMonth:"ပြီးခဲ့တဲ့လ", custom:"စိတ်ကြိုက်ရက်အပိုင်းအခြား", start:"စတင်ရက်", end:"ဆုံးဆုံးရက်", cancel:"မလုပ်တော့ပါ", invalid:"ဆုံးဆုံးရက်သည် စတင်ရက်နှင့် တူရမည် သို့မဟုတ် နောက်ကျရမည်။", choose:"ရက်စွဲ Filter ရွေးရန်" },
-    th: { title:"ตัวกรองวันที่", description:"เลือกวันที่ที่ต้องการใช้กับหน้านี้", today:"วันนี้", yesterday:"เมื่อวาน", thisWeek:"สัปดาห์นี้", last7Days:"7 วันล่าสุด", thisMonth:"เดือนนี้", lastMonth:"เดือนที่แล้ว", custom:"กำหนดช่วงวันที่เอง", start:"วันที่เริ่มต้น", end:"วันที่สิ้นสุด", cancel:"ยกเลิก", invalid:"วันที่สิ้นสุดต้องเป็นวันเดียวกันหรือหลังวันที่เริ่มต้น", choose:"เลือกตัวกรองวันที่" }
+    en: { title:"Date Filter", description:"Choose which dates to use for this page.", today:"Today", yesterday:"Yesterday", thisWeek:"This Week", last7Days:"Last 7 Days", thisMonth:"This Month", lastMonth:"Last Month", singleDate:"Single Date", custom:"Custom Date Range", start:"Start date", end:"End date", cancel:"Cancel", invalid:"End date must be the same as or later than the start date.", choose:"Choose date filter" },
+    my: { title:"ရက်စွဲ Filter", description:"ဒီစာမျက်နှာအတွက် ကြည့်မယ့်ရက်ကို ရွေးချယ်ပါ။", today:"ဒီနေ့", yesterday:"မနေ့က", thisWeek:"ဒီအပတ်", last7Days:"လွန်ခဲ့သော ၇ ရက်", thisMonth:"ဒီလ", lastMonth:"ပြီးခဲ့တဲ့လ", singleDate:"ရက်တစ်ရက်တည်း", custom:"စိတ်ကြိုက်ရက်အပိုင်းအခြား", start:"စတင်ရက်", end:"ဆုံးဆုံးရက်", cancel:"မလုပ်တော့ပါ", invalid:"ဆုံးဆုံးရက်သည် စတင်ရက်နှင့် တူရမည် သို့မဟုတ် နောက်ကျရမည်။", choose:"ရက်စွဲ Filter ရွေးရန်" },
+    th: { title:"ตัวกรองวันที่", description:"เลือกวันที่ที่ต้องการใช้กับหน้านี้", today:"วันนี้", yesterday:"เมื่อวาน", thisWeek:"สัปดาห์นี้", last7Days:"7 วันล่าสุด", thisMonth:"เดือนนี้", lastMonth:"เดือนที่แล้ว", singleDate:"วันเดียว", custom:"กำหนดช่วงวันที่เอง", start:"วันที่เริ่มต้น", end:"วันที่สิ้นสุด", cancel:"ยกเลิก", invalid:"วันที่สิ้นสุดต้องเป็นวันเดียวกันหรือหลังวันที่เริ่มต้น", choose:"เลือกตัวกรองวันที่" }
   };
   const dateFilterText = key => dateFilterCopy[language()]?.[key] || dateFilterCopy.en[key] || key;
   const toLocalDate = value => { const [year,month,day]=value.split("-").map(Number); return new Date(year,month-1,day); };
@@ -123,6 +123,7 @@
   const shiftDate = (value,days) => { const date=toLocalDate(value); date.setDate(date.getDate()+days); return dateKey(date); };
   function dateFilterRange(filter=state.dateFilter) {
     const today=localToday();
+    if(filter.preset==="singleDate") return {start:filter.start||today,end:filter.start||today};
     if(filter.preset==="custom") return {start:filter.start,end:filter.end};
     if(filter.preset==="yesterday"){const day=shiftDate(today,-1);return {start:day,end:day};}
     if(filter.preset==="thisWeek"){const day=toLocalDate(today);day.setDate(day.getDate()-((day.getDay()+6)%7));return {start:dateKey(day),end:shiftDate(dateKey(day),6)};}
@@ -136,18 +137,29 @@
     return toLocalDate(value).toLocaleDateString(language()==="my"?"my-MM":language()==="th"?"th-TH":"en-US",{month:"short",day:"numeric",year:"numeric"});
   }
   function dateFilterLabel(filter=state.dateFilter) {
-    const key={today:"today",yesterday:"yesterday",thisWeek:"thisWeek",last7Days:"last7Days",thisMonth:"thisMonth",lastMonth:"lastMonth",custom:"custom"}[filter.preset]||"today";
+    const key={today:"today",yesterday:"yesterday",thisWeek:"thisWeek",last7Days:"last7Days",thisMonth:"thisMonth",lastMonth:"lastMonth",singleDate:"singleDate",custom:"custom"}[filter.preset]||"today";
     const range=dateFilterRange(filter), label=dateFilterText(key);
     if(filter.preset==="custom") return range.start===range.end?label+" · "+formatDate(range.start):label+" · "+formatDate(range.start)+" – "+formatDate(range.end);
     return label+" · "+(range.start===range.end?formatDate(range.start):formatDate(range.start)+" – "+formatDate(range.end));
   }
+  function compactDateFilterLabel(filter=state.dateFilter) {
+    const range=dateFilterRange(filter);
+    if(["today","yesterday","thisWeek","last7Days","thisMonth","lastMonth"].includes(filter.preset)) return dateFilterText(filter.preset);
+    const shortDate=value=>toLocalDate(value).toLocaleDateString(language()==="my"?"my-MM":language()==="th"?"th-TH":"en-US",{month:"short",day:"numeric"});
+    if(filter.preset==="singleDate") return shortDate(range.start);
+    const start=toLocalDate(range.start),end=toLocalDate(range.end);
+    const startLabel=shortDate(range.start);
+    const endLabel=start.getFullYear()===end.getFullYear()&&start.getMonth()===end.getMonth()?String(end.getDate()):shortDate(range.end);
+    return startLabel+" – "+endLabel+(start.getFullYear()===end.getFullYear()?"":" "+String(end.getFullYear()));
+  }
   function renderDateFilterTrigger() {
-    return '<button type="button" class="ui-button ui-button--secondary date-filter-trigger" data-date-filter="open" aria-label="'+esc(dateFilterText("choose")+": "+dateFilterLabel())+'"><span aria-hidden="true">▦</span><span>'+esc(dateFilterLabel())+'</span><span aria-hidden="true">⌄</span></button>';
+    return '<button type="button" class="ui-button ui-button--secondary date-filter-trigger" data-date-filter="open" aria-label="'+esc(dateFilterText("choose")+": "+dateFilterLabel())+'"><span class="date-filter-icon" aria-hidden="true">▦</span><span class="date-filter-label-full">'+esc(dateFilterLabel())+'</span><span class="date-filter-label-compact">'+esc(compactDateFilterLabel())+'</span><span class="date-filter-chevron" aria-hidden="true">⌄</span></button>';
   }
   function renderDateFilterPage() {
     const presets=[["today","today"],["yesterday","yesterday"],["thisWeek","thisWeek"],["last7Days","last7Days"],["thisMonth","thisMonth"],["lastMonth","lastMonth"]];
     const quick=presets.map(([value,key])=>'<button type="button" class="ui-button ui-button--secondary date-filter-quick'+(state.dateFilter.preset===value?' is-selected':'')+'" data-date-filter="quick:'+value+'" aria-pressed="'+(state.dateFilter.preset===value?'true':'false')+'">'+esc(dateFilterText(key))+'</button>').join("");
-    return '<section class="page-section date-filter-page" aria-labelledby="date-filter-title"><div class="date-filter-heading"><h1 id="date-filter-title">'+esc(dateFilterText("title"))+'</h1><p>'+esc(dateFilterText("description"))+'</p></div><div class="date-filter-quick-grid" role="group" aria-label="'+esc(dateFilterText("title"))+'">'+quick+'</div><section class="date-filter-custom" aria-labelledby="date-filter-custom-title"><h2 id="date-filter-custom-title">'+esc(dateFilterText("custom"))+'</h2><div class="date-filter-date-grid"><label class="ui-field"><span class="ui-label">'+esc(dateFilterText("start"))+'</span><input class="ui-input" type="date" id="date-filter-start" value="'+esc(state.dateFilterDraft?.start||"")+'"></label><label class="ui-field"><span class="ui-label">'+esc(dateFilterText("end"))+'</span><input class="ui-input" type="date" id="date-filter-end" value="'+esc(state.dateFilterDraft?.end||"")+'"></label></div><p class="date-filter-error" id="date-filter-error" role="alert" hidden>'+esc(dateFilterText("invalid"))+'</p></section><div class="date-filter-actions"><button type="button" class="ui-button ui-button--secondary" data-date-filter="cancel">'+esc(dateFilterText("cancel"))+'</button></div></section>';
+    const selectedSingle=state.dateFilterDraft?.singleDate||(state.dateFilter.preset==="singleDate"?state.dateFilter.start:localToday());
+    return '<section class="page-section date-filter-page" aria-labelledby="date-filter-title"><div class="date-filter-heading"><h1 id="date-filter-title">'+esc(dateFilterText("title"))+'</h1><p>'+esc(dateFilterText("description"))+'</p></div><div class="date-filter-quick-grid" role="group" aria-label="'+esc(dateFilterText("title"))+'">'+quick+'</div><section class="date-filter-custom date-filter-single" aria-labelledby="date-filter-single-title"><h2 id="date-filter-single-title">'+esc(dateFilterText("singleDate"))+'</h2><div class="date-filter-date-grid"><label class="ui-field"><span class="ui-label">'+esc(dateFilterText("singleDate"))+'</span><input class="ui-input" type="date" id="date-filter-single" value="'+esc(selectedSingle)+'"></label></div></section><section class="date-filter-custom" aria-labelledby="date-filter-custom-title"><h2 id="date-filter-custom-title">'+esc(dateFilterText("custom"))+'</h2><div class="date-filter-date-grid"><label class="ui-field"><span class="ui-label">'+esc(dateFilterText("start"))+'</span><input class="ui-input" type="date" id="date-filter-start" value="'+esc(state.dateFilterDraft?.start||"")+'"></label><label class="ui-field"><span class="ui-label">'+esc(dateFilterText("end"))+'</span><input class="ui-input" type="date" id="date-filter-end" value="'+esc(state.dateFilterDraft?.end||"")+'"></label></div><p class="date-filter-error" id="date-filter-error" role="alert" hidden>'+esc(dateFilterText("invalid"))+'</p></section><div class="date-filter-actions"><button type="button" class="ui-button ui-button--secondary" data-date-filter="cancel">'+esc(dateFilterText("cancel"))+'</button></div></section>';
   }
   function renderMainPage(page) {
     const description = pageDescriptions[page.id]?.[language()] || pageDescriptions[page.id]?.en || "";
@@ -264,6 +276,13 @@
   }
   pageContent?.addEventListener("click",event=>{const target=event.target instanceof Element?event.target:null;const dateAction=target?.closest("[data-date-filter]")?.dataset.dateFilter;if(dateAction){if(dateAction==="open"){state.dateFilterDraft={start:"",end:""};state.dateFilterOpen=true;render();window.scrollTo({top:0,behavior:"auto"});}else if(dateAction==="cancel"){state.dateFilterOpen=false;state.dateFilterDraft=null;render();window.scrollTo({top:0,behavior:"auto"});}else if(dateAction.startsWith("quick:")){state.dateFilter={preset:dateAction.slice(6),start:"",end:""};state.dateFilterOpen=false;state.dateFilterDraft=null;render();window.scrollTo({top:0,behavior:"auto"});}return;}const chat=target?.closest("[data-chat-id]");if(chat){const saved=state.aiChats.find(item=>item.id===Number(chat.dataset.chatId));if(saved){state.activeAiChatId=saved.id;state.aiMessages=[...saved.messages];state.aiView="chat";render();}return;}const prompt=target?.closest("[data-prompt]");if(prompt){const box=pageContent.querySelector('textarea[name="message"]');if(box){box.value=prompt.dataset.prompt;box.focus();}return;}const nav=target?.closest("[data-page]");if(nav&&state.mode==="manage"){const id=nav.dataset.page;if(pages.some(p=>p.id===id)){state.managePage=id;state.dateFilterOpen=false;state.dateFilterDraft=null;state.detailId=null;state.dialog=null;render();window.scrollTo({top:0,behavior:"auto"});}return;}const el=target?.closest("[data-action]");if(el)handleAction(el.dataset.action);});
   pageContent?.addEventListener("change",event=>{
+    if(event.target?.id==="date-filter-single"){
+      const value=event.target.value;
+      if(!value)return;
+      state.dateFilter={preset:"singleDate",start:value,end:value};
+      state.dateFilterOpen=false;state.dateFilterDraft=null;render();window.scrollTo({top:0,behavior:"auto"});
+      return;
+    }
     if(event.target?.id==="date-filter-start" || event.target?.id==="date-filter-end"){
       state.dateFilterDraft={start:$("#date-filter-start")?.value||"",end:$("#date-filter-end")?.value||""};
       const error=$("#date-filter-error");
