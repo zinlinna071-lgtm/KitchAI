@@ -48,7 +48,11 @@ export function formatNumber(value, options = {}, locale = activeLocale) {
   return new Intl.NumberFormat(normalizeLocale(locale), options).format(value);
 }
 
-export function formatDate(value, options = { year: "numeric", month: "short", day: "numeric" }, locale = activeLocale) {
+/** @param {string | number | Date} value
+ * @param {Intl.DateTimeFormatOptions} [options]
+ * @param {string} [locale]
+ */
+export function formatDate(value, options = /** @type {Intl.DateTimeFormatOptions} */ ({ year: "numeric", month: "short", day: "numeric" }), locale = activeLocale) {
   const date = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(date.getTime())) return "";
   return new Intl.DateTimeFormat(normalizeLocale(locale), options).format(date);
