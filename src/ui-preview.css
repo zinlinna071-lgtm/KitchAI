@@ -6,7 +6,7 @@ button,input,textarea,select { font: inherit; } button,a,select { -webkit-tap-hi
 .skip-link { position: fixed; top:-80px; left:12px; z-index:100; padding:12px; border-radius:8px; background:var(--surface); color:var(--text); box-shadow:var(--shadow); } .skip-link:focus { top:12px; }
 .app-shell { min-height:100dvh; display:grid; grid-template-columns:248px minmax(0,1fr); touch-action:manipulation; }
 .sidebar { position:sticky; top:0; display:flex; flex-direction:column; min-width:0; height:100dvh; padding:20px 14px 14px; border-right:1px solid var(--line); background:var(--surface); z-index:20; }
-.sidebar-top { display:flex; align-items:center; justify-content:space-between; padding:0 10px 26px; }
+.sidebar-top { display:flex; align-items:center; justify-content:flex-start; padding:0 0 18px; }
 .brand { display:flex; align-items:center; gap:10px; font-size:19px; font-weight:760; letter-spacing:-.045em; }
 .brand-mark { display:grid; place-items:center; width:34px; height:34px; border-radius:11px; background:var(--accent-soft); color:var(--accent); font-size:16px; font-weight:800; }
 .sidebar-content { flex:1; min-height:0; overflow-y:auto; padding-block:4px; }
@@ -29,7 +29,7 @@ button,input,textarea,select { font: inherit; } button,a,select { -webkit-tap-hi
 .icon-button:hover { background:var(--surface-2); }
 #language-select { min-height:38px; padding:8px 10px; border:1px solid var(--line); border-radius:9px; background:var(--surface); color:var(--text); font-size:12px; }
 .menu-toggle { display:grid; flex:none; }
-.sidebar-close { display:grid; visibility:visible; opacity:1; position:relative; z-index:2; flex:none; }
+.sidebar-close { display:none; }
 @media (min-width:761px) {
  .sidebar { touch-action:manipulation; }
  .app-shell.sidebar-collapsed { grid-template-columns:68px minmax(0,1fr); }
@@ -49,14 +49,13 @@ button:focus-visible,a:focus-visible,select:focus-visible,textarea:focus-visible
  .app-shell:not(.sidebar-collapsed) { grid-template-columns:58px minmax(0,1fr); }
  .sidebar { position:sticky; inset:auto; width:auto; height:100dvh; padding:12px 5px 10px; transform:none; box-shadow:none; }
  .app-shell:not(.sidebar-collapsed) > .sidebar { position:fixed; inset:0 auto 0 0; width:min(82vw,248px); height:100dvh; padding:16px 12px 12px; box-shadow:var(--shadow); z-index:30; }
- .sidebar-close { display:grid; }
  .topbar { min-height:60px; gap:8px; padding:9px 12px; }
- .menu-toggle { display:grid; flex:none; } .mode-switch { flex:1; min-width:0; } .mode-button { flex:1; gap:5px; min-width:0; padding-inline:8px; font-size:12px; } .topbar-actions { gap:3px; margin-left:0; }
+ .mode-switch { flex:1; min-width:0; } .mode-button { flex:1; gap:5px; min-width:0; padding-inline:8px; font-size:12px; } .topbar-actions { gap:3px; margin-left:0; }
  .footer { padding:14px 16px; }
 }
 @media (max-width:520px) {
- .topbar { display:grid; grid-template-columns:38px minmax(0,1fr); grid-template-rows:auto auto; gap:8px; padding:8px 12px; }
- .menu-toggle { grid-column:1; grid-row:1; } .topbar-mode-switch { grid-column:2; grid-row:1; width:100%; min-width:0; }
+ .topbar { display:grid; grid-template-columns:minmax(0,1fr); grid-template-rows:auto auto; gap:8px; padding:8px 12px; }
+ .topbar-mode-switch { grid-column:1; grid-row:1; width:100%; min-width:0; }
  .mode-switch { gap:2px; } .mode-button { padding-inline:5px; font-size:12px; white-space:normal; line-height:1.2; }
  .topbar-actions { grid-column:1 / -1; grid-row:2; display:flex; justify-content:flex-end; width:100%; }
  .connection-status { padding-inline:7px; } .install-button { max-width:88px; white-space:normal; }
@@ -179,7 +178,7 @@ button:focus-visible,a:focus-visible,select:focus-visible,textarea:focus-visible
 
 /* Collapsed navigation rail shared by Manage and AI modes. */
 .app-shell.sidebar-collapsed .sidebar { padding-inline:6px; }
-.app-shell.sidebar-collapsed .sidebar-top { justify-content:center; padding:0 0 18px; flex-wrap:wrap; gap:8px; }
+.app-shell.sidebar-collapsed .sidebar-top { justify-content:center; padding:0 0 18px; }
 .app-shell.sidebar-collapsed .brand-name,
 .app-shell.sidebar-collapsed .nav-section-label,
 .app-shell.sidebar-collapsed .nav-item > span:not(.nav-icon),
@@ -187,7 +186,7 @@ button:focus-visible,a:focus-visible,select:focus-visible,textarea:focus-visible
 .app-shell.sidebar-collapsed .sidebar-search { display:none; }
 .app-shell.sidebar-collapsed .nav-item { justify-content:center; gap:0; min-height:44px; padding:10px 4px; margin-block:4px; }
 .app-shell.sidebar-collapsed .nav-icon { width:100%; font-size:19px; }
-.app-shell.sidebar-collapsed .sidebar-close { margin-inline:auto; }
+.app-shell.sidebar-collapsed .menu-toggle { margin-inline:auto; }
 .sidebar-search { display:block; padding:6px 8px; }
 .sidebar-search input { width:100%; min-width:0; padding:9px 10px; border:1px solid var(--line); border-radius:9px; background:var(--surface); color:var(--text); font-size:13px; }
 .ai-recent-label { margin-top:8px; }
