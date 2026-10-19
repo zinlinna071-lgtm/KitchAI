@@ -43,6 +43,16 @@ Select the relevant items for each change; do not claim unrelated checks were pe
 - [ ] PWA install/update/service-worker behavior remains intact where applicable.
 - [ ] Automated checks and real-device/manual checks are clearly distinguished.
 
+## Consistent data-entry form presentation (mandatory)
+
+- For every workflow where a user creates or edits a record, use the same **internal-screen form pattern** as Personal Expenses: set the relevant dialog/form state and replace the current page's content area with the form.
+- Do **not** use a floating/overlay modal dialog for ordinary create/edit forms, and do **not** introduce a separate URL route solely to show these forms. Keep the form inside the existing app screen/content flow.
+- Show a clear page-level heading and a **Back** control (back arrow preferred) to return to the prior list/screen. Use consistent spacing, field styling, action placement, validation feedback, and Save/Cancel behavior across forms.
+- Editing an existing record should reuse the same form pattern and prefill its current values.
+- On Back/Cancel, avoid silently losing user-entered data; where draft preservation is not supported, handle leaving the form clearly and consistently. On successful save, return to the appropriate prior screen and show the updated record/state.
+- Apply this rule consistently to Personal Expenses, Ingredients, Menu, business expenses, production, inventory, and future create/edit forms. A truly tiny one-field action may be considered separately only when there is a clear usability reason; do not make inconsistent exceptions by default.
+- This is a presentation/navigation rule, not proof of persistence. Continue to verify that saves use the correct data layer and persist where required.
+
 ## Repository-specific safeguards
 
 - Follow the existing architecture and current repository docs; do not resurrect abandoned designs or invent features outside the task.
