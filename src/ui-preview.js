@@ -119,7 +119,12 @@
     my: { title:"ရက်စွဲ Filter", description:"ဒီစာမျက်နှာအတွက် ကြည့်မယ့်ရက်ကို ရွေးချယ်ပါ။", today:"ဒီနေ့", yesterday:"မနေ့က", thisWeek:"ဒီအပတ်", last7Days:"လွန်ခဲ့သော ၇ ရက်", thisMonth:"ဒီလ", lastMonth:"ပြီးခဲ့တဲ့လ", singleDate:"ရက်တစ်ရက်တည်း", custom:"စိတ်ကြိုက်ရက်အပိုင်းအခြား", start:"စတင်ရက်", end:"ဆုံးဆုံးရက်", cancel:"မလုပ်တော့ပါ", invalid:"ဆုံးဆုံးရက်သည် စတင်ရက်နှင့် တူရမည် သို့မဟုတ် နောက်ကျရမည်။", choose:"ရက်စွဲ Filter ရွေးရန်", chooseDate:"ရက်စွဲရွေးရန်", previousMonth:"ယခင်လ", nextMonth:"နောက်လ" },
     th: { title:"ตัวกรองวันที่", description:"เลือกวันที่ที่ต้องการใช้กับหน้านี้", today:"วันนี้", yesterday:"เมื่อวาน", thisWeek:"สัปดาห์นี้", last7Days:"7 วันล่าสุด", thisMonth:"เดือนนี้", lastMonth:"เดือนที่แล้ว", singleDate:"วันเดียว", custom:"กำหนดช่วงวันที่เอง", start:"วันที่เริ่มต้น", end:"วันที่สิ้นสุด", cancel:"ยกเลิก", invalid:"วันที่สิ้นสุดต้องเป็นวันเดียวกันหรือหลังวันที่เริ่มต้น", choose:"เลือกตัวกรองวันที่", chooseDate:"เลือกวันที่", previousMonth:"เดือนก่อนหน้า", nextMonth:"เดือนถัดไป" }
   };
-  const dateFilterText = key => dateFilterCopy[language()]?.[key] || dateFilterCopy.en[key] || key;
+  const dateFilterTranslationKeys = { "title": "dateFilter.title", "description": "dateFilter.description", "today": "dateFilter.today", "yesterday": "dateFilter.yesterday", "thisWeek": "dateFilter.thisWeek", "last7Days": "dateFilter.last7Days", "thisMonth": "dateFilter.thisMonth", "lastMonth": "dateFilter.lastMonth", "singleDate": "dateFilter.singleDate", "custom": "dateFilter.custom", "start": "dateFilter.start", "end": "dateFilter.end", "cancel": "dateFilter.cancel", "invalid": "dateFilter.invalid", "choose": "dateFilter.choose", "chooseDate": "dateFilter.chooseDate", "previousMonth": "dateFilter.previousMonth", "nextMonth": "dateFilter.nextMonth" };
+  const dateFilterText = key => {
+    const translationKey = dateFilterTranslationKeys[key];
+    const shared = translationKey && window.KitchAI18n?.translate(translationKey);
+    return shared && shared !== translationKey ? shared : (dateFilterCopy[language()]?.[key] || dateFilterCopy.en[key] || key);
+  };
   const toLocalDate = value => { const [year,month,day]=value.split("-").map(Number); return new Date(year,month-1,day); };
   const dateKey = value => { const date=value instanceof Date?value:toLocalDate(value); return [date.getFullYear(),String(date.getMonth()+1).padStart(2,"0"),String(date.getDate()).padStart(2,"0")].join("-"); };
   const shiftDate = (value,days) => { const date=toLocalDate(value); date.setDate(date.getDate()+days); return dateKey(date); };
