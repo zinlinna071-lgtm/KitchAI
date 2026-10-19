@@ -128,7 +128,7 @@
   function renderDetail() {
     const items=state.detailType==="ingredient"?state.ingredients:state.menus;
     const item=items.find(x=>x.id===state.detailId);
-    if(!item){state.detailId=null;return state.detailType==="ingredient"?renderIngredients():renderMenus();}
+    if(!item){state.detailId=null;const page=pages.find(x=>x.id===state.managePage)||pages[0];return renderMainPage(page);}
     const menuSales=state.detailType==="menu"?state.sales.filter(s=>s.menuId===item.id):[];
     const info=state.detailType==="ingredient"
       ? '<p><b>'+esc(t("category"))+':</b> '+esc(item.category)+'</p><p><b>'+esc(t("type"))+':</b> '+esc(item.type==='reusable'?t("reusable"):t("oneTime"))+'</p>'+(item.type==='one-time'?'<p><b>'+esc(t("quantity"))+':</b> '+esc(item.quantity)+' '+esc(item.unit)+'</p><p><b>'+esc(t("price"))+':</b> '+esc(item.price)+'</p>':'')
