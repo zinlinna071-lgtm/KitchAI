@@ -171,7 +171,7 @@
     return startLabel+" – "+endLabel;
   }
   function renderDateFilterTrigger() {
-    return '<button type="button" class="ui-button ui-button--secondary date-filter-trigger" data-date-filter="open" aria-label="'+esc(dateFilterText("choose")+": "+dateFilterLabel())+'"><svg class="date-filter-trigger-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"></rect><path d="M7.5 3.5v3M16.5 3.5v3M3.5 9.5h17"></path></svg><span class="date-filter-label-compact">'+esc(compactDateFilterLabel())+'</span></button>';
+    return '<button type="button" class="ui-button ui-button--secondary date-filter-trigger" data-date-filter="open" aria-label="'+esc(dateFilterText("choose")+": "+dateFilterLabel())+'"><span class="date-filter-trigger-leading"><svg class="date-filter-trigger-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"></rect><path d="M7.5 3.5v3M16.5 3.5v3M3.5 9.5h17"></path></svg><span>'+esc((({en:"Date Picker",my:"ရက်စွဲရွေးရန်",th:"เลือกวันที่"})[language()]||"Date Picker"))+'</span></span><span class="date-filter-trigger-trailing"><span class="date-filter-label-compact">'+esc(compactDateFilterLabel())+'</span><svg class="date-filter-chevron" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg></span></button>';
   }
   function renderDateFilterPage() {
     const presets=[["today","today"],["yesterday","yesterday"],["thisWeek","thisWeek"],["last7Days","last7Days"],["thisMonth","thisMonth"],["lastMonth","lastMonth"]];
@@ -221,10 +221,28 @@
     const invalid=selectedStart&&selectedEnd&&selectedEnd<selectedStart;
     return '<section class="page-section date-filter-page" aria-labelledby="date-filter-title"><div class="date-filter-heading"><h1 id="date-filter-title">'+esc(dateFilterText("title"))+'</h1><p>'+esc(dateFilterText("description"))+'</p></div><div class="date-filter-quick-grid" role="group" aria-label="'+esc(dateFilterText("title"))+'">'+quick+'</div><section class="date-filter-custom date-filter-single" aria-labelledby="date-filter-single-title"><h2 id="date-filter-single-title">'+esc(dateFilterText("singleDate"))+'</h2><div class="date-filter-date-grid single-date-grid">'+dateField("","date-filter-single",selectedSingle)+'</div>'+(target==="single"?calendar:"")+'</section><section class="date-filter-custom" aria-labelledby="date-filter-custom-title"><h2 id="date-filter-custom-title">'+esc(dateFilterText("custom"))+'</h2><div class="date-filter-date-grid">'+dateField(dateFilterText("start"),"date-filter-start",selectedStart)+dateField(dateFilterText("end"),"date-filter-end",selectedEnd)+'</div>'+(target==="start"||target==="end"?calendar:"")+'<p class="date-filter-error" id="date-filter-error" role="alert" '+(invalid?'':'hidden')+'>'+esc(dateFilterText("invalid"))+'</p></section><div class="date-filter-actions"><button type="button" class="ui-button ui-button--secondary" data-date-filter="cancel">'+esc(dateFilterText("cancel"))+'</button></div></section>';
   }
+  const dashboardMetricCopy = {
+    en: { title:"Date Picker", summary:"Financial summary", sample:"Sample", sale:"Sale", businessExpense:"Business Expense", netProfit:"Net Profit", personalExpenses:"Personal Expenses", afterPersonal:"Remaining Profit" },
+    my: { title:"ရက်စွဲရွေးရန်", summary:"ငွေကြေးအနှစ်ချုပ်", sample:"နမူနာ", sale:"ရောင်းရငွေ", businessExpense:"လုပ်ငန်းအသုံးစရိတ်", netProfit:"အသားတင်အမြတ်", personalExpenses:"ကိုယ်ပိုင်အသုံးစရိတ်", afterPersonal:"ကျန်ရှိသောအမြတ်" },
+    th: { title:"เลือกวันที่", summary:"สรุปการเงิน", sample:"ตัวอย่าง", sale:"ยอดขาย", businessExpense:"ค่าใช้จ่ายธุรกิจ", netProfit:"กำไรสุทธิ", personalExpenses:"ค่าใช้จ่ายส่วนตัว", afterPersonal:"กำไรคงเหลือ" }
+  };
+  function renderDashboardSummary() {
+    const copy = dashboardMetricCopy[language()] || dashboardMetricCopy.en;
+    const metrics = [
+      { id:"sale", label:copy.sale, sampleValue:"฿5,000", icon:'<path d="M3 4h2l2.2 10.2a2 2 0 0 0 2 1.6h7.9a2 2 0 0 0 2-1.6L21 8H6"></path><circle cx="10" cy="20" r="1"></circle><circle cx="18" cy="20" r="1"></circle>' },
+      { id:"business-expense", label:copy.businessExpense, sampleValue:"฿1,800", icon:'<path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 1 4 16.5z"></path><path d="M4 6h16M8 10h8"></path>' },
+      { id:"net-profit", label:copy.netProfit, sampleValue:"฿3,200", icon:'<path d="M4 19V5M4 19h17"></path><path d="m7 15 4-4 3 2 5-6"></path>' },
+      { id:"personal-expenses", label:copy.personalExpenses, sampleValue:"฿500", icon:'<circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path>' },
+      { id:"profit-after-personal-spending", label:copy.afterPersonal, sampleValue:"฿2,700", icon:'<path d="M12 3v18M17 7H9.5a3.5 3.5 0 0 0 0 7H14a3 3 0 0 1 0 6H6"></path>' }
+    ];
+    return '<div class="dashboard-financial-summary" aria-label="'+esc(copy.summary)+'">'+metrics.map(metric=>'<div class="dashboard-metric dashboard-metric--'+metric.id+'" data-dashboard-metric="'+metric.id+'"><div class="dashboard-metric-heading"><span class="dashboard-metric-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+metric.icon+'</svg></span><span class="dashboard-metric-label">'+esc(metric.label)+'</span></div><strong class="dashboard-metric-value" aria-label="'+esc(metric.label+" "+metric.sampleValue)+'">'+esc(metric.sampleValue)+'</strong><span class="dashboard-metric-chevron" aria-hidden="true">&gt;</span></div>').join("")+'</div>';
+  }
   function renderMainPage(page) {
     const description = sharedTranslation("page.description." + page.id) || pageDescriptions[page.id]?.[language()] || pageDescriptions[page.id]?.en || "";
-    const dateFilter = page.id==="dashboard" ? renderDateFilterTrigger() : "";
-    return '<section class="page-section main-page-copy"><h1>'+esc(pageLabel(page))+'</h1><p>'+esc(description)+'</p>'+dateFilter+'</section>';
+    const isDashboard = page.id === "dashboard";
+    const dateFilter = isDashboard ? renderDateFilterTrigger() : "";
+    const summary = isDashboard ? renderDashboardSummary() : "";
+    return '<section class="page-section main-page-copy'+(isDashboard?' dashboard-page':'')+'"><h1>'+esc(pageLabel(page))+'</h1><p>'+esc(description)+'</p>'+(isDashboard?'<div class="dashboard-financial-panel">'+dateFilter+summary+'</div>':dateFilter+summary)+'</section>';
   }
   function money(value) { return Number(value||0).toLocaleString(undefined,{maximumFractionDigits:2}); }
   function renderMenus() {
