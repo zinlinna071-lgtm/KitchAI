@@ -52,6 +52,10 @@ test("Manage Mode exposes seven pages, preserves the Dashboard shell, and opens 
   expect(pickerWidth).toBeGreaterThanOrEqual(dashboardContentWidth - 2);
   const metrics = dashboard.locator("[data-dashboard-metric]");
   await expect(metrics).toHaveCount(5);
+  await expect(dashboard.locator(".dashboard-financial-panel")).toBeVisible();
+  await expect(dashboard.locator(".dashboard-financial-panel .date-filter-trigger")).toBeVisible();
+  await expect(metrics.locator(".dashboard-metric-chevron")).toHaveCount(5);
+  await expect(metrics.locator(".dashboard-metric-chevron").first()).toHaveText(">");
   await expect(metrics.nth(0)).toHaveAttribute("data-dashboard-metric", "sale");
   await expect(dashboard.locator('[data-dashboard-metric="business-expense"]')).toBeVisible();
   await expect(dashboard.locator('[data-dashboard-metric="net-profit"]')).toBeVisible();
