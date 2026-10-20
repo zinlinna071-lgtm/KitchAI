@@ -76,7 +76,7 @@ test("Manage Mode exposes seven pages, preserves the Dashboard shell, and opens 
   await expect(metrics.first().locator(".dashboard-metric-value")).not.toContainText("နမူနာ");
   await expect(metrics.first().locator(".dashboard-metric-value")).toContainText("฿5,000");
   await languageSelect.selectOption("en");
-  await expect(metrics.first().locator(".dashboard-metric-value")).toContainText("Sample");
+  await expect(metrics.first().locator(".dashboard-metric-value")).not.toContainText("Sample");
   await page.locator('#sidebar-content [data-page="menu"]').evaluate(element => element.click());
   const menu = page.locator("#page-content .main-page-copy");
   await expect(menu.getByRole("heading", { name: "Menu" })).toBeVisible();
