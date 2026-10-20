@@ -179,13 +179,14 @@
     const monthKey=state.dateCalendarMonth||dateKey(selectedSingle).slice(0,7);
     const monthDate=toLocalDate(monthKey+"-01");
     const year=monthDate.getFullYear(),month=monthDate.getMonth();
-    const monthTitle=monthDate.toLocaleDateString(language()==="my"?"my-MM":language()==="th"?"th-TH":"en-US",{month:"long",year:"numeric"});
-    const weekdays=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+    const calendarLocale=language()==="my"?"my-MM":language()==="th"?"th-TH":"en-US";
+    const monthTitle=monthDate.toLocaleDateString(calendarLocale,{month:"long",year:"numeric"});
+    const weekdays=Array.from({length:7},(_,i)=>new Date(2023,0,1+i).toLocaleDateString(calendarLocale,{weekday:"short"}));
     const target=state.dateCalendarTarget;
     const chosen=target==="single"?selectedSingle:target==="start"?selectedStart:selectedEnd;
     const rangeStart=selectedStart,rangeEnd=selectedEnd;
     const view=state.dateCalendarView||"day";
-    const monthNames=Array.from({length:12},(_,i)=>new Date(year,i,1).toLocaleDateString(language()==="my"?"my-MM":language()==="th"?"th-TH":"en-US",{month:"long"}));
+    const monthNames=Array.from({length:12},(_,i)=>new Date(year,i,1).toLocaleDateString(calendarLocale,{month:"long"}));
     const dayOffset=new Date(year,month,1).getDay();
     const daysInMonth=new Date(year,month+1,0).getDate();
     const cellCount=Math.ceil((dayOffset+daysInMonth)/7)*7;
