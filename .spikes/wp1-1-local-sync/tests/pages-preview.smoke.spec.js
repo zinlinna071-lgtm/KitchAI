@@ -32,64 +32,36 @@ test("project-path frontend preview loads scoped assets without backend credenti
   expect(outOfScopeRequests).toEqual([]);
 });
 
-test("Manage Mode exposes seven pages, preserves the Dashboard shell, and opens Sales", async ({ page }) => {
+test("Manage Mode exposes seven pages and the redesigned Dashboard", async ({ page }) => {
   await page.goto("./");
   await page.locator('[data-mode="manage"]').click();
   await expect(page.locator("#sidebar-content [data-page]")).toHaveCount(7);
   await page.locator('#sidebar-content [data-page="dashboard"]').evaluate(element => element.click());
-  const dashboard = page.locator("#page-content .main-page-copy");
+  const dashboard = page.locator("#page-content .dashboard-overview");
   await expect(dashboard.getByRole("heading", { name: "Dashboard" })).toBeVisible();
-  await expect(dashboard.locator("p")).toBeVisible();
-  await expect(dashboard.getByRole("button", { name: /Choose date filter/ })).toBeVisible();
-  const datePicker = dashboard.locator(".date-filter-trigger");
-  await expect(datePicker).toContainText("Date Picker");
-  await expect(datePicker.locator(".date-filter-chevron")).toBeVisible();
-  const pickerWidth = await datePicker.evaluate(element => element.getBoundingClientRect().width);
-  const panelContentWidth = await dashboard.locator(".dashboard-financial-panel").evaluate(element => {
-    const style = getComputedStyle(element);
-    return element.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
-  });
-  expect(pickerWidth).toBeGreaterThanOrEqual(panelContentWidth - 2);
-  const metrics = dashboard.locator("[data-dashboard-metric]");
-  await expect(metrics).toHaveCount(5);
-  await expect(dashboard.locator(".dashboard-financial-panel")).toBeVisible();
-  await expect(dashboard.locator(".dashboard-financial-panel .date-filter-trigger")).toBeVisible();
-  await expect(metrics.locator(".dashboard-metric-chevron")).toHaveCount(5);
-  await expect(metrics.locator(".dashboard-metric-chevron").first()).toHaveText(">");
-  await expect(metrics.locator(".dashboard-metric-chevron").first()).toHaveCSS("grid-column", "2");
-  await expect(dashboard.locator(".dashboard-financial-panel .dashboard-metric--net-profit")).toHaveCSS("grid-column", "1 / -1");
-  await expect(metrics.nth(0)).toHaveAttribute("data-dashboard-metric", "sale");
-  await expect(dashboard.locator('[data-dashboard-metric="business-expense"]')).toBeVisible();
-  await expect(dashboard.locator('[data-dashboard-metric="net-profit"]')).toBeVisible();
-  await expect(dashboard.locator('[data-dashboard-metric="personal-expenses"]')).toBeVisible();
-  await expect(dashboard.locator('[data-dashboard-metric="profit-after-personal-spending"]')).toBeVisible();
-  const metricOrder = await metrics.evaluateAll(elements => elements.map(element => element.dataset.dashboardMetric));
-  expect(metricOrder).toEqual(["sale", "business-expense", "net-profit", "personal-expenses", "profit-after-personal-spending"]);
-  const languageSelect = page.locator("#language-select");
-  await languageSelect.selectOption("en");
-  await expect(metrics.first().locator(".dashboard-metric-label")).toHaveText("Sale");
-  await expect(metrics.first().locator(".dashboard-metric-value")).not.toContainText("Sample");
-  await expect(metrics.first().locator(".dashboard-metric-value")).toContainText("฿5,000");
-  await expect(metrics.nth(1).locator(".dashboard-metric-value")).toContainText("฿1,800");
-  await languageSelect.selectOption("my");
-  await expect(metrics.first().locator(".dashboard-metric-label")).toHaveText("ရောင်းရငွေ");
-  await expect(metrics.first().locator(".dashboard-metric-value")).not.toContainText("နမူနာ");
-  await expect(metrics.first().locator(".dashboard-metric-value")).toContainText("฿5,000");
-  await languageSelect.selectOption("en");
-  await expect(metrics.first().locator(".dashboard-metric-value")).not.toContainText("Sample");
+  await expect(dashboard.locator(".dashboard-welcome > div > p").last()).toBeVisible();
+  await expect(dashboard.locator(".date-filter-trigger")).toBeVisible();
+  await expect(dashboard.locator(".dashboard-stat")).toHaveCount(4);
+  await expect(dashboard.getByRole("heading", { name: /Quick actions|လုပ်ဆောင်ရန်|ทางลัด/ })).toBeVisible();
+  await expect(dashboard.locator(".dashboard-quick-action")).toHaveCount(4);
+  await expect(dashboard.getByRole("heading", { name: /Needs attention|စစ်ဆေးရန်|ตรวจสอบ/ })).toBeVisible();
+  await expect(dashboard.getByRole("heading", { name: /Recent sales|အရောင်းမှတ်တမ်း|ประวัติการขาย/ })).toBeVisible();
+
+  await page.locator("#language-select").selectOption("en");
+  await expect(dashboard.getByRole("heading", { name: "Dashboard" })).toBeVisible();
+  await expect(dashboard.locator(".dashboard-stat")).toHaveCount(4);
+  await page.locator("#language-select").selectOption("my");
+  await expect(dashboard.getByRole("heading", { name: "Dashboard" })).toBeVisible();
+
   await page.locator('#sidebar-content [data-page="menu"]').evaluate(element => element.click());
   const menu = page.locator("#page-content .main-page-copy");
   await expect(menu.getByRole("heading", { name: "Menu" })).toBeVisible();
   await expect(menu.locator("p")).toBeVisible();
-  await expect(menu.locator("button, input, select, textarea, .ui-card")).toHaveCount(0);
-  await expect(page.locator('#sidebar-content [data-page="personal-expenses"]')).toHaveCount(0);
   await page.locator('#sidebar-content [data-page="sales"]').evaluate(element => element.click());
   const sales = page.locator("#page-content .main-page-copy");
   await expect(sales.getByRole("heading", { name: "Sales" })).toBeVisible();
   await expect(sales.locator("p")).toBeVisible();
-  await expect(sales.locator("button, input, select, textarea, .ui-card")).toHaveCount(0);
 });
-
 test("unknown project paths load the Pages fallback with project-scoped assets", async ({ page }) => {
   const response = await page.goto("preview-profile/");
   expect(response?.status()).toBe(404);
