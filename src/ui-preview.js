@@ -221,28 +221,121 @@
     const invalid=selectedStart&&selectedEnd&&selectedEnd<selectedStart;
     return '<section class="page-section date-filter-page" aria-labelledby="date-filter-title"><div class="date-filter-heading"><h1 id="date-filter-title">'+esc(dateFilterText("title"))+'</h1><p>'+esc(dateFilterText("description"))+'</p></div><div class="date-filter-quick-grid" role="group" aria-label="'+esc(dateFilterText("title"))+'">'+quick+'</div><section class="date-filter-custom date-filter-single" aria-labelledby="date-filter-single-title"><h2 id="date-filter-single-title">'+esc(dateFilterText("singleDate"))+'</h2><div class="date-filter-date-grid single-date-grid">'+dateField("","date-filter-single",selectedSingle)+'</div>'+(target==="single"?calendar:"")+'</section><section class="date-filter-custom" aria-labelledby="date-filter-custom-title"><h2 id="date-filter-custom-title">'+esc(dateFilterText("custom"))+'</h2><div class="date-filter-date-grid">'+dateField(dateFilterText("start"),"date-filter-start",selectedStart)+dateField(dateFilterText("end"),"date-filter-end",selectedEnd)+'</div>'+(target==="start"||target==="end"?calendar:"")+'<p class="date-filter-error" id="date-filter-error" role="alert" '+(invalid?'':'hidden')+'>'+esc(dateFilterText("invalid"))+'</p></section><div class="date-filter-actions"><button type="button" class="ui-button ui-button--secondary" data-date-filter="cancel">'+esc(dateFilterText("cancel"))+'</button></div></section>';
   }
-  const dashboardMetricCopy = {
-    en: { title:"Date Picker", summary:"Financial summary", sample:"Sample", sale:"Sale", businessExpense:"Business Expense", netProfit:"Net Profit", personalExpenses:"Personal Expenses", afterPersonal:"Remaining Profit" },
-    my: { title:"ရက်စွဲရွေးရန်", summary:"ငွေကြေးအနှစ်ချုပ်", sample:"နမူနာ", sale:"ရောင်းရငွေ", businessExpense:"လုပ်ငန်းအသုံးစရိတ်", netProfit:"အသားတင်အမြတ်", personalExpenses:"ကိုယ်ပိုင်အသုံးစရိတ်", afterPersonal:"ကျန်ရှိသောအမြတ်" },
-    th: { title:"เลือกวันที่", summary:"สรุปการเงิน", sample:"ตัวอย่าง", sale:"ยอดขาย", businessExpense:"ค่าใช้จ่ายธุรกิจ", netProfit:"กำไรสุทธิ", personalExpenses:"ค่าใช้จ่ายส่วนตัว", afterPersonal:"กำไรคงเหลือ" }
+  const dashboardCopy = {
+    en: {
+      today:"Today", overview:"Your business at a glance.", sales:"Sales", transactions:"Transactions",
+      lowStock:"Low stock", personalExpenses:"Personal expenses", quickActions:"Quick actions",
+      recordSale:"Record a sale", addMenu:"Add a menu item", addIngredient:"Add ingredient",
+      addExpense:"Add expense", needsAttention:"Needs attention", noAlerts:"Nothing needs attention right now.",
+      lowStockMessage:"ingredient item(s) are at or below their minimum stock level.",
+      createMenuMessage:"Add your menu items to start tracking sales.",
+      firstSaleMessage:"Record your first sale to begin tracking revenue.",
+      recentActivity:"Recent activity", recentSales:"Recent sales", noSales:"No sales recorded for this period.",
+      noRecent:"No recent activity yet.", viewSales:"View sales", viewExpenses:"View expenses",
+      salesTotal:"Recorded sales", recorded:"Recorded in selected period", unknown:"Not available yet",
+      personalExpenseHint:"Recorded personal spending", open:"Open", units:"units sold", inventory:"Inventory",
+      attention:"Review", period:"Selected period", noMenus:"Menu not set up yet"
+    },
+    my: {
+      today:"ယနေ့", overview:"လုပ်ငန်းအခြေအနေကို တစ်ချက်ကြည့်ပါ။", sales:"ရောင်းရငွေ", transactions:"အရောင်းအကြိမ်",
+      lowStock:"ကုန်ကြမ်းလက်ကျန်နည်း", personalExpenses:"ကိုယ်ပိုင်အသုံးစရိတ်", quickActions:"အမြန်လုပ်ဆောင်ရန်",
+      recordSale:"အရောင်းမှတ်တမ်းတင်ရန်", addMenu:"မီနူးအသစ်ထည့်ရန်", addIngredient:"ကုန်ကြမ်းထည့်ရန်",
+      addExpense:"အသုံးစရိတ်ထည့်ရန်", needsAttention:"သတိပြုရန်", noAlerts:"လောလောဆယ် စစ်ဆေးရန်မရှိပါ။",
+      lowStockMessage:"မျိုး ကုန်ကြမ်းလက်ကျန်သည် သတ်မှတ်အနည်းဆုံးပမာဏသို့ ရောက်နေပါသည်။",
+      createMenuMessage:"အရောင်းမှတ်တမ်းတင်ရန် မီနူးများကို အရင်ထည့်ပါ။",
+      firstSaleMessage:"ဝင်ငွေကို စတင်မှတ်တမ်းတင်ရန် ပထမဆုံးအရောင်းကို ထည့်ပါ။",
+      recentActivity:"နောက်ဆုံးမှတ်တမ်းများ", recentSales:"နောက်ဆုံးအရောင်းများ", noSales:"ဤကာလအတွက် အရောင်းမှတ်တမ်းမရှိသေးပါ။",
+      noRecent:"နောက်ဆုံးမှတ်တမ်း မရှိသေးပါ။", viewSales:"အရောင်းကြည့်ရန်", viewExpenses:"အသုံးစရိတ်ကြည့်ရန်",
+      salesTotal:"မှတ်တမ်းတင်ထားသော ရောင်းရငွေ", recorded:"ရွေးထားသောကာလအတွင်း", unknown:"မရရှိသေးပါ",
+      personalExpenseHint:"မှတ်တမ်းတင်ထားသော ကိုယ်ပိုင်အသုံးစရိတ်", open:"ဖွင့်ရန်", units:"ရောင်းချသည့်အရေအတွက်", inventory:"ကုန်ကြမ်း",
+      attention:"စစ်ဆေးရန်", period:"ရွေးထားသောကာလ", noMenus:"မီနူး မသတ်မှတ်ရသေးပါ"
+    },
+    th: {
+      today:"วันนี้", overview:"ภาพรวมธุรกิจของคุณ", sales:"ยอดขาย", transactions:"รายการขาย",
+      lowStock:"วัตถุดิบใกล้หมด", personalExpenses:"ค่าใช้จ่ายส่วนตัว", quickActions:"ทางลัด",
+      recordSale:"บันทึกการขาย", addMenu:"เพิ่มเมนู", addIngredient:"เพิ่มวัตถุดิบ",
+      addExpense:"เพิ่มค่าใช้จ่าย", needsAttention:"สิ่งที่ควรตรวจสอบ", noAlerts:"ตอนนี้ไม่มีรายการที่ต้องตรวจสอบ",
+      lowStockMessage:"รายการวัตถุดิบมีปริมาณถึงหรือต่ำกว่าระดับขั้นต่ำ",
+      createMenuMessage:"เพิ่มเมนูเพื่อเริ่มติดตามยอดขาย", firstSaleMessage:"บันทึกการขายครั้งแรกเพื่อเริ่มติดตามรายรับ",
+      recentActivity:"กิจกรรมล่าสุด", recentSales:"ยอดขายล่าสุด", noSales:"ยังไม่มีรายการขายในช่วงเวลานี้",
+      noRecent:"ยังไม่มีกิจกรรมล่าสุด", viewSales:"ดูยอดขาย", viewExpenses:"ดูค่าใช้จ่าย",
+      salesTotal:"ยอดขายที่บันทึก", recorded:"ในช่วงเวลาที่เลือก", unknown:"ยังไม่มีข้อมูล",
+      personalExpenseHint:"ค่าใช้จ่ายส่วนตัวที่บันทึก", open:"เปิด", units:"จำนวนที่ขาย", inventory:"วัตถุดิบ",
+      attention:"ตรวจสอบ", period:"ช่วงเวลาที่เลือก", noMenus:"ยังไม่ได้ตั้งค่าเมนู"
+    }
   };
-  function renderDashboardSummary() {
-    const copy = dashboardMetricCopy[language()] || dashboardMetricCopy.en;
+  function dashboardDateRange() {
+    const preset = state.dateFilter?.preset || "today";
+    const today = localToday();
+    const parts = today.split("-").map(Number);
+    const date = new Date(parts[0], parts[1] - 1, parts[2]);
+    const fmt = value => [value.getFullYear(), String(value.getMonth()+1).padStart(2,"0"), String(value.getDate()).padStart(2,"0")].join("-");
+    const shift = days => { const value = new Date(date); value.setDate(value.getDate()+days); return fmt(value); };
+    if (preset === "today") return { start:today, end:today };
+    if (preset === "yesterday") return { start:shift(-1), end:shift(-1) };
+    if (preset === "thisWeek") { const day = (date.getDay()+6)%7; return { start:shift(-day), end:today }; }
+    if (preset === "last7Days") return { start:shift(-6), end:today };
+    if (preset === "thisMonth") return { start:today.slice(0,7)+"-01", end:today };
+    if (preset === "lastMonth") { const first = new Date(parts[0],parts[1]-2,1); const last = new Date(parts[0],parts[1]-1,0); return { start:fmt(first), end:fmt(last) }; }
+    if (preset === "singleDate") { const single = state.dateFilter?.start || today; return { start:single, end:single }; }
+    if (preset === "custom") return { start:state.dateFilter?.start || "", end:state.dateFilter?.end || "" };
+    return { start:state.dateFilter?.start || "", end:state.dateFilter?.end || "" };
+  }
+  function dashboardDateMatches(value, range) {
+    const date = String(value || "");
+    return !!date && (!range.start || date >= range.start) && (!range.end || date <= range.end);
+  }
+  function renderDashboard() {
+    const copy = dashboardCopy[language()] || dashboardCopy.en;
+    const range = dashboardDateRange();
+    const sales = (Array.isArray(state.sales) ? state.sales : []).filter(item => dashboardDateMatches(item.date, range)).slice().sort((a,b)=>(String(b.date||"")+" "+String(b.time||"")).localeCompare(String(a.date||"")+" "+String(a.time||"")));
+    const personal = (Array.isArray(state.personalExpenses) ? state.personalExpenses : []).filter(item => dashboardDateMatches(item.date, range));
+    const saleTotal = sales.reduce((sum,item)=>sum+Number(item.netSale||0),0);
+    const saleUnits = sales.reduce((sum,item)=>sum+Number(item.quantity||0),0);
+    const personalTotal = personal.reduce((sum,item)=>sum+Number(item.amount||0),0);
+    const ingredients = Array.isArray(state.ingredients) ? state.ingredients : [];
+    const lowItems = ingredients.filter(item=>item.minStock!==""&&item.minStock!=null&&Number(item.currentStock||0)<=Number(item.minStock));
+    const icon = name => {
+      const paths = {
+        sale:'<path d="M3 4h2l2.2 10.2a2 2 0 0 0 2 1.6h7.9a2 2 0 0 0 2-1.6L21 8H6"></path><circle cx="10" cy="20" r="1"></circle><circle cx="18" cy="20" r="1"></circle>',
+        transactions:'<path d="M8 6h13M8 12h13M8 18h13"></path><path d="M3 6h.01M3 12h.01M3 18h.01"></path>',
+        stock:'<path d="m12 3 9 5-9 5-9-5 9-5Z"></path><path d="m3 12 9 5 9-5M3 16l9 5 9-5"></path>',
+        personal:'<circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path>',
+        add:'<path d="M12 5v14M5 12h14"></path>'
+      };
+      return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(paths[name]||paths.add)+'</svg>';
+    };
     const metrics = [
-      { id:"sale", label:copy.sale, sampleValue:"฿5,000", icon:'<path d="M3 4h2l2.2 10.2a2 2 0 0 0 2 1.6h7.9a2 2 0 0 0 2-1.6L21 8H6"></path><circle cx="10" cy="20" r="1"></circle><circle cx="18" cy="20" r="1"></circle>' },
-      { id:"business-expense", label:copy.businessExpense, sampleValue:"฿1,800", icon:'<path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 1 4 16.5z"></path><path d="M4 6h16M8 10h8"></path>' },
-      { id:"net-profit", label:copy.netProfit, sampleValue:"฿3,200", icon:'<path d="M4 19V5M4 19h17"></path><path d="m7 15 4-4 3 2 5-6"></path>' },
-      { id:"personal-expenses", label:copy.personalExpenses, sampleValue:"฿500", icon:'<circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path>' },
-      { id:"profit-after-personal-spending", label:copy.afterPersonal, sampleValue:"฿2,700", icon:'<path d="M12 3v18M17 7H9.5a3.5 3.5 0 0 0 0 7H14a3 3 0 0 1 0 6H6"></path>' }
-    ];
-    return '<div class="dashboard-financial-summary" aria-label="'+esc(copy.summary)+'">'+metrics.map(metric=>'<div class="dashboard-metric dashboard-metric--'+metric.id+'" data-dashboard-metric="'+metric.id+'"><div class="dashboard-metric-heading"><span class="dashboard-metric-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+metric.icon+'</svg></span><span class="dashboard-metric-label">'+esc(metric.label)+'</span></div><strong class="dashboard-metric-value" aria-label="'+esc(metric.label+" "+metric.sampleValue)+'">'+esc(metric.sampleValue)+'</strong><span class="dashboard-metric-chevron" aria-hidden="true">&gt;</span></div>').join("")+'</div>';
+      {label:copy.sales,value:"฿"+money(saleTotal),meta:copy.recorded,icon:"sale",kind:"sales"},
+      {label:copy.transactions,value:String(sales.length),meta:money(saleUnits)+" "+copy.units,icon:"transactions",kind:"transactions"},
+      {label:copy.lowStock,value:String(lowItems.length),meta:copy.inventory,icon:"stock",kind:"stock"},
+      {label:copy.personalExpenses,value:"฿"+money(personalTotal),meta:copy.personalExpenseHint,icon:"personal",kind:"personal"}
+    ].map(item=>'<article class="dashboard-stat dashboard-stat--'+item.kind+'"><span class="dashboard-stat-icon">'+icon(item.icon)+'</span><div class="dashboard-stat-copy"><span>'+esc(item.label)+'</span><strong>'+esc(item.value)+'</strong><small>'+esc(item.meta)+'</small></div></article>').join("");
+    const quick = [
+      {action:"dashboard-sales",label:copy.recordSale,icon:"sale"},
+      {action:"new-menu",label:copy.addMenu,icon:"add"},
+      {action:"new-ingredient",label:copy.addIngredient,icon:"stock"},
+      {action:"new-personal-expense",label:copy.addExpense,icon:"personal"}
+    ].map(item=>'<button type="button" class="dashboard-quick-action" data-action="'+item.action+'"><span>'+icon(item.icon)+'</span><strong>'+esc(item.label)+'</strong><span class="dashboard-quick-arrow" aria-hidden="true">›</span></button>').join("");
+    let attention = "";
+    if (lowItems.length) {
+      attention = '<article class="dashboard-attention-item dashboard-attention-item--warning"><span class="dashboard-attention-dot" aria-hidden="true"></span><div><strong>'+esc(copy.lowStock)+' · '+lowItems.length+'</strong><p>'+esc(lowItems.slice(0,3).map(item=>item.name||"—").join(", "))+(lowItems.length>3?" …":"")+'</p></div><button type="button" data-action="dashboard-ingredients" class="dashboard-inline-action">'+esc(copy.open)+'</button></article>';
+    } else if (!(Array.isArray(state.menus) ? state.menus : []).length) {
+      attention = '<article class="dashboard-attention-item"><span class="dashboard-attention-dot" aria-hidden="true"></span><div><strong>'+esc(copy.noMenus)+'</strong><p>'+esc(copy.createMenuMessage)+'</p></div><button type="button" data-action="new-menu" class="dashboard-inline-action">'+esc(copy.open)+'</button></article>';
+    } else if (!sales.length) {
+      attention = '<article class="dashboard-attention-item"><span class="dashboard-attention-dot" aria-hidden="true"></span><div><strong>'+esc(copy.firstSaleMessage)+'</strong><p>'+esc(copy.salesTotal)+'</p></div><button type="button" data-action="dashboard-sales" class="dashboard-inline-action">'+esc(copy.open)+'</button></article>';
+    } else {
+      attention = '<p class="dashboard-clear-state">'+esc(copy.noAlerts)+'</p>';
+    }
+    const recentRows = sales.slice(0,4).map(item=>'<button type="button" class="dashboard-recent-row" data-action="dashboard-sales"><span class="dashboard-recent-mark" aria-hidden="true">↗</span><span class="dashboard-recent-main"><strong>'+esc(item.name||"—")+'</strong><small>'+esc(item.date||"—")+(item.time?" · "+esc(item.time):"")+'</small></span><strong class="dashboard-recent-amount">฿'+esc(money(item.netSale))+'</strong></button>').join("");
+    const recent = '<section class="dashboard-panel dashboard-recent-panel"><div class="dashboard-panel-heading"><div><h2>'+esc(copy.recentSales)+'</h2><p>'+esc(copy.period)+'</p></div><button type="button" data-action="dashboard-sales" class="dashboard-text-action">'+esc(copy.viewSales)+' <span aria-hidden="true">›</span></button></div>'+(recentRows?'<div class="dashboard-recent-list">'+recentRows+'</div>':'<p class="dashboard-empty-state">'+esc(copy.noSales)+'</p>')+'</section>';
+    const attentionPanel = '<section class="dashboard-panel"><div class="dashboard-panel-heading"><div><h2>'+esc(copy.needsAttention)+'</h2><p>'+esc(copy.attention)+'</p></div></div><div class="dashboard-attention-list">'+attention+'</div></section>';
+    return '<section class="page-section dashboard-overview"><header class="dashboard-welcome"><div><p class="dashboard-eyebrow">KitchAI</p><h1>'+esc(pageLabel(pages.find(p=>p.id==="dashboard")))+'</h1><p>'+esc(copy.overview)+'</p></div><div class="dashboard-today">'+esc(copy.today)+' · '+esc(localToday())+'</div></header><div class="dashboard-filter">'+renderDateFilterTrigger()+'</div><section class="dashboard-stats" aria-label="'+esc(copy.overview)+'">'+metrics+'</section><section class="dashboard-panel dashboard-quick-panel"><div class="dashboard-panel-heading"><div><h2>'+esc(copy.quickActions)+'</h2></div></div><div class="dashboard-quick-grid">'+quick+'</div></section><div class="dashboard-lower-grid">'+attentionPanel+recent+'</div></section>';
   }
   function renderMainPage(page) {
+    if (page.id === "dashboard") return renderDashboard();
     const description = sharedTranslation("page.description." + page.id) || pageDescriptions[page.id]?.[language()] || pageDescriptions[page.id]?.en || "";
-    const isDashboard = page.id === "dashboard";
-    const dateFilter = isDashboard ? renderDateFilterTrigger() : "";
-    const summary = isDashboard ? renderDashboardSummary() : "";
-    return '<section class="page-section main-page-copy'+(isDashboard?' dashboard-page':'')+'"><h1>'+esc(pageLabel(page))+'</h1><p>'+esc(description)+'</p>'+(isDashboard?'<div class="dashboard-financial-panel">'+dateFilter+summary+'</div>':dateFilter+summary)+'</section>';
+    return '<section class="page-section main-page-copy"><h1>'+esc(pageLabel(page))+'</h1><p>'+esc(description)+'</p></section>';
   }
   function money(value) { return Number(value||0).toLocaleString(undefined,{maximumFractionDigits:2}); }
   function renderMenus() {
@@ -374,6 +467,8 @@
   function toast(message){const el=$("#toast");if(el){el.textContent=message;el.classList.add("visible");window.setTimeout(()=>el.classList.remove("visible"),2600);}}
   function categoryFor(kind,value){const name=(value||"").trim()||"Default";if(!state.categories[kind].includes(name))state.categories[kind].push(name);return name;}
   function handleAction(action){
+    if(action==="dashboard-sales"){state.managePage="sales";state.detailId=null;state.detailType=null;state.dialog=null;}
+    else if(action==="dashboard-ingredients"){state.managePage="ingredients";state.detailId=null;state.detailType=null;}
     if(action==="new-ingredient"){state.dialog="ingredient";state.editId=null;}
     else if(action==="new-personal-expense"){state.dialog="personal-expense";state.editId=null;}
     else if(action.startsWith("edit-personal-expense:")){state.editId=Number(action.split(":")[1]);state.dialog="edit-personal-expense";}
