@@ -471,9 +471,6 @@
   menuToggle?.addEventListener("click",()=>{if(drawerIsOpen())closeDrawer();else openDrawer();});sidebarMinimize?.addEventListener("click",closeDrawer);backdrop?.addEventListener("click",closeDrawer);
   document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeDrawer();if(state.dialog){state.dialog=null;render();}}});
   function updateStaticLocalizedLabels() {
-    // Keep the shared catalog locale synchronized with the selector before rendering any labels.
-    const localeBridge = /** @type {Window & { KitchAI18n?: { setLocale?: (locale: string) => string } }} */ (window);
-    localeBridge.KitchAI18n?.setLocale?.(language());
     const modeGroup = document.querySelector(".topbar-mode-switch");
     if (modeGroup) modeGroup.setAttribute("aria-label", t("navigation"));
     const aiButton = document.querySelector('[data-mode="ai"]');
@@ -493,7 +490,19 @@
     renderSidebar();
     renderPage();
   }
-  languageSelect?.addEventListener("change", updateStaticLocalizedLabels);
+  const localeBridge = /** @type {Window & { KitchAI18n?: { setLocale?: (locale: string) => string } }} */ (window);
+  // Re-render every currently mounted UI surface whenever the shared locale changes,
+  // including changes initiated outside the top-bar selector.
+  document.addEventListener("kitchai:localechange", () => {
+    if (document.documentElement) document.documentElement.lang = language();
+    updateStaticLocalizedLabels();
+    updateConnectionStatus();
+  });
+  languageSelect?.addEventListener("change", () => {
+    localeBridge.KitchAI18n?.setLocale?.(language());
+    updateStaticLocalizedLabels();
+    updateConnectionStatus();
+  });
   themeToggle?.addEventListener("click",()=>{const dark=document.documentElement.dataset.theme!=="dark";document.documentElement.dataset.theme=dark?"dark":"light";document.body.classList.toggle("dark",dark);themeToggle.setAttribute("aria-pressed",String(dark));});
   let touchGestureStart = null;
   // Suppress a swipe-generated click only when it lands near either end
