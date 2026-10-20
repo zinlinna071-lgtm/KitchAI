@@ -80,9 +80,9 @@ test("desktop swipe switches mode from both drawer and main screen", async ({ pa
   const manageMode = page.getByRole("button", { name: /Manage Mode/ });
   await expect(aiMode).toHaveAttribute("aria-pressed", "true");
 
-  await page.mouse.move(80, 260);
+  await page.mouse.move(1200, 260);
   await page.mouse.down();
-  await page.mouse.move(200, 260, { steps: 6 });
+  await page.mouse.move(1080, 260, { steps: 6 });
   await page.mouse.up();
   await expect(manageMode).toHaveAttribute("aria-pressed", "true");
 
