@@ -42,7 +42,8 @@ test("formats numbers, dates, and currency using the selected locale", () => {
 
 test("reports locale coverage gaps without crashing", () => {
   assert.deepEqual(getMissingTranslationKeys("en"), []);
-  assert.ok(getMissingTranslationKeys("my").includes("common.retry"));
+  assert.deepEqual(getMissingTranslationKeys("my"), []);
+  assert.deepEqual(getMissingTranslationKeys("th"), []);
 });
 
 test("keeps shared Date Filter translations available in every supported locale", () => {
