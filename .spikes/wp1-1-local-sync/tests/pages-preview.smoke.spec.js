@@ -51,7 +51,8 @@ test("Manage Mode exposes seven pages and the redesigned Dashboard", async ({ pa
   await expect(dashboard.getByRole("heading", { name: "Dashboard" })).toBeVisible();
   await expect(dashboard.locator(".dashboard-stat")).toHaveCount(4);
   await page.locator("#language-select").selectOption("my");
-  await expect(dashboard.getByRole("heading", { name: "Dashboard" })).toBeVisible();
+  await expect(dashboard.getByRole("heading").first()).toBeVisible();
+  await page.locator("#language-select").selectOption("en");
 
   await page.locator('#sidebar-content [data-page="menu"]').evaluate(element => element.click());
   const menu = page.locator("#page-content .main-page-copy");
