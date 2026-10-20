@@ -1175,3 +1175,37 @@ button:focus-visible,a:focus-visible,select:focus-visible,textarea:focus-visible
     padding-top: 2px;
   }
 }
+
+
+/* Give the dashboard date picker a clear, polished outline. */
+.dashboard-financial-panel input[type="date"],
+.dashboard-financial-panel .dashboard-date-picker,
+.dashboard-financial-panel .date-picker,
+.dashboard-financial-panel [class*="date-picker"] input {
+  border: 1px solid var(--line, #d7dde5);
+  border-radius: 9px;
+  background: var(--surface, #fff);
+  color: var(--text, #202733);
+  padding: 8px 10px;
+  min-height: 38px;
+  box-sizing: border-box;
+  outline-offset: 2px;
+}
+.dashboard-financial-panel input[type="date"]:focus,
+.dashboard-financial-panel .dashboard-date-picker:focus,
+.dashboard-financial-panel .date-picker:focus,
+.dashboard-financial-panel [class*="date-picker"] input:focus {
+  border-color: var(--primary, #23865f);
+  outline: 2px solid color-mix(in srgb, var(--primary, #23865f) 18%, transparent);
+}
+@media (max-width: 560px) {
+  .dashboard-financial-panel input[type="date"],
+  .dashboard-financial-panel .dashboard-date-picker,
+  .dashboard-financial-panel .date-picker,
+  .dashboard-financial-panel [class*="date-picker"] input {
+    min-height: 36px;
+    padding: 7px 8px;
+    border-radius: 8px;
+    max-width: 100%;
+  }
+}
