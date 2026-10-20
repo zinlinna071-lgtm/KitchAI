@@ -15,6 +15,8 @@ export default {
     "common.delete": "ลบ",
     "common.loading": "กำลังโหลด…",
     "common.error": "เกิดข้อผิดพลาด",
+    "common.retry": "ลองอีกครั้ง",
+    "common.items": "{count} รายการ",
     "navigation.ai": "โหมด AI",
     "navigation.manage": "โหมดจัดการ",
     "navigation.dashboard": "แดชบอร์ด",
