@@ -1343,7 +1343,7 @@ button:focus-visible,a:focus-visible,select:focus-visible,textarea:focus-visible
 .menu-detail-metrics strong{font-size:.88rem;overflow-wrap:anywhere}
 .menu-detail-actions{grid-column:1/-1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
 .menu-detail-actions .ui-button{width:100%;justify-content:center}
-.menu-detail-section{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px;min-width:0}
+.menu-detail-section{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px;min-width:0}
 .menu-detail-section-heading{display:flex;align-items:center;gap:12px;margin-bottom:12px}
 .menu-detail-icon{width:40px;height:40px;display:grid;place-items:center;border-radius:12px;background:var(--surface);color:var(--accent);font-size:1.35rem;flex:0 0 auto}
 .menu-detail-section-heading h2{font-size:1rem;margin:0 0 3px}
