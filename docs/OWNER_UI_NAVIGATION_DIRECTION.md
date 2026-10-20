@@ -54,10 +54,9 @@ The Manage Mode main navigation contains these seven destinations:
 1. **Dashboard** — a simple business overview.
 2. **Menu** — menu items offered for sale.
 3. **Ingredients** — ingredients and manually managed ingredient stock information.
-4. **Equipment & Supplies** — reusable shop/kitchen equipment and supplies.
-5. **Expenses** — business expense records.
-6. **Business Reports** — business reporting such as sales, purchases, expenses, cash summaries, and charts as supported by the app.
-7. **Settings** — app and business settings.
+4. **Expenses** — business expense records.
+5. **Business Reports** — business reporting such as sales, purchases, expenses, cash summaries, and charts as supported by the app.
+6. **Settings** — app and business settings.
 
 These are the only currently agreed Manage Mode main pages. Do not add more main pages without an explicit owner decision.
 
