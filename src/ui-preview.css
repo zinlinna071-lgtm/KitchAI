@@ -633,10 +633,10 @@ button:focus-visible,a:focus-visible,select:focus-visible,textarea:focus-visible
 .dashboard-financial-panel .dashboard-metric {
   --metric-accent: #23865f;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 12px;
+  grid-template-columns: 32px minmax(0, 1fr) 18px;
   grid-template-rows: auto auto;
   align-items: center;
-  column-gap: 6px;
+  column-gap: 9px;
   row-gap: 4px;
   min-width: 0;
   min-height: 82px;
@@ -654,19 +654,20 @@ button:focus-visible,a:focus-visible,select:focus-visible,textarea:focus-visible
   align-items: center;
   gap: 5px;
   min-width: 0;
-  grid-column: 1;
+  grid-column: 2;
   grid-row: 1;
 }
 .dashboard-financial-panel .dashboard-metric-icon {
   display: grid;
   place-items: center;
-  flex: 0 0 16px;
-  width: 16px;
-  height: 16px;
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
   color: var(--metric-accent);
-  background: transparent;
+  background: color-mix(in srgb, var(--metric-accent) 12%, var(--surface, white));
 }
-.dashboard-financial-panel .dashboard-metric-icon svg { width: 15px; height: 15px; }
+.dashboard-financial-panel .dashboard-metric-icon svg { width: 19px; height: 19px; }
 .dashboard-financial-panel .dashboard-metric-label {
   min-width: 0;
   color: var(--metric-accent);
@@ -676,7 +677,7 @@ button:focus-visible,a:focus-visible,select:focus-visible,textarea:focus-visible
   overflow-wrap: anywhere;
 }
 .dashboard-financial-panel .dashboard-metric-value {
-  grid-column: 1;
+  grid-column: 2;
   grid-row: 2;
   color: var(--metric-accent);
   font-size: 1.125rem;
@@ -689,15 +690,15 @@ button:focus-visible,a:focus-visible,select:focus-visible,textarea:focus-visible
 .dashboard-financial-panel .dashboard-metric-chevron {
   display: grid;
   place-items: center;
-  grid-column: 2;
+  grid-column: 3;
   grid-row: 1 / span 2;
   align-self: center;
   justify-self: end;
-  width: 12px;
-  height: 16px;
+  width: 18px;
+  height: 22px;
   color: var(--metric-accent);
-  font-size: 17px;
-  font-weight: 400;
+  font-size: 24px;
+  font-weight: 700;
   line-height: 1;
 }
 @media (max-width: 560px) {
@@ -709,9 +710,9 @@ button:focus-visible,a:focus-visible,select:focus-visible,textarea:focus-visible
   .dashboard-financial-panel .dashboard-financial-summary { gap: 6px; }
   .dashboard-financial-panel .dashboard-metric { grid-template-columns: minmax(0, 1fr) 10px; column-gap: 4px; row-gap: 3px; min-height: 74px; padding: 10px 8px; border-radius: 7px; }
   .dashboard-financial-panel .dashboard-metric-heading { gap: 4px; }
-  .dashboard-financial-panel .dashboard-metric-icon { flex-basis: 14px; width: 14px; height: 14px; }
-  .dashboard-financial-panel .dashboard-metric-icon svg { width: 13px; height: 13px; }
+  .dashboard-financial-panel .dashboard-metric-icon { flex-basis: 28px; width: 28px; height: 28px; border-radius: 8px; }
+  .dashboard-financial-panel .dashboard-metric-icon svg { width: 17px; height: 17px; }
   .dashboard-financial-panel .dashboard-metric-label { font-size: 0.75rem; line-height: 1.2; }
   .dashboard-financial-panel .dashboard-metric-value { font-size: 1rem; font-weight: 800; }
-  .dashboard-financial-panel .dashboard-metric-chevron { width: 10px; font-size: 15px; }
+  .dashboard-financial-panel .dashboard-metric-chevron { width: 18px; font-size: 22px; }
 }
