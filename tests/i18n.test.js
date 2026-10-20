@@ -55,6 +55,39 @@ test("notifies mounted UI modules when the selected locale changes", () => {
   }
 });
 
+test("does not emit duplicate locale-change events when locale is unchanged", () => {
+  const previousDocument = globalThis.document;
+  const listeners = new Set();
+  globalThis.document = {
+    documentElement: {},
+    addEventListener(type, listener) {
+      if (type === "kitchai:localechange") listeners.add(listener);
+    },
+    removeEventListener(type, listener) {
+      if (type === "kitchai:localechange") listeners.delete(listener);
+    },
+    dispatchEvent(event) {
+      for (const listener of listeners) listener(event);
+      return true;
+    }
+  };
+  let changes = 0;
+  const unsubscribe = onLocaleChange(() => changes++);
+  try {
+    setLocale("en");
+    setLocale("my");
+    setLocale("my");
+    setLocale("my");
+    assert.equal(changes, 1);
+    assert.equal(globalThis.document.documentElement.lang, "my");
+  } finally {
+    unsubscribe();
+    if (previousDocument === undefined) delete globalThis.document;
+    else globalThis.document = previousDocument;
+    setLocale("en");
+  }
+});
+
 test("translation falls back to English and preserves unknown keys", () => {
   setLocale("my");
   assert.equal(translate("common.save"), "သိမ်းရန်");
