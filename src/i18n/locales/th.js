@@ -75,6 +75,8 @@ export default {
     "dateFilter.chooseDate": "เลือกวันที่",
     "dateFilter.previousMonth": "เดือนก่อนหน้า",
     "dateFilter.nextMonth": "เดือนถัดไป",
+    "dateFilter.previousYears": "ปีก่อนหน้า",
+    "dateFilter.nextYears": "ปีถัดไป",
     "ai.prompt.menu": "ช่วยแนะนำเมนูสำหรับร้านตลาดกลางคืนของฉัน",
     "ai.prompt.ingredientCosts": "ช่วยอธิบายต้นทุนวัตถุดิบให้ฉันเข้าใจ",
     "ai.prompt.production": "ช่วยวางแผนการผลิตอาหารสำหรับวันนี้",
