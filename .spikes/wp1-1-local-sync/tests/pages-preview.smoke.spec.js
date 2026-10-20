@@ -32,10 +32,10 @@ test("project-path frontend preview loads scoped assets without backend credenti
   expect(outOfScopeRequests).toEqual([]);
 });
 
-test("Manage Mode exposes eight pages, preserves the Dashboard shell, and opens Personal Expenses", async ({ page }) => {
+test("Manage Mode exposes seven pages, preserves the Dashboard shell, and opens Sales", async ({ page }) => {
   await page.goto("./");
   await page.locator('[data-mode="manage"]').click();
-  await expect(page.locator("#sidebar-content [data-page]")).toHaveCount(8);
+  await expect(page.locator("#sidebar-content [data-page]")).toHaveCount(7);
   await page.locator('#sidebar-content [data-page="dashboard"]').evaluate(element => element.click());
   const dashboard = page.locator("#page-content .main-page-copy");
   await expect(dashboard.getByRole("heading", { name: "Dashboard" })).toBeVisible();
@@ -46,11 +46,12 @@ test("Manage Mode exposes eight pages, preserves the Dashboard shell, and opens 
   await expect(menu.getByRole("heading", { name: "Menu" })).toBeVisible();
   await expect(menu.locator("p")).toBeVisible();
   await expect(menu.locator("button, input, select, textarea, .ui-card")).toHaveCount(0);
-  await page.locator('#sidebar-content [data-page="personal-expenses"]').evaluate(element => element.click());
-  const personal = page.locator("#page-content .main-page-copy");
-  await expect(personal.getByRole("heading", { name: "Personal Expenses" })).toBeVisible();
-  await expect(personal.locator("p")).toBeVisible();
-  await expect(personal.locator("button, input, select, textarea, .ui-card")).toHaveCount(0);
+  await expect(page.locator('#sidebar-content [data-page="personal-expenses"]')).toHaveCount(0);
+  await page.locator('#sidebar-content [data-page="sales"]').evaluate(element => element.click());
+  const sales = page.locator("#page-content .main-page-copy");
+  await expect(sales.getByRole("heading", { name: "Sales" })).toBeVisible();
+  await expect(sales.locator("p")).toBeVisible();
+  await expect(sales.locator("button, input, select, textarea, .ui-card")).toHaveCount(0);
 });
 
 test("unknown project paths load the Pages fallback with project-scoped assets", async ({ page }) => {
