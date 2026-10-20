@@ -75,6 +75,8 @@ export default {
     "dateFilter.chooseDate": "ရက်စွဲရွေးရန်",
     "dateFilter.previousMonth": "ယခင်လ",
     "dateFilter.nextMonth": "နောက်လ",
+    "dateFilter.previousYears": "ယခင်နှစ်များ",
+    "dateFilter.nextYears": "နောက်နှစ်များ",
     "ai.prompt.menu": "ကျွန်ုပ်၏ ညဈေးဆိုင်အတွက် မီနူးအကြံပြုပါ",
     "ai.prompt.ingredientCosts": "ကုန်ကြမ်းကုန်ကျစရိတ်ကို နားလည်အောင် ကူညီပေးပါ",
     "ai.prompt.production": "ဒီနေ့အတွက် အစားအသောက်ထုတ်လုပ်မှုကို စီစဉ်ပေးပါ",

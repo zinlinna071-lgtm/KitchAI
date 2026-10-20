@@ -26,13 +26,33 @@ export function getLocale() {
   return activeLocale;
 }
 
+/**
+ * Set the active interface locale and notify mounted UI modules to re-render.
+ * New UI should subscribe with onLocaleChange() rather than watching the selector.
+ */
 export function setLocale(locale) {
   activeLocale = normalizeLocale(locale);
   if (typeof document !== "undefined" && document.documentElement) {
     document.documentElement.lang = activeLocale;
     document.documentElement.dir = catalogs[activeLocale].direction || "ltr";
+    if (typeof document.dispatchEvent === "function" && typeof Event === "function") {
+      document.dispatchEvent(new Event("kitchai:localechange"));
+    }
   }
   return activeLocale;
+}
+
+/**
+ * Subscribe a UI renderer to language changes. Call the returned function when
+ * the UI is removed to avoid retaining stale listeners.
+ * @param {(locale: string) => void} callback
+ * @param {Document | EventTarget} [target]
+ */
+export function onLocaleChange(callback, target = globalThis.document) {
+  if (!target || typeof target.addEventListener !== "function") return () => {};
+  const listener = () => callback(activeLocale);
+  target.addEventListener("kitchai:localechange", listener);
+  return () => target.removeEventListener("kitchai:localechange", listener);
 }
 
 export function translate(key, params = {}, locale = activeLocale) {

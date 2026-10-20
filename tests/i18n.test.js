@@ -7,6 +7,7 @@ import {
   getLocale,
   getMissingTranslationKeys,
   getSupportedLocales,
+  onLocaleChange,
   setLocale,
   translate
 } from "../src/i18n/index.js";
@@ -20,6 +21,38 @@ test("sets supported locales and safely falls back for unknown locales", () => {
   assert.equal(getLocale(), "my");
   assert.equal(setLocale("th_TH"), "th");
   assert.equal(setLocale("xx"), "en");
+});
+
+test("notifies mounted UI modules when the selected locale changes", () => {
+  const previousDocument = globalThis.document;
+  const listeners = new Set();
+  globalThis.document = {
+    documentElement: {},
+    addEventListener(type, listener) {
+      if (type === "kitchai:localechange") listeners.add(listener);
+    },
+    removeEventListener(type, listener) {
+      if (type === "kitchai:localechange") listeners.delete(listener);
+    },
+    dispatchEvent(event) {
+      for (const listener of listeners) listener(event);
+      return true;
+    }
+  };
+  const seen = [];
+  const unsubscribe = onLocaleChange(locale => seen.push(locale));
+  try {
+    assert.equal(setLocale("my"), "my");
+    assert.equal(setLocale("th"), "th");
+    assert.deepEqual(seen, ["my", "th"]);
+    unsubscribe();
+    setLocale("en");
+    assert.deepEqual(seen, ["my", "th"]);
+  } finally {
+    if (previousDocument === undefined) delete globalThis.document;
+    else globalThis.document = previousDocument;
+    setLocale("en");
+  }
 });
 
 test("translation falls back to English and preserves unknown keys", () => {
@@ -75,9 +108,11 @@ test("keeps shared Date Filter translations available in every supported locale"
     "connection.online", "connection.offline", "connection.statusOnline", "connection.statusOffline",
     "common.retry", "common.items",
     "app.install",
-    "ai.prompt.menu", "ai.prompt.ingredientCosts", "ai.prompt.production", "ai.prompt.stock"
+    "ai.prompt.menu", "ai.prompt.ingredientCosts", "ai.prompt.production", "ai.prompt.stock",
+    "dateFilter.previousYears", "dateFilter.nextYears"
   ];
   for (const locale of ["en", "my", "th"]) {
+    assert.deepEqual(getMissingTranslationKeys(locale), [], `${locale} must include every English catalog key`);
     const missing = new Set(getMissingTranslationKeys(locale));
     for (const key of keys) {
       assert.equal(missing.has(key), false, `${locale} is missing ${key}`);
