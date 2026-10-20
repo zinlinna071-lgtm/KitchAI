@@ -454,3 +454,126 @@ button:focus-visible,a:focus-visible,select:focus-visible,textarea:focus-visible
   .date-calendar-weekdays span { height: 28px; font-size: 11px; }
   .date-calendar-day { height: 36px; font-size: 12px; }
 }
+
+
+/* Dashboard financial summary: full-width date control and compact stacked metric rows. */
+.dashboard-page { width: 100%; max-width: none; }
+.dashboard-page > .date-filter-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  min-height: 44px;
+  margin: 16px 0 10px;
+  padding: 10px 12px;
+  text-align: left;
+  white-space: normal;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+}
+.date-filter-trigger-leading,
+.date-filter-trigger-trailing {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  gap: 8px;
+}
+.date-filter-trigger-leading { flex: 0 0 auto; }
+.date-filter-trigger-trailing { justify-content: flex-end; flex: 0 1 auto; }
+.date-filter-trigger-leading > span {
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.dashboard-page .date-filter-trigger-icon { color: var(--muted); }
+.date-filter-label-compact {
+  display: inline-block;
+  overflow: hidden;
+  max-width: 100%;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.date-filter-chevron {
+  display: block;
+  width: 15px;
+  height: 15px;
+  flex: 0 0 15px;
+  color: var(--muted);
+}
+.dashboard-financial-summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 7px;
+  width: 100%;
+  margin-top: 10px;
+}
+.dashboard-metric {
+  --metric-accent: #287b55;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  min-height: 54px;
+  padding: 9px 12px;
+  border: 1px solid color-mix(in srgb, var(--metric-accent) 18%, var(--line));
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--metric-accent) 10%, var(--surface));
+  color: var(--text);
+}
+.dashboard-metric--business-expense { --metric-accent: #b9601c; }
+.dashboard-metric--net-profit { --metric-accent: #2866c7; }
+.dashboard-metric--personal-expenses { --metric-accent: #8a43b6; }
+.dashboard-metric--profit-after-personal-spending { --metric-accent: #0c8278; }
+.dashboard-metric-icon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--metric-accent) 13%, var(--surface));
+  color: var(--metric-accent);
+}
+.dashboard-metric-icon svg { display: block; width: 18px; height: 18px; }
+.dashboard-metric-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  color: var(--metric-accent);
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+.dashboard-metric-value {
+  flex: 0 0 auto;
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 750;
+  line-height: 1.2;
+  text-align: right;
+}
+.dashboard-metric--profit-after-personal-spending {
+  border-color: color-mix(in srgb, var(--metric-accent) 35%, var(--line));
+  background: color-mix(in srgb, var(--metric-accent) 14%, var(--surface));
+}
+@media (max-width: 560px) {
+  .dashboard-page > .date-filter-trigger { min-height: 42px; margin-top: 14px; padding: 9px 10px; gap: 8px; }
+  .date-filter-trigger-leading, .date-filter-trigger-trailing { gap: 6px; }
+  .date-filter-trigger-leading > span, .date-filter-label-compact { font-size: 12px; }
+  .dashboard-page .date-filter-trigger-icon { width: 14px; height: 14px; flex-basis: 14px; }
+  .date-filter-chevron { width: 14px; height: 14px; flex-basis: 14px; }
+  .dashboard-financial-summary { gap: 6px; margin-top: 8px; }
+  .dashboard-metric { min-height: 49px; gap: 8px; padding: 8px 9px; border-radius: 9px; }
+  .dashboard-metric-icon { width: 29px; height: 29px; flex-basis: 29px; border-radius: 7px; }
+  .dashboard-metric-icon svg { width: 16px; height: 16px; }
+  .dashboard-metric-label { font-size: 12px; }
+  .dashboard-metric-value { font-size: 14px; }
+}
