@@ -61,6 +61,29 @@ test("shared shell and mobile drawer remain usable without horizontal overflow",
   await expect(page.locator(".app-shell")).toHaveClass(/sidebar-collapsed/);
 });
 
+test("desktop drawer and minimized navigation rail stay on the right", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto("/");
+  const drawer = page.locator("#sidebar");
+  const expanded = await drawer.evaluate(el => {
+    const rect = el.getBoundingClientRect();
+    return { left: rect.left, right: rect.right, width: rect.width, viewport: document.documentElement.clientWidth };
+  });
+  expect(expanded.right).toBeCloseTo(expanded.viewport, 0);
+  expect(expanded.width).toBeGreaterThan(200);
+
+  await page.locator("#sidebar-minimize").click();
+  await expect(page.locator(".app-shell")).toHaveClass(/sidebar-collapsed/);
+  const minimized = await drawer.evaluate(el => {
+    const rect = el.getBoundingClientRect();
+    return { left: rect.left, right: rect.right, width: rect.width, viewport: document.documentElement.clientWidth };
+  });
+  expect(minimized.right).toBeCloseTo(minimized.viewport, 0);
+  expect(minimized.width).toBeLessThan(100);
+  await page.locator("#menu-toggle").click();
+  await expect(page.locator(".app-shell")).not.toHaveClass(/sidebar-collapsed/);
+});
+
 test("AI Mode keeps its frontend-only chat composer", async ({ page }) => {
   const pageErrors = [];
   page.on("pageerror", error => pageErrors.push(error.message));
