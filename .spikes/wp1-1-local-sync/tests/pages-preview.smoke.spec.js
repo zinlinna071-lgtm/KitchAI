@@ -45,11 +45,11 @@ test("Manage Mode exposes seven pages, preserves the Dashboard shell, and opens 
   await expect(datePicker).toContainText("Date Picker");
   await expect(datePicker.locator(".date-filter-chevron")).toBeVisible();
   const pickerWidth = await datePicker.evaluate(element => element.getBoundingClientRect().width);
-  const dashboardContentWidth = await dashboard.evaluate(element => {
+  const panelContentWidth = await dashboard.locator(".dashboard-financial-panel").evaluate(element => {
     const style = getComputedStyle(element);
     return element.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
   });
-  expect(pickerWidth).toBeGreaterThanOrEqual(dashboardContentWidth - 2);
+  expect(pickerWidth).toBeGreaterThanOrEqual(panelContentWidth - 2);
   const metrics = dashboard.locator("[data-dashboard-metric]");
   await expect(metrics).toHaveCount(5);
   await expect(dashboard.locator(".dashboard-financial-panel")).toBeVisible();
