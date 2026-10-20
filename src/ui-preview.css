@@ -1211,31 +1211,29 @@ button:focus-visible,a:focus-visible,select:focus-visible,textarea:focus-visible
 }
 
 
-/* Dashboard date-picker button: outline the entire trigger and use plain black text/icons. */
-.dashboard-page > .dashboard-financial-panel > button.date-filter-trigger,
+/* Dashboard date-picker trigger: follow the active light/dark theme. */
 .dashboard-page > .dashboard-financial-panel > .date-filter-trigger {
-  border: 1px solid #cfd4dc;
+  border: 1px solid var(--line);
   border-radius: 9px;
   padding: 8px 10px;
-  background: #fff;
-  color: #111;
+  background: var(--surface);
+  color: var(--text);
   box-shadow: none;
 }
-.dashboard-page > .dashboard-financial-panel > button.date-filter-trigger .date-filter-trigger-leading,
-.dashboard-page > .dashboard-financial-panel > button.date-filter-trigger .date-filter-trigger-trailing,
-.dashboard-page > .dashboard-financial-panel > button.date-filter-trigger .date-filter-trigger-icon,
-.dashboard-page > .dashboard-financial-panel > button.date-filter-trigger .date-filter-label-compact,
-.dashboard-page > .dashboard-financial-panel > button.date-filter-trigger .date-filter-chevron,
 .dashboard-page > .dashboard-financial-panel > .date-filter-trigger .date-filter-trigger-leading,
 .dashboard-page > .dashboard-financial-panel > .date-filter-trigger .date-filter-trigger-trailing,
 .dashboard-page > .dashboard-financial-panel > .date-filter-trigger .date-filter-trigger-icon,
 .dashboard-page > .dashboard-financial-panel > .date-filter-trigger .date-filter-label-compact,
 .dashboard-page > .dashboard-financial-panel > .date-filter-trigger .date-filter-chevron {
-  color: #111;
+  color: var(--text);
 }
 .dashboard-page > .dashboard-financial-panel > .date-filter-trigger:hover {
-  border-color: #aeb5bf;
-  background: #fff;
+  border-color: var(--color-primary);
+  background: var(--surface-2);
+}
+.dashboard-page > .dashboard-financial-panel > .date-filter-trigger:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
 }
 @media (max-width: 560px) {
   .dashboard-page > .dashboard-financial-panel > .date-filter-trigger {
