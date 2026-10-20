@@ -65,6 +65,7 @@ test("keeps shared Date Filter translations available in every supported locale"
     "ai.suggestion.menu", "ai.suggestion.ingredientCosts", "ai.suggestion.production",
     "ai.suggestion.stock", "ai.messageSender.you",
     "connection.online", "connection.offline", "connection.statusOnline", "connection.statusOffline",
+    "app.install",
     "ai.prompt.menu", "ai.prompt.ingredientCosts", "ai.prompt.production", "ai.prompt.stock"
   ];
   for (const locale of ["en", "my", "th"]) {
