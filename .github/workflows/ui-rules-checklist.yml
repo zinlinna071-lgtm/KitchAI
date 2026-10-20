@@ -1,0 +1,59 @@
+name: UI Rules Checklist
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  ui-rules-checklist:
+    name: Require UI rules checklist for UI changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check whether the PR changes UI files
+        id: changed
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          git init repo
+          cd repo
+          git remote add origin "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}.git"
+          git fetch --no-tags --depth=1 origin "${BASE_SHA}" "${HEAD_SHA}"
+          git checkout --detach "${HEAD_SHA}"
+          if git diff --name-only "${BASE_SHA}" "${HEAD_SHA}" | grep -Eq '^(index\.html|src/|public/|styles?/|.*\.(css|scss))'; then
+            echo "ui_changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ui_changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Require all UI checklist items to be checked
+        if: steps.changed.outputs.ui_changed == 'true'
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          node --input-type=module <<'NODE'
+          const body = process.env.PR_BODY ?? "";
+          const match = body.match(/^## UI Rules Checklist\s*$([\s\S]*?)(?=^## |\s*$)/m);
+          if (!match) {
+            console.error("UI files changed, but the PR has no 'UI Rules Checklist' section.");
+            process.exit(1);
+          }
+          const items = match[1].split("\n").filter(line => /^- \[[ xX]\] /.test(line));
+          if (items.length < 7) {
+            console.error("The UI Rules Checklist is missing one or more required items.");
+            process.exit(1);
+          }
+          const unchecked = items.filter(line => !/^- \[[xX]\] /.test(line));
+          if (unchecked.length) {
+            console.error("Check every applicable UI Rules Checklist item before merge:");
+            for (const item of unchecked) console.error(item);
+            process.exit(1);
+          }
+          console.log(`UI Rules Checklist passed (${items.length} checked items).`);
+          NODE
