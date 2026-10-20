@@ -1253,12 +1253,13 @@ button:focus-visible,a:focus-visible,select:focus-visible,textarea:focus-visible
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 9px;
+  width: 56px;
+  height: 56px;
   min-width: 56px;
   min-height: 56px;
-  padding: 0 20px;
+  padding: 0;
   border: 0;
-  border-radius: 999px;
+  border-radius: 50%;
   background: var(--color-primary);
   color: var(--color-on-primary, #fff);
   box-shadow: 0 8px 24px color-mix(in srgb, var(--text) 18%, transparent);
@@ -1270,6 +1271,6 @@ button:focus-visible,a:focus-visible,select:focus-visible,textarea:focus-visible
 .menu-create-fab:hover { transform: translateY(-2px); box-shadow: 0 11px 28px color-mix(in srgb, var(--text) 22%, transparent); }
 .menu-create-fab:active { transform: translateY(0); }
 @media (max-width: 520px) {
-  .menu-create-fab { right: max(18px, env(safe-area-inset-right)); bottom: max(18px, env(safe-area-inset-bottom)); min-height: 56px; padding-inline: 18px; }
+  .menu-create-fab { right: max(18px, env(safe-area-inset-right)); bottom: max(18px, env(safe-area-inset-bottom)); width: 56px; height: 56px; }
 }
 @media (prefers-reduced-motion: reduce) { .menu-create-fab { transition: none; } }
