@@ -17,9 +17,8 @@
     { id: "dashboard", en: "Dashboard", my: "Dashboard" },
     { id: "menu", en: "Menu", my: "Menu" },
     { id: "ingredients", en: "Ingredients", my: "ကုန်ကြမ်းပစ္စည်းများ" },
-    { id: "equipment", en: "Equipment & Supplies", my: "ပစ္စည်းကိရိယာနှင့် အသုံးအဆောင်များ" },
+    { id: "sales", en: "Sales", my: "အရောင်း" },
     { id: "expenses", en: "Expenses", my: "လုပ်ငန်းအသုံးစရိတ်" },
-    { id: "personal-expenses", en: "Personal Expenses", my: "တကိုယ်ရည်အသုံးစရိတ်" },
     { id: "reports", en: "Business Reports", my: "လုပ်ငန်းအစီရင်ခံစာများ" },
     { id: "settings", en: "Settings", my: "Settings" }
   ];
@@ -27,9 +26,8 @@
     dashboard: { en: "A clear overview of your kitchen business.", my: "သင့်အစားအသောက်လုပ်ငန်း၏ အခြေအနေကို တစ်နေရာတည်းမှ ကြည့်ရှုနိုင်သည်။", th: "ดูภาพรวมธุรกิจอาหารของคุณได้ในที่เดียว" },
     menu: { en: "Manage the food and drinks you offer and their selling prices.", my: "ရောင်းချမည့် အစားအသောက်များနှင့် ရောင်းဈေးများကို စီမံပါ။", th: "จัดการรายการอาหารและเครื่องดื่มพร้อมราคาขาย" },
     ingredients: { en: "Keep your ingredient and raw-material records organized.", my: "ကုန်ကြမ်းနှင့် ပါဝင်ပစ္စည်းများ၏ မှတ်တမ်းများကို စနစ်တကျ ထိန်းသိမ်းပါ။", th: "จัดระเบียบข้อมูลวัตถุดิบและส่วนผสมของคุณ" },
-    equipment: { en: "Keep track of business equipment and everyday supplies.", my: "လုပ်ငန်းသုံးပစ္စည်းကိရိယာများနှင့် နေ့စဉ်အသုံးအဆောင်များကို မှတ်တမ်းတင်ပါ။", th: "ติดตามอุปกรณ์ธุรกิจและของใช้ประจำวัน" },
+    sales: { en: "Record sales and review your sales history.", my: "အရောင်းမှတ်တမ်းတင်ပြီး အရောင်းမှတ်တမ်းဟောင်းများကို ပြန်ကြည့်ပါ။", th: "บันทึกยอดขายและดูประวัติการขาย" },
     expenses: { en: "Record and review the costs of running your business.", my: "လုပ်ငန်းလည်ပတ်မှုအတွက် ကုန်ကျစရိတ်များကို မှတ်တမ်းတင်ပြီး ပြန်လည်စစ်ဆေးပါ။", th: "บันทึกและตรวจสอบค่าใช้จ่ายในการดำเนินธุรกิจ" },
-    "personal-expenses": { en: "Track personal spending separately from business expenses.", my: "ကိုယ်ပိုင်အသုံးစရိတ်ကို လုပ်ငန်းအသုံးစရိတ်နှင့် သီးခြားမှတ်တမ်းတင်ပါ။", th: "ติดตามรายจ่ายส่วนตัวแยกจากรายจ่ายธุรกิจ" },
     reports: { en: "Review business performance and recorded activity.", my: "လုပ်ငန်း၏ ရလဒ်များနှင့် မှတ်တမ်းတင်ထားသော လုပ်ဆောင်ချက်များကို ပြန်လည်ကြည့်ရှုပါ။", th: "ตรวจสอบผลการดำเนินงานและกิจกรรมที่บันทึกไว้" },
     settings: { en: "Adjust your KitchAI workspace preferences.", my: "KitchAI အသုံးပြုမှုဆိုင်ရာ သတ်မှတ်ချက်များကို ပြင်ဆင်ပါ။", th: "ปรับการตั้งค่าการใช้งาน KitchAI ของคุณ" }
   };
@@ -80,7 +78,7 @@
     const value = sharedWindow.KitchAI18n?.translate(key);
     return value && value !== key ? value : "";
   };
-  const pageTranslationKeys = { dashboard: "navigation.dashboard", menu: "navigation.menu", ingredients: "navigation.ingredients", equipment: "navigation.equipment", expenses: "navigation.expenses", "personal-expenses": "navigation.personalExpenses", reports: "navigation.reports", settings: "navigation.settings" };
+  const pageTranslationKeys = { dashboard: "navigation.dashboard", menu: "navigation.menu", ingredients: "navigation.ingredients", sales: "navigation.sales", expenses: "navigation.expenses", reports: "navigation.reports", settings: "navigation.settings" };
   const pageLabel = page => sharedTranslation(pageTranslationKeys[page.id]) || page[language()] || page.en;
   const isDesktop = () => window.matchMedia("(min-width: 761px)").matches;
   const openDrawer = () => {
@@ -117,7 +115,7 @@
       }
       sidebarContent.innerHTML=html;return;
     }
-    sidebarContent.innerHTML='<div class="nav-section-label">'+esc(sharedTranslation("navigation.manage")||t("navigation"))+'</div>'+pages.map(page=>'<button type="button" class="nav-item'+(state.managePage===page.id?' active':'')+'" data-page="'+page.id+'" aria-current="'+(state.managePage===page.id?'page':'false')+'" title="'+esc(pageLabel(page))+'"><span class="nav-icon" aria-hidden="true">'+({dashboard:"▦",menu:"≡",ingredients:"◈",equipment:"□",expenses:"−","personal-expenses":"◷",reports:"▥",settings:"⚙"}[page.id])+'</span><span>'+esc(pageLabel(page))+'</span></button>').join("");
+    sidebarContent.innerHTML='<div class="nav-section-label">'+esc(sharedTranslation("navigation.manage")||t("navigation"))+'</div>'+pages.map(page=>'<button type="button" class="nav-item'+(state.managePage===page.id?' active':'')+'" data-page="'+page.id+'" aria-current="'+(state.managePage===page.id?'page':'false')+'" title="'+esc(pageLabel(page))+'"><span class="nav-icon" aria-hidden="true">'+({dashboard:"▦",menu:"≡",ingredients:"◈",sales:"↗",expenses:"−",reports:"▥",settings:"⚙"}[page.id])+'</span><span>'+esc(pageLabel(page))+'</span></button>').join("");
   }
   function pageHeader(title, intro, actions="") {
     return '<section class="page-section"><div class="ui-row ui-row--mobile-stack" style="justify-content:space-between;align-items:flex-start"><div><p class="eyebrow">'+esc(t("manage"))+'</p><h1>'+esc(title)+'</h1><p>'+esc(intro)+'</p></div><div class="ui-row">'+actions+'</div></div>';
