@@ -79,6 +79,7 @@ test("keeps shared Date Filter translations available in every supported locale"
     "dateFilter.previousYears", "dateFilter.nextYears"
   ];
   for (const locale of ["en", "my", "th"]) {
+    assert.deepEqual(getMissingTranslationKeys(locale), [], `${locale} must include every English catalog key`);
     const missing = new Set(getMissingTranslationKeys(locale));
     for (const key of keys) {
       assert.equal(missing.has(key), false, `${locale} is missing ${key}`);
