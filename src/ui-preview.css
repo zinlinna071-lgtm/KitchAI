@@ -649,20 +649,16 @@ button:focus-visible,a:focus-visible,select:focus-visible,textarea:focus-visible
 .dashboard-financial-panel .dashboard-metric--net-profit { --metric-accent: #356eb1; grid-column: 1 / -1; }
 .dashboard-financial-panel .dashboard-metric--personal-expenses { --metric-accent: #8155a8; }
 .dashboard-financial-panel .dashboard-metric--profit-after-personal-spending { --metric-accent: #258c88; }
-.dashboard-financial-panel .dashboard-metric-heading {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  min-width: 0;
-  grid-column: 2;
-  grid-row: 1;
-}
+.dashboard-financial-panel .dashboard-metric-heading { display: contents; }
 .dashboard-financial-panel .dashboard-metric-icon {
   display: grid;
   place-items: center;
   flex: 0 0 32px;
   width: 32px;
   height: 32px;
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  align-self: center;
   border-radius: 9px;
   color: var(--metric-accent);
   background: color-mix(in srgb, var(--metric-accent) 12%, var(--surface, white));
@@ -670,6 +666,8 @@ button:focus-visible,a:focus-visible,select:focus-visible,textarea:focus-visible
 .dashboard-financial-panel .dashboard-metric-icon svg { width: 19px; height: 19px; }
 .dashboard-financial-panel .dashboard-metric-label {
   min-width: 0;
+  grid-column: 2;
+  grid-row: 1;
   color: var(--metric-accent);
   font-size: 0.8125rem;
   font-weight: 600;
@@ -709,7 +707,6 @@ button:focus-visible,a:focus-visible,select:focus-visible,textarea:focus-visible
   .dashboard-financial-panel .date-filter-trigger-trailing { gap: 3px; font-size: 0.75rem; }
   .dashboard-financial-panel .dashboard-financial-summary { gap: 6px; }
   .dashboard-financial-panel .dashboard-metric { grid-template-columns: minmax(0, 1fr) 10px; column-gap: 4px; row-gap: 3px; min-height: 74px; padding: 10px 8px; border-radius: 7px; }
-  .dashboard-financial-panel .dashboard-metric-heading { gap: 4px; }
   .dashboard-financial-panel .dashboard-metric-icon { flex-basis: 28px; width: 28px; height: 28px; border-radius: 8px; }
   .dashboard-financial-panel .dashboard-metric-icon svg { width: 17px; height: 17px; }
   .dashboard-financial-panel .dashboard-metric-label { font-size: 0.75rem; line-height: 1.2; }
