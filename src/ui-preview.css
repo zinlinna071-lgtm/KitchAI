@@ -1014,3 +1014,67 @@ button:focus-visible,a:focus-visible,select:focus-visible,textarea:focus-visible
   .dashboard-financial-panel .dashboard-metric-value { font-size: 0.78rem; }
   .dashboard-financial-panel .dashboard-metric-chevron { width: 10px; font-size: 18px; }
 }
+
+
+/* Dashboard refinement: smaller labels/icons, prominent figures, no card arrows. */
+.dashboard-financial-panel .dashboard-metric {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  row-gap: 8px;
+  min-height: 88px;
+  padding: 10px 12px;
+  border-radius: 10px;
+}
+.dashboard-financial-panel .dashboard-metric-heading {
+  grid-column: 1;
+  grid-row: 1;
+  gap: 6px;
+}
+.dashboard-financial-panel .dashboard-metric-icon {
+  flex: 0 0 20px;
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
+}
+.dashboard-financial-panel .dashboard-metric-icon svg {
+  width: 18px;
+  height: 18px;
+}
+.dashboard-financial-panel .dashboard-metric-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+.dashboard-financial-panel .dashboard-metric-value {
+  grid-column: 1;
+  grid-row: 2;
+  color: var(--metric-accent);
+  font-size: 1.375rem;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+  text-align: left;
+}
+.dashboard-financial-panel .dashboard-metric-chevron {
+  display: none;
+}
+@media (max-width: 560px) {
+  .dashboard-financial-panel .dashboard-financial-summary { gap: 7px; }
+  .dashboard-financial-panel .dashboard-metric {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    row-gap: 7px;
+    min-height: 76px;
+    padding: 9px 9px;
+    border-radius: 9px;
+  }
+  .dashboard-financial-panel .dashboard-metric-heading { gap: 5px; }
+  .dashboard-financial-panel .dashboard-metric-icon {
+    flex-basis: 18px;
+    width: 18px;
+    height: 18px;
+  }
+  .dashboard-financial-panel .dashboard-metric-icon svg { width: 17px; height: 17px; }
+  .dashboard-financial-panel .dashboard-metric-label { font-size: 0.75rem; line-height: 1.2; }
+  .dashboard-financial-panel .dashboard-metric-value { font-size: 1.2rem; font-weight: 800; }
+}
