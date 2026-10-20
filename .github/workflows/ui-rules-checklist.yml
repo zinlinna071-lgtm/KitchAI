@@ -39,11 +39,15 @@ jobs:
         run: |
           node --input-type=module <<'NODE'
           const body = process.env.PR_BODY ?? "";
-          const match = body.match(/^## UI Rules Checklist\s*$([\s\S]*?)(?=^## |\s*$)/m);
-          if (!match) {
+          const heading = /^## UI Rules Checklist\\s*$/m.exec(body);
+          if (!heading) {
             console.error("UI files changed, but the PR has no 'UI Rules Checklist' section.");
             process.exit(1);
           }
+          const sectionStart = heading.index + heading[0].length;
+          const remainder = body.slice(sectionStart);
+          const nextHeading = /^## /m.exec(remainder);
+          const section = nextHeading ? remainder.slice(0, nextHeading.index) : remainder;
           const items = match[1].split("\n").filter(line => /^- \[[ xX]\] /.test(line));
           if (items.length < 7) {
             console.error("The UI Rules Checklist is missing one or more required items.");
