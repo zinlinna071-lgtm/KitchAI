@@ -15,6 +15,8 @@ export default {
     "common.delete": "ဖျက်ရန်",
     "common.loading": "ဖွင့်နေသည်…",
     "common.error": "အမှားတစ်ခု ဖြစ်ပွားခဲ့သည်။",
+    "common.retry": "ထပ်မံကြိုးစားရန်",
+    "common.items": "{count} ခု",
     "navigation.ai": "AI Mode",
     "navigation.manage": "Manage Mode",
     "navigation.dashboard": "Dashboard",
