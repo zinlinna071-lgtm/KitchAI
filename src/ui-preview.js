@@ -246,7 +246,11 @@
   }
   function money(value) { return Number(value||0).toLocaleString(undefined,{maximumFractionDigits:2}); }
   function renderMenus() {
-    return '<section class="page-section menu-page" aria-label="' + esc(pageLabel(pages.find(p=>p.id==="menu"))) + '" style="min-height:65vh"><button type="button" class="menu-create-fab" data-action="new-menu" aria-label="' + esc(t("addMenu")) + '" title="' + esc(t("addMenu")) + '"><span aria-hidden="true">+</span></button></section>';
+    const page = pages.find(p => p.id === "menu");
+    const hasMenus = Array.isArray(state.menus) && state.menus.length > 0;
+    const createButton = '<button type="button" class="ui-button ui-button--primary menu-create-button" data-action="new-menu"><span aria-hidden="true">+</span><span>' + esc(t("addMenu")) + '</span></button>';
+    const emptyState = hasMenus ? '' : '<div class="menu-empty-state"><div class="menu-empty-icon" aria-hidden="true">▤</div><h2>' + esc(t("menuEmpty")) + '</h2><p>' + esc(t("menuEmptyCopy")) + '</p>' + createButton + '</div>';
+    return '<section class="page-section menu-page" aria-label="' + esc(pageLabel(page)) + '"><header class="menu-page-heading"><div><h1>' + esc(pageLabel(page)) + '</h1><p>' + esc(t("menuIntro")) + '</p></div>' + createButton + '</header>' + emptyState + '</section>';
   }
   function localToday() {
     const now = new Date();
