@@ -246,7 +246,7 @@
   }
   function money(value) { return Number(value||0).toLocaleString(undefined,{maximumFractionDigits:2}); }
   function renderMenus() {
-    return '<section class="page-section" aria-label="' + esc(pageLabel(pages.find(p=>p.id==="menu"))) + '" style="min-height:65vh"></section>';
+    return '<section class="page-section menu-page" aria-label="' + esc(pageLabel(pages.find(p=>p.id==="menu"))) + '" style="min-height:65vh"><button type="button" class="menu-create-fab" data-action="new-menu" aria-label="' + esc(t("addMenu")) + '" title="' + esc(t("addMenu")) + '"><span aria-hidden="true">+</span><span class="menu-create-fab-label">' + esc(t("addMenu")) + '</span></button></section>';
   }
   function localToday() {
     const now = new Date();
@@ -287,7 +287,7 @@
     if(state.dialog){pageContent.innerHTML=renderDialog();return;}
     if(state.detailId){pageContent.innerHTML=renderDetail();return;}
     const page=pages.find(x=>x.id===state.managePage)||pages[0];
-    pageContent.innerHTML=renderMainPage(page);
+    pageContent.innerHTML=page.id==="menu"?renderMenus():renderMainPage(page);
   }
   function renderDialog() {
     const d=state.dialog;
