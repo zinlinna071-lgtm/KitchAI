@@ -47,7 +47,17 @@ test("shared shell and mobile drawer remain usable without horizontal overflow",
   expect(dimensions.content).toBeLessThanOrEqual(dimensions.viewport);
   await page.getByRole("button", { name: "Open navigation" }).click();
   await expect(page.locator(".app-shell")).not.toHaveClass(/sidebar-collapsed/);
-  await page.locator("#menu-toggle").click();
+  const drawerBounds = await page.locator("#sidebar").evaluate(el => {
+    const rect = el.getBoundingClientRect();
+    return { left: rect.left, right: rect.right, viewport: document.documentElement.clientWidth };
+  });
+  expect(drawerBounds.right).toBeCloseTo(drawerBounds.viewport, 0);
+  expect(drawerBounds.left).toBeGreaterThan(0);
+  await page.locator("#sidebar-minimize").click();
+  await expect(page.locator(".app-shell")).toHaveClass(/sidebar-collapsed/);
+  await page.getByRole("button", { name: "Open navigation" }).click();
+  await expect(page.locator(".app-shell")).not.toHaveClass(/sidebar-collapsed/);
+  await page.locator("#sidebar-backdrop").click();
   await expect(page.locator(".app-shell")).toHaveClass(/sidebar-collapsed/);
 });
 
