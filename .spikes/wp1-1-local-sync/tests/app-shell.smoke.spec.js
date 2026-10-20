@@ -214,6 +214,11 @@ test("capture desktop and mobile UI previews for review", async ({ page }) => {
       await expect(dashboard.getByRole("heading", { name: title, exact: true })).toBeVisible();
       await expect(dashboard.locator(".date-filter-trigger")).toBeVisible();
       await expect(dashboard.locator(".dashboard-stat")).toHaveCount(4);
+    } else if (pageId === "menu") {
+      const menu = page.locator("#page-content .menu-page");
+      await expect(menu.getByRole("heading", { name: title, exact: true })).toBeVisible();
+      await expect(menu.locator("#menu-search")).toBeVisible();
+      await expect(menu.locator(".menu-empty-state")).toBeVisible();
     } else {
       const pageCopy = page.locator("#page-content .main-page-copy");
       await expect(pageCopy.getByRole("heading", { name: title, exact: true })).toBeVisible();
