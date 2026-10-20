@@ -905,3 +905,112 @@ button:focus-visible,a:focus-visible,select:focus-visible,textarea:focus-visible
   .dashboard-financial-panel .dashboard-metric-value { font-size: 0.82rem; }
   .dashboard-financial-panel .dashboard-metric-chevron { width: 12px; font-size: 20px; }
 }
+
+
+/* Final dashboard card treatment: compact, consistent with KitchAI surfaces. */
+.dashboard-financial-panel .dashboard-financial-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  width: 100%;
+  margin: 0;
+}
+.dashboard-financial-panel .dashboard-metric {
+  --metric-accent: #23865f;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 14px;
+  grid-template-rows: auto auto;
+  align-items: center;
+  column-gap: 10px;
+  row-gap: 18px;
+  min-width: 0;
+  min-height: 112px;
+  padding: 16px;
+  border: 1px solid color-mix(in srgb, var(--metric-accent) 20%, var(--line));
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--metric-accent) 5%, var(--surface, white));
+  color: var(--text);
+  box-shadow: none;
+}
+.dashboard-financial-panel .dashboard-metric--business-expense { --metric-accent: #a66c1d; }
+.dashboard-financial-panel .dashboard-metric--net-profit { --metric-accent: #356eb1; grid-column: 1 / -1; }
+.dashboard-financial-panel .dashboard-metric--personal-expenses { --metric-accent: #8155a8; }
+.dashboard-financial-panel .dashboard-metric--profit-after-personal-spending { --metric-accent: #258c88; }
+.dashboard-financial-panel .dashboard-metric-heading {
+  display: flex;
+  align-items: center;
+  grid-column: 1;
+  grid-row: 1;
+  gap: 10px;
+  min-width: 0;
+}
+.dashboard-financial-panel .dashboard-metric-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--metric-accent);
+}
+.dashboard-financial-panel .dashboard-metric-icon svg {
+  display: block;
+  width: 26px;
+  height: 26px;
+}
+.dashboard-financial-panel .dashboard-metric-label {
+  min-width: 0;
+  color: var(--metric-accent);
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+.dashboard-financial-panel .dashboard-metric-value {
+  grid-column: 1;
+  grid-row: 2;
+  min-width: 0;
+  color: var(--muted);
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 1.35;
+  text-align: left;
+  letter-spacing: 0;
+  font-variant-numeric: tabular-nums;
+}
+.dashboard-financial-panel .dashboard-metric-chevron {
+  display: grid;
+  place-items: center;
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: center;
+  justify-self: end;
+  width: 14px;
+  height: 20px;
+  color: var(--muted);
+  font-size: 22px;
+  font-weight: 400;
+  line-height: 1;
+}
+@media (max-width: 560px) {
+  .dashboard-financial-panel .dashboard-financial-summary { gap: 8px; }
+  .dashboard-financial-panel .dashboard-metric {
+    grid-template-columns: minmax(0, 1fr) 10px;
+    column-gap: 6px;
+    row-gap: 14px;
+    min-height: 104px;
+    padding: 12px 10px;
+    border-radius: 10px;
+  }
+  .dashboard-financial-panel .dashboard-metric-heading { gap: 7px; }
+  .dashboard-financial-panel .dashboard-metric-icon {
+    flex-basis: 23px;
+    width: 23px;
+    height: 23px;
+  }
+  .dashboard-financial-panel .dashboard-metric-icon svg { width: 23px; height: 23px; }
+  .dashboard-financial-panel .dashboard-metric-label { font-size: 0.9rem; }
+  .dashboard-financial-panel .dashboard-metric-value { font-size: 0.78rem; }
+  .dashboard-financial-panel .dashboard-metric-chevron { width: 10px; font-size: 18px; }
+}
