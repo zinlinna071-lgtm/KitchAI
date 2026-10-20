@@ -30,6 +30,12 @@ test("translation falls back to English and preserves unknown keys", () => {
   assert.equal(translate("missing.key"), "missing.key");
 });
 
+test("localizes Myanmar navigation labels", () => {
+  assert.equal(translate("navigation.ai", {}, "my"), "AI အသုံးပြုမှု");
+  assert.equal(translate("navigation.manage", {}, "my"), "စီမံခန့်ခွဲမှု");
+  assert.equal(translate("navigation.dashboard", {}, "my"), "ပင်မစာမျက်နှာ");
+});
+
 test("supports named interpolation", () => {
   assert.equal(translate("common.items", { count: 3 }, "en"), "3 items");
 });
