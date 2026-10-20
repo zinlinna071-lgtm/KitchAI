@@ -71,6 +71,10 @@ export default {
     "dateFilter.choose": "ရက်စွဲ Filter ရွေးရန်",
     "dateFilter.chooseDate": "ရက်စွဲရွေးရန်",
     "dateFilter.previousMonth": "ယခင်လ",
-    "dateFilter.nextMonth": "နောက်လ"
+    "dateFilter.nextMonth": "နောက်လ",
+    "ai.prompt.menu": "ကျွန်ုပ်၏ ညဈေးဆိုင်အတွက် မီနူးအကြံပြုပါ",
+    "ai.prompt.ingredientCosts": "ကုန်ကြမ်းကုန်ကျစရိတ်ကို နားလည်အောင် ကူညီပေးပါ",
+    "ai.prompt.production": "ဒီနေ့အတွက် အစားအသောက်ထုတ်လုပ်မှုကို စီစဉ်ပေးပါ",
+    "ai.prompt.stock": "လက်ကျန်ပစ္စည်းတွေမှာ ဘာတွေစစ်ဆေးသင့်သလဲ",
   }
 };
