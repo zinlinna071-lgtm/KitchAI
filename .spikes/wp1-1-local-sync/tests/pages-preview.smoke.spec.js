@@ -65,6 +65,16 @@ test("Manage Mode exposes seven pages, preserves the Dashboard shell, and opens 
   await expect(dashboard.locator('[data-dashboard-metric="profit-after-personal-spending"]')).toBeVisible();
   const metricOrder = await metrics.evaluateAll(elements => elements.map(element => element.dataset.dashboardMetric));
   expect(metricOrder).toEqual(["sale", "business-expense", "net-profit", "personal-expenses", "profit-after-personal-spending"]);
+  const languageSelect = page.locator("#language-select");
+  await languageSelect.selectOption("en");
+  await expect(metrics.first().locator(".dashboard-metric-label")).toHaveText("Sale");
+  await expect(metrics.first().locator(".dashboard-metric-value")).toHaveText("No data yet");
+  await expect(metrics.nth(1).locator(".dashboard-metric-value")).toHaveText("No data yet");
+  await languageSelect.selectOption("my");
+  await expect(metrics.first().locator(".dashboard-metric-label")).toHaveText("ရောင်းရငွေ");
+  await expect(metrics.first().locator(".dashboard-metric-value")).toHaveText("အချက်အလက် မရှိသေးပါ");
+  await languageSelect.selectOption("en");
+  await expect(metrics.first().locator(".dashboard-metric-value")).toHaveText("No data yet");
   await page.locator('#sidebar-content [data-page="menu"]').evaluate(element => element.click());
   const menu = page.locator("#page-content .main-page-copy");
   await expect(menu.getByRole("heading", { name: "Menu" })).toBeVisible();
