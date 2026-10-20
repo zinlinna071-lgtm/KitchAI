@@ -75,6 +75,8 @@ export default {
     "dateFilter.chooseDate": "Choose date",
     "dateFilter.previousMonth": "Previous month",
     "dateFilter.nextMonth": "Next month",
+    "dateFilter.previousYears": "Previous years",
+    "dateFilter.nextYears": "Next years",
     "ai.prompt.menu": "Suggest a menu for my night market stall",
     "ai.prompt.ingredientCosts": "Help me understand ingredient costs",
     "ai.prompt.production": "Help me plan today’s food production",
