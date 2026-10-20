@@ -561,6 +561,7 @@
     connectionStatus.textContent = statusText;
     connectionStatus.dataset.state = online ? "online" : "offline";
     connectionStatus.setAttribute("aria-label", statusLabel);
+    if (installButton) installButton.textContent = sharedTranslation("app.install") || "Install app";
   }
   window.addEventListener("online", updateConnectionStatus);
   window.addEventListener("offline", updateConnectionStatus);
