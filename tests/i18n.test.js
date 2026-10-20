@@ -75,7 +75,8 @@ test("keeps shared Date Filter translations available in every supported locale"
     "connection.online", "connection.offline", "connection.statusOnline", "connection.statusOffline",
     "common.retry", "common.items",
     "app.install",
-    "ai.prompt.menu", "ai.prompt.ingredientCosts", "ai.prompt.production", "ai.prompt.stock"
+    "ai.prompt.menu", "ai.prompt.ingredientCosts", "ai.prompt.production", "ai.prompt.stock",
+    "dateFilter.previousYears", "dateFilter.nextYears"
   ];
   for (const locale of ["en", "my", "th"]) {
     const missing = new Set(getMissingTranslationKeys(locale));
