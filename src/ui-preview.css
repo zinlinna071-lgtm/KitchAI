@@ -807,3 +807,101 @@ button:focus-visible,a:focus-visible,select:focus-visible,textarea:focus-visible
     font-size: 16px;
   }
 }
+
+
+/* Match the requested reference: icon + English title on top, Burmese status below. */
+.dashboard-financial-panel .dashboard-financial-summary {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 0;
+}
+.dashboard-financial-panel .dashboard-metric {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 16px;
+  grid-template-rows: auto auto;
+  align-items: center;
+  column-gap: 10px;
+  row-gap: 20px;
+  min-height: 156px;
+  padding: 22px 18px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface, white);
+}
+.dashboard-financial-panel .dashboard-metric-heading {
+  display: flex;
+  align-items: center;
+  grid-column: 1;
+  grid-row: 1;
+  gap: 12px;
+  min-width: 0;
+}
+.dashboard-financial-panel .dashboard-metric-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  border-radius: 0;
+  background: transparent;
+}
+.dashboard-financial-panel .dashboard-metric-icon svg {
+  display: block;
+  width: 30px;
+  height: 30px;
+}
+.dashboard-financial-panel .dashboard-metric-label {
+  min-width: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+.dashboard-financial-panel .dashboard-metric-value {
+  grid-column: 1;
+  grid-row: 2;
+  color: var(--muted);
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.35;
+  text-align: left;
+  letter-spacing: 0;
+}
+.dashboard-financial-panel .dashboard-metric-chevron {
+  display: grid;
+  place-items: center;
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: center;
+  justify-self: end;
+  width: 16px;
+  height: 24px;
+  color: var(--muted);
+  font-size: 24px;
+  font-weight: 400;
+  line-height: 1;
+}
+.dashboard-financial-panel .dashboard-metric--net-profit {
+  grid-column: 1 / -1;
+}
+@media (max-width: 560px) {
+  .dashboard-financial-panel .dashboard-financial-summary { gap: 8px; }
+  .dashboard-financial-panel .dashboard-metric {
+    grid-template-columns: minmax(0, 1fr) 12px;
+    column-gap: 6px;
+    row-gap: 18px;
+    min-height: 112px;
+    padding: 14px 10px;
+    border-radius: 12px;
+  }
+  .dashboard-financial-panel .dashboard-metric-heading { gap: 7px; }
+  .dashboard-financial-panel .dashboard-metric-icon {
+    flex-basis: 24px;
+    width: 24px;
+    height: 24px;
+  }
+  .dashboard-financial-panel .dashboard-metric-icon svg { width: 24px; height: 24px; }
+  .dashboard-financial-panel .dashboard-metric-label { font-size: 0.95rem; }
+  .dashboard-financial-panel .dashboard-metric-value { font-size: 0.82rem; }
+  .dashboard-financial-panel .dashboard-metric-chevron { width: 12px; font-size: 20px; }
+}
