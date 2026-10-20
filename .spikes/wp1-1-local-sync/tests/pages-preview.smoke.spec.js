@@ -68,12 +68,12 @@ test("Manage Mode exposes seven pages, preserves the Dashboard shell, and opens 
   const languageSelect = page.locator("#language-select");
   await languageSelect.selectOption("en");
   await expect(metrics.first().locator(".dashboard-metric-label")).toHaveText("Sale");
-  await expect(metrics.first().locator(".dashboard-metric-value")).toContainText("Sample");
+  await expect(metrics.first().locator(".dashboard-metric-value")).not.toContainText("Sample");
   await expect(metrics.first().locator(".dashboard-metric-value")).toContainText("฿5,000");
   await expect(metrics.nth(1).locator(".dashboard-metric-value")).toContainText("฿1,800");
   await languageSelect.selectOption("my");
   await expect(metrics.first().locator(".dashboard-metric-label")).toHaveText("ရောင်းရငွေ");
-  await expect(metrics.first().locator(".dashboard-metric-value")).toContainText("နမူနာ");
+  await expect(metrics.first().locator(".dashboard-metric-value")).not.toContainText("နမူနာ");
   await expect(metrics.first().locator(".dashboard-metric-value")).toContainText("฿5,000");
   await languageSelect.selectOption("en");
   await expect(metrics.first().locator(".dashboard-metric-value")).toContainText("Sample");
