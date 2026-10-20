@@ -471,6 +471,9 @@
   menuToggle?.addEventListener("click",()=>{if(drawerIsOpen())closeDrawer();else openDrawer();});sidebarMinimize?.addEventListener("click",closeDrawer);backdrop?.addEventListener("click",closeDrawer);
   document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeDrawer();if(state.dialog){state.dialog=null;render();}}});
   function updateStaticLocalizedLabels() {
+    // Keep the shared catalog locale synchronized with the selector before rendering any labels.
+    const localeBridge = /** @type {Window & { KitchAI18n?: { setLocale?: (locale: string) => string } }} */ (window);
+    localeBridge.KitchAI18n?.setLocale?.(language());
     const modeGroup = document.querySelector(".topbar-mode-switch");
     if (modeGroup) modeGroup.setAttribute("aria-label", t("navigation"));
     const aiButton = document.querySelector('[data-mode="ai"]');
