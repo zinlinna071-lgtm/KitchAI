@@ -601,3 +601,6 @@ button:focus-visible,a:focus-visible,select:focus-visible,textarea:focus-visible
  .dashboard-financial-panel .dashboard-metric-label { font-size: 11px; }
  .dashboard-financial-panel .dashboard-metric-value { font-size: 12px; }
 }
+
+/* Keep the date picker full-width inside its shared financial panel. */
+.dashboard-page > .dashboard-financial-panel > .date-filter-trigger { display: flex; width: 100%; max-width: none; box-sizing: border-box; }
