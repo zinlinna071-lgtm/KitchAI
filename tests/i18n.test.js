@@ -25,7 +25,8 @@ test("sets supported locales and safely falls back for unknown locales", () => {
 test("translation falls back to English and preserves unknown keys", () => {
   setLocale("my");
   assert.equal(translate("common.save"), "သိမ်းရန်");
-  assert.equal(translate("common.retry"), "Try again");
+  assert.equal(translate("common.retry", {}, "my"), "ထပ်မံကြိုးစားရန်");
+  assert.equal(translate("common.retry", {}, "th"), "ลองอีกครั้ง");
   assert.equal(translate("missing.key"), "missing.key");
 });
 
@@ -65,6 +66,7 @@ test("keeps shared Date Filter translations available in every supported locale"
     "ai.suggestion.menu", "ai.suggestion.ingredientCosts", "ai.suggestion.production",
     "ai.suggestion.stock", "ai.messageSender.you",
     "connection.online", "connection.offline", "connection.statusOnline", "connection.statusOffline",
+    "common.retry", "common.items",
     "app.install",
     "ai.prompt.menu", "ai.prompt.ingredientCosts", "ai.prompt.production", "ai.prompt.stock"
   ];
