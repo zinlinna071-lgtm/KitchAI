@@ -71,7 +71,12 @@
   const language = () => labels[languageSelect?.value] ? languageSelect.value : "en";
   const t = key => labels[language()][key] || labels.en[key] || key;
   const sharedTranslation = key => {
-    const sharedWindow = /** @type {Window & { KitchAI18n?: { translate: (key: string) => string } }} */ (window);
+    const sharedWindow = /** @type {Window & { KitchAI18n?: { translate: (key: string) => string, setLocale?: (locale: string) => string } }} */ (window);
+    // Both the legacy preview catalog and shared catalog must read the same active locale.
+    // Synchronize at the translation boundary so every existing screen is covered,
+    // including render paths that run before or outside the selector change handler.
+    const activeLocale = language();
+    if (sharedWindow.KitchAI18n?.setLocale) sharedWindow.KitchAI18n.setLocale(activeLocale);
     const value = sharedWindow.KitchAI18n?.translate(key);
     return value && value !== key ? value : "";
   };
@@ -490,7 +495,19 @@
     renderSidebar();
     renderPage();
   }
-  languageSelect?.addEventListener("change", updateStaticLocalizedLabels);
+  const localeBridge = /** @type {Window & { KitchAI18n?: { setLocale?: (locale: string) => string } }} */ (window);
+  // Re-render every currently mounted UI surface whenever the shared locale changes,
+  // including changes initiated outside the top-bar selector.
+  document.addEventListener("kitchai:localechange", () => {
+    if (document.documentElement) document.documentElement.lang = language();
+    updateStaticLocalizedLabels();
+    updateConnectionStatus();
+  });
+  languageSelect?.addEventListener("change", () => {
+    localeBridge.KitchAI18n?.setLocale?.(language());
+    updateStaticLocalizedLabels();
+    updateConnectionStatus();
+  });
   themeToggle?.addEventListener("click",()=>{const dark=document.documentElement.dataset.theme!=="dark";document.documentElement.dataset.theme=dark?"dark":"light";document.body.classList.toggle("dark",dark);themeToggle.setAttribute("aria-pressed",String(dark));});
   let touchGestureStart = null;
   // Suppress a swipe-generated click only when it lands near either end

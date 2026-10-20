@@ -31,11 +31,14 @@ export function getLocale() {
  * New UI should subscribe with onLocaleChange() rather than watching the selector.
  */
 export function setLocale(locale) {
-  activeLocale = normalizeLocale(locale);
+  const nextLocale = normalizeLocale(locale);
+  const changed = nextLocale !== activeLocale;
+  activeLocale = nextLocale;
   if (typeof document !== "undefined" && document.documentElement) {
     document.documentElement.lang = activeLocale;
     document.documentElement.dir = catalogs[activeLocale].direction || "ltr";
-    if (typeof document.dispatchEvent === "function" && typeof Event === "function") {
+    // Repeated synchronization calls must not trigger recursive UI re-renders.
+    if (changed && typeof document.dispatchEvent === "function" && typeof Event === "function") {
       document.dispatchEvent(new Event("kitchai:localechange"));
     }
   }
