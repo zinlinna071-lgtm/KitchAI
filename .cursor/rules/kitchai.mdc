@@ -4,3 +4,6 @@ alwaysApply: true
 ---
 
 Before every task, read and follow the repository-root `AGENTS.md`. Preserve working behavior first; diagnose root cause before patching; use a non-`main` branch; keep changes minimal; add regression tests; run checks and report only what actually ran; never weaken tests to conceal failures; protect local data, sync, migrations, security, offline/PWA and service-worker behavior; and stop/revert if a regression appears. Do not merge until required checks and acceptance criteria are satisfied. Follow the complete checklist in `AGENTS.md`.
+
+
+For every UI task, also read and strictly follow `docs/UI-DESIGN-SYSTEM.md`. Responsive layout, typography/spacing tokens, light/dark theme, localization (including Burmese), shared components, accessibility, and UI acceptance checks are mandatory for all new and modified UI. Do not use one-off styling to bypass the shared system.
