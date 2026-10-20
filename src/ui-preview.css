@@ -1078,3 +1078,30 @@ button:focus-visible,a:focus-visible,select:focus-visible,textarea:focus-visible
   .dashboard-financial-panel .dashboard-metric-label { font-size: 0.75rem; line-height: 1.2; }
   .dashboard-financial-panel .dashboard-metric-value { font-size: 1.2rem; font-weight: 800; }
 }
+
+
+/* Keep each card's icon and label on one left-aligned row. */
+.dashboard-financial-panel .dashboard-metric-heading {
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  justify-self: start;
+  width: 100%;
+  gap: 6px;
+}
+.dashboard-financial-panel .dashboard-metric-icon {
+  flex: 0 0 20px;
+  width: 20px;
+  height: 20px;
+}
+.dashboard-financial-panel .dashboard-metric-label {
+  text-align: left;
+}
+@media (max-width: 560px) {
+  .dashboard-financial-panel .dashboard-metric-heading {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 5px;
+  }
+}
