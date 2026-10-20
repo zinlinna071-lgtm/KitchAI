@@ -121,3 +121,94 @@
   .ai-chat-workspace .ai-composer-footer .ui-hint { max-width:100%; }
   .ai-chat-workspace .ai-send-button { align-self:flex-end; }
 }
+
+/* AI Chat visual-pop experiment: stronger identity and clearer interactive affordances. */
+.ai-chat-workspace .ai-workspace-top {
+  padding: 10px 14px;
+  border: 1px solid color-mix(in srgb,var(--accent) 18%,var(--line));
+  border-radius: var(--radius-lg);
+  background: linear-gradient(110deg,color-mix(in srgb,var(--accent-soft) 82%,var(--surface)),var(--surface) 72%);
+}
+.ai-chat-workspace .ai-workspace-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-size: var(--font-size-md);
+  letter-spacing: -.025em;
+}
+.ai-chat-workspace .ai-workspace-title::before {
+  content: "✦";
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  flex: none;
+  border-radius: 10px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 17px;
+  box-shadow: 0 4px 12px color-mix(in srgb,var(--accent) 24%,transparent);
+}
+.ai-chat-workspace .ai-welcome-mark {
+  width: 58px;
+  height: 58px;
+  border-radius: 19px;
+  background: linear-gradient(145deg,var(--accent),color-mix(in srgb,var(--accent) 52%,#80d9b0));
+  color: #fff;
+  font-size: 29px;
+  box-shadow: 0 10px 28px color-mix(in srgb,var(--accent) 22%,transparent);
+}
+.ai-chat-workspace .ai-welcome h2 {
+  max-width: 24ch;
+  background: linear-gradient(100deg,var(--text) 35%,var(--accent) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.ai-chat-workspace .ai-suggestion {
+  position: relative;
+  border-color: color-mix(in srgb,var(--accent) 20%,var(--line));
+  box-shadow: 0 2px 8px rgb(0 0 0 / 2%);
+  transition: transform .16s ease,border-color .16s ease,background .16s ease,box-shadow .16s ease;
+}
+.ai-chat-workspace .ai-suggestion > span:first-child {
+  background: var(--accent-soft);
+  transition: background .16s ease,color .16s ease;
+}
+.ai-chat-workspace .ai-suggestion:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent);
+  background: color-mix(in srgb,var(--accent-soft) 42%,var(--surface));
+  box-shadow: 0 8px 20px color-mix(in srgb,var(--accent) 10%,transparent);
+}
+.ai-chat-workspace .ai-suggestion:hover > span:first-child {
+  background: var(--accent);
+  color: #fff;
+}
+.ai-chat-workspace .ai-composer {
+  border-color: color-mix(in srgb,var(--accent) 28%,var(--line));
+  box-shadow: 0 8px 30px rgb(0 0 0 / 5%);
+  transition: border-color .16s ease,box-shadow .16s ease;
+}
+.ai-chat-workspace .ai-composer:focus-within {
+  border-color: color-mix(in srgb,var(--accent) 65%,var(--line));
+  box-shadow: 0 0 0 3px color-mix(in srgb,var(--accent) 10%,transparent),0 8px 30px rgb(0 0 0 / 5%);
+}
+.ai-chat-workspace .ai-send-button {
+  padding-inline: 10px 14px;
+  box-shadow: 0 3px 10px color-mix(in srgb,var(--accent) 18%,transparent);
+}
+.ai-chat-workspace .ai-send-arrow {
+  background: rgb(255 255 255 / 18%);
+  color: inherit;
+}
+html[data-theme="dark"] .ai-chat-workspace .ai-welcome h2,
+body.dark .ai-chat-workspace .ai-welcome h2 {
+  background-image: linear-gradient(100deg,var(--text) 35%,var(--accent) 100%);
+}
+@media (prefers-reduced-motion: reduce) {
+  .ai-chat-workspace .ai-suggestion,
+  .ai-chat-workspace .ai-suggestion > span:first-child,
+  .ai-chat-workspace .ai-composer { transition: none; }
+  .ai-chat-workspace .ai-suggestion:hover { transform: none; }
+}
