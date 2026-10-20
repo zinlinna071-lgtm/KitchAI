@@ -84,3 +84,8 @@ These instructions are mandatory project guidance. Repository permissions and CI
 - After a deployment, verify that the GitHub Actions run succeeded and inspect the public preview URL. Report the deployment result and any checks that could not be verified. Never say the live preview is updated until the deployment has succeeded.
 - Keep deployment intentional and low-noise: combine several small, non-urgent UI changes into one preview deployment when practical. Deploy urgent user-visible fixes promptly after they are merged.
 - This policy governs the public GitHub Pages preview only. It does not replace tests, PR review, or any separate Vercel preview workflow.
+
+
+## Global Responsive UI & Design System Rules (mandatory)
+
+Before creating or changing any UI, read and comply with [`docs/UI-DESIGN-SYSTEM.md`](docs/UI-DESIGN-SYSTEM.md). This is a non-negotiable rule for every new feature, bug fix, and UI refactor. It governs responsive layout across phone/tablet/desktop sizes; typography and spacing tokens; theme consistency; localization and Burmese text; shared components; accessibility; and the required UI PR checklist. Do not bypass it with one-off CSS or page-specific styling. UI PRs must report which acceptance checks ran and which remain unverified. Migrate existing UI incrementally and safely rather than making broad, risky visual rewrites.
