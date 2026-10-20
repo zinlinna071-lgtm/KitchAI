@@ -470,7 +470,27 @@
   modeButtons.forEach(b=>b.addEventListener("click",()=>setMode(b.dataset.mode)));
   menuToggle?.addEventListener("click",()=>{if(drawerIsOpen())closeDrawer();else openDrawer();});sidebarMinimize?.addEventListener("click",closeDrawer);backdrop?.addEventListener("click",closeDrawer);
   document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeDrawer();if(state.dialog){state.dialog=null;render();}}});
-  languageSelect?.addEventListener("change",render);
+  function updateStaticLocalizedLabels() {
+    const modeGroup = document.querySelector(".topbar-mode-switch");
+    if (modeGroup) modeGroup.setAttribute("aria-label", t("navigation"));
+    const aiButton = document.querySelector('[data-mode="ai"]');
+    const manageButton = document.querySelector('[data-mode="manage"]');
+    if (aiButton) { const label = aiButton.querySelector("span:last-child"); if (label) label.textContent = t("ai"); }
+    if (manageButton) { const label = manageButton.querySelector("span:last-child"); if (label) label.textContent = t("manage"); }
+    const theme = document.querySelector("#theme-toggle");
+    if (theme) { theme.setAttribute("aria-label", t("appearance")); theme.setAttribute("title", t("appearance")); }
+    const language = document.querySelector("#language-select");
+    if (language) language.setAttribute("aria-label", t("language"));
+    const nav = document.querySelector("#sidebar");
+    if (nav) nav.setAttribute("aria-label", "KitchAI " + t("navigation"));
+    const skip = document.querySelector(".skip-link");
+    if (skip) skip.textContent = sharedTranslation("common.skipToContent") || (languageSelect?.value === "my" ? "အကြောင်းအရာသို့ ကျော်ရန်" : languageSelect?.value === "th" ? "ข้ามไปยังเนื้อหา" : "Skip to content");
+    const footer = document.querySelector(".footer span:last-child");
+    if (footer) footer.textContent = languageSelect?.value === "my" ? "လုပ်ငန်းခွင်အခြေခံ" : languageSelect?.value === "th" ? "พื้นฐานพื้นที่ทำงาน" : "Workspace foundation";
+    renderSidebar();
+    renderPage();
+  }
+  languageSelect?.addEventListener("change", updateStaticLocalizedLabels);
   themeToggle?.addEventListener("click",()=>{const dark=document.documentElement.dataset.theme!=="dark";document.documentElement.dataset.theme=dark?"dark":"light";document.body.classList.toggle("dark",dark);themeToggle.setAttribute("aria-pressed",String(dark));});
   let touchGestureStart = null;
   // Suppress a swipe-generated click only when it lands near either end
@@ -585,6 +605,7 @@
   });
   if (isDesktop()) openDrawer(); else closeDrawer();
   updateConnectionStatus();
+  updateStaticLocalizedLabels();
   if ("serviceWorker" in navigator && location.protocol !== "file:") {
     const basePath = document.querySelector('meta[name="kitchai-base-path"]')?.getAttribute("content") || "/";
     navigator.serviceWorker.register(basePath + "sw.js", { scope: basePath }).catch(error => {
