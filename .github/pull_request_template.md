@@ -17,6 +17,16 @@
 - [ ] Clearly listed manual/device tests not performed.
 - [ ] No valid test was weakened or skipped to hide a defect.
 
+## UI Rules Checklist
+<!-- For PRs changing UI, check every item that applies and explain any exception in the PR body. -->
+- [ ] Followed `docs/UI-DESIGN-SYSTEM.md` and reused shared tokens/components.
+- [ ] Checked narrow mobile layout for overflow, clipping, overlap, and hidden actions.
+- [ ] Considered phone, tablet, and desktop reflow rather than scaling content down.
+- [ ] Checked light/dark theme behavior where supported.
+- [ ] Checked supported translations and long/Burmese text wrapping where applicable.
+- [ ] Considered keyboard focus, labels, touch targets, zoom, and text scaling.
+- [ ] Ran relevant automated checks and listed any manual/device checks still pending.
+
 ## Evidence
 <!-- Exact commands and outcomes. Do not report checks that did not run. -->
 
