@@ -4,8 +4,8 @@ html { overscroll-behavior-x: none; min-width: 320px; min-height: 100%; backgrou
 body { min-width: 320px; min-height: 100dvh; margin: 0; background: var(--bg); color: var(--text); font-family: Inter, "Noto Sans Myanmar", "Myanmar Text", ui-sans-serif, system-ui, sans-serif; font-size: 15px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
 button,input,textarea,select { font: inherit; } button,a,select { -webkit-tap-highlight-color: transparent; } button { color: inherit; } a { color: inherit; text-decoration: none; }
 .skip-link { position: fixed; top:-80px; left:12px; z-index:100; padding:12px; border-radius:8px; background:var(--surface); color:var(--text); box-shadow:var(--shadow); } .skip-link:focus { top:12px; }
-.app-shell { min-height:100dvh; display:grid; grid-template-columns:248px minmax(0,1fr); touch-action:manipulation; }
-.sidebar { position:sticky; top:0; display:flex; flex-direction:column; min-width:0; height:100dvh; padding:20px 14px 14px; border-right:1px solid var(--line); background:var(--surface); z-index:20; }
+.app-shell { min-height:100dvh; display:grid; grid-template-columns:minmax(0,1fr) 248px; touch-action:manipulation; }
+.sidebar { position:sticky; top:0; display:flex; flex-direction:column; min-width:0; height:100dvh; padding:20px 14px 14px; border-left:1px solid var(--line); background:var(--surface); z-index:20; }
 .sidebar-top { display:flex; align-items:center; justify-content:flex-start; gap:8px; padding:0 0 18px; }
 .brand { display:flex; align-items:center; gap:10px; font-size:19px; font-weight:760; letter-spacing:-.045em; }
 .brand-mark { display:grid; place-items:center; width:34px; height:34px; border-radius:11px; background:var(--accent-soft); color:var(--accent); font-size:16px; font-weight:800; }
@@ -34,8 +34,8 @@ button,input,textarea,select { font: inherit; } button,a,select { -webkit-tap-hi
 .sidebar-close { display:none; }
 @media (min-width:761px) {
  .sidebar { touch-action:manipulation; }
- .app-shell.sidebar-collapsed { grid-template-columns:68px minmax(0,1fr); }
- .app-shell:not(.sidebar-collapsed) { grid-template-columns:248px minmax(0,1fr); }
+ .app-shell.sidebar-collapsed { grid-template-columns:minmax(0,1fr) 68px; }
+ .app-shell:not(.sidebar-collapsed) { grid-template-columns:minmax(0,1fr) 248px; }
 }
 #main { flex:1; min-width:0; outline:none; }
 .footer { display:flex; justify-content:space-between; gap:12px; padding:16px 28px; border-top:1px solid var(--line); color:var(--muted); font-size:12px; }
@@ -46,7 +46,7 @@ button,input,textarea,select { font: inherit; } button,a,select { -webkit-tap-hi
   .app-shell:not(.sidebar-collapsed) .sidebar-backdrop {
     display:block;
     position:fixed;
-    inset:0 0 0 min(82vw,248px);
+    inset:0 min(82vw,248px) 0 0;
     z-index:25;
     background:transparent;
     cursor:pointer;
@@ -58,11 +58,11 @@ button:focus-visible,a:focus-visible,select:focus-visible,textarea:focus-visible
 .install-button { min-height:34px!important; padding:6px 10px!important; font-size:12px!important; } .install-button[hidden] { display:none; }
 .toast { position:fixed; left:50%; bottom:24px; z-index:100; max-width:calc(100vw - 32px); padding:12px 16px; border:1px solid var(--line); border-radius:12px; background:var(--surface); color:var(--text); box-shadow:var(--shadow); transform:translate(-50%,20px); opacity:0; pointer-events:none; transition:opacity .18s ease,transform .18s ease; font-size:13px; } .toast.visible { opacity:1; transform:translate(-50%,0); }
 @media (max-width:760px) {
- .app-shell { display:grid; grid-template-columns:58px minmax(0,1fr); }
- .app-shell.sidebar-collapsed { grid-template-columns:58px minmax(0,1fr); }
- .app-shell:not(.sidebar-collapsed) { grid-template-columns:58px minmax(0,1fr); }
+ .app-shell { display:grid; grid-template-columns:minmax(0,1fr) 58px; }
+ .app-shell.sidebar-collapsed { grid-template-columns:minmax(0,1fr) 58px; }
+ .app-shell:not(.sidebar-collapsed) { grid-template-columns:minmax(0,1fr) 58px; }
  .sidebar { position:sticky; inset:auto; width:auto; height:100dvh; padding:12px 5px 10px; transform:none; box-shadow:none; }
- .app-shell:not(.sidebar-collapsed) > .sidebar { position:fixed; inset:0 auto 0 0; width:min(82vw,248px); height:100dvh; padding:16px 12px 12px; box-shadow:var(--shadow); z-index:30; }
+ .app-shell:not(.sidebar-collapsed) > .sidebar { position:fixed; inset:0 0 0 auto; width:min(82vw,248px); height:100dvh; padding:16px 12px 12px; box-shadow:var(--shadow); z-index:30; }
  .topbar { min-height:60px; gap:8px; padding:9px 12px; }
  .mode-switch { flex:1; min-width:0; } .mode-button { flex:1; gap:5px; min-width:0; padding-inline:8px; font-size:12px; } .topbar-actions { gap:3px; margin-left:0; }
  .footer { padding:14px 16px; }
