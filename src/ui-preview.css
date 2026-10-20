@@ -716,3 +716,94 @@ button:focus-visible,a:focus-visible,select:focus-visible,textarea:focus-visible
   .dashboard-financial-panel .dashboard-metric-value { font-size: 1rem; font-weight: 800; }
   .dashboard-financial-panel .dashboard-metric-chevron { width: 18px; font-size: 22px; }
 }
+
+
+/* Restore the dashboard card layout from before the stacked-title revision. */
+.dashboard-financial-panel .dashboard-financial-summary {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 0;
+}
+.dashboard-financial-panel .dashboard-metric {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 82px;
+  padding: 12px;
+  border-radius: 10px;
+}
+.dashboard-financial-panel .dashboard-metric-heading {
+  display: flex;
+  align-items: center;
+  flex: 1 1 auto;
+  gap: 8px;
+  grid-column: auto;
+  grid-row: auto;
+}
+.dashboard-financial-panel .dashboard-metric-icon {
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+}
+.dashboard-financial-panel .dashboard-metric-label {
+  font-size: 13px;
+  line-height: 1.35;
+}
+.dashboard-financial-panel .dashboard-metric-value {
+  flex: 0 0 auto;
+  grid-column: auto;
+  grid-row: auto;
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 750;
+  text-align: right;
+}
+.dashboard-financial-panel .dashboard-metric-chevron {
+  display: grid;
+  place-items: center;
+  flex: 0 0 14px;
+  width: 14px;
+  height: 20px;
+  margin-left: 0;
+  color: var(--muted);
+  font-size: 18px;
+  font-weight: 600;
+}
+.dashboard-financial-panel .dashboard-metric--net-profit {
+  grid-column: 1 / -1;
+}
+@media (max-width: 560px) {
+  .dashboard-financial-panel .dashboard-financial-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+  .dashboard-financial-panel .dashboard-metric {
+    gap: 6px;
+    min-height: 74px;
+    padding: 8px;
+  }
+  .dashboard-financial-panel .dashboard-metric-heading {
+    flex: 1 1 auto;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+  }
+  .dashboard-financial-panel .dashboard-metric-icon {
+    flex-basis: 28px;
+    width: 28px;
+    height: 28px;
+  }
+  .dashboard-financial-panel .dashboard-metric-label {
+    font-size: 12px;
+    line-height: 1.2;
+  }
+  .dashboard-financial-panel .dashboard-metric-value {
+    font-size: 14px;
+  }
+  .dashboard-financial-panel .dashboard-metric-chevron {
+    flex-basis: 9px;
+    width: 9px;
+    font-size: 16px;
+  }
+}
