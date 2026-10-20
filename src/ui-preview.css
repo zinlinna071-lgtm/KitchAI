@@ -1105,3 +1105,73 @@ button:focus-visible,a:focus-visible,select:focus-visible,textarea:focus-visible
     gap: 5px;
   }
 }
+
+
+/* Mobile dashboard polish: anchor headings to the card's left edge. */
+.dashboard-financial-panel .dashboard-metric {
+  justify-items: stretch;
+  align-content: start;
+}
+.dashboard-financial-panel .dashboard-metric-heading {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: flex-start;
+  justify-self: stretch;
+  align-self: start;
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+}
+.dashboard-financial-panel .dashboard-metric-icon {
+  flex: 0 0 20px;
+  margin: 0;
+}
+.dashboard-financial-panel .dashboard-metric-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  text-align: left;
+}
+.dashboard-financial-panel .dashboard-metric-value {
+  justify-self: stretch;
+  width: 100%;
+  margin: 0;
+  text-align: left;
+}
+@media (max-width: 560px) {
+  .dashboard-financial-panel .dashboard-metric {
+    justify-items: stretch;
+    align-content: start;
+    padding: 10px;
+  }
+  .dashboard-financial-panel .dashboard-metric-heading {
+    justify-content: flex-start;
+    justify-self: stretch;
+    width: 100%;
+    gap: 6px;
+  }
+  .dashboard-financial-panel .dashboard-metric-icon {
+    flex-basis: 18px;
+    width: 18px;
+    height: 18px;
+  }
+  .dashboard-financial-panel .dashboard-metric-icon svg {
+    width: 17px;
+    height: 17px;
+  }
+  .dashboard-financial-panel .dashboard-metric-label {
+    font-size: 0.75rem;
+    line-height: 1.25;
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+  .dashboard-financial-panel .dashboard-metric-value {
+    font-size: 1.15rem;
+    line-height: 1.15;
+    padding-top: 2px;
+  }
+}
