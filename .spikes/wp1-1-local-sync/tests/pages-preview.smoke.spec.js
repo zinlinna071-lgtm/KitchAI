@@ -55,9 +55,15 @@ test("Manage Mode exposes seven pages and the redesigned Dashboard", async ({ pa
   await page.locator("#language-select").selectOption("en");
 
   await page.locator('#sidebar-content [data-page="menu"]').evaluate(element => element.click());
-  const menu = page.locator("#page-content .main-page-copy");
+  const menu = page.locator("#page-content .menu-page");
   await expect(menu.getByRole("heading", { name: "Menu" })).toBeVisible();
-  await expect(menu.locator("p")).toBeVisible();
+  await expect(menu.locator("#menu-search")).toBeVisible();
+  await expect(menu.getByRole("button", { name: /Add Menu|မီနူးထည့်ရန်|เพิ่มเมนู/ })).toBeVisible();
+  await expect(menu.getByRole("button", { name: /Create category|Category အသစ်|สร้างหมวดหมู่/ })).toBeVisible();
+  await expect(menu.locator(".menu-empty-state")).toBeVisible();
+  await menu.getByRole("button", { name: /Add Menu|မီနူးထည့်ရန်|เพิ่มเมนู/ }).click();
+  await expect(page.locator("#record-form")).toBeVisible();
+  await expect(page.locator("#record-form").getByLabel(/Name|အမည်|ชื่อ/)).toBeVisible();
   await page.locator('#sidebar-content [data-page="sales"]').evaluate(element => element.click());
   const sales = page.locator("#page-content .main-page-copy");
   await expect(sales.getByRole("heading", { name: "Sales" })).toBeVisible();
