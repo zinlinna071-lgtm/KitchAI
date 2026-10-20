@@ -3,6 +3,7 @@ export default {
   direction: "ltr",
   messages: {
     "app.name": "KitchAI",
+    "app.install": "ติดตั้งแอป",
     "language.label": "ภาษา",
     "language.english": "อังกฤษ",
     "language.myanmar": "เมียนมา",
