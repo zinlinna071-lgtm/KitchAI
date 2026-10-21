@@ -13,7 +13,11 @@ test("Manage Mode navigation keeps the three agreed pages title-only", async ({ 
     if (title === "Dashboard") {
       await expect(section.getByRole("button", { name: /Choose date filter/ })).toBeVisible();
     } else {
-      await expect(section.locator("button, input, select, textarea, .ui-card")).toHaveCount(0);
+      // Ingredients now has its agreed list controls; the form stays closed until Create Ingredient is selected.
+      await expect(section.getByRole("button", { name: "Create Ingredient" })).toBeVisible();
+      await expect(section.locator("#ingredient-search")).toBeVisible();
+      await expect(section.locator("#ingredient-category-filter")).toBeVisible();
+      await expect(section.locator("#record-form")).toHaveCount(0);
     }
   }
   await page.getByRole("button", { name: "Menu", exact: true }).click();
