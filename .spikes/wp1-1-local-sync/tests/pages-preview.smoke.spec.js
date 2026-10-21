@@ -124,7 +124,7 @@ test("Manage Mode exposes seven pages, preserves the Dashboard shell, and opens 
   const details = page.locator("#page-content .menu-detail-page");
   await expect(details.getByRole("heading", { name: "Seaweed Rice Roll" })).toBeVisible();
   await expect(details).toContainText("Rice Rolls");
-  await expect(details).toContainText("฿35");
+  await expect(details).toContainText("Selling price: 35");
   await expect(details).toContainText("Ingredients");
   await expect(details).toContainText("Sales History");
   await expect(details.getByRole("button", { name: "Edit" })).toBeVisible();
