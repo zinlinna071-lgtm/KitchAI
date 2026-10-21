@@ -117,7 +117,10 @@ test("Manage Mode exposes seven pages, preserves the Dashboard shell, and opens 
   await expect(details.getByRole("button", { name: "Delete" })).toBeVisible();
   await details.getByRole("button", { name: "Edit" }).click();
   const editForm = page.locator("#page-content #record-form");
-  await expect(editForm.locator('input[name="category"]')).toBeVisible();
+  await expect(editForm.locator('select[name="category"]')).toBeVisible();
+  await expect(editForm.locator('select[name="category"] option[value="Rice Rolls"]')).toHaveCount(1);
+  await expect(editForm.locator('input[name="categoryNew"]')).toBeVisible();
+  await editForm.locator('select[name="category"]').selectOption("Rice Rolls");
   await expect(editForm.locator('input[name="name"]')).toHaveValue("Seaweed Rice Roll");
   await expect(editForm.locator('input[name="price"]')).toHaveValue("35");
   await expect(editForm.locator('input[name="type"]')).toHaveCount(0);
