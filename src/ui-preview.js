@@ -323,14 +323,22 @@
     } else if(d==="menu"||d==="edit-menu"){
       const item=d==="edit-menu"?state.menus.find(x=>x.id===state.editId):{};
       title=d==="edit-menu"?t("edit")+" "+t("createMenu"):t("createMenu");
-      body=selectField(t("menuType"),"type",[t("reusable"),t("oneTime")],item?.type==="one-time"?t("oneTime"):t("reusable"));
-      body+=categoryField("menu",item?.category||"Default")+field(t("name"),"name","text",item?.name||"",true,'maxlength="100"');
-      body+='<label class="ui-field"><span class="ui-label">'+esc(t("image"))+'</span><input class="ui-input" type="file" name="image" accept="image/*"></label>';
-      body+='<div id="reusable-menu-fields" class="ui-stack" style="display:'+(item?.type==="one-time"?"none":"grid")+'">'+field(t("sellingPrice"),"price","number",item?.price||"",false,'min="0" step="any"')+field(t("unit"),"unit","text",item?.unit||"piece",false,'maxlength="30"')+'<div class="ui-field"><span class="ui-label">'+esc(t("ingredients"))+'</span>';
-      if(state.ingredients.length) body+=state.ingredients.map(i=>'<label class="ui-check"><input type="checkbox" name="ingredientIds" value="'+i.id+'" '+((item?.ingredientIds||[]).includes(i.id)?'checked':'')+'> '+esc(i.name)+'</label>').join("");
-      else body+='<p class="ui-hint">'+esc(t("noIngredients"))+'</p>';
-      body+='</div><label class="ui-field"><span class="ui-label">'+esc(t("note"))+'</span><textarea class="ui-textarea" name="note" maxlength="500">'+esc(item?.note||"")+'</textarea></label></div>';
-      body+='<div id="one-time-fields" class="ui-stack" style="display:'+(item?.type==="one-time"?"grid":"none")+'"><h2>'+esc(t("oneTimeSale"))+'</h2>'+field(t("quantity"),"quantity","number","1",true,'min="0.001" step="any"')+field(t("unit"),"saleUnit","text",item?.unit||"piece",false,'maxlength="30"')+field(t("unitPrice"),"unitPrice","number",item?.price||"",false,'min="0" step="any"')+field(t("discount"),"discount","number","0",false,'min="0" step="any"')+field(t("saleDate"),"saleDate","date",localToday(),true)+field(t("saleTime"),"saleTime","time",new Date().toTimeString().slice(0,5),true)+'<label class="ui-field"><span class="ui-label">'+esc(t("note"))+'</span><textarea class="ui-textarea" name="saleNote" maxlength="500"></textarea></label><p class="ui-hint">'+esc(t("netSale"))+': <strong id="net-sale-preview">—</strong></p></div>';
+      if(d==="edit-menu"){
+        body=categoryField("menu",item?.category||"Default")+field(t("name"),"name","text",item?.name||"",true,'maxlength="100"')+field(t("sellingPrice"),"price","number",item?.price??"",true,'min="0" step="any"');
+        body+='<div class="ui-field"><span class="ui-label">'+esc(t("ingredients"))+'</span>';
+        if(state.ingredients.length) body+=state.ingredients.map(i=>'<label class="ui-check"><input type="checkbox" name="ingredientIds" value="'+i.id+'" '+((item?.ingredientIds||[]).includes(i.id)?'checked':'')+'> '+esc(i.name)+'</label>').join("");
+        else body+='<p class="ui-hint">'+esc(t("noIngredients"))+'</p>';
+        body+='</div>';
+      } else {
+        body=selectField(t("menuType"),"type",[t("reusable"),t("oneTime")],t("reusable"));
+        body+=categoryField("menu","Default")+field(t("name"),"name","text","",true,'maxlength="100"');
+        body+='<label class="ui-field"><span class="ui-label">'+esc(t("image"))+'</span><input class="ui-input" type="file" name="image" accept="image/*"></label>';
+        body+='<div id="reusable-menu-fields" class="ui-stack">'+field(t("sellingPrice"),"price","number","",false,'min="0" step="any"')+field(t("unit"),"unit","text","piece",false,'maxlength="30"')+'<div class="ui-field"><span class="ui-label">'+esc(t("ingredients"))+'</span>';
+        if(state.ingredients.length) body+=state.ingredients.map(i=>'<label class="ui-check"><input type="checkbox" name="ingredientIds" value="'+i.id+'"> '+esc(i.name)+'</label>').join("");
+        else body+='<p class="ui-hint">'+esc(t("noIngredients"))+'</p>';
+        body+='</div><label class="ui-field"><span class="ui-label">'+esc(t("note"))+'</span><textarea class="ui-textarea" name="note" maxlength="500"></textarea></label></div>';
+        body+='<div id="one-time-fields" class="ui-stack" style="display:none"><h2>'+esc(t("oneTimeSale"))+'</h2>'+field(t("quantity"),"quantity","number","1",true,'min="0.001" step="any"')+field(t("unit"),"saleUnit","text","piece",false,'maxlength="30"')+field(t("unitPrice"),"unitPrice","number","",false,'min="0" step="any"')+field(t("discount"),"discount","number","0",false,'min="0" step="any"')+field(t("saleDate"),"saleDate","date",localToday(),true)+field(t("saleTime"),"saleTime","time",new Date().toTimeString().slice(0,5),true)+'<label class="ui-field"><span class="ui-label">'+esc(t("note"))+'</span><textarea class="ui-textarea" name="saleNote" maxlength="500"></textarea></label><p class="ui-hint">'+esc(t("netSale"))+': <strong id="net-sale-preview">—</strong></p></div>';
+      }
       submit=d==="edit-menu"?t("update"):t("save");
     }
     return '<section class="page-section internal-form-screen"><div class="ui-row internal-form-heading"><button type="button" class="ui-button ui-button--secondary" data-action="cancel-dialog" aria-label="'+esc(t("back"))+'">← '+esc(t("back"))+'</button><h1>'+esc(title)+'</h1></div><form class="ui-card ui-stack internal-form" id="record-form">'+body+'<div class="ui-row internal-form-actions">'+button(t("cancel"),"cancel-dialog")+'<button class="ui-button ui-button--primary" type="submit">'+esc(submit)+'</button></div></form></section>';
@@ -493,8 +501,9 @@
         state.menuView="sales";state.dialog=null;state.editId=null;state.pendingImageData="";render();toast(t("saleSaved"));return;
       }
       const price=String(data.get("price")||"").trim(),unit=String(data.get("unit")||"piece").trim(),ingredientIds=data.getAll("ingredientIds").map(Number);
-      if(price!==""&&(!Number.isFinite(Number(price))||Number(price)<0)){form.elements.price.reportValidity();return;}
-      const item={id:d==="edit-menu"?state.editId:Date.now(),name,category,image,ingredientIds,ingredientNames:state.ingredients.filter(i=>ingredientIds.includes(i.id)).map(i=>i.name),note:String(data.get("note")||"").trim(),price,unit,type:"reusable"};
+      if(price===""||!Number.isFinite(Number(price))||Number(price)<0){form.elements.price.reportValidity();return;}
+      const previous=d==="edit-menu"?state.menus.find(x=>x.id===state.editId):null;
+      const item={...(previous||{}),id:d==="edit-menu"?state.editId:Date.now(),name,category,image,ingredientIds,ingredientNames:state.ingredients.filter(i=>ingredientIds.includes(i.id)).map(i=>i.name),note:d==="edit-menu"?(previous?.note||""):String(data.get("note")||"").trim(),price,unit:d==="edit-menu"?(previous?.unit||"piece"):unit,type:"reusable"};
       if(d==="edit-menu")state.menus=state.menus.map(x=>x.id===item.id?item:x);else state.menus.push(item);persistMenuWorkspace();
       state.dialog=null;state.editId=null;state.pendingImageData="";state.menuView="all";render();toast(t("menuSaved"));
     }
