@@ -248,7 +248,7 @@
   function renderIngredients() {
     const categories=[...new Set([...(state.categories.ingredients||[]),...state.ingredients.map(item=>item.category).filter(Boolean)])].filter(category=>category&&category!=="Default");
     const query=state.ingredientSearch.trim().toLowerCase();
-    const items=state.ingredients.filter(item=>(state.ingredientCategoryFilter==="all"||(item.category||"Default")===state.ingredientCategoryFilter)&&(!query||item.name.toLowerCase().includes(query))).map(item=>'<div class="ingredient-list-row"><span class="ingredient-list-name">'+esc(item.name)+'</span><span class="ingredient-list-category">'+esc(item.category||"—")+'</span><span class="menu-list-chevron" aria-hidden="true">›</span></div>').join("");
+    const items=state.ingredients.filter(item=>(state.ingredientCategoryFilter==="all"||(item.category||"Default")===state.ingredientCategoryFilter)&&(!query||item.name.toLowerCase().includes(query))).map(item=>'<button type="button" class="ingredient-list-row" data-action="ingredient-detail:'+item.id+'"><span class="ingredient-list-name">'+esc(item.name)+'</span><span class="ingredient-list-category">'+esc(item.category||"—")+'</span><span class="menu-list-chevron" aria-hidden="true">›</span></button>').join("");
     return '<section class="page-section main-page-copy menu-page ingredients-page"><div class="menu-page-heading"><h1>'+esc(pageLabel(pages.find(p=>p.id==="ingredients")))+'</h1>'+button(t("createIngredient"),"new-ingredient",true)+'</div><div class="menu-list-filters"><label class="ui-field menu-search-field"><span class="ui-label">'+esc(t("search"))+'</span><input class="ui-input" id="ingredient-search" type="search" value="'+esc(state.ingredientSearch)+'" placeholder="'+esc(t("search"))+'"></label><label class="ui-field menu-category-filter"><span class="ui-label">'+esc(t("category"))+'</span><select class="ui-input" id="ingredient-category-filter"><option value="all" '+(state.ingredientCategoryFilter==="all"?"selected":"")+'>'+esc(t("all"))+'</option>'+categories.map(category=>'<option value="'+esc(category)+'" '+(state.ingredientCategoryFilter===category?"selected":"")+'>'+esc(category)+'</option>').join("")+'</select></label></div><div class="ingredient-list-header"><span>'+esc(t("name"))+'</span><span>'+esc(t("category"))+'</span><span></span></div><div class="ingredient-simple-list">'+(items||'<p class="ui-hint menu-list-empty">'+esc(t("emptyTitle"))+'</p>')+'</div></section>';
   }
   function money(value) { return Number(value||0).toLocaleString(undefined,{maximumFractionDigits:2}); }
@@ -276,7 +276,7 @@
     if(!item){state.detailId=null;const page=pages.find(x=>x.id===state.managePage)||pages[0];return renderMainPage(page);}
     const menuSales=state.detailType==="menu"?state.sales.filter(s=>s.menuId===item.id):[];
     const info=state.detailType==="ingredient"
-      ? '<p><b>'+esc(t("category"))+':</b> '+esc(item.category)+'</p><p><b>'+esc(t("type"))+':</b> '+esc(item.type==='reusable'?t("reusable"):t("oneTime"))+'</p>'+(item.type==='one-time'?'<p><b>'+esc(t("quantity"))+':</b> '+esc(item.quantity)+' '+esc(item.unit)+'</p><p><b>'+esc(t("price"))+':</b> '+esc(item.price)+'</p>':'')
+      ? '<p><b>'+esc(t("name"))+':</b> '+esc(item.name)+'</p><p><b>'+esc(t("category"))+':</b> '+esc(item.category||"—")+'</p>'
       : '<p><b>'+esc(t("category"))+':</b> '+esc(item.category)+'</p><p><b>'+esc(t("sellingPrice"))+':</b> '+esc(item.price?money(item.price):"—")+'</p><p><b>'+esc(t("ingredients"))+':</b> '+esc((item.ingredientNames||[]).length?item.ingredientNames.join(", "):t("noIngredients"));
     let history="";
     if(state.detailType==="menu") history='<hr class="ui-divider"><h2>'+esc(t("salesHistory"))+'</h2>'+(menuSales.length?'<div class="personal-expense-list">'+menuSales.map(x=>'<article class="ui-card personal-expense-item"><div class="personal-expense-main"><div><strong>'+esc(x.date)+' · '+esc(x.time||"")+'</strong><p class="ui-hint">'+esc(x.quantity)+' '+esc(x.unit||"")+' × '+money(x.unitPrice)+(x.discount?' · '+esc(t("discount"))+': '+money(x.discount):'')+'</p>'+(x.note?'<p>'+esc(x.note)+'</p>':'')+'</div><strong class="personal-expense-amount">'+money(x.netSale)+'</strong></div></article>').join("")+'</div>':'<p class="ui-hint">'+esc(t("noSales"))+'</p>');
@@ -312,8 +312,9 @@
       title=t("createCategory");body=field(t("name"),"categoryName","text","",true,'maxlength="80"');
     } else if(d==="ingredient"||d==="edit-ingredient"){
       const item=d==="edit-ingredient"?state.ingredients.find(x=>x.id===state.editId):{};
+      const ingredientCategories=[...new Set([...(state.categories.ingredients||[]),...state.ingredients.map(x=>x.category).filter(Boolean),item?.category||""])].filter(c=>c&&c!=="Default");
       title=d==="edit-ingredient"?t("edit")+" "+t("createIngredient"):t("createIngredient");
-      body='<label class="ui-field"><span class="ui-label">'+esc(t("category"))+' *</span><input class="ui-input" name="category" list="ingredient-category-options" value="'+esc(item?.category||"")+'" placeholder="'+esc(t("category"))+'" required maxlength="80"><datalist id="ingredient-category-options">'+[...new Set((state.categories.ingredients||[]).filter(c=>c&&c!=="Default"))].map(c=>'<option value="'+esc(c)+'"></option>').join("")+'</datalist></label>'+field(t("name"),"name","text",item?.name||"",true,'maxlength="100"');
+      body='<label class="ui-field"><span class="ui-label">'+esc(t("category"))+' *</span><select class="ui-input" name="category" onchange="const n=this.nextElementSibling;const isNew=this.value===\'__new_category__\';n.hidden=!isNew;n.required=isNew;if(!isNew)n.value=\'\'"><option value="">'+esc(t("chooseCategory"))+'</option>'+ingredientCategories.map(c=>'<option value="'+esc(c)+'" '+(c===item?.category?"selected":"")+'>'+esc(c)+'</option>').join("")+'<option value="__new_category__">Create new category</option></select><input class="ui-input" name="categoryNew" type="text" maxlength="80" placeholder="New category name" hidden></label>'+field(t("name"),"name","text",item?.name||"",true,'maxlength="100"');
       submit=d==="edit-ingredient"?t("update"):t("save");
     } else if(d==="personal-expense"||d==="edit-personal-expense"){
       const item=d==="edit-personal-expense"?state.personalExpenses.find(x=>x.id===state.editId):{};
@@ -477,7 +478,8 @@
     }
     if(d==="ingredient"||d==="edit-ingredient"){
       const name=String(data.get("name")||"").trim();
-      const categoryName=String(data.get("category")||"").trim();
+      const categoryChoice=String(data.get("category")||"").trim();
+      const categoryName=categoryChoice==="__new_category__"?String(data.get("categoryNew")||"").trim():categoryChoice;
       if(!categoryName){form.elements.category.reportValidity();return;}
       if(!name){form.elements.name.reportValidity();return;}
       const item={id:d==="edit-ingredient"?state.editId:Date.now(),name,category:categoryFor("ingredients",categoryName)};
