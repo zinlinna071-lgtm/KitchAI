@@ -215,10 +215,9 @@ test("Ingredients supports category choices, details, edit, delete, search, and 
   await expect(form.locator("input, select, textarea")).toHaveCount(3);
   await expect(form.locator('select[name="category"]')).toHaveValue("Shared Consumables");
   await form.locator('input[name="name"]').fill("Cooking Oil Updated");
-  await form.locator('select[name="category"]').selectOption("Direct Ingredient").catch(async () => {
-    await form.locator('select[name="category"]').selectOption("__new_category__");
-    await form.locator('input[name="categoryNew"]').fill("Direct Ingredient");
-  });
+  await form.locator('select[name="category"]').selectOption("__new_category__");
+  await expect(form.locator('input[name="categoryNew"]')).toBeVisible();
+  await form.locator('input[name="categoryNew"]').fill("Direct Ingredient");
   await form.getByRole("button", { name: "Save changes" }).click();
   await expect(page.locator("#page-content .menu-detail-page")).toContainText("Cooking Oil Updated");
   await expect(page.locator("#page-content .menu-detail-page")).toContainText("Direct Ingredient");
