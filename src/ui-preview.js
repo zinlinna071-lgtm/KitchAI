@@ -294,7 +294,7 @@
     if(state.dialog){pageContent.innerHTML=renderDialog();return;}
     if(state.detailId){pageContent.innerHTML=renderDetail();return;}
     const page=pages.find(x=>x.id===state.managePage)||pages[0];
-    pageContent.innerHTML=renderMainPage(page);
+    pageContent.innerHTML=page.id==="menu"?renderMenus():renderMainPage(page);
   }
   function renderDialog() {
     const d=state.dialog;
