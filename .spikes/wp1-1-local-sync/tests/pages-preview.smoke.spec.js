@@ -96,7 +96,7 @@ test("Manage Mode exposes seven pages, preserves the Dashboard shell, and opens 
   await menuForm.locator('input[name="price"]').fill("35");
   await menuForm.getByRole("button", { name: "Save" }).click();
   await expect(menu.getByText("Seaweed Rice Roll")).toBeVisible();
-  await expect(menu.getByText("Rice Rolls")).toBeVisible();
+  await expect(menu.locator('#menu-category-filter option[value="Rice Rolls"]')).toHaveCount(1);
   await expect(menu.locator("#menu-search")).toBeVisible();
   await expect(menu.locator("#menu-category-filter")).toBeVisible();
   await expect(menu.locator(".menu-list-row")).toHaveCount(1);
