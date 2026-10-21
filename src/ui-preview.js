@@ -480,7 +480,7 @@
       const name=String(data.get("name")||"").trim();
       const categoryChoice=String(data.get("category")||"").trim();
       const categoryName=categoryChoice==="__new_category__"?String(data.get("categoryNew")||"").trim():categoryChoice;
-      if(!categoryName){form.elements.category.reportValidity();return;}
+      if(!categoryName){(categoryChoice==="__new_category__"?form.elements.categoryNew:form.elements.category).reportValidity();return;}
       if(!name){form.elements.name.reportValidity();return;}
       const item={id:d==="edit-ingredient"?state.editId:Date.now(),name,category:categoryFor("ingredients",categoryName)};
       if(d==="edit-ingredient")state.ingredients=state.ingredients.map(x=>x.id===item.id?item:x);else state.ingredients.push(item);
