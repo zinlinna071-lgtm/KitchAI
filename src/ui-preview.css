@@ -1282,3 +1282,6 @@ button:focus-visible,a:focus-visible,select:focus-visible,textarea:focus-visible
 .ingredient-list-row { padding:13px 14px; border-bottom:1px solid var(--line); color:var(--text); overflow-wrap:anywhere; }
 .ingredient-list-category { color:var(--muted); font-size:13px; }
 @media(max-width:520px) { .ingredient-list-header,.ingredient-list-row { grid-template-columns:minmax(0,1fr) minmax(86px,.8fr); } .ingredient-list-header > span:last-child,.ingredient-list-row > span:last-child { display:none; } }
+
+.ingredients-page .ingredient-list-row { width:100%; appearance:none; background:transparent; border-top:0; border-left:0; border-right:0; border-radius:0; text-align:left; font:inherit; cursor:pointer; }
+.ingredients-page .ingredient-list-row:focus-visible { outline:2px solid var(--focus, #2563eb); outline-offset:-2px; }
