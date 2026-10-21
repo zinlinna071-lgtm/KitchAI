@@ -180,34 +180,59 @@ test("the scoped worker serves the UI shell after offline navigation", async ({ 
 });
 
 
-test("Ingredients supports a minimal create form, list, search, and category filter", async ({ page }) => {
+test("Ingredients supports category choices, details, edit, delete, search, and category filter", async ({ page }) => {
   await page.goto("./");
   await page.getByRole("button", { name: "Manage Mode" }).click();
   await page.locator('#sidebar-content [data-page="ingredients"]').evaluate(element => element.click());
   const ingredients = page.locator("#page-content .ingredients-page");
   await expect(ingredients.getByRole("heading", { name: "Ingredients" })).toBeVisible();
+
   await ingredients.getByRole("button", { name: "Create Ingredient" }).click();
-  const form = page.locator("#page-content #record-form");
-  await expect(form.locator('input[name="category"]')).toBeVisible();
-  await expect(form.locator('input[name="name"]')).toBeVisible();
-  await expect(form.locator("input, select, textarea")).toHaveCount(2);
-  await form.locator('input[name="category"]').fill("Shared Consumables");
+  let form = page.locator("#page-content #record-form");
+  const category = form.locator('select[name="category"]');
+  await expect(category.locator('option[value="__new_category__"]')).toHaveText("Create new category");
+  await category.selectOption("__new_category__");
+  await expect(form.locator('input[name="categoryNew"]')).toBeVisible();
+  await form.locator('input[name="categoryNew"]').fill("Shared Consumables");
   await form.locator('input[name="name"]').fill("Cooking Oil");
-  await form.getByRole("button", { name: "Create" }).click();
+  await expect(form.locator("input, select, textarea")).toHaveCount(3);
+  await form.getByRole("button", { name: "Save" }).click();
+
   await expect(ingredients.locator(".ingredient-list-row")).toHaveCount(1);
   await expect(ingredients.locator(".ingredient-list-row")).toContainText("Cooking Oil");
   await expect(ingredients.locator(".ingredient-list-row")).toContainText("Shared Consumables");
-  await ingredients.getByRole("button", { name: "Create Ingredient" }).click();
-  const secondForm = page.locator("#page-content #record-form");
-  await secondForm.locator('input[name="category"]').fill("Direct Ingredient");
-  await secondForm.locator('input[name="name"]').fill("Rice");
-  await secondForm.getByRole("button", { name: "Create" }).click();
-  await expect(ingredients.locator(".ingredient-list-row")).toHaveCount(2);
-  await ingredients.locator("#ingredient-search").fill("Oil");
+  await ingredients.locator(".ingredient-list-row").click();
+  const detail = page.locator("#page-content .menu-detail-page");
+  await expect(detail.getByRole("heading", { name: "Cooking Oil" })).toBeVisible();
+  await expect(detail).toContainText("Category:");
+  await expect(detail).toContainText("Shared Consumables");
+  await expect(detail.getByRole("button", { name: "Edit" })).toBeVisible();
+  await expect(detail.getByRole("button", { name: "Delete" })).toBeVisible();
+  await expect(detail.locator(".ui-card p")).toHaveCount(1);
+
+  await detail.getByRole("button", { name: "Edit" }).click();
+  form = page.locator("#page-content #record-form");
+  await expect(form.locator("input, select, textarea")).toHaveCount(3);
+  await expect(form.locator('select[name="category"]')).toHaveValue("Shared Consumables");
+  await form.locator('input[name="name"]').fill("Cooking Oil Updated");
+  await form.locator('select[name="category"]').selectOption("Direct Ingredient").catch(async () => {
+    await form.locator('select[name="category"]').selectOption("__new_category__");
+    await form.locator('input[name="categoryNew"]').fill("Direct Ingredient");
+  });
+  await form.getByRole("button", { name: "Update" }).click();
+  await expect(page.locator("#page-content .menu-detail-page")).toContainText("Cooking Oil Updated");
+  await expect(page.locator("#page-content .menu-detail-page")).toContainText("Direct Ingredient");
+  await page.locator('#page-content [data-action="back-detail"]').click();
+
+  await ingredients.locator("#ingredient-search").fill("Updated");
   await expect(ingredients.locator(".ingredient-list-row")).toHaveCount(1);
-  await expect(ingredients.locator(".ingredient-list-row")).toContainText("Cooking Oil");
   await ingredients.locator("#ingredient-search").fill("");
   await ingredients.locator("#ingredient-category-filter").selectOption("Direct Ingredient");
   await expect(ingredients.locator(".ingredient-list-row")).toHaveCount(1);
-  await expect(ingredients.locator(".ingredient-list-row")).toContainText("Rice");
+  await expect(ingredients.locator(".ingredient-list-row")).toContainText("Cooking Oil Updated");
+
+  page.once("dialog", dialog => dialog.accept());
+  await ingredients.locator(".ingredient-list-row").click();
+  await page.locator("#page-content .menu-detail-page").getByRole("button", { name: "Delete" }).click();
+  await expect(page.locator("#page-content .ingredients-page .ingredient-list-row")).toHaveCount(0);
 });
