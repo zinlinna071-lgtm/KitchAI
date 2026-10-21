@@ -501,7 +501,7 @@
         state.menuView="sales";state.dialog=null;state.editId=null;state.pendingImageData="";render();toast(t("saleSaved"));return;
       }
       const price=String(data.get("price")||"").trim(),unit=String(data.get("unit")||"piece").trim(),ingredientIds=data.getAll("ingredientIds").map(Number);
-      if(price===""||!Number.isFinite(Number(price))||Number(price)<0){form.elements.price.reportValidity();return;}
+      if((d==="edit-menu"&&price==="")||(price!==""&&(!Number.isFinite(Number(price))||Number(price)<0))){form.elements.price.reportValidity();return;}
       const previous=d==="edit-menu"?state.menus.find(x=>x.id===state.editId):null;
       const item={...(previous||{}),id:d==="edit-menu"?state.editId:Date.now(),name,category,image,ingredientIds,ingredientNames:state.ingredients.filter(i=>ingredientIds.includes(i.id)).map(i=>i.name),note:d==="edit-menu"?(previous?.note||""):String(data.get("note")||"").trim(),price,unit:d==="edit-menu"?(previous?.unit||"piece"):unit,type:"reusable"};
       if(d==="edit-menu")state.menus=state.menus.map(x=>x.id===item.id?item:x);else state.menus.push(item);persistMenuWorkspace();
