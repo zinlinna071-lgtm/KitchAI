@@ -84,14 +84,15 @@ test("Manage Mode exposes seven pages, preserves the Dashboard shell, and opens 
   await menu.getByRole("button", { name: "Create Menu" }).click();
   const menuForm = page.locator("#page-content #record-form");
   await expect(menuForm.getByRole("heading", { name: "Create Menu" })).toHaveCount(0);
-  await expect(menuForm.locator('input[name="category"]')).toBeVisible();
-  await expect(menuForm.locator('input[name="category"]')).toHaveAttribute("list", "menu-category-options");
+  await expect(menuForm.locator('select[name="category"]')).toBeVisible();
+  await expect(menuForm.locator('select[name="category"] option')).toHaveCount(2);
+  await expect(menuForm.locator('input[name="categoryNew"]')).toBeVisible();
   await expect(menuForm.locator('input[name="name"]')).toBeVisible();
   await expect(menuForm.locator('input[name="price"]')).toBeVisible();
   await expect(menuForm.locator('fieldset[name="ingredients"], .menu-ingredient-field')).toBeVisible();
   await expect(menuForm.getByRole("button", { name: "Cancel" })).toBeVisible();
   await expect(menuForm.getByRole("button", { name: "Save" })).toBeVisible();
-  await menuForm.locator('input[name="category"]').fill("Rice Rolls");
+  await menuForm.locator('input[name="categoryNew"]').fill("Rice Rolls");
   await menuForm.locator('input[name="name"]').fill("Seaweed Rice Roll");
   await menuForm.locator('input[name="price"]').fill("35");
   await menuForm.getByRole("button", { name: "Save" }).click();
