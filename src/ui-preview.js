@@ -324,7 +324,8 @@
       const item=d==="edit-menu"?state.menus.find(x=>x.id===state.editId):{};
       title=d==="edit-menu"?t("edit")+" "+t("createMenu"):t("createMenu");
       if(d==="edit-menu"){
-        body=categoryField("menu",item?.category||"Default")+field(t("name"),"name","text",item?.name||"",true,'maxlength="100"')+field(t("sellingPrice"),"price","number",item?.price??"",true,'min="0" step="any"');
+        const menuCategories=[...new Set(["Default",...(state.categories.menu||[]),...state.menus.map(x=>x.category).filter(Boolean),item?.category||"Default"])];
+        body='<label class="ui-field"><span class="ui-label">'+esc(t("category"))+'</span><select class="ui-input" name="category">'+menuCategories.map(c=>'<option value="'+esc(c)+'" '+(c===(item?.category||"Default")?"selected":"")+'>'+esc(c)+'</option>').join("")+'</select><input class="ui-input" name="categoryNew" type="text" maxlength="80" placeholder="'+esc(t("chooseCategory"))+'"></label>'+field(t("name"),"name","text",item?.name||"",true,'maxlength="100"')+field(t("sellingPrice"),"price","number",item?.price??"",true,'min="0" step="any"');
         body+='<div class="ui-field"><span class="ui-label">'+esc(t("ingredients"))+'</span>';
         if(state.ingredients.length) body+=state.ingredients.map(i=>'<label class="ui-check"><input type="checkbox" name="ingredientIds" value="'+i.id+'" '+((item?.ingredientIds||[]).includes(i.id)?'checked':'')+'> '+esc(i.name)+'</label>').join("");
         else body+='<p class="ui-hint">'+esc(t("noIngredients"))+'</p>';
@@ -406,7 +407,7 @@
     else if(action.startsWith("ingredient-detail:")){state.detailType="ingredient";state.detailId=Number(action.split(":")[1]);}
     else if(action.startsWith("menu-detail:")){state.detailType="menu";state.detailId=Number(action.split(":")[1]);}
     else if(action.startsWith("record-menu-sale:")){state.editId=Number(action.split(":")[1]);state.dialog="record-menu-sale";state.pendingImageData="";}
-    else if(action==="edit-detail"){state.editId=state.detailId;state.dialog=state.detailType==="ingredient"?"edit-ingredient":"edit-menu";state.detailId=null;}
+    else if(action==="edit-detail"){state.editId=state.detailId;state.dialog=state.detailType==="ingredient"?"edit-ingredient":"edit-menu";}
     else if(action==="delete-detail"){if(window.confirm(t("confirmDelete"))){const key=state.detailType==="ingredient"?"ingredients":"menus";state[key]=state[key].filter(x=>x.id!==state.detailId);if(key==="menus")persistMenuWorkspace();state.detailId=null;state.detailType=null;}}
     render();
   }
@@ -488,7 +489,7 @@
     }
     if(d==="menu"||d==="edit-menu"){
       const name=String(data.get("name")||"").trim();if(!name){form.elements.name.reportValidity();return;}
-      const type=data.get("type")===t("oneTime")?"one-time":"reusable",category=categoryFor("menu",String(data.get("category")||"").trim());
+      const type=data.get("type")===t("oneTime")?"one-time":"reusable",category=categoryFor("menu",String((d==="edit-menu"&&String(data.get("categoryNew")||"").trim())||data.get("category")||"").trim());
       const image=state.pendingImageData||(d==="edit-menu"?state.menus.find(x=>x.id===state.editId)?.image:"")||"";
       if(type==="one-time"){
         const quantity=Number(data.get("quantity")),unit=String(data.get("saleUnit")||"").trim(),unitPrice=Number(data.get("unitPrice")),discount=Number(data.get("discount")||0),date=String(data.get("saleDate")||""),time=String(data.get("saleTime")||"");
