@@ -178,3 +178,36 @@ test("the scoped worker serves the UI shell after offline navigation", async ({ 
   await expect(page.locator("#connection-status")).toContainText("Offline");
   await context.setOffline(false);
 });
+
+
+test("Ingredients supports a minimal create form, list, search, and category filter", async ({ page }) => {
+  await page.goto("./");
+  await page.getByRole("button", { name: "Manage Mode" }).click();
+  await page.locator('#sidebar-content [data-page="ingredients"]').evaluate(element => element.click());
+  const ingredients = page.locator("#page-content .ingredients-page");
+  await expect(ingredients.getByRole("heading", { name: "Ingredients" })).toBeVisible();
+  await ingredients.getByRole("button", { name: "Create Ingredient" }).click();
+  const form = page.locator("#page-content #record-form");
+  await expect(form.locator('input[name="category"]')).toBeVisible();
+  await expect(form.locator('input[name="name"]')).toBeVisible();
+  await expect(form.locator("input, select, textarea")).toHaveCount(2);
+  await form.locator('input[name="category"]').fill("Shared Consumables");
+  await form.locator('input[name="name"]').fill("Cooking Oil");
+  await form.getByRole("button", { name: "Create" }).click();
+  await expect(ingredients.locator(".ingredient-list-row")).toHaveCount(1);
+  await expect(ingredients.locator(".ingredient-list-row")).toContainText("Cooking Oil");
+  await expect(ingredients.locator(".ingredient-list-row")).toContainText("Shared Consumables");
+  await ingredients.getByRole("button", { name: "Create Ingredient" }).click();
+  const secondForm = page.locator("#page-content #record-form");
+  await secondForm.locator('input[name="category"]').fill("Direct Ingredient");
+  await secondForm.locator('input[name="name"]').fill("Rice");
+  await secondForm.getByRole("button", { name: "Create" }).click();
+  await expect(ingredients.locator(".ingredient-list-row")).toHaveCount(2);
+  await ingredients.locator("#ingredient-search").fill("Oil");
+  await expect(ingredients.locator(".ingredient-list-row")).toHaveCount(1);
+  await expect(ingredients.locator(".ingredient-list-row")).toContainText("Cooking Oil");
+  await ingredients.locator("#ingredient-search").fill("");
+  await ingredients.locator("#ingredient-category-filter").selectOption("Direct Ingredient");
+  await expect(ingredients.locator(".ingredient-list-row")).toHaveCount(1);
+  await expect(ingredients.locator(".ingredient-list-row")).toContainText("Rice");
+});
