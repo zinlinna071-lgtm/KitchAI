@@ -85,8 +85,10 @@ test("Manage Mode exposes seven pages, preserves the Dashboard shell, and opens 
   const menuForm = page.locator("#page-content #record-form");
   await expect(menuForm.getByRole("heading", { name: "Create Menu" })).toHaveCount(0);
   await expect(menuForm.locator('select[name="category"]')).toBeVisible();
-  await expect(menuForm.locator('select[name="category"] option')).toHaveCount(1);
+  await expect(menuForm.locator('select[name="category"] option')).toHaveCount(2);
   await expect(menuForm.locator('select[name="category"] option').filter({ hasText: "Default" })).toHaveCount(0);
+  await expect(menuForm.locator('input[name="categoryNew"]')).toBeHidden();
+  await menuForm.locator('select[name="category"]').selectOption("__new_category__");
   await expect(menuForm.locator('input[name="categoryNew"]')).toBeVisible();
   await expect(menuForm.locator('input[name="name"]')).toBeVisible();
   await expect(menuForm.locator('input[name="price"]')).toBeVisible();
@@ -102,8 +104,12 @@ test("Manage Mode exposes seven pages, preserves the Dashboard shell, and opens 
   await menu.getByRole("button", { name: "Create Menu" }).click();
   const secondMenuForm = page.locator("#page-content #record-form");
   await expect(secondMenuForm.locator('select[name="category"] option[value="Rice Rolls"]')).toHaveCount(1);
+  await expect(secondMenuForm.locator('input[name="categoryNew"]')).toBeHidden();
   await secondMenuForm.locator('select[name="category"]').selectOption("Rice Rolls");
   await expect(secondMenuForm.locator('select[name="category"]')).toHaveValue("Rice Rolls");
+  await expect(secondMenuForm.locator('input[name="categoryNew"]')).toBeHidden();
+  await secondMenuForm.locator('select[name="category"]').selectOption("__new_category__");
+  await expect(secondMenuForm.locator('input[name="categoryNew"]')).toBeVisible();
   await secondMenuForm.getByRole("button", { name: "Cancel" }).click();
   await expect(menu.locator("#menu-search")).toBeVisible();
   await expect(menu.locator("#menu-category-filter")).toBeVisible();
@@ -127,8 +133,11 @@ test("Manage Mode exposes seven pages, preserves the Dashboard shell, and opens 
   const editForm = page.locator("#page-content #record-form");
   await expect(editForm.locator('select[name="category"]')).toBeVisible();
   await expect(editForm.locator('select[name="category"] option[value="Rice Rolls"]')).toHaveCount(1);
-  await expect(editForm.locator('input[name="categoryNew"]')).toBeVisible();
+  await expect(editForm.locator('input[name="categoryNew"]')).toBeHidden();
   await editForm.locator('select[name="category"]').selectOption("Rice Rolls");
+  await expect(editForm.locator('input[name="categoryNew"]')).toBeHidden();
+  await editForm.locator('select[name="category"]').selectOption("__new_category__");
+  await expect(editForm.locator('input[name="categoryNew"]')).toBeVisible();
   await expect(editForm.locator('input[name="name"]')).toHaveValue("Seaweed Rice Roll");
   await expect(editForm.locator('input[name="price"]')).toHaveValue("35");
   await expect(editForm.locator('input[name="type"]')).toHaveCount(0);
