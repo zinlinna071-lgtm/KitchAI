@@ -85,7 +85,8 @@ test("Manage Mode exposes seven pages, preserves the Dashboard shell, and opens 
   const menuForm = page.locator("#page-content #record-form");
   await expect(menuForm.getByRole("heading", { name: "Create Menu" })).toHaveCount(0);
   await expect(menuForm.locator('select[name="category"]')).toBeVisible();
-  await expect(menuForm.locator('select[name="category"] option')).toHaveCount(2);
+  await expect(menuForm.locator('select[name="category"] option')).toHaveCount(1);
+  await expect(menuForm.locator('select[name="category"] option').filter({ hasText: "Default" })).toHaveCount(0);
   await expect(menuForm.locator('input[name="categoryNew"]')).toBeVisible();
   await expect(menuForm.locator('input[name="name"]')).toBeVisible();
   await expect(menuForm.locator('input[name="price"]')).toBeVisible();
@@ -98,6 +99,12 @@ test("Manage Mode exposes seven pages, preserves the Dashboard shell, and opens 
   await menuForm.getByRole("button", { name: "Save" }).click();
   await expect(menu.getByText("Seaweed Rice Roll")).toBeVisible();
   await expect(menu.locator('#menu-category-filter option[value="Rice Rolls"]')).toHaveCount(1);
+  await menu.getByRole("button", { name: "Create Menu" }).click();
+  const secondMenuForm = page.locator("#page-content #record-form");
+  await expect(secondMenuForm.locator('select[name="category"] option[value="Rice Rolls"]')).toHaveCount(1);
+  await secondMenuForm.locator('select[name="category"]').selectOption("Rice Rolls");
+  await expect(secondMenuForm.locator('select[name="category"]')).toHaveValue("Rice Rolls");
+  await secondMenuForm.getByRole("button", { name: "Cancel" }).click();
   await expect(menu.locator("#menu-search")).toBeVisible();
   await expect(menu.locator("#menu-category-filter")).toBeVisible();
   await expect(menu.locator(".menu-list-row")).toHaveCount(1);
