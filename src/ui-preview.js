@@ -489,7 +489,7 @@
     }
     if(d==="menu"||d==="edit-menu"){
       const name=String(data.get("name")||"").trim();if(!name){form.elements.name.reportValidity();return;}
-      const type=data.get("type")===t("oneTime")?"one-time":"reusable";const categoryChoice=String(data.get("category")||"").trim();const categoryName=categoryChoice==="__new_category__"?String(data.get("categoryNew")||"").trim():categoryChoice;const category=categoryFor("menu",categoryName);
+      const type=data.get("type")===t("oneTime")?"one-time":"reusable";const categoryChoice=String(data.get("category")||"").trim();const categoryName=categoryChoice==="__new_category__"?String(data.get("categoryNew")||"").trim():categoryChoice;const category=categoryFor("menu",categoryName);if(!categoryName){form.elements.category.reportValidity();return;}
       const image=state.pendingImageData||(d==="edit-menu"?state.menus.find(x=>x.id===state.editId)?.image:"")||"";
       if(type==="one-time"){
         const quantity=Number(data.get("quantity")),unit=String(data.get("saleUnit")||"").trim(),unitPrice=Number(data.get("unitPrice")),discount=Number(data.get("discount")||0),date=String(data.get("saleDate")||""),time=String(data.get("saleTime")||"");
