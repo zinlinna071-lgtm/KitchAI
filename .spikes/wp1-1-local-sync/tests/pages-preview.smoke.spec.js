@@ -208,7 +208,7 @@ test("Ingredients supports category choices, details, edit, delete, search, and 
   await expect(detail).toContainText("Shared Consumables");
   await expect(detail.getByRole("button", { name: "Edit" })).toBeVisible();
   await expect(detail.getByRole("button", { name: "Delete" })).toBeVisible();
-  await expect(detail.locator(".ui-card p")).toHaveCount(1);
+  await expect(detail.locator(".ui-card p")).toHaveCount(2);
 
   await detail.getByRole("button", { name: "Edit" }).click();
   form = page.locator("#page-content #record-form");
